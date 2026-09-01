@@ -1,0 +1,51 @@
+return {
+  AVG_BtnCancel = "取 消",
+  AVG_BtnConfim = "確定",
+  AVG_ImportantChoice = "選項%d",
+  AVG_ImportantChoice_BE = "通往壞結局",
+  AVG_ImportantChoice_Choosed = "已選擇過此選項",
+  AVG_ImportantChoice_Disable = "此分支無法選擇",
+  AVG_ImportantChoice_Match = "此分支對應選項",
+  AVG_ImportantChoice_UnknownDesc = "是漏掉了什麼嗎？",
+  AVG_ImportantChoice_UnknownTitle = "未知的線索",
+  AVG_Log_Choice_Title = "%s選擇了",
+  AVG_Log_Thought_Title = "%s心想...",
+  AVG_Log_Title = "紀錄",
+  AVG_PersonalityChoice_Choosed = "上次選擇",
+  Menu_HideUI = "隱藏介面",
+  Menu_Log = "紀錄",
+  Menu_Skip = "跳過",
+  SEX = {
+    ["==SEX10=="] = {"姐妹", "姐弟"},
+    ["==SEX11=="] = {"老太太", "老頭子"},
+    ["==SEX12=="] = {"脖頸", "腰間"},
+    ["==SEX13=="] = {
+      "白髮女孩",
+      "黑髮男孩"
+    },
+    ["==SEX14=="] = {"白髮", "黑髮"},
+    ["==SEX15=="] = {"姑娘", "小夥"},
+    ["==SEX16=="] = {"魔女", "男巫"},
+    ["==SEX17=="] = {"少女", "少年"},
+    ["==SEX18=="] = {"裙子", "褲子"},
+    ["==SEX19=="] = {"女僕", "管家"},
+    ["==SEX1=="] = {"她", "他"},
+    ["==SEX20=="] = {
+      "襯衫",
+      "內搭衣物"
+    },
+    ["==SEX21=="] = {"小姐", "小哥"},
+    ["==SEX2=="] = {"姐姐", "哥哥"},
+    ["==SEX3=="] = {"大姐姐", "大哥哥"},
+    ["==SEX4=="] = {"妹妹", "弟弟"},
+    ["==SEX5=="] = {"小妹妹", "小弟弟"},
+    ["==SEX6=="] = {"女皇", "國王"},
+    ["==SEX7=="] = {"小姐", "先生"},
+    ["==SEX8=="] = {"公主", "王子"},
+    ["==SEX9=="] = {"小女孩", "小男孩"},
+    ["==SEX=="] = {"女士", "先生"}
+  },
+  SkipBETips = " 跳過結局後，將返回上一個選項。是否確認？",
+  SkipTips = "確定跳過這個劇情嗎？",
+  SkipWinTitle = "跳過劇情"
+}
