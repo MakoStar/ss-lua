@@ -1206,13 +1206,13 @@ return {
   },
   {
     id = "avg3_223",
-    name = "***",
+    name = "Caterine",
     name_bg_color = "#ecd09f",
     ver = "1.15.0"
   },
   {
     id = "avg3_224",
-    name = "***",
+    name = "Vivian",
     name_bg_color = "#73a4c8",
     ver = "1.15.0"
   },

@@ -171,7 +171,7 @@ return {
   {
     id = 137,
     icon = "Icon/Head/head_13701_S",
-    name = "***",
+    name = "Eleanor",
     landmark = "The Fitzroy Family Mansion, Gold District, Emor",
     signature = "Shopaholic!",
     ver = "1.15.0"
