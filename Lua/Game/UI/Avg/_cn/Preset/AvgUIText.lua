@@ -8,6 +8,8 @@ return {
   AVG_ImportantChoice_Match = "此分支对应选项",
   AVG_ImportantChoice_UnknownDesc = "是漏掉了什么吗？",
   AVG_ImportantChoice_UnknownTitle = "未知的线索",
+  AVG_ImportantChoice_NewChoiceTips1 = "新的选择出现了",
+  AVG_ImportantChoice_NewChoiceTips2 = "最后的选择",
   AVG_Log_Choice_Title = "%s 选择了",
   AVG_Log_Thought_Title = "%s 心想......",
   AVG_Log_Title = "记录",

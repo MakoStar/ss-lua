@@ -8247,7 +8247,7 @@ return {
     cmd = "SetTalk",
     param = {
       0,
-      "avg1_132",
+      "avg1_112",
       "==PLAYER_NAME==，来一下。",
       0,
       "",

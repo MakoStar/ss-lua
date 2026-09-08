@@ -27,7 +27,7 @@ return {
     cmd = "SetBg",
     param = {
       0,
-      "ruin_travellers_home_inside",
+      "travellers_home_inside",
       "0",
       "Linear",
       0.0,
@@ -1050,7 +1050,7 @@ return {
     cmd = "SetBg",
     param = {
       0,
-      "ruin_travellers_home_inside",
+      "travellers_home_inside",
       "0",
       "Linear",
       1.0,

@@ -169,6 +169,14 @@ return {
     signature = "无图无真相"
   },
   {
+    id = 137,
+    icon = "Icon/Head/head_13701_S",
+    name = "埃莉诺",
+    landmark = "埃摩金城区菲茨罗伊家族大宅",
+    signature = "买买买！",
+    ver = "1.15.0"
+  },
+  {
     id = 138,
     icon = "Icon/Head/head_13801_S",
     name = "星雁",
@@ -291,6 +299,13 @@ return {
     name = "红宝石",
     landmark = "联合种业菲莱分公司",
     signature = "胸怀大志气昂昂~"
+  },
+  {
+    id = 3223,
+    icon = "Icon/Head/head_npc22301_S",
+    name = "卡特琳",
+    landmark = "",
+    signature = ""
   },
   {
     id = 999,
