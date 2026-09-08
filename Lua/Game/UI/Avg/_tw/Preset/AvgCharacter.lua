@@ -327,7 +327,7 @@ return {
   {
     id = "avg1_161",
     name = "***",
-    name_bg_color = "#f4e0d7",
+    name_bg_color = "#0ABEC5",
     reuse = "avg3_161",
     ver = "2.1.0"
   },
@@ -1222,13 +1222,13 @@ return {
   },
   {
     id = "avg3_223",
-    name = "***",
+    name = "卡特琳",
     name_bg_color = "#ecd09f",
     ver = "1.15.0"
   },
   {
     id = "avg3_224",
-    name = "***",
+    name = "薇薇安",
     name_bg_color = "#73a4c8",
     ver = "1.15.0"
   },

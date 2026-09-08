@@ -1161,7 +1161,7 @@ return {
     cmd = "SetTalk",
     param = {
       0,
-      "",
+      "小雨",
       "",
       1,
       "",
@@ -8247,7 +8247,7 @@ return {
     cmd = "SetTalk",
     param = {
       0,
-      "avg1_132",
+      "avg1_112",
       "",
       0,
       "",

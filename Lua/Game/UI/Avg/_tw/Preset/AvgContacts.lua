@@ -171,7 +171,7 @@ return {
   {
     id = 137,
     icon = "Icon/Head/head_13701_S",
-    name = "***",
+    name = "埃莉諾",
     landmark = "埃摩金城區菲茨羅伊家族大宅",
     signature = "買買買！",
     ver = "1.15.0"
