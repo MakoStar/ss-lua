@@ -327,7 +327,7 @@ return {
   {
     id = "avg1_161",
     name = "***",
-    name_bg_color = "#f4e0d7",
+    name_bg_color = "#0ABEC5",
     reuse = "avg3_161",
     ver = "2.1.0"
   },
@@ -1222,13 +1222,13 @@ return {
   },
   {
     id = "avg3_223",
-    name = "***",
+    name = "카트린",
     name_bg_color = "#ecd09f",
     ver = "1.15.0"
   },
   {
     id = "avg3_224",
-    name = "***",
+    name = "비비안",
     name_bg_color = "#73a4c8",
     ver = "1.15.0"
   },
@@ -3115,6 +3115,20 @@ return {
     name_bg_color = "#0ABEC5",
     reuse = "avg2_940",
     ver = "2.2.0"
+  },
+  {
+    id = "avg3_1325",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_219",
+    ver = "1.16.0"
+  },
+  {
+    id = "avg3_1326",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_219",
+    ver = "1.16.0"
   },
   {
     id = "avg4_100",

@@ -171,7 +171,7 @@ return {
   {
     id = 137,
     icon = "Icon/Head/head_13701_S",
-    name = "***",
+    name = "엘레노어",
     landmark = "아모르 골드 에리어 피츠로이가문 대저택",
     signature = "구매! 구매! 구매!",
     ver = "1.15.0"
