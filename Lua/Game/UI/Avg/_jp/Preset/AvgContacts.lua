@@ -169,6 +169,14 @@ return {
     signature = "強請りはやってません本当です"
   },
   {
+    id = 137,
+    icon = "Icon/Head/head_13701_S",
+    name = "エレノア",
+    landmark = "アモール-ゴールドエリア-フィッツロイ家の大邸宅",
+    signature = "買わずに後悔するより買って後悔",
+    ver = "1.15.0"
+  },
+  {
     id = 138,
     icon = "Icon/Head/head_13801_S",
     name = "ニュクス",
@@ -291,6 +299,13 @@ return {
     name = "ルビィ",
     landmark = "アグリ・ユニオン-フィーリエ支部",
     signature = "ルビィのグングン伸びルビィ体操"
+  },
+  {
+    id = 3223,
+    icon = "Icon/Head/head_npc22301_S",
+    name = "カトリーヌ",
+    landmark = "",
+    signature = ""
   },
   {
     id = 999,
