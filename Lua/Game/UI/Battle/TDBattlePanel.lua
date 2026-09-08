@@ -38,6 +38,10 @@ TDBattlePanel._tbDefine = {
   {
     sPrefabPath = "Battle/SubSkillDisplay.prefab",
     sCtrlName = "Game.UI.Battle.SubSkillDisplay.SubSkillDisplayCtrl"
+  },
+  {
+    sPrefabPath = "Battle/EnergyBattleUI.prefab",
+    sCtrlName = "Game.UI.Battle.TDBatttle.EnergyBattleCtrl"
   }
 }
 

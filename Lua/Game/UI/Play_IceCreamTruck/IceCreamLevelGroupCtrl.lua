@@ -91,7 +91,6 @@ function IceCreamLevelGroupCtrl:OnDisable()
 end
 
 function IceCreamLevelGroupCtrl:OnDestroy()
-  self:UnregisterGroupSpines()
 end
 
 function IceCreamLevelGroupCtrl:RefreshLevelTime(remainTime)
@@ -166,50 +165,38 @@ end
 function IceCreamLevelGroupCtrl:RegisterGroupSpines()
   local objSpine = self._mapNode.SpRoot_Island
   if objSpine ~= nil then
-    local nId = SpineManager.Bind(objSpine)
-    if nId ~= nil then
-      self.GroupId = nId
-      if self.bLock then
-        SpineManager.PlayAnim(nId, "lock", true)
-      else
-        SpineManager.PlayAnim(nId, "idle", true)
-      end
+    if self.bLock then
+      SpineManager.PlayAnim(objSpine, "lock", true)
+    else
+      SpineManager.PlayAnim(objSpine, "idle", true)
     end
   end
 end
 
-function IceCreamLevelGroupCtrl:UnregisterGroupSpines()
-  if self.GroupId == nil then
-    return
-  end
-  SpineManager.Unbind(self.GroupId)
-  self.GroupId = nil
-end
-
 function IceCreamLevelGroupCtrl:ClickIn_Spine()
-  if self.GroupId == nil then
-    return
+  local objSpine = self._mapNode.SpRoot_Island
+  if objSpine ~= nil then
+    self:SetStatusSwitch(objSpine, "in", false, "idle2")
   end
-  self:SetStatusSwitch(self.GroupId, "in", false, "idle2")
 end
 
 function IceCreamLevelGroupCtrl:ClickOut_Spine()
-  if self.GroupId == nil then
-    return
+  local objSpine = self._mapNode.SpRoot_Island
+  if objSpine ~= nil then
+    self:SetStatusSwitch(objSpine, "out", false, "idle")
   end
-  self:SetStatusSwitch(self.GroupId, "out", false, "idle")
 end
 
-function IceCreamLevelGroupCtrl:SetStatusSwitch(CurSpineId, sState, bLoop, sNextLoop)
-  if not CurSpineId then
+function IceCreamLevelGroupCtrl:SetStatusSwitch(objSpine, sState, bLoop, sNextLoop)
+  if not objSpine then
     return
   end
   if bLoop == nil then
     bLoop = true
   end
-  SpineManager.PlayAnim(CurSpineId, sState, bLoop)
+  SpineManager.PlayAnim(objSpine, sState, bLoop)
   if not bLoop and sNextLoop then
-    SpineManager.AddAnim(CurSpineId, sNextLoop, true, 0)
+    SpineManager.AddAnim(objSpine, sNextLoop, true, 0)
   end
 end
 

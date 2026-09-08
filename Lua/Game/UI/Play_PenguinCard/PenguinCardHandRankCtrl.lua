@@ -84,12 +84,12 @@ end
 function PenguinCardHandRankCtrl:Close()
   self._mapNode.aniWindow:Play("t_window_04_t_out")
   self._mapNode.aniBlur:SetTrigger("tOut")
+  EventManager.Hit(EventId.TemporaryBlockInput, 0.2)
   self:AddTimer(1, 0.2, function()
     self._mapNode.window:SetActive(false)
     self.gameObject:SetActive(false)
     self._panel.mapLevel:Resume()
   end, true, true, true)
-  EventManager.Hit(EventId.TemporaryBlockInput, 0.2)
 end
 
 function PenguinCardHandRankCtrl:Awake()

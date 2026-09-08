@@ -35,7 +35,7 @@ function TowerDefenseCharacterFuncCtrl:SetData(levelData)
   self.TowerDefenseLevelData = levelData
 end
 
-function TowerDefenseCharacterFuncCtrl:BindFuncIcon(characterId, uiPos, detailCallback, levelupCallback)
+function TowerDefenseCharacterFuncCtrl:BindFuncIcon(characterId, uiPos, detailCallback, levelupCallback, henshinCallback)
   if self.UseFuncGo[characterId] ~= nil then
     return
   end
@@ -47,10 +47,13 @@ function TowerDefenseCharacterFuncCtrl:BindFuncIcon(characterId, uiPos, detailCa
   go:SetActive(false)
   local btn_detail = go.transform:Find("btn_detail"):GetComponent("NaviButton")
   local btn_LevelUp = go.transform:Find("btn_levelUp"):GetComponent("NaviButton")
+  local btn_henshin = go.transform:Find("btn_henshin"):GetComponent("NaviButton")
   btn_detail.onClick:RemoveAllListeners()
   btn_LevelUp.onClick:RemoveAllListeners()
+  btn_henshin.onClick:RemoveAllListeners()
   btn_detail.onClick:AddListener(detailCallback)
   btn_LevelUp.onClick:AddListener(levelupCallback)
+  btn_henshin.onClick:AddListener(henshinCallback)
   local tbGamepadUINode = {
     [1] = {
       mapNode = btn_detail,
@@ -61,6 +64,11 @@ function TowerDefenseCharacterFuncCtrl:BindFuncIcon(characterId, uiPos, detailCa
       mapNode = btn_LevelUp,
       sComponentName = "NaviButton",
       sAction = "TowerDefCharLvUp"
+    },
+    [3] = {
+      mapNode = btn_henshin,
+      sComponentName = "NaviButton",
+      sAction = "TowerDefCharHenshin"
     }
   }
   GamepadUIManager.AddGamepadUINode("TowerDefense", tbGamepadUINode)
@@ -76,8 +84,10 @@ function TowerDefenseCharacterFuncCtrl:HideIcon()
   local go = self.UseFuncGo[self.nCharacterId]
   local btn_detail = go.transform:Find("btn_detail"):GetComponent("NaviButton")
   local btn_LevelUp = go.transform:Find("btn_levelUp"):GetComponent("NaviButton")
+  local btn_henshin = go.transform:Find("btn_henshin"):GetComponent("NaviButton")
   NovaAPI.SetNaviButtonAction(btn_detail, false)
   NovaAPI.SetNaviButtonAction(btn_LevelUp, false)
+  NovaAPI.SetNaviButtonAction(btn_henshin, false)
   self._mapNode.btn_close.gameObject:SetActive(false)
   local animator = go:GetComponent("Animator")
   animator:Play("go_CharFunc_out")
@@ -103,6 +113,8 @@ function TowerDefenseCharacterFuncCtrl:ShowIcon(characterId)
   if config == nil then
     return
   end
+  local btn_henshin = go.transform:Find("btn_henshin")
+  btn_henshin.gameObject:SetActive(false)
   if level < 6 then
     if not self.bIsShowLevelBtn then
       btn_LevelUp.gameObject:SetActive(false)
@@ -122,6 +134,9 @@ function TowerDefenseCharacterFuncCtrl:ShowIcon(characterId)
     end
   else
     btn_LevelUp.gameObject:SetActive(false)
+    if config.IsShapeshifter then
+      btn_henshin.gameObject:SetActive(true)
+    end
   end
   go:SetActive(true)
   self._mapNode.btn_close.gameObject:SetActive(true)
@@ -147,6 +162,8 @@ function TowerDefenseCharacterFuncCtrl:UpdateFunc(characterId, go)
     return
   end
   local btn_LevelUp = go.transform:Find("btn_levelUp"):GetComponent("NaviButton")
+  local btn_henshin = go.transform:Find("btn_henshin")
+  btn_henshin.gameObject:SetActive(false)
   if level < 6 then
     btn_LevelUp.gameObject:SetActive(true)
     local icon_levelUp = go.transform:Find("btn_levelUp/AnimRoot/img_levelUp")
@@ -165,6 +182,9 @@ function TowerDefenseCharacterFuncCtrl:UpdateFunc(characterId, go)
     end
   else
     btn_LevelUp.gameObject:SetActive(false)
+    if config.IsShapeshifter then
+      btn_henshin.gameObject:SetActive(true)
+    end
   end
 end
 

@@ -347,11 +347,4 @@ function TransitionCtrl:Set_22(goStyle, nParam)
   showImage.gameObject:SetActive(true)
 end
 
-function TransitionCtrl:Set_53(goStyle, nParam)
-  local normalChess = goStyle.transform:Find("Chess/NormalChess")
-  local harChess = goStyle.transform:Find("Chess/HarChess")
-  normalChess.gameObject:SetActive(nParam == 10101)
-  harChess.gameObject:SetActive(nParam == 10201)
-end
-
 return TransitionCtrl

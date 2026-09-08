@@ -5,6 +5,7 @@ local PlayerDiscData = class("PlayerDiscData")
 
 function PlayerDiscData:Init()
   self._mapDisc = {}
+  self._mapLimitedTrialDisc = {}
   self.nMaxBreakLimitMat = 5
   self:ProcessTableData()
 end
@@ -972,6 +973,94 @@ end
 
 function PlayerDiscData:CalcTrialInfoInBuild(nTrialId, tbSecondarySkill)
   local discData = self._mapTrialDisc[nTrialId]
+  local discInfo = CS.Lua2CSharpInfo_DiscInfo()
+  if discData == nil then
+    return discInfo
+  end
+  local tbSkillInfo = {}
+  for _, v in ipairs(tbSecondarySkill) do
+    local mapSubCfg = ConfigTable.GetData("SecondarySkill", v, true)
+    if mapSubCfg and table.indexof(discData.tbSubSkillGroupId, mapSubCfg.GroupId) > 0 then
+      local skillInfo = CS.Lua2CSharpInfo_DiscSkillInfo()
+      skillInfo.skillId = v
+      skillInfo.skillLevel = mapSubCfg.Level
+      table.insert(tbSkillInfo, skillInfo)
+    end
+  end
+  local mapMainCfg = ConfigTable.GetData("MainSkill", discData.nMainSkillId, true)
+  if mapMainCfg then
+    local skillInfo = CS.Lua2CSharpInfo_DiscSkillInfo()
+    skillInfo.skillId = discData.nMainSkillId
+    skillInfo.skillLevel = 1
+    table.insert(tbSkillInfo, skillInfo)
+  end
+  discInfo.discId = discData.nId
+  discInfo.discScript = discData.sSkillScript
+  discInfo.skillInfos = tbSkillInfo
+  discInfo.discLevel = discData.nLevel
+  return discInfo
+end
+
+function PlayerDiscData:CreateLimitedTrialDisc(tbTrialId)
+  for _, nTrialId in ipairs(tbTrialId) do
+    local mapCfg = ConfigTable.GetData("TrialDisc", nTrialId)
+    if mapCfg == nil then
+      printError("限时试用星盘数据没有找到：" .. nTrialId)
+      return
+    end
+    local discData = self:GenerateLocalDiscData(mapCfg.DiscId, 0, mapCfg.Level, mapCfg.Phase, mapCfg.Star)
+    self._mapLimitedTrialDisc[nTrialId] = discData
+  end
+end
+
+function PlayerDiscData:GetLimitedTrialDiscById(nId)
+  if not nId then
+    return
+  end
+  if self._mapLimitedTrialDisc == nil or self._mapLimitedTrialDisc[nId] == nil then
+    printLog(string.format("该限时试用星盘不存在, 唯一Id: %d", nId))
+    return
+  end
+  return self._mapLimitedTrialDisc[nId]
+end
+
+function PlayerDiscData:DeleteLimitedTrialDisc()
+  self._mapLimitedTrialDisc = {}
+end
+
+function PlayerDiscData:CalcLimitedTrialEffectInBuild(nTrialId, tbSecondarySkill)
+  local discData = self._mapLimitedTrialDisc[nTrialId]
+  local tbEffectId = {}
+  if discData == nil then
+    return tbEffectId
+  end
+  
+  local function add(tbEfId)
+    if not tbEfId then
+      return
+    end
+    for _, nEfId in pairs(tbEfId) do
+      if type(nEfId) == "number" and 0 < nEfId then
+        table.insert(tbEffectId, {nEfId, 0})
+      end
+    end
+  end
+  
+  local mapMainCfg = ConfigTable.GetData("MainSkill", discData.nMainSkillId)
+  if mapMainCfg then
+    add(mapMainCfg.EffectId)
+  end
+  for _, v in ipairs(tbSecondarySkill) do
+    local mapSubCfg = ConfigTable.GetData("SecondarySkill", v)
+    if mapSubCfg and table.indexof(discData.tbSubSkillGroupId, mapSubCfg.GroupId) > 0 then
+      add(mapSubCfg.EffectId)
+    end
+  end
+  return tbEffectId
+end
+
+function PlayerDiscData:CalcLimitedTrialInfoInBuild(nTrialId, tbSecondarySkill)
+  local discData = self._mapLimitedTrialDisc[nTrialId]
   local discInfo = CS.Lua2CSharpInfo_DiscInfo()
   if discData == nil then
     return discInfo

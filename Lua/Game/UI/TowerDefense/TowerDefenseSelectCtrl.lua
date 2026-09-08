@@ -242,6 +242,16 @@ function TowerDefenseSelectCtrl:PlayGridAnim()
 end
 
 function TowerDefenseSelectCtrl:OnBtnClick_Guide()
+  if not self.TowerDefenseData:CheckActivityOpen() then
+    EventManager.Hit(EventId.OpenMessageBox, {
+      nType = AllEnum.MessageBox.Alert,
+      sContent = ConfigTable.GetUIText("Activity_End_Notice"),
+      callbackConfirm = function()
+        PanelManager.Home()
+      end
+    })
+    return
+  end
   self._mapNode.blur.gameObject:SetActive(true)
   self._mapNode.guidPanel.gameObject:SetActive(true)
   self._mapNode.guidPanel:SetData(self.nActId)
@@ -280,6 +290,16 @@ function TowerDefenseSelectCtrl:OnBtnClick_Story()
 end
 
 function TowerDefenseSelectCtrl:OnBtnClick_Quest()
+  if not self.TowerDefenseData:CheckActivityOpen() then
+    EventManager.Hit(EventId.OpenMessageBox, {
+      nType = AllEnum.MessageBox.Alert,
+      sContent = ConfigTable.GetUIText("Activity_End_Notice"),
+      callbackConfirm = function()
+        PanelManager.Home()
+      end
+    })
+    return
+  end
   self._mapNode.blur.gameObject:SetActive(true)
   self._mapNode.questPanel.gameObject:SetActive(true)
   self._mapNode.questPanel:PlayAnim_In()
@@ -287,6 +307,16 @@ function TowerDefenseSelectCtrl:OnBtnClick_Quest()
 end
 
 function TowerDefenseSelectCtrl:OnEvent_LevelSelected(nLevelId)
+  if not self.TowerDefenseData:CheckActivityOpen() then
+    EventManager.Hit(EventId.OpenMessageBox, {
+      nType = AllEnum.MessageBox.Alert,
+      sContent = ConfigTable.GetUIText("Activity_End_Notice"),
+      callbackConfirm = function()
+        PanelManager.Home()
+      end
+    })
+    return
+  end
   if not self.TowerDefenseData:IsLevelUnlock(nLevelId) then
     return
   end

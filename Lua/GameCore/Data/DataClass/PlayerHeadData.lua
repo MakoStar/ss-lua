@@ -67,6 +67,11 @@ function PlayerHeadData:SendGetHeadListMsg(callback)
   local function netCallback(_, netMsgData)
     for nId, v in pairs(self.tbHeadList) do
       v.bUnlock = table.indexof(netMsgData.List, nId) > 0
+      
+      local bRedDot = RedDotManager.GetValid(RedDotDefine.Friend_Head_Item, nId)
+      if bRedDot and not v.bUnlock then
+        RedDotManager.SetValid(RedDotDefine.Friend_Head_Item, nId, false)
+      end
     end
     if callback ~= nil then
       callback()

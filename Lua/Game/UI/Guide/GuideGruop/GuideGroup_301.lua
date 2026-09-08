@@ -53,7 +53,7 @@ end
 
 function GuideGroup_301:Step_1()
   self.msg = {
-    BindIcon = "PenguinCardPanel/----SafeAreaRoot----/---Prepare---/--Card--",
+    BindIcon = "PenguinCard_Normal/----SafeAreaRoot----/---Prepare---/--Card--",
     Deviation = {0, 0},
     Head = "Icon/Head/head_917401",
     Desc = "Guide_301_1",
@@ -68,7 +68,7 @@ end
 
 function GuideGroup_301:Step_2()
   self.msg = {
-    BindIcon = "PenguinCardPanel/----SafeAreaRoot----/---Slot---/--Card--",
+    BindIcon = "PenguinCard_Normal/----SafeAreaRoot----/---Slot---/--Card--",
     Size = {1350, 330},
     Deviation = {0, -30},
     Head = "Icon/Head/head_917301",
@@ -83,7 +83,7 @@ end
 
 function GuideGroup_301:Step_3()
   self.msg = {
-    BindIcon = "PenguinCardPanel/----SafeAreaRoot----/---Prepare---/btnStartTurn/AnimRoot/Image",
+    BindIcon = "PenguinCard_Normal/----SafeAreaRoot----/---Prepare---/btnStartTurn/AnimRoot/Image",
     Deviation = {0, 0},
     Head = "Icon/Head/head_917301",
     Desc = "Guide_301_3",

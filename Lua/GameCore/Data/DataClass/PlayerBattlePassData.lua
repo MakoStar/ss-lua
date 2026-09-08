@@ -336,6 +336,45 @@ function PlayerBattlePassData:GetRefreshTime()
   return sTimeStr
 end
 
+function PlayerBattlePassData:GetCurrentSeasonIdFromConfig()
+  local nCurTime = CS.ClientManager.Instance.serverTimeStamp
+  local nSeasonId = 0
+  
+  local function forEach(mapData)
+    if mapData.StartTime ~= nil and mapData.EndTime ~= nil then
+      local nStart = CS.ClientManager.Instance:ISO8601StrToTimeStamp(mapData.StartTime)
+      local nEnd = CS.ClientManager.Instance:ISO8601StrToTimeStamp(mapData.EndTime)
+      if nStart <= nCurTime and nEnd > nCurTime then
+        nSeasonId = mapData.ID
+      end
+    end
+  end
+  
+  ForEachTableLine(DataTable.BattlePass, forEach)
+  return nSeasonId
+end
+
+function PlayerBattlePassData:GetRemainTime()
+  local nSeasonId = self.nSeasonId
+  if nSeasonId == 0 then
+    nSeasonId = self:GetCurrentSeasonIdFromConfig()
+    if nSeasonId == 0 then
+      return 0
+    end
+  end
+  local mapSeasonCfgData = ConfigTable.GetData("BattlePass", nSeasonId)
+  if mapSeasonCfgData == nil then
+    return 0
+  end
+  local nEndTime = CS.ClientManager.Instance:ISO8601StrToTimeStamp(mapSeasonCfgData.EndTime)
+  local curTime = CS.ClientManager.Instance.serverTimeStamp
+  local nRemainTime = nEndTime - curTime
+  if nRemainTime < 0 then
+    return 0
+  end
+  return nRemainTime
+end
+
 function PlayerBattlePassData:GetHasBattlePass()
   if self.hasData then
     return self.nSeasonId > 0

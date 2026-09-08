@@ -109,6 +109,11 @@ local function player_data_succeed_ack(mapMsgData)
   PlayerData.TutorialData:CacheTutorialData(mapMsgData.TutorialLevels)
   PlayerData.Story:CacheLastStory(mapMsgData.LastRead)
   PlayerData.Avg:CachePersonalityData(mapMsgData.PersonalityModels)
+  local bPlayCond = PlayerData.Base:CheckFunctionUnlock(GameEnum.OpenFuncType.ScoreBoss, false)
+  if bPlayCond and not PlayerData.ScoreBoss:GetInitInfoState() then
+    PlayerData.ScoreBoss:GetScoreBossInstanceData()
+  end
+  PlayerData.EventReminder:CacheAddStarTowerTicket(mapMsgData.TowerTicketGrowthBonus)
   PlayerData.Char:UpdateAllCharRecordInfoRedDot()
   if CS.SDKManager.Instance:IsSDKInit() then
     CS.SDKManager.Instance:RoleInfoUpload(tostring(PlayerData.Base._nPlayerId), PlayerData.Base._sPlayerNickName, mapMsgData.ServerTs)
@@ -1483,7 +1488,6 @@ local function BindProcessFunction()
     [NetMsgId.Id.trace_hunt_item_change_notify] = HttpNetHandlerPlus.trace_hunt_item_change_notify,
     [NetMsgId.Id.activity_ice_cream_level_settle_succeed_ack] = HttpNetHandlerPlus.activity_ice_cream_level_settle_succeed_ack,
     [NetMsgId.Id.activity_ice_cream_level_settle_failed_ack] = NOTHING_NEED_TO_BE_DONE,
-    [NetMsgId.Id.clear_all_activity_iceCream_levels_notify] = HttpNetHandlerPlus.clear_all_activity_iceCream_levels_notify,
     [NetMsgId.Id.soldier_apply_succeed_ack] = HttpNetHandlerPlus.soldier_apply_succeed_ack,
     [NetMsgId.Id.soldier_apply_failed_ack] = HttpNetHandlerPlus.soldier_apply_failed_ack,
     [NetMsgId.Id.soldier_give_up_succeed_ack] = HttpNetHandlerPlus.soldier_give_up_succeed_ack,
@@ -1493,10 +1497,10 @@ local function BindProcessFunction()
     [NetMsgId.Id.soldier_interact_succeed_ack] = HttpNetHandlerPlus.soldier_interact_succeed_ack,
     [NetMsgId.Id.soldier_interact_failed_ack] = HttpNetHandlerPlus.soldier_interact_failed_ack,
     [NetMsgId.Id.sd_soldier_info_notify] = HttpNetHandlerPlus.sd_soldier_info_notify,
+    [NetMsgId.Id.sd_buff_card_add_notify] = HttpNetHandlerPlus.sd_buff_card_add_notify,
     [NetMsgId.Id.sd_soldier_effect_notify] = HttpNetHandlerPlus.sd_soldier_effect_notify,
     [NetMsgId.Id.sd_shop_data_notify] = HttpNetHandlerPlus.sd_shop_data_notify,
-    [NetMsgId.Id.sd_item_change_notify] = HttpNetHandlerPlus.sd_item_change_notify,
-    [NetMsgId.Id.sd_buff_card_add_notify] = HttpNetHandlerPlus.sd_buff_card_add_notify
+    [NetMsgId.Id.sd_item_change_notify] = HttpNetHandlerPlus.sd_item_change_notify
   }
 end
 

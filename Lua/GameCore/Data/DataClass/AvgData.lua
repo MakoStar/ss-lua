@@ -54,39 +54,95 @@ function AvgData:Init()
     [0] = {
       n,
       n,
+      n,
       n
     },
     [1] = {
       y,
+      n,
       n,
       n
     },
     [2] = {
       n,
       y,
+      n,
       n
     },
     [3] = {
       y,
       y,
+      n,
       n
     },
     [4] = {
       n,
       n,
-      y
+      y,
+      n
     },
     [5] = {
       y,
       n,
-      y
+      y,
+      n
     },
     [6] = {
       n,
       y,
-      y
+      y,
+      n
     },
     [7] = {
+      y,
+      y,
+      y,
+      n
+    },
+    [8] = {
+      n,
+      n,
+      n,
+      y
+    },
+    [9] = {
+      y,
+      n,
+      n,
+      y
+    },
+    [10] = {
+      n,
+      y,
+      n,
+      y
+    },
+    [11] = {
+      y,
+      y,
+      n,
+      y
+    },
+    [12] = {
+      n,
+      n,
+      y,
+      y
+    },
+    [13] = {
+      y,
+      n,
+      y,
+      y
+    },
+    [14] = {
+      n,
+      y,
+      y,
+      y
+    },
+    [15] = {
+      y,
       y,
       y,
       y
@@ -636,17 +692,13 @@ function AvgData:CalcPersonality(nId)
   for i, v in ipairs(tbPData) do
     tbPData[i].nPercent = tbPData[i].nCount / nTotalCount
   end
-  local tbRetPercent = {
-    tbPData[1].nPercent,
-    tbPData[2].nPercent,
-    tbPData[3].nPercent
-  }
   local sTitle, sFace, sHead
   table.sort(tbPData, function(a, b)
     return a.nCount > b.nCount
   end)
   local nMaxIndex = tbPData[1].nIndex
   local nMaxPercent = tbPData[1].nPercent
+  local nIdx = nMaxIndex
   if 0.9 <= nMaxPercent then
     local tbTitle = {
       cfgData_SRP.Amax,
@@ -685,42 +737,41 @@ function AvgData:CalcPersonality(nId)
     sTitle = tbTitle[nMaxIndex]
     sFace = tbFace[nMaxIndex]
     sHead = tbHead[nMaxIndex]
+    nIdx = nIdx + 3
   elseif math.abs(tbPData[2].nPercent - tbPData[3].nPercent) < 0.1 then
     sTitle = cfgData_SRP.Normal
     sFace = cfgData_SRP.NormalFace
     sHead = cfgData_SRP.NormalHead
+    nIdx = 10
   else
     local tbTitleFace = {
-      {
-        tbIdxs = {1, 2},
+      [1] = {
         sTitle = cfgData_SRP.Ab,
         sFace = cfgData_SRP.AbFace,
         sHead = cfgData_SRP.AbHead
       },
-      {
-        tbIdxs = {1, 3},
+      [2] = {
         sTitle = cfgData_SRP.Ac,
         sFace = cfgData_SRP.AcFace,
         sHead = cfgData_SRP.AcHead
       },
-      {
-        tbIdxs = {2, 3},
+      [3] = {
         sTitle = cfgData_SRP.Bc,
         sFace = cfgData_SRP.BcFace,
         sHead = cfgData_SRP.BcHead
       }
     }
-    local nBiggerIndex = tbPData[2].nIndex
-    for i, v in ipairs(tbTitleFace) do
-      if 0 < table.indexof(v.tbIdxs, nMaxIndex) and 0 < table.indexof(v.tbIdxs, nBiggerIndex) then
-        sTitle = v.sTitle
-        sFace = v.sFace
-        sHead = v.sHead
-        break
-      end
-    end
+    local data = tbTitleFace[nMaxIndex]
+    sTitle = data.sTitle
+    sFace = data.sFace
+    sHead = data.sHead
+    nIdx = nMaxIndex + 6
   end
-  return tbRetPercent, sTitle, sFace, tbPData, nTotalCount, sHead
+  local tbRetPercent = {}
+  for i, v in ipairs(tbPData) do
+    tbRetPercent[v.nIndex] = v.nPercent
+  end
+  return tbRetPercent, sTitle, sFace, tbPData, nTotalCount, sHead, nIdx
 end
 
 function AvgData:SetSelBuildId(nBuildId)
@@ -901,6 +952,8 @@ function AvgData:SendMsg_STORY_DONE(callBack, tbBattleEvents)
                   n = 2
                 elseif nChoiceIndex == 3 then
                   n = 4
+                elseif nChoiceIndex == 4 then
+                  n = 8
                 end
                 table.insert(mapSendMsgData.List[i].Major, {
                   Group = nGroupId,
@@ -997,6 +1050,8 @@ function AvgData:SendMsg_STORY_DONE(callBack, tbBattleEvents)
             n = 2
           elseif nChoiceIndex == 3 then
             n = 4
+          elseif nChoiceIndex == 4 then
+            n = 8
           end
           local nCur = self.mapChosen[sAvgId][nGroupId]
           self.mapChosen[sAvgId][nGroupId] = nCur | n

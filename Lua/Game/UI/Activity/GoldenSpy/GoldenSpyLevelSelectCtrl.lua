@@ -68,7 +68,7 @@ function GoldenSpyLevelSelectCtrl:Awake()
   if type(param) == "table" then
     self.nActivityId = param[1]
   end
-  EventManager.Add(EventId.TemporaryBlockInput, 1.5)
+  EventManager.Hit(EventId.TemporaryBlockInput, 1.5)
 end
 
 function GoldenSpyLevelSelectCtrl:OnEnable()
@@ -127,7 +127,7 @@ function GoldenSpyLevelSelectCtrl:SwitchPanelTab(nTab)
     self._mapNode.LevelDetalRoot.gameObject:SetActive(false)
   elseif nTab == PanelTab.Level then
     self.animator:Play("GoldenSpyLevelSelectPanel_switch")
-    EventManager.Add(EventId.TemporaryBlockInput, 1.2)
+    EventManager.Hit(EventId.TemporaryBlockInput, 1.2)
     for i = 1, 2 do
       local levelCount = #ConfigTable.GetData("GoldenSpyLevelGroup", self._panel.nSelectGroupId).LevelList
       self._mapNode.btn_level[i].gameObject:SetActive(i <= levelCount)
@@ -276,9 +276,11 @@ function GoldenSpyLevelSelectCtrl:InitLevelData()
   local bCanGoNextGroup = false
   if nextGroupId ~= nil then
     local groupData = self.GoldenSpyActData:GetLevelGroupDataById(nextGroupId)
-    local time = CS.ClientManager.Instance.serverTimeStamp
-    if time >= groupData.nStartTime and self.GoldenSpyActData:CheckPreGroupPassByGroupId(nextGroupId) then
-      bCanGoNextGroup = true
+    if groupData ~= nil then
+      local time = CS.ClientManager.Instance.serverTimeStamp
+      if time >= groupData.nStartTime and self.GoldenSpyActData:CheckPreGroupPassByGroupId(nextGroupId) then
+        bCanGoNextGroup = true
+      end
     end
   end
   self._mapNode.btnRight.gameObject:SetActive(nextGroupId ~= nil and bCanGoNextGroup)
@@ -326,7 +328,7 @@ function GoldenSpyLevelSelectCtrl:OnBtnClick_Task()
     if mapGroupData ~= nil then
       local actData = mapGroupData:GetActivityDataByIndex(AllEnum.ActivityThemeFuncIndex.Task)
       if actData ~= nil then
-        EventManager.Hit(EventId.OpenPanel, PanelId.Task_10109, actData.ActivityId, 4)
+        EventManager.Hit(EventId.OpenPanel, PanelId.Task_10112, actData.ActivityId, 4)
       end
     end
   end

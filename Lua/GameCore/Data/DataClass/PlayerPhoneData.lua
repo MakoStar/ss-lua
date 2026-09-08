@@ -1,6 +1,8 @@
 local PlayerPhoneData = class("PlayerPhoneData")
 local ModuleManager = require("GameCore.Module.ModuleManager")
 local LocalData = require("GameCore.Data.LocalData")
+local TimerManager = require("GameCore.Timer.TimerManager")
+local PHONE_AVG_PRELOAD_TIMEOUT = 2
 
 function PlayerPhoneData:Init()
   self.tbAddressBook = {}
@@ -222,8 +224,8 @@ function PlayerPhoneData:GetAddressBookList()
       table.insert(tbChatList, chat)
     end
     if 0 < #tbChatList then
+      local lastChat = LocalData.GetPlayerLocalData("LastPhoneChatId" .. addressId)
       table.sort(tbChatList, function(a, b)
-        local lastChat = LocalData.GetPlayerLocalData("LastPhoneChatId" .. addressId)
         if a.nChatId == lastChat and a.nStatus == AllEnum.PhoneChatState.UnComplete then
           return true
         elseif b.nChatId == lastChat and b.nStatus == AllEnum.PhoneChatState.UnComplete then
@@ -784,6 +786,51 @@ function PlayerPhoneData:GetHistoryPhoneSelectionData(nChatId, chatData)
     self.tbHistorySelection[nChatId] = {}
   end
   return self.tbHistorySelection[nChatId]
+end
+
+function PlayerPhoneData:PreloadAllAddressBookChatAvg()
+  for _, addressData in pairs(self.tbAddressBook) do
+    if addressData.tbChatList ~= nil then
+      for _, chatData in pairs(addressData.tbChatList) do
+        self:EnsureChatAvgLoaded(chatData)
+      end
+    end
+  end
+end
+
+function PlayerPhoneData:PreloadPhoneAvgDataBeforeMain(callback)
+  if CS.ClientManager.Instance:GetMemoryType() then
+    if callback ~= nil then
+      callback()
+    end
+    return
+  end
+  local bCallbackDone = false
+  local timerTimeout
+  
+  local function func_Done()
+    if bCallbackDone then
+      return
+    end
+    bCallbackDone = true
+    if timerTimeout ~= nil then
+      TimerManager.Remove(timerTimeout, false)
+      timerTimeout = nil
+    end
+    if self.bInitChatData then
+      self:PreloadAllAddressBookChatAvg()
+    end
+    if callback ~= nil then
+      callback()
+    end
+  end
+  
+  if self.bInitChatData then
+    func_Done()
+    return
+  end
+  timerTimeout = TimerManager.Add(1, PHONE_AVG_PRELOAD_TIMEOUT, self, func_Done, true, true, true, nil)
+  self:SendAddressListReq(func_Done)
 end
 
 function PlayerPhoneData:GetChatMsg(chatData, nIndex)

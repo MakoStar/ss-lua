@@ -82,7 +82,8 @@ AllEnum.CharHeadIconSurfix = {
   GOODS = "_GOODS",
   QM = "_QM",
   QS = "_QS",
-  Q = "_Q"
+  Q = "_Q",
+  QSS = "_QSS"
 }
 AllEnum.CharHeadIconSurfixAutoFit = {
   _L = {
@@ -550,6 +551,11 @@ AllEnum.BuildGrade = {
   A = 2,
   B = 1,
   C = 0
+}
+AllEnum.BuildSource = {
+  Normal = 1,
+  Trial = 2,
+  LimitedTrial = 3
 }
 AllEnum.FrameColor = {
   [GameEnum.itemRarity.SSR] = "5",
@@ -1334,7 +1340,8 @@ AllEnum.RegionBossFormationType = {
   ActivityLevels = 12,
   ActivityStory = 13,
   JointDrill_2 = 14,
-  TraceHunt = 15
+  TraceHunt = 15,
+  ScoreBoss_GM = 16
 }
 AllEnum.EnergyPanelType = {
   Main = 1,
@@ -1596,13 +1603,15 @@ AllEnum.TrekkerVersusDuelSelfInfo = {
 AllEnum.PreselectionPanelType = {
   Create = 1,
   Preview = 2,
-  Edit = 3
+  Edit = 3,
+  SystemPreview = 4
 }
 AllEnum.GoldenSpyBuffType = {
   ActiveBuff = 1,
   DelayBuff = 2,
   UnactiveBuff = 3
 }
+AllEnum.GoldenSpyHookType = {Normal = 1, FishingHook = 2}
 AllEnum.GamepadIconSuffix = {Light = "", Dark = "_2"}
 AllEnum.SoldierHandbookType = {
   Character = 1,
@@ -1710,5 +1719,13 @@ AllEnum.SoldierPositionType = {
   Support = 2,
   Waiting = 3,
   Other = 4
+}
+AllEnum.TrialMode = {ActivityTrial = 1, SkinTrial = 2}
+AllEnum.ReengagementTog = {
+  Signin = 1,
+  Task = 2,
+  DoubleDrop = 3,
+  ShopMall = 4,
+  BDTrial = 5
 }
 return AllEnum

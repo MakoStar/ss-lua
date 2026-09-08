@@ -19,6 +19,7 @@ function RegionBossBattleLevel:Init(parent, nLevelId, nBuildId, isWeekBoss)
   local function GetBuildCallback(mapBuildData)
     self.mapBuildData = mapBuildData
     self.tbCharId = {}
+    self.tbCharTrialId = {}
     if mapBuildData == nil then
       local sTip = ConfigTable.GetUIText("RegionBoss_Team_Delete")
       EventManager.Hit(EventId.OpenMessageBox, sTip)
@@ -26,6 +27,7 @@ function RegionBossBattleLevel:Init(parent, nLevelId, nBuildId, isWeekBoss)
     end
     for _, mapChar in ipairs(self.mapBuildData.tbChar) do
       table.insert(self.tbCharId, mapChar.nTid)
+      self.tbCharTrialId[mapChar.nTid] = mapChar.nTrialId
     end
     self.tbDiscId = {}
     for _, nDiscId in ipairs(self.mapBuildData.tbDisc) do
@@ -300,14 +302,14 @@ end
 
 function RegionBossBattleLevel:CalCharFixedEffect(nCharId, bMainChar, tbDiscId)
   local stActorInfo = CS.Lua2CSharpInfo_CharAttribute()
-  PlayerData.Char:CalCharacterAttrBattle(nCharId, stActorInfo, bMainChar, tbDiscId, self.mapBuildData.nBuildId)
+  PlayerData.Build:CalBuildCharacterAttrBattle(self.mapBuildData.nBuildId, nCharId, self.tbCharTrialId and self.tbCharTrialId[nCharId], stActorInfo, bMainChar, tbDiscId)
   return stActorInfo
 end
 
 function RegionBossBattleLevel:SetPersonalPerk()
   if self.mapBuildData ~= nil then
     for nCharId, tbPerk in pairs(self.mapBuildData.tbPotentials) do
-      local mapAddLevel = PlayerData.Char:GetCharEnhancedPotential(nCharId)
+      local mapAddLevel = PlayerData.Build:GetBuildEnhancedPotential(self.mapBuildData.nBuildId, nCharId, self.tbCharTrialId and self.tbCharTrialId[nCharId])
       local tbPerkInfo = {}
       for _, mapPerkInfo in ipairs(tbPerk) do
         local nAddLv = mapAddLevel[mapPerkInfo.nPotentialId] or 0
@@ -325,7 +327,7 @@ function RegionBossBattleLevel:SetDiscInfo()
   local tbDiscInfo = {}
   for k, nDiscId in ipairs(self.mapBuildData.tbDisc) do
     if k <= 3 then
-      local discInfo = PlayerData.Disc:CalcDiscInfoInBuild(nDiscId, self.mapBuildData.tbSecondarySkill)
+      local discInfo = PlayerData.Build:GetBuildDiscInfoInBuild(self.mapBuildData.nBuildId, nDiscId, self.mapBuildData.tbSecondarySkill)
       table.insert(tbDiscInfo, discInfo)
     end
   end

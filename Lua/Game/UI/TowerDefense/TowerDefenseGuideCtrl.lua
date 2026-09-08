@@ -5,10 +5,7 @@ TowerDefenseGuideCtrl._mapNodeConfig = {
     sComponentName = "TMP_Text",
     sLanguageId = "TowerDef_Guide"
   },
-  txt_sv_char = {
-    sComponentName = "TMP_Text",
-    sLanguageId = "TowerDef_TeamEditor_Char"
-  },
+  txt_sv_char = {sComponentName = "TMP_Text"},
   txt_sv_item = {
     sComponentName = "TMP_Text",
     sLanguageId = "TowerDef_Title_Item"
@@ -23,6 +20,12 @@ TowerDefenseGuideCtrl._mapNodeConfig = {
   temp_grid_char = {},
   char_content = {},
   char_detail = {},
+  selected_char_list = {},
+  txt_sv_selected_char = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "TowerDef_TeamEditor_SelectedChar"
+  },
+  selected_char_content = {},
   txtTitle_skill = {
     sComponentName = "TMP_Text",
     sLanguageId = "TowerDef_Guide_Skill"
@@ -50,9 +53,16 @@ TowerDefenseGuideCtrl._mapEventConfig = {
 TowerDefenseGuideCtrl._mapRedDotConfig = {}
 local SelectType = {Char = 1, Item = 2}
 
-function TowerDefenseGuideCtrl:SetData(nActId)
+function TowerDefenseGuideCtrl:SetData(nActId, tbCharGuideIds)
   self._mapNode.anim:Play("t_window_04_t_in")
   EventManager.Hit(EventId.TemporaryBlockInput, 0.2)
+  self.tbSelectCharIds = tbCharGuideIds
+  if self.tbSelectCharIds == nil then
+    NovaAPI.SetTMPText(self._mapNode.txt_sv_char, ConfigTable.GetUIText("TowerDef_TeamEditor_Char"))
+  else
+    NovaAPI.SetTMPText(self._mapNode.txt_sv_char, ConfigTable.GetUIText("TowerDef_UnSelect_Char"))
+  end
+  self._mapNode.selected_char_list:SetActive(self.tbSelectCharIds ~= nil and #self.tbSelectCharIds > 0)
   self.tbCharacterIds = {}
   self.tbItemIds = {}
   self.nActId = nActId
@@ -61,7 +71,7 @@ function TowerDefenseGuideCtrl:SetData(nActId)
   
   local function forEachFunction(config)
     if config.ActivityId == nActId and config.IsShow then
-      if config.GuideType == GameEnum.TowerDefGuideType.Character then
+      if config.GuideType == GameEnum.TowerDefGuideType.Character and (self.tbSelectCharIds == nil or table.indexof(self.tbSelectCharIds, config.Id) <= 0) then
         table.insert(self.tbCharacterIds, config.Id)
       elseif config.GuideType == GameEnum.TowerDefGuideType.Item then
         table.insert(self.tbItemIds, config.Id)
@@ -88,6 +98,7 @@ function TowerDefenseGuideCtrl:SetData(nActId)
   table.sort(self.tbCharacterIds, sortFunction)
   table.sort(self.tbItemIds, sortFunction)
   self._mapNode.list_content.gameObject:SetActive(false)
+  local selectCharIndex, selectCharFirstaGo = self:CreateSelectedChar()
   local charIndex, charFirstaGo = self:CreateChar()
   local itemIndex, itemFirstaGo = self:CreateItem()
   self._mapNode.list_content.gameObject:SetActive(true)
@@ -95,17 +106,76 @@ function TowerDefenseGuideCtrl:SetData(nActId)
   local function wait()
     coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
     coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
+    if self.tbSelectCharIds ~= nil then
+      CS.UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(self._mapNode.selected_char_content:GetComponent("RectTransform"))
+    end
     CS.UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(self._mapNode.char_content:GetComponent("RectTransform"))
     CS.UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(self._mapNode.item_content:GetComponent("RectTransform"))
     CS.UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(self._mapNode.list_content)
   end
   
   cs_coroutine.start(wait)
-  if charFirstaGo ~= nil then
+  if selectCharFirstaGo ~= nil then
+    EventManager.Hit("TowerDefenseGuideCellOnSelected", self.tbSelectCharIds[selectCharIndex], SelectType.Char, selectCharFirstaGo)
+  elseif charFirstaGo ~= nil then
     EventManager.Hit("TowerDefenseGuideCellOnSelected", self.tbCharacterIds[charIndex], SelectType.Char, charFirstaGo)
   elseif itemFirstaGo ~= nil then
     EventManager.Hit("TowerDefenseGuideCellOnSelected", self.tbItemIds[itemIndex], SelectType.Item, itemFirstaGo)
   end
+end
+
+function TowerDefenseGuideCtrl:CreateSelectedChar()
+  delChildren(self._mapNode.selected_char_content.transform)
+  local firstGo
+  local firstIndex = 0
+  if self.tbSelectCharIds == nil then
+    return 0, nil
+  end
+  for index, guideId in ipairs(self.tbSelectCharIds) do
+    local guide_config = ConfigTable.GetData("TowerDefenseGuide", guideId)
+    local charId = guide_config.ObjectId
+    local config = ConfigTable.GetData("TowerDefenseCharacter", charId)
+    if config ~= nil then
+      local go = instantiate(self._mapNode.temp_grid_char, self._mapNode.selected_char_content.transform)
+      go.name = charId
+      local btn = go.transform:Find("btn_grid"):GetComponent("UIButton")
+      local icon = go.transform:Find("btn_grid/AnimRoot/img_icon/icon_char"):GetComponent("Image")
+      local lock = go.transform:Find("btn_grid/AnimRoot/img_icon/bg_Lock")
+      local txt_name = go.transform:Find("btn_grid/AnimRoot/img_icon/txt_name"):GetComponent("TMP_Text")
+      local txt_new = go.transform:Find("btn_grid/AnimRoot/img_icon/txt_new"):GetComponent("TMP_Text")
+      if guide_config.Str == "" then
+        txt_new.gameObject:SetActive(false)
+      else
+        txt_new.gameObject:SetActive(true)
+        NovaAPI.SetTMPText(txt_new, guide_config.Str)
+      end
+      local bUnLock = true
+      if guide_config ~= nil then
+        bUnLock = self.TowerDefenseData:IsLevelUnlock(guide_config.LevelId) and self.TowerDefenseData:IsPreLevelPass(guide_config.LevelId)
+      end
+      if not bUnLock then
+        lock.gameObject:SetActive(true)
+        NovaAPI.SetTMPText(txt_name, ConfigTable.GetUIText("TowerDef_Lock"))
+        btn.onClick:AddListener(function()
+          EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("TowerDef_LockTip"))
+        end)
+      else
+        local i = index
+        lock.gameObject:SetActive(false)
+        self:SetPngSprite(icon, config.Icon .. AllEnum.CharHeadIconSurfix.QM)
+        NovaAPI.SetTMPText(txt_name, config.Name)
+        btn.onClick:AddListener(function()
+          EventManager.Hit("TowerDefenseGuideCellOnSelected", self.tbSelectCharIds[i], SelectType.Char, go)
+        end)
+      end
+      go:SetActive(true)
+      if firstGo == nil then
+        firstGo = go
+        firstIndex = index
+      end
+    end
+  end
+  return firstIndex, firstGo
 end
 
 function TowerDefenseGuideCtrl:CreateChar()
@@ -306,7 +376,7 @@ function TowerDefenseGuideCtrl:UpdateDetail()
       return
     end
     NovaAPI.SetTMPText(self._mapNode.txt_itemName, config.Name)
-    NovaAPI.SetTMPText(self._mapNode.txt_itemCD, ConfigTable.GetUIText("TowerDef_CD") .. config.Cd .. ConfigTable.GetUIText("CommonTips_CDSec"))
+    NovaAPI.SetTMPText(self._mapNode.txt_itemCD, config.ItemTips)
     NovaAPI.SetTMPText(self._mapNode.txt_des, config.Des)
     self._mapNode.item_detail:SetActive(true)
   end

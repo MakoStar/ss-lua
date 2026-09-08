@@ -36,26 +36,28 @@ JointDrillContext.PrefabNames = {
 JointDrillContext.Aliases = {
   [510004] = 510001
 }
-JointDrillContext.Entries = {
-  [510001] = {
-    nJointDrillMode = GameEnum.JointDrillMode.JointDrill_Mode_1
-  },
-  [510003] = {
-    nJointDrillMode = GameEnum.JointDrillMode.JointDrill_Mode_2
-  },
-  [510004] = {
-    nJointDrillMode = GameEnum.JointDrillMode.JointDrill_Mode_1
-  },
-  [510005] = {
-    nJointDrillMode = GameEnum.JointDrillMode.JointDrill_Mode_2
-  },
-  [510006] = {
-    nJointDrillMode = GameEnum.JointDrillMode.JointDrill_Mode_2
-  }
-}
+JointDrillContext.Entries = nil
+
+local function _EnsureEntries()
+  if JointDrillContext.Entries ~= nil then
+    return JointDrillContext.Entries
+  end
+  local t = {}
+  ForEachTableLine(ConfigTable.Get("JointDrillControl"), function(mapCfg)
+    t[mapCfg.Id] = {
+      nJointDrillMode = mapCfg.Type
+    }
+  end)
+  JointDrillContext.Entries = t
+  return t
+end
+
+function JointDrillContext.GetAllEntries()
+  return _EnsureEntries()
+end
 
 local function _GetEntryOrDie(nActId, sCaller)
-  local entry = JointDrillContext.Entries[nActId]
+  local entry = _EnsureEntries()[nActId]
   assert(entry, string.format("JointDrillContext.%s: unknown nActId=%s", sCaller, tostring(nActId)))
   return entry
 end
@@ -121,7 +123,7 @@ function JointDrillContext.GetMode(nJointDrillMode)
 end
 
 function JointDrillContext.GetByMode(nJointDrillMode)
-  for nActId, entry in pairs(JointDrillContext.Entries) do
+  for nActId, entry in pairs(_EnsureEntries()) do
     if entry.nJointDrillMode == nJointDrillMode then
       return JointDrillContext.Get(nActId)
     end
@@ -132,12 +134,13 @@ end
 function JointDrillContext.GetActIdForMode(nJointDrillMode)
   local modeInfo = JointDrillContext.Modes[nJointDrillMode]
   assert(modeInfo, string.format("JointDrillContext.GetActIdForMode: unknown nJointDrillMode=%s", tostring(nJointDrillMode)))
+  local tbEntries = _EnsureEntries()
   local pd = PlayerData[modeInfo.sPlayerDataKey]
   local nActId = pd and pd.nActId
-  if nActId and nActId ~= 0 and JointDrillContext.Entries[nActId] then
+  if nActId and nActId ~= 0 and tbEntries[nActId] then
     return nActId
   end
-  for entryId, entry in pairs(JointDrillContext.Entries) do
+  for entryId, entry in pairs(tbEntries) do
     if entry.nJointDrillMode == nJointDrillMode then
       return entryId
     end

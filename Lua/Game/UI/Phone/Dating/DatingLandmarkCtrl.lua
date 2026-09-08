@@ -37,11 +37,12 @@ DatingLandmarkCtrl._mapNodeConfig = {
   }
 }
 DatingLandmarkCtrl._mapEventConfig = {
-  [EventId.TransAnimInClear] = "OnEvent_TransAnimInClear"
+  [EventId.TransAnimInClear] = "OnEvent_TransAnimInClear",
+  RefreshLandMark = "OnEvent_RefreshLandMark"
 }
 
 function DatingLandmarkCtrl:SetLandmarkList()
-  self.tbLandmark = PlayerData.Dating:GetRandomLandmark()
+  self.tbLandmark = PlayerData.Dating:GetRandomLandmark(self.nCharId)
   for k, v in ipairs(self._mapNode.goLandMarkItem) do
     v.gameObject:SetActive(self.tbLandmark[k] ~= nil)
     if self.tbLandmark[k] ~= nil then
@@ -124,6 +125,12 @@ function DatingLandmarkCtrl:OnEvent_TransAnimInClear()
   EventManager.Hit(EventId.ClosePanel, PanelId.DatingLandmark)
   EventManager.Hit("RefreshSortingOrder")
   EventManager.Hit(EventId.OpenPanel, PanelId.Dating, self.nLandmarkId, self.nCharId, self.datingData.BeforeBranchId, self.curAffinityInfo, self.datingData.BranchAOptionIds, self.datingData.Change)
+end
+
+function DatingLandmarkCtrl:OnEvent_RefreshLandMark()
+  self:SetLandmarkList()
+  EventManager.Hit("RefreshSortingOrder", -100)
+  NovaAPI.SetCanvasSortingName(self._mapNode.canvasBlur, self._panel._sSortingLayerName)
 end
 
 return DatingLandmarkCtrl

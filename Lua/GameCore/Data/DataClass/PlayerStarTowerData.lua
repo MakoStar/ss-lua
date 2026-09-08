@@ -1148,6 +1148,7 @@ function PlayerStarTowerData:SendTowerGrowthDetailReq(callback)
       self:UpdateGrowthReddot()
       if callback then
         callback()
+        EventManager.Hit(EventId.EventReminder_Update, GameEnum.EventReminderType.StarTower)
       end
     end
     
@@ -1166,6 +1167,7 @@ function PlayerStarTowerData:SendTowerGrowthNodeUnlockReq(nId, nGroupId, callbac
     if callback then
       callback()
     end
+    EventManager.Hit(EventId.EventReminder_Update, GameEnum.EventReminderType.StarTower)
   end
   
   HttpNetHandler.SendMsg(NetMsgId.Id.tower_growth_node_unlock_req, msgData, nil, successCallback)
@@ -1186,6 +1188,7 @@ function PlayerStarTowerData:SendTowerGrowthGroupNodeUnlockReq(nGroupId, callbac
     if callback then
       callback(mapMainData.Nodes, bHasCore)
     end
+    EventManager.Hit(EventId.EventReminder_Update, GameEnum.EventReminderType.StarTower)
   end
   
   HttpNetHandler.SendMsg(NetMsgId.Id.tower_growth_group_node_unlock_req, msgData, nil, successCallback)

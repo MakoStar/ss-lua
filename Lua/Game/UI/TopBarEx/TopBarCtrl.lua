@@ -119,9 +119,11 @@ local mapConfig = {
   [PanelId.GachaSpin] = {bEvent = true},
   [PanelId.JointDrillLevelSelect_Mode2] = {bEvent = true},
   [PanelId.PotentialPreselectionEdit] = {bEvent = true},
-  [PanelId.GoldenSpyLevelSelectPanel_400008] = {bEvent = true},
+  [PanelId.GoldenSpyLevelSelectPanel_400017] = {bEvent = true},
   [PanelId.GoldenSpyLevelSelectPanel_400012] = {bEvent = true},
-  [PanelId.TraceHunt] = {bEvent = true}
+  [PanelId.TraceHunt] = {bEvent = true},
+  [PanelId.TrialSkinSelectPanel] = {bEvent = true},
+  [PanelId.TrialSkinFormationScenePanel] = {bEvent = true}
 }
 
 function TopBarCtrl:CreateCoin(tbCoin, bHideCoinAdd)

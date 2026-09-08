@@ -1,5 +1,6 @@
 local TraceHuntLevelCtrl = class("TraceHuntLevelCtrl", BaseCtrl)
 local GridNormalHeight = 77
+local MaxEffectCount = 5
 local LayoutRebuilder = CS.UnityEngine.UI.LayoutRebuilder
 TraceHuntLevelCtrl._mapNodeConfig = {
   goBlur = {
@@ -56,40 +57,15 @@ function TraceHuntLevelCtrl:RefreshData()
   local nMaxLevel = PlayerData.TraceHunt:GetTraceHuntMaxLevel()
   for i = 1, nMaxLevel do
     local mapLevel = PlayerData.TraceHunt:GetTraceHuntLevelData(i)
-    local bHasMaxStar = mapLevel.DisplayMaxStar > 0
-    local bHasTokenRate = 0 < mapLevel.DisplayTokenRate
-    local bHasFreeRate = 0 < mapLevel.DisplayFreeRate
-    local bHasAddRate = 0 < mapLevel.DisplayAddRate
-    local bHasLuckyRate = 0 < mapLevel.DisplayLuckyRate
-    local nCount = 0
-    self._mapNode.goCountRewardInfo_[1]:SetActive(bHasMaxStar)
-    if bHasMaxStar then
-      NovaAPI.SetTMPText(self._mapNode.txtRewardInfoCount[1], orderedFormat(ConfigTable.GetUIText("TraceHunt_LevelEffect_MaxStar"), mapLevel.DisplayMaxStar))
-      nCount = nCount + 1
+    local tbEffect = PlayerData.TraceHunt:GetLevelDisplayEffects(i)
+    local nCount = math.min(#tbEffect, MaxEffectCount)
+    for j = 1, MaxEffectCount do
+      self._mapNode.goCountRewardInfo_[j]:SetActive(j <= nCount)
+      if j <= nCount then
+        NovaAPI.SetTMPText(self._mapNode.txtRewardInfoCount[j], tbEffect[j].sText)
+      end
     end
-    self._mapNode.goCountRewardInfo_[2]:SetActive(bHasTokenRate)
-    if bHasTokenRate then
-      local sTitle = ConfigTable.GetData_Item(AllEnum.CoinItemId.TraceHunt).Title
-      NovaAPI.SetTMPText(self._mapNode.txtRewardInfoCount[2], orderedFormat(ConfigTable.GetUIText("TraceHunt_LevelEffect_TokenRate"), sTitle, mapLevel.DisplayTokenRate))
-      nCount = nCount + 1
-    end
-    self._mapNode.goCountRewardInfo_[3]:SetActive(bHasFreeRate)
-    if bHasFreeRate then
-      local sTitle = ConfigTable.GetData_Item(ConfigTable.GetConfigNumber("TraceHuntRequestItemTid")).Title
-      NovaAPI.SetTMPText(self._mapNode.txtRewardInfoCount[3], orderedFormat(ConfigTable.GetUIText("TraceHunt_LevelEffect_FreeRate"), sTitle, mapLevel.DisplayFreeRate))
-      nCount = nCount + 1
-    end
-    self._mapNode.goCountRewardInfo_[4]:SetActive(bHasAddRate)
-    if bHasAddRate then
-      NovaAPI.SetTMPText(self._mapNode.txtRewardInfoCount[4], orderedFormat(ConfigTable.GetUIText("TraceHunt_LevelEffect_AddRate"), mapLevel.DisplayAddRate))
-      nCount = nCount + 1
-    end
-    self._mapNode.goCountRewardInfo_[5]:SetActive(bHasLuckyRate)
-    if bHasLuckyRate then
-      NovaAPI.SetTMPText(self._mapNode.txtRewardInfoCount[5], orderedFormat(ConfigTable.GetUIText("TraceHunt_LevelEffect_LuckyRate"), mapLevel.DisplayLuckyRate))
-      nCount = nCount + 1
-    end
-    for j = 1, 4 do
+    for j = 1, MaxEffectCount - 1 do
       self._mapNode.goCountLine_[j]:SetActive(j < nCount)
     end
     if 0 < nCount then
@@ -151,81 +127,25 @@ function TraceHuntLevelCtrl:OnGridRefresh(goGrid, gridIndex)
   goLock.gameObject:SetActive(nCurLevel < nLevel)
   goUnlock.gameObject:SetActive(nCurLevel >= nLevel)
   local goRewardRoot = trans:Find("goRewardInfoList")
-  local bHasMaxStar = 0 < mapLevel.DisplayMaxStar
-  local bHasTokenRate = 0 < mapLevel.DisplayTokenRate
-  local bHasFreeRate = 0 < mapLevel.DisplayFreeRate
-  local bHasAddRate = 0 < mapLevel.DisplayAddRate
-  local bHasLuckyRate = 0 < mapLevel.DisplayLuckyRate
-  local nCount = 0
-  local goReward_1 = goRewardRoot:Find("goRewardInfo_" .. 1)
-  goReward_1.gameObject:SetActive(bHasMaxStar)
-  if bHasMaxStar then
-    local cgGoReward = goReward_1:GetComponent("CanvasGroup")
-    local txtRewardInfo = goReward_1:Find("txtRewardInfo"):GetComponent("TMP_Text")
-    local imgRewardIcon1 = goReward_1:Find("goReward/imgRewardIcon1").gameObject
-    local imgRewardIcon2 = goReward_1:Find("goReward/imgRewardIcon2").gameObject
-    NovaAPI.SetTMPText(txtRewardInfo, orderedFormat(ConfigTable.GetUIText("TraceHunt_LevelEffect_MaxStar"), mapLevel.DisplayMaxStar))
-    imgRewardIcon1:SetActive(false)
-    imgRewardIcon2:SetActive(true)
-    NovaAPI.SetCanvasGroupAlpha(cgGoReward, nCurLevel < nLevel and 0.4 or 1)
-    nCount = nCount + 1
+  local tbEffect = PlayerData.TraceHunt:GetLevelDisplayEffects(nLevel)
+  local nCount = math.min(#tbEffect, MaxEffectCount)
+  local nAlpha = nCurLevel < nLevel and 0.4 or 1
+  for i = 1, MaxEffectCount do
+    local goReward = goRewardRoot:Find("goRewardInfo_" .. i)
+    goReward.gameObject:SetActive(i <= nCount)
+    if i <= nCount then
+      local cgGoReward = goReward:GetComponent("CanvasGroup")
+      local txtRewardInfo = goReward:Find("txtRewardInfo"):GetComponent("TMP_Text")
+      local imgRewardIcon1 = goReward:Find("goReward/imgRewardIcon1").gameObject
+      local imgRewardIcon2 = goReward:Find("goReward/imgRewardIcon2").gameObject
+      NovaAPI.SetTMPText(txtRewardInfo, tbEffect[i].sText)
+      imgRewardIcon1:SetActive(tbEffect[i].bIcon1)
+      imgRewardIcon2:SetActive(not tbEffect[i].bIcon1)
+      NovaAPI.SetCanvasGroupAlpha(cgGoReward, nAlpha)
+    end
   end
-  local goReward_2 = goRewardRoot:Find("goRewardInfo_" .. 2)
-  goReward_2.gameObject:SetActive(bHasTokenRate)
-  if bHasTokenRate then
-    local cgGoReward = goReward_2:GetComponent("CanvasGroup")
-    local txtRewardInfo = goReward_2:Find("txtRewardInfo"):GetComponent("TMP_Text")
-    local imgRewardIcon1 = goReward_2:Find("goReward/imgRewardIcon1").gameObject
-    local imgRewardIcon2 = goReward_2:Find("goReward/imgRewardIcon2").gameObject
-    local sTitle = ConfigTable.GetData_Item(AllEnum.CoinItemId.TraceHunt).Title
-    NovaAPI.SetTMPText(txtRewardInfo, orderedFormat(ConfigTable.GetUIText("TraceHunt_LevelEffect_TokenRate"), sTitle, mapLevel.DisplayTokenRate))
-    imgRewardIcon1:SetActive(false)
-    imgRewardIcon2:SetActive(true)
-    NovaAPI.SetCanvasGroupAlpha(cgGoReward, nCurLevel < nLevel and 0.4 or 1)
-    nCount = nCount + 1
-  end
-  local goReward_3 = goRewardRoot:Find("goRewardInfo_" .. 3)
-  goReward_3.gameObject:SetActive(bHasFreeRate)
-  if bHasFreeRate then
-    local cgGoReward = goReward_3:GetComponent("CanvasGroup")
-    local txtRewardInfo = goReward_3:Find("txtRewardInfo"):GetComponent("TMP_Text")
-    local imgRewardIcon1 = goReward_3:Find("goReward/imgRewardIcon1").gameObject
-    local imgRewardIcon2 = goReward_3:Find("goReward/imgRewardIcon2").gameObject
-    local sTitle = ConfigTable.GetData_Item(ConfigTable.GetConfigNumber("TraceHuntRequestItemTid")).Title
-    NovaAPI.SetTMPText(txtRewardInfo, orderedFormat(ConfigTable.GetUIText("TraceHunt_LevelEffect_FreeRate"), sTitle, mapLevel.DisplayFreeRate))
-    imgRewardIcon1:SetActive(false)
-    imgRewardIcon2:SetActive(true)
-    NovaAPI.SetCanvasGroupAlpha(cgGoReward, nCurLevel < nLevel and 0.4 or 1)
-    nCount = nCount + 1
-  end
-  local goReward_4 = goRewardRoot:Find("goRewardInfo_" .. 4)
-  goReward_4.gameObject:SetActive(bHasAddRate)
-  if bHasAddRate then
-    local cgGoReward = goReward_4:GetComponent("CanvasGroup")
-    local txtRewardInfo = goReward_4:Find("txtRewardInfo"):GetComponent("TMP_Text")
-    local imgRewardIcon1 = goReward_4:Find("goReward/imgRewardIcon1").gameObject
-    local imgRewardIcon2 = goReward_4:Find("goReward/imgRewardIcon2").gameObject
-    NovaAPI.SetTMPText(txtRewardInfo, orderedFormat(ConfigTable.GetUIText("TraceHunt_LevelEffect_AddRate"), mapLevel.DisplayAddRate))
-    imgRewardIcon1:SetActive(true)
-    imgRewardIcon2:SetActive(false)
-    NovaAPI.SetCanvasGroupAlpha(cgGoReward, nCurLevel < nLevel and 0.4 or 1)
-    nCount = nCount + 1
-  end
-  local goReward_5 = goRewardRoot:Find("goRewardInfo_" .. 5)
-  goReward_5.gameObject:SetActive(bHasLuckyRate)
-  if bHasLuckyRate then
-    local cgGoReward = goReward_5:GetComponent("CanvasGroup")
-    local txtRewardInfo = goReward_5:Find("txtRewardInfo"):GetComponent("TMP_Text")
-    local imgRewardIcon1 = goReward_5:Find("goReward/imgRewardIcon1").gameObject
-    local imgRewardIcon2 = goReward_5:Find("goReward/imgRewardIcon2").gameObject
-    NovaAPI.SetTMPText(txtRewardInfo, orderedFormat(ConfigTable.GetUIText("TraceHunt_LevelEffect_LuckyRate"), mapLevel.DisplayLuckyRate))
-    imgRewardIcon1:SetActive(true)
-    imgRewardIcon2:SetActive(false)
-    NovaAPI.SetCanvasGroupAlpha(cgGoReward, nCurLevel < nLevel and 0.4 or 1)
-    nCount = nCount + 1
-  end
-  for j = 1, 4 do
-    goRewardRoot:Find("goLine_" .. j).gameObject:SetActive(j < nCount)
+  for i = 1, MaxEffectCount - 1 do
+    goRewardRoot:Find("goLine_" .. i).gameObject:SetActive(i < nCount)
   end
 end
 

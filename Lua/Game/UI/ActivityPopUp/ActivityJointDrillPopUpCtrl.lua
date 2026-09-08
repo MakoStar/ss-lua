@@ -48,7 +48,8 @@ function ActivityJointDrillPopUpCtrl:ShowPopUp(actId, callback, index)
     return
   end
   self.nOpenTime = actData:GetChallengeStartTime()
-  self.nEndTime = CS.ClientManager.Instance:ISO8601StrToTimeStamp(self.actCfg.EndTime)
+  self.nEndTime = actData:GetChallengeEndTime()
+  self.nActEndTime = actData:GetActEndTime()
   self:RefreshTimeout()
   self:RefreshDate()
   if nil == self.remainTimer then
@@ -67,10 +68,11 @@ function ActivityJointDrillPopUpCtrl:PlayOpenAnim()
 end
 
 function ActivityJointDrillPopUpCtrl:RefreshDate()
-  local nOpenMonth = tonumber(os.date("%m", self.nOpenTime))
-  local nOpenDay = tonumber(os.date("%d", self.nOpenTime))
-  local nEndMonth = tonumber(os.date("%m", self.nEndTime))
-  local nEndDay = tonumber(os.date("%d", self.nEndTime))
+  local nOffset = ClientManager.serverTimeZone * 3600
+  local nOpenMonth = tonumber(os.date("!%m", self.nOpenTime + nOffset))
+  local nOpenDay = tonumber(os.date("!%d", self.nOpenTime + nOffset))
+  local nEndMonth = tonumber(os.date("!%m", self.nEndTime + nOffset))
+  local nEndDay = tonumber(os.date("!%d", self.nEndTime + nOffset))
   local strOpenDay = string.format("%d", nOpenDay)
   local strEndDay = string.format("%d", nEndDay)
   local dateStr = string.format("%s/%s ~ %s/%s", nOpenMonth, strOpenDay, nEndMonth, strEndDay)
@@ -81,11 +83,12 @@ function ActivityJointDrillPopUpCtrl:RefreshTimeout()
   local endTime = self.nEndTime
   local curTime = ClientManager.serverTimeStamp
   local remainTime = endTime - curTime
-  if remainTime < 0 then
+  if remainTime <= 0 then
     if self.remainTimer ~= nil then
       self.remainTimer:Cancel()
       self.remainTimer = nil
     end
+    NovaAPI.SetTMPText(self._mapNode.txtTime, ConfigTable.GetUIText("JointDrill_Act_Challenge_End"))
     return
   end
   local sTimeStr = ""
@@ -151,7 +154,7 @@ function ActivityJointDrillPopUpCtrl:OnBtnClick_Goto()
       PopUpManager.InterruptPopUp(self.popUpIndex)
       
       PlayerData.Activity:SendActivityDetailMsg()
-      local endTime = self.nEndTime
+      local endTime = self.nActEndTime
       local curTime = ClientManager.serverTimeStamp
       local remainTime = endTime - curTime
       if remainTime <= 0 then

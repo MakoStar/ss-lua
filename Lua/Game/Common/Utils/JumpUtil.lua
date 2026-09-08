@@ -171,7 +171,8 @@ function JumpUtil.JumpTo(jumpId, ...)
     EventManager.Hit(EventId.OpenPanel, PanelId.EquipmentInstanceLevelSelect)
   elseif nType == GameEnum.jumpType.EquipmentGroup then
     local nGroup = mapJumpTo.Param[1]
-    EventManager.Hit(EventId.OpenPanel, PanelId.EquipmentInstanceLevelSelect, 0, nGroup, true)
+    local nRewardType = mapJumpTo.Param[2]
+    EventManager.Hit(EventId.OpenPanel, PanelId.EquipmentInstanceLevelSelect, 0, nGroup, true, nRewardType)
   elseif nType == GameEnum.jumpType.MainlineStory then
     EventManager.Hit(EventId.OpenPanel, PanelId.StoryChapter)
   elseif nType == GameEnum.jumpType.InfinityTower then
@@ -421,12 +422,85 @@ function JumpUtil.CheckJumpUnLock(jumpId, showTips)
     else
       bOpen = true
     end
+  elseif nType == GameEnum.jumpType.TraceHunt then
+    local function callback()
+      if PlayerData.TraceHunt:GetControlLeftTime() <= 0 then
+        EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("TraceHunt_Tips_ControlInterrupt"))
+        
+        return
+      end
+      
+      local function func()
+        EventManager.Hit(EventId.OpenPanel, PanelId.TraceHunt)
+      end
+      
+      EventManager.Hit(EventId.SetTransition, 49, func)
+    end
+    
+    PlayerData.TraceHunt:SendTraceHuntInfoReq(callback)
   end
   bOpen = bFuncUnlock and bOpen
   if not bOpen and showTips then
     EventManager.Hit(EventId.OpenMessageBox, sLockTip or "")
   end
   return bOpen, mapJumpTo
+end
+
+function JumpUtil.IsActivityJumpType(nJumpType)
+  if nJumpType == nil then
+    return false
+  end
+  return nJumpType == GameEnum.jumpType.ActivityStory or nJumpType == GameEnum.jumpType.ActivityLevel or nJumpType == GameEnum.jumpType.ActivityGame1 or nJumpType == GameEnum.jumpType.ActivityGame2
+end
+
+function JumpUtil.CheckJumpActivityOpen(tbJumpData, bShowTips)
+  if tbJumpData == nil or #tbJumpData == 0 then
+    return false
+  end
+  local nJumpType = tbJumpData[1]
+  local nActivityId = tbJumpData[2]
+  local nPanelId = tbJumpData[3]
+  if not JumpUtil.IsActivityJumpType(nJumpType) or nActivityId == nil or nPanelId == nil then
+    if bShowTips then
+      EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Activity_Not_Open"))
+    end
+    return false
+  end
+  local actGroupData = PlayerData.Activity:GetActivityGroupDataByActivityId(nActivityId)
+  if actGroupData == nil then
+    if bShowTips then
+      EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Activity_Not_Open"))
+    end
+    return false
+  end
+  local bOpen, _state, _sTips, bNeedRefreshData = actGroupData:CheckActivityEntranceOpen(nActivityId, nPanelId, bShowTips)
+  return bOpen, actGroupData, bNeedRefreshData
+end
+
+function JumpUtil.JumpToActivity(tbJumpData)
+  if tbJumpData[1] == GameEnum.jumpType.MainLineStoryChapter then
+    local chapterIndex = tbJumpData[2]
+    local isUnlock = PlayerData.Avg:IsStoryChapterUnlock(chapterIndex)
+    if not isUnlock then
+      EventManager.Hit(EventId.OpenPanel, PanelId.StoryChapter)
+    else
+      EventManager.Hit(EventId.OpenPanel, PanelId.MainlineEx, chapterIndex)
+    end
+    return
+  end
+  local bOpen, actGroupData, bNeedRefreshData = JumpUtil.CheckJumpActivityOpen(tbJumpData, true)
+  if not bOpen or actGroupData == nil then
+    if bNeedRefreshData then
+      PlayerData.Activity:SendActivityDetailMsg(nil, true)
+    end
+    return
+  end
+  local nJumpType = tbJumpData[1]
+  local nActivityId = tbJumpData[2]
+  local nPanelId = tbJumpData[3]
+  PanelManager.CloseAllDisposablePanel()
+  EventManager.Hit(EventId.JumpToSuccess, nJumpType)
+  actGroupData:OpenActivityEntrance(nActivityId, nPanelId)
 end
 
 return JumpUtil

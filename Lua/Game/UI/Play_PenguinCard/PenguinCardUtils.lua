@@ -6,13 +6,50 @@ PenguinCardUtils.GameState = {
   Flip = 3,
   Settlement = 4,
   Complete = 5,
-  Quest = 6
+  Quest = 6,
+  EndlessCheck = 7
 }
 PenguinCardUtils.SuitName = {
   [GameEnum.PenguinBaseCardSuit.Blue] = "<sprite name=\"icon_PengCard_Water_small\">",
   [GameEnum.PenguinBaseCardSuit.Red] = "<sprite name=\"icon_PengCard_Fire_small\">",
   [GameEnum.PenguinBaseCardSuit.Green] = "<sprite name=\"icon_PengCard_Wind_small\">"
 }
+PenguinCardUtils.SingleValueEffect = {
+  [GameEnum.PenguinCardEffectType.IncreaseBasicChips] = true,
+  [GameEnum.PenguinCardEffectType.IncreaseMultiplier] = true,
+  [GameEnum.PenguinCardEffectType.MultiMultiplier] = true,
+  [GameEnum.PenguinCardEffectType.UpgradeDiscount] = true,
+  [GameEnum.PenguinCardEffectType.AddRound] = true,
+  [GameEnum.PenguinCardEffectType.AddCardRollCount] = true,
+  [GameEnum.PenguinCardEffectType.UpgradeRebate] = true,
+  [GameEnum.PenguinCardEffectType.UpgradeDiscountAura] = true,
+  [GameEnum.PenguinCardEffectType.CheckRoundAura] = true,
+  [GameEnum.PenguinCardEffectType.AddRoundAura] = true,
+  [GameEnum.PenguinCardEffectType.AimScoreAura] = true,
+  [GameEnum.PenguinCardEffectType.ChangeHp] = true,
+  [GameEnum.PenguinCardEffectType.AideScoreAura] = true
+}
+
+function PenguinCardUtils.CheckTriggerLimit(nTriggerLimit, tbTriggerLimitParam, nTriggerCount, nRoundTriggerCount)
+  tbTriggerLimitParam = tbTriggerLimitParam or {0, 0}
+  nTriggerCount = nTriggerCount or 0
+  nRoundTriggerCount = nRoundTriggerCount or 0
+  if nTriggerLimit == GameEnum.PenguinCardTriggerLimit.TurnAndRound then
+    local nTurnLimit = tbTriggerLimitParam[1] or 0
+    local nRoundLimit = tbTriggerLimitParam[2] or 0
+    if 0 < nTurnLimit and nTriggerCount >= nTurnLimit then
+      return false
+    end
+    if 0 < nRoundLimit and nRoundTriggerCount >= nRoundLimit then
+      return false
+    end
+    return true
+  end
+  if nTriggerLimit ~= GameEnum.PenguinCardTriggerLimit.None and nTriggerCount >= tbTriggerLimitParam[1] then
+    return false
+  end
+  return true
+end
 
 function PenguinCardUtils.CheckTriggerAble(nTriggerType, tbTriggerParam, nTriggerProbability, mapTriggerSource, nEffectType)
   local randomValue = math.random(0, 100)
@@ -191,11 +228,13 @@ function PenguinCardUtils.SetEffectDesc(mapCfg, nGrowthLayer)
       if mapCard then
         return mapCard.Title
       end
-    elseif nEffectType == GameEnum.PenguinCardEffectType.IncreaseBasicChips or nEffectType == GameEnum.PenguinCardEffectType.IncreaseMultiplier or nEffectType == GameEnum.PenguinCardEffectType.MultiMultiplier or nEffectType == GameEnum.PenguinCardEffectType.UpgradeDiscount or nEffectType == GameEnum.PenguinCardEffectType.AddRound or nEffectType == GameEnum.PenguinCardEffectType.BlockFatalDamage or nEffectType == GameEnum.PenguinCardEffectType.UpgradeRebate then
+    elseif PenguinCardUtils.SingleValueEffect[nEffectType] or nEffectType == GameEnum.PenguinCardEffectType.CardLevel then
       if tbParam[nIndex] == nil then
         return sError
       end
       return math.abs(tbParam[nIndex])
+    else
+      return ""
     end
   end
   
@@ -217,7 +256,7 @@ function PenguinCardUtils.SetEffectDesc(mapCfg, nGrowthLayer)
   end
   
   local function ParseTotalEffectParam(tbEffectParam, tbGrowthParam, nIndex)
-    if nEffectType == GameEnum.PenguinCardEffectType.IncreaseBasicChips or nEffectType == GameEnum.PenguinCardEffectType.IncreaseMultiplier or nEffectType == GameEnum.PenguinCardEffectType.MultiMultiplier or nEffectType == GameEnum.PenguinCardEffectType.UpgradeDiscount or nEffectType == GameEnum.PenguinCardEffectType.AddRound or nEffectType == GameEnum.PenguinCardEffectType.UpgradeRebate then
+    if PenguinCardUtils.SingleValueEffect[nEffectType] or nEffectType == GameEnum.PenguinCardEffectType.CardLevel then
       if tbEffectParam[nIndex] == nil or tbGrowthParam[nIndex] == nil then
         return sError
       end
@@ -226,6 +265,8 @@ function PenguinCardUtils.SetEffectDesc(mapCfg, nGrowthLayer)
         nValue = 0
       end
       return nValue
+    else
+      return ""
     end
   end
   
@@ -238,9 +279,21 @@ function PenguinCardUtils.SetEffectDesc(mapCfg, nGrowthLayer)
     if token == "{TriggerProbability}" then
       return mapCfg.TriggerProbability
     elseif token == "{TriggerLimitParam}" then
-      return mapCfg.TriggerLimitParam
+      local tbLimitParam = mapCfg.TriggerLimitParam
+      return tbLimitParam[1] or sError
     elseif token == "{DurationParam}" then
       return mapCfg.DurationParam
+    elseif token == "{GrowthLimit}" then
+      return mapCfg.GrowthLimit
+    elseif token == "{GrowthLayer}" then
+      return nGrowthLayer
+    end
+    local limitIdx = string.match(token, "^{TriggerLimitParam_(%d+)}$")
+    if limitIdx then
+      local tbLimitParam = mapCfg.TriggerLimitParam
+      local str = tbLimitParam[tonumber(limitIdx)] or sError
+      str = LanguagePost(lang, langIdx, str)
+      return str
     end
     local trigIdx = string.match(token, "^{TriggerParam_(%d+)}$")
     if trigIdx then
@@ -282,7 +335,7 @@ function PenguinCardUtils.SetEffectDesc(mapCfg, nGrowthLayer)
   return result
 end
 
-function PenguinCardUtils.WeightedRandom(tbId, tbWeight, n, tbExcludeGroupId, bDuplicate)
+function PenguinCardUtils.WeightedRandom(tbId, tbWeight, n, tbExcludeGroupId, bDuplicate, bAide)
   if #tbId ~= #tbWeight then
     printError("tbId 和 tbWeight 长度必须相同")
   end
@@ -297,6 +350,10 @@ function PenguinCardUtils.WeightedRandom(tbId, tbWeight, n, tbExcludeGroupId, bD
     local w = tbWeight[i]
     if next(tbExcludeSet) == nil then
       table.insert(tbCandidates, {id = id, weight = w})
+    elseif bAide then
+      if not tbExcludeSet[id] then
+        table.insert(tbCandidates, {id = id, weight = w})
+      end
     else
       local mapCfg = ConfigTable.GetData("PenguinCard", id)
       if mapCfg and not tbExcludeSet[mapCfg.GroupId] then

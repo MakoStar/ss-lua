@@ -9,6 +9,7 @@ local TimerManager = require("GameCore.Timer.TimerManager")
 function PlayerCharData:Init()
   self._mapChar = nil
   self._mapTrialChar = {}
+  self._mapLimitedTrialChar = {}
   if LocalData.GetLocalData("Char_", "CharPanel_IsSimpleDesc") == nil then
     local defaultValue = ConfigTable.GetConfigValue("SkillShowDetail")
     self.bCharPanel_IsSimpleDesc = defaultValue ~= "1"
@@ -747,6 +748,69 @@ function PlayerCharData:GetTrialCharByCharId(nCharId)
   end
 end
 
+function PlayerCharData:CreateLimitedTrialChar(tbTrialId)
+  for _, nTrialId in ipairs(tbTrialId) do
+    if 0 < nTrialId then
+      local mapTrialData = ConfigTable.GetData("TrialCharacter", nTrialId)
+      if mapTrialData == nil then
+        printError("限时试用角色数据没有找到：" .. nTrialId)
+        return
+      end
+      self._mapLimitedTrialChar[nTrialId] = {
+        nId = mapTrialData.CharId,
+        nTrialId = nTrialId,
+        sName = mapTrialData.Name,
+        nSkinId = mapTrialData.CharacterSkin,
+        nLevel = mapTrialData.Level,
+        nAdvance = mapTrialData.Break,
+        tbSkillLvs = mapTrialData.SkillLevel
+      }
+    end
+  end
+  PlayerData.Talent:CreateLimitedTrialData(tbTrialId)
+  return self._mapLimitedTrialChar
+end
+
+function PlayerCharData:DeleteLimitedTrialChar()
+  self._mapLimitedTrialChar = {}
+  PlayerData.Talent:DeleteLimitedTrialData()
+end
+
+function PlayerCharData:GetLimitedTrialCharById(nTrialId)
+  local mapTrialChar = self._mapLimitedTrialChar[nTrialId]
+  if mapTrialChar == nil then
+    printError("没有该限时试用角色数据:" .. nTrialId)
+  end
+  return mapTrialChar
+end
+
+function PlayerCharData:GetLimitedTrialCharSkillAddedLevel(nTrialId)
+  local mapChar = self._mapLimitedTrialChar[nTrialId]
+  if mapChar == nil then
+    printError("没有该限时试用角色数据" .. nTrialId)
+    return {
+      1,
+      1,
+      1,
+      1
+    }
+  end
+  local nCharId = mapChar.nId
+  local tbSkillLevel = {}
+  local tbSkillIds = self:GetSkillIds(nCharId)
+  local mapTalentEnhanceSkill = PlayerData.Talent:GetLimitedTrialEnhancedSkill(nTrialId)
+  for i = 1, 4 do
+    local nSkillId = tbSkillIds[i]
+    local nAdd = 0
+    if mapTalentEnhanceSkill then
+      nAdd = mapTalentEnhanceSkill[nSkillId]
+    end
+    local nLv = mapChar.tbSkillLvs[i] + nAdd
+    table.insert(tbSkillLevel, nLv)
+  end
+  return tbSkillLevel
+end
+
 function PlayerCharData:GetCharPlotDataById(charId)
   return CacheTable.GetData("_Plot", charId)
 end
@@ -1453,7 +1517,7 @@ function PlayerCharData:GetCharSkinId(nCharId)
       end
       return mapCharInfo.nSkinId
     else
-      local mapCharCfg = ConfigTable.GetData_Character(nCharId)
+      local mapCharCfg = ConfigTable.GetData_Character(nCharId, true)
       if mapCharCfg == nil then
         return 0
       else
@@ -1945,6 +2009,159 @@ function PlayerCharData:CalCharacterAttrBattle(nCharId, stAttr, bMainChar, tbDis
   return 0
 end
 
+function PlayerCharData:CalCharacterLimitedTrialAttrBattle(nTrialId, stAttr, bMainChar, tbDiscId, nBuildId)
+  local mapChar = self._mapLimitedTrialChar[nTrialId]
+  if mapChar == nil then
+    printError("没有该限时试用角色数据" .. nTrialId)
+    return 0
+  end
+  local nCharId = mapChar.nId
+  local nLevel = mapChar.nLevel
+  local nAdvance = mapChar.nAdvance
+  local nAttrId = UTILS.GetCharacterAttributeId(nCharId, nAdvance, nLevel)
+  local mapCharAttrCfg = ConfigTable.GetData_Attribute(tostring(nAttrId))
+  if mapCharAttrCfg == nil then
+    printError("属性配置不存在:" .. nAttrId)
+    return {}
+  end
+  local mapCharCfg = ConfigTable.GetData_Character(nCharId)
+  if mapCharCfg == nil then
+    printError("角色配置不存在:" .. nCharId)
+    return {}
+  end
+  for _, v in ipairs(AllEnum.AttachAttr) do
+    if v.bPlayer and mapCharCfg[v.sKey] ~= nil then
+      mapCharAttrCfg[v.sKey] = mapCharCfg[v.sKey]
+    end
+  end
+  local mapDiscAttr = {}
+  for _, v in ipairs(AllEnum.AttachAttr) do
+    mapDiscAttr[v.sKey] = {
+      Key = v.sKey,
+      Value = 0,
+      CfgValue = 0
+    }
+  end
+  if tbDiscId ~= nil then
+    for _, nDiscId in ipairs(tbDiscId) do
+      local mapDisc = PlayerData.Disc:GetLimitedTrialDiscById(nDiscId)
+      for _, v in ipairs(AllEnum.AttachAttr) do
+        mapDiscAttr[v.sKey].CfgValue = mapDiscAttr[v.sKey].CfgValue + mapDisc.mapAttrBase[v.sKey].CfgValue
+      end
+    end
+  end
+  local mapBuildAttr = {}
+  if nBuildId ~= nil then
+    mapBuildAttr = PlayerData.Build:GetBuildAttrBase(nBuildId, true, AllEnum.BuildSource.LimitedTrial)
+  else
+    for _, v in ipairs(AllEnum.AttachAttr) do
+      mapBuildAttr[v.sKey] = {
+        Key = v.sKey,
+        Value = 0,
+        CfgValue = 0
+      }
+    end
+  end
+  local tbSkillLevel = self:GetLimitedTrialCharSkillAddedLevel(nTrialId)
+  if bMainChar == true then
+    table.remove(tbSkillLevel, 3)
+  else
+    table.remove(tbSkillLevel, 2)
+  end
+  local mapCharAttr = {}
+  for _, v in ipairs(AllEnum.AttachAttr) do
+    mapCharAttr[v.sKey] = mapCharAttrCfg[v.sKey] + mapDiscAttr[v.sKey].CfgValue + mapBuildAttr[v.sKey].CfgValue
+  end
+  local tbTalent = PlayerData.Talent:GetLimitedTrialFateTalent(nTrialId)
+  stAttr.actorLevel = nLevel
+  stAttr.breakCount = mapChar.nAdvance
+  stAttr.activeTalentInfos = tbTalent
+  stAttr.Atk = mapCharAttr.Atk
+  stAttr.Hp = mapCharAttr.Hp
+  stAttr.Def = mapCharAttr.Def
+  stAttr.CritRate = mapCharAttr.CritRate
+  stAttr.CritResistance = mapCharAttr.CritResistance
+  stAttr.CritPower = mapCharAttr.CritPower
+  stAttr.HitRate = mapCharAttr.HitRate
+  stAttr.Evd = mapCharAttr.Evd
+  stAttr.DefPierce = mapCharAttr.DefPierce
+  stAttr.WEP = mapCharAttr.WEP
+  stAttr.FEP = mapCharAttr.FEP
+  stAttr.SEP = mapCharAttr.SEP
+  stAttr.AEP = mapCharAttr.AEP
+  stAttr.LEP = mapCharAttr.LEP
+  stAttr.DEP = mapCharAttr.DEP
+  stAttr.WEE = mapCharAttr.WEE
+  stAttr.FEE = mapCharAttr.FEE
+  stAttr.SEE = mapCharAttr.SEE
+  stAttr.AEE = mapCharAttr.AEE
+  stAttr.LEE = mapCharAttr.LEE
+  stAttr.DEE = mapCharAttr.DEE
+  stAttr.WER = mapCharAttr.WER
+  stAttr.FER = mapCharAttr.FER
+  stAttr.SER = mapCharAttr.SER
+  stAttr.AER = mapCharAttr.AER
+  stAttr.LER = mapCharAttr.LER
+  stAttr.DER = mapCharAttr.DER
+  stAttr.WEI = mapCharAttr.WEI
+  stAttr.FEI = mapCharAttr.FEI
+  stAttr.SEI = mapCharAttr.SEI
+  stAttr.AEI = mapCharAttr.AEI
+  stAttr.LEI = mapCharAttr.LEI
+  stAttr.DEI = mapCharAttr.DEI
+  stAttr.DefIgnore = mapCharAttr.DefIgnore
+  stAttr.ShieldBonus = mapCharAttr.ShieldBonus
+  stAttr.IncomingShieldBonus = mapCharAttr.IncomingShieldBonus
+  stAttr.SkillLevel = tbSkillLevel
+  stAttr.skinId = mapChar.nSkinId
+  stAttr.attrId = tostring(nAttrId)
+  stAttr.Suppress = mapCharAttr.Suppress
+  stAttr.NormalDmgRatio = mapCharAttr.NORMALDMG
+  stAttr.SkillDmgRatio = mapCharAttr.SKILLDMG
+  stAttr.UltraDmgRatio = mapCharAttr.ULTRADMG
+  stAttr.OtherDmgRatio = mapCharAttr.OTHERDMG
+  stAttr.RcdNormalDmgRatio = mapCharAttr.RCDNORMALDMG
+  stAttr.RcdSkillDmgRatio = mapCharAttr.RCDSKILLDMG
+  stAttr.RcdUltraDmgRatio = mapCharAttr.RCDULTRADMG
+  stAttr.RcdOtherDmgRatio = mapCharAttr.RCDOTHERDMG
+  stAttr.MarkDmgRatio = mapCharAttr.MARKDMG
+  stAttr.SummonDmgRatio = mapCharAttr.SUMMONDMG
+  stAttr.RcdSummonDmgRatio = mapCharAttr.RCDSUMMONDMG
+  stAttr.ProjectileDmgRatio = mapCharAttr.PROJECTILEDMG
+  stAttr.RcdProjectileDmgRatio = mapCharAttr.RCDPROJECTILEDMG
+  stAttr.GENDMG = mapCharAttr.GENDMG
+  stAttr.DMGPLUS = mapCharAttr.DMGPLUS
+  stAttr.FINALDMG = mapCharAttr.FINALDMG
+  stAttr.FINALDMGPLUS = mapCharAttr.FINALDMGPLUS
+  stAttr.WEERCD = mapCharAttr.WEERCD
+  stAttr.FEERCD = mapCharAttr.FEERCD
+  stAttr.SEERCD = mapCharAttr.SEERCD
+  stAttr.AEERCD = mapCharAttr.AEERCD
+  stAttr.LEERCD = mapCharAttr.LEERCD
+  stAttr.DEERCD = mapCharAttr.DEERCD
+  stAttr.GENDMGRCD = mapCharAttr.GENDMGRCD
+  stAttr.DMGPLUSRCD = mapCharAttr.DMGPLUSRCD
+  stAttr.NormalCritRate = mapCharAttr.NormalCritRate
+  stAttr.SkillCritRate = mapCharAttr.SkillCritRate
+  stAttr.UltraCritRate = mapCharAttr.UltraCritRate
+  stAttr.MarkCritRate = mapCharAttr.MarkCritRate
+  stAttr.SummonCritRate = mapCharAttr.SummonCritRate
+  stAttr.ProjectileCritRate = mapCharAttr.ProjectileCritRate
+  stAttr.OtherCritRate = mapCharAttr.OtherCritRate
+  stAttr.NormalCritPower = mapCharAttr.NormalCritPower
+  stAttr.SkillCritPower = mapCharAttr.SkillCritPower
+  stAttr.UltraCritPower = mapCharAttr.UltraCritPower
+  stAttr.MarkCritPower = mapCharAttr.MarkCritPower
+  stAttr.SummonCritPower = mapCharAttr.SummonCritPower
+  stAttr.ProjectileCritPower = mapCharAttr.ProjectileCritPower
+  stAttr.OtherCritPower = mapCharAttr.OtherCritPower
+  stAttr.ToughnessDamageAdjust = mapCharAttr.ToughnessDamageAdjust
+  stAttr.EnergyConvRatio = mapCharAttr.EnergyConvRatio
+  stAttr.EnergyEfficiency = mapCharAttr.EnergyEfficiency
+  stAttr.initHp = 0
+  return 0
+end
+
 function PlayerCharData:CalCharacterTrialAttrBattle(nTrialId, stAttr, bMainChar, tbDiscId, nBuildId)
   local mapChar = self._mapTrialChar[nTrialId]
   if mapChar == nil then
@@ -2137,6 +2354,30 @@ function PlayerCharData:UpdateCharRecordReddot(nCharId, bReset, lastLevel, curLe
   end
   
   ForEachTableLine(DataTable.CharacterArchive, foreachCharacterArchive)
+end
+
+function PlayerCharData:UpdateCharSkinTrialRedDot(sId)
+  local sKey = tostring(sId) .. "SkinTrial"
+  local bIsFirst = LocalData.GetPlayerLocalData(sKey)
+  if bIsFirst == nil then
+    bIsFirst = true
+  else
+    bIsFirst = false
+  end
+  RedDotManager.SetValid(RedDotDefine.Mall_CharSkinTrial, {sId}, bIsFirst)
+end
+
+function PlayerCharData:SetCharSkinTrialRedDot(sId)
+  local sKey = tostring(sId) .. "SkinTrial"
+  LocalData.SetPlayerLocalData(sKey, false)
+  RedDotManager.SetValid(RedDotDefine.Mall_CharSkinTrial, {sId}, false)
+end
+
+function PlayerCharData:ClearCharSkinTrialRedDot(sId)
+  local sKey = tostring(sId) .. "SkinTrial"
+  if LocalData.GetPlayerLocalData(sKey) ~= nil then
+    LocalData.DelPlayerLocalData(sKey)
+  end
 end
 
 function PlayerCharData:UpdateCharVoiceReddot(nCharId, bReset, lastLevel, curLevel, nPlotId)

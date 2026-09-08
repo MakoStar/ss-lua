@@ -242,6 +242,7 @@ function ChapterLineCtrl:RefreshGrid(goGrid, gridDepth)
   end
   local bPlayedLockAnim = table.indexof(self.tbLockedPlayedAnim, avgId) > 0
   local bShowGrid = (not bAllLock or not allParentDepthLock) and not bNeedPlayUnlockAnim or bPlayedLockAnim
+  bShowGrid = (storyConfig.MemoryType ~= GameEnum.MainlineMemoryNodeType.LastEndType or bUnlock) and bShowGrid
   goGrid.gameObject:SetActive(bShowGrid)
   local bReaded = AvgData:IsStoryReaded(storyConfig.Id)
   local btnEnter = goGrid:Find("btnEnter"):GetComponent("UIButton")
@@ -279,8 +280,13 @@ function ChapterLineCtrl:RefreshGrid(goGrid, gridDepth)
     if SpecialRoot == nil then
       return
     end
-    if storyConfig.MemoryType == GameEnum.MainlineMemoryNodeType.DiscType then
-      rootTrans = SpecialRoot:Find("Type" .. GameEnum.MainlineMemoryNodeType.DiscType)
+    for i = 1, SpecialRoot.childCount do
+      if i == storyConfig.MemoryType then
+        SpecialRoot:GetChild(i - 1).gameObject:SetActive(true)
+        rootTrans = SpecialRoot:GetChild(i - 1)
+      else
+        SpecialRoot:GetChild(i - 1).gameObject:SetActive(false)
+      end
     end
   end
   NormalRoot.gameObject:SetActive(not storyConfig.IsBattle and not isSpecial)
@@ -557,7 +563,7 @@ function ChapterLineCtrl:CheckLineReasonable(grid)
       local parentAvgId = storyConfig.ParentStoryId[index]
       local curBorderPos = self.tbGridBorderPos and self.tbGridBorderPos[avgId]
       local parentBorderPos = self.tbGridBorderPos and self.tbGridBorderPos[parentAvgId]
-      if curBorderPos ~= nil and curBorderPos.left ~= nil and parentBorderPos ~= nil and parentBorderPos.right ~= nil then
+      if parentBorderPos.grid ~= nil and parentBorderPos.grid.gameObject.activeInHierarchy ~= false and curBorderPos ~= nil and curBorderPos.left ~= nil and parentBorderPos ~= nil and parentBorderPos.right ~= nil then
         local isHitA, worldPosA = RectTransformUtility.ScreenPointToWorldPointInRectangle(grid, parentBorderPos.right, uiCamera)
         local isHitB, worldPosB = RectTransformUtility.ScreenPointToWorldPointInRectangle(grid, curBorderPos.left, uiCamera)
         local localPosA = grid:InverseTransformPoint(worldPosA)

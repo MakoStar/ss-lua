@@ -59,25 +59,26 @@ function GoldenSpyBoomItem:GetBoomArea()
 end
 
 function GoldenSpyBoomItem:Boom(callback)
+  local boomArea = self:GetBoomArea()
+  local center = boomArea.center
+  local radius = boomArea.radius
+  local toHit = {}
+  for _, v in ipairs(self.floorCtrl.tbItem) do
+    if v.Ctrl and v.Ctrl ~= self then
+      local hitArea = v.Ctrl:GetHitArea()
+      if hitArea and hitArea.center then
+        local offset = hitArea.center - center
+        local dist = offset.x * offset.x + offset.y * offset.y
+        if dist <= radius * radius then
+          table.insert(toHit, v.Ctrl)
+        end
+      end
+    end
+  end
+  
   local function boom()
     if callback then
       callback()
-    end
-    local boomArea = self:GetBoomArea()
-    local center = boomArea.center
-    local radius = boomArea.radius
-    local toHit = {}
-    for _, v in ipairs(self.floorCtrl.tbItem) do
-      if v.Ctrl and v.Ctrl ~= self then
-        local hitArea = v.Ctrl:GetHitArea()
-        if hitArea and hitArea.center then
-          local offset = hitArea.center - center
-          local dist = offset.x * offset.x + offset.y * offset.y
-          if dist <= radius * radius then
-            table.insert(toHit, v.Ctrl)
-          end
-        end
-      end
     end
     for _, ctrl in ipairs(toHit) do
       if ctrl.gameObject ~= nil and ctrl.gameObject.activeSelf ~= false then
@@ -101,6 +102,7 @@ function GoldenSpyBoomItem:Boom(callback)
   end, true, true, true)
   table.insert(self.tbTimer, timer2)
   WwiseAudioMgr:PostEvent("Mode_steal_boom_big")
+  return toHit
 end
 
 function GoldenSpyBoomItem:OnSkill_Boom(callback)

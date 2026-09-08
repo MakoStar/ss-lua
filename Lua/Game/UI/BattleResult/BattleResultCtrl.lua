@@ -110,6 +110,11 @@ function BattleResultCtrl:OnEnable()
   local sMainlineName = ""
   if mapMainline ~= nil then
     sMainlineName = mapMainline.Title
+    if mapMainline.EnterMethod ~= nil and mapMainline.EnterMethod == GameEnum.EnterMethod.JumpFormation then
+      for i = 1, 2 do
+        self._mapNode.btnDamageResult[i].gameObject:SetActive(false)
+      end
+    end
   end
   self.bSuccess = 0 < nStar
   self.mapReward = {}

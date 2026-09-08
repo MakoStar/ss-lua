@@ -67,6 +67,9 @@ function TowerDefenseLevelData:AddPotential(nCharacterId, nPotentialId)
   end
   safe_call_cs_func(CS.AdventureModuleHelper.ChangePersonalPerkIds, {stPerkInfo}, nCharacterId, bChange)
   table.insert(self.tbCharacterData[nCharacterId].tbPotentialList, nPotentialId)
+  table.sort(self.tbCharacterData[nCharacterId].tbPotentialList, function(a, b)
+    return a < b
+  end)
 end
 
 function TowerDefenseLevelData:RefreshCharSkillCd(nCharacterId, nCD)
@@ -109,6 +112,33 @@ function TowerDefenseLevelData:GetCharacterData(nCharacterId)
     return nil
   end
   return self.tbCharacterData[nCharacterId]
+end
+
+function TowerDefenseLevelData:RemoveCharacterPotential(nCharacterId, nLevel)
+  if self.tbCharacterData[nCharacterId] == nil then
+    return
+  end
+  local potentialList = self.tbCharacterData[nCharacterId].tbPotentialList
+  local cfg = ConfigTable.GetData("TowerDefenseCharacter", nCharacterId)
+  if cfg == nil then
+    return
+  end
+  local removePotentialList = cfg["NewPotential" .. tostring(nLevel)]
+  local nRemovePotentialId = 0
+  for _, nPotentialId in ipairs(removePotentialList) do
+    local nIndex = table.indexof(potentialList, nPotentialId)
+    if 0 < nIndex then
+      nRemovePotentialId = nPotentialId
+      table.remove(potentialList, nIndex)
+      break
+    end
+  end
+  if 0 < nRemovePotentialId then
+    local stPerkInfo = CS.Lua2CSharpInfo_TPPerkInfo()
+    stPerkInfo.perkId = nRemovePotentialId
+    stPerkInfo.nCount = -1
+    safe_call_cs_func(CS.AdventureModuleHelper.ChangePersonalPerkIds, {stPerkInfo}, nCharacterId, true)
+  end
 end
 
 function TowerDefenseLevelData:OnEvent_UnloadComplete()

@@ -347,7 +347,7 @@ function RegionBossBuildCtrl:OnBtnClickGrid(nIdx, itemCtrl)
     PlayerData.Avg:SetSelBuildId(self.tbCurShow[nIdx].nBuildId)
   elseif self.nType == AllEnum.RegionBossFormationType.Vampire then
     PlayerData.VampireSurvivor:CacheSelectedBuildId(self.selLvId, self.nIdx, self.tbCurShow[nIdx].nBuildId)
-  elseif self.nType == AllEnum.RegionBossFormationType.ScoreBoss then
+  elseif self.nType == AllEnum.RegionBossFormationType.ScoreBoss or self.nType == AllEnum.RegionBossFormationType.ScoreBoss_GM then
     PlayerData.ScoreBoss:SetSelBuildId(self.tbCurShow[nIdx].nBuildId, self.selLvId)
   elseif self.nType == AllEnum.RegionBossFormationType.TraceHunt then
     PlayerData.TraceHunt:SetSelBuildId(self.tbCurShow[nIdx].nBuildId)

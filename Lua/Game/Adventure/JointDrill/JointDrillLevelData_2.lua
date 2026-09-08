@@ -200,7 +200,8 @@ function JointDrillLevelData_2:JointDrillSuccess(netMsg)
     }
     local bSimulate = self.parent:GetBattleSimulate()
     local nBattleCount = self.parent:GetJointDrillBattleCount()
-    EventManager.Hit(EventId.OpenPanel, JointDrillContext.GetPanelId(self.parent.nActId, "Result"), nResultType, self.nCurLevel, 0, self.nLevelId, {}, mapScore, netMsg.Items or {}, netMsg.Change or {}, netMsg.Old, netMsg.New, bSimulate, nBattleCount, self.tbCharDamage)
+    local tbLastCharIds = self.parent:GetJointDrillLastTeam()
+    EventManager.Hit(EventId.OpenPanel, JointDrillContext.GetPanelId(self.parent.nActId, "Result"), nResultType, self.nCurLevel, 0, self.nLevelId, {}, mapScore, netMsg.Items or {}, netMsg.Change or {}, netMsg.Old, netMsg.New, bSimulate, nBattleCount, self.tbCharDamage, tbLastCharIds)
     self.parent:ChallengeEnd()
   end
   
@@ -225,11 +226,15 @@ function JointDrillLevelData_2:CheckJointDrillGameOver()
       
       self.parent:JointDrillSync(self.nCurLevel, self.nGameTime, self.nDamageValue, "", syncCallback)
     else
-      local function callback(netMsg)
-        self:JointDrillFail(AllEnum.JointDrillResultType.BattleEnd, netMsg, self.nCurLevel)
+      local function syncCallback()
+        local function callback(netMsg)
+          self:JointDrillFail(AllEnum.JointDrillResultType.BattleEnd, netMsg, self.nCurLevel)
+        end
+        
+        self.parent:JointDrillGiveUp(self.nCurLevel, self.nGameTime, self.nDamageValue, sRecord, callback)
       end
       
-      self.parent:JointDrillGiveUp(self.nCurLevel, self.nGameTime, self.nDamageValue, sRecord, callback)
+      self.parent:JointDrillSync(self.nCurLevel, self.nGameTime, self.nDamageValue, "", syncCallback)
     end
   end
   
@@ -259,7 +264,6 @@ function JointDrillLevelData_2:JointDrillFail(nResultType, netMsg, nLevel)
     end
   end
   local bSimulate = self.parent:GetBattleSimulate()
-  local nBattleCount = self.parent:GetJointDrillBattleCount()
   local mapScore = {}
   local mapReward = {}
   local mapChange = {}
@@ -284,7 +288,9 @@ function JointDrillLevelData_2:JointDrillFail(nResultType, netMsg, nLevel)
     mapReward = netMsg.Items or {}
     mapChange = netMsg.Change or {}
   end
-  EventManager.Hit(EventId.OpenPanel, JointDrillContext.GetPanelId(self.parent.nActId, "Result"), nResultType, self.nCurLevel, self.nGameTime, self.nLevelId, bossInfo, mapScore, mapReward, mapChange, nOld, nNew, bSimulate, nBattleCount, self.tbCharDamage)
+  local nBattleCount = self.parent:GetJointDrillBattleCount()
+  local tbLastCharIds = self.parent:GetJointDrillLastTeam()
+  EventManager.Hit(EventId.OpenPanel, JointDrillContext.GetPanelId(self.parent.nActId, "Result"), nResultType, self.nCurLevel, self.nGameTime, self.nLevelId, bossInfo, mapScore, mapReward, mapChange, nOld, nNew, bSimulate, nBattleCount, self.tbCharDamage, tbLastCharIds)
   self.parent:LevelEnd(nResultType)
 end
 

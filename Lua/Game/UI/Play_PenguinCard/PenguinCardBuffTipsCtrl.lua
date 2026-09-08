@@ -42,11 +42,11 @@ function PenguinCardBuffTipsCtrl:Close()
     self.callback()
   end
   self.animator:Play("PengUinCard_BuffTips_out")
+  EventManager.Hit(EventId.TemporaryBlockInput, 0.333)
   self:AddTimer(1, 0.333, function()
     self.gameObject:SetActive(false)
     self._panel.mapLevel:Resume()
   end, true, true, true)
-  EventManager.Hit(EventId.TemporaryBlockInput, 0.333)
 end
 
 function PenguinCardBuffTipsCtrl:Awake()

@@ -65,8 +65,9 @@ function PlayerStorySetData:CacheStorySetData(netMsg)
             v.nId
           }, v.nStatus == AllEnum.StorySetStatus.UnLock and bShow)
         end
+        local mapCfg = ConfigTable.GetData("StorySetChapter", data.ChapterId)
         local chapterHasRedDot = RedDotManager.GetValid(RedDotDefine.Story_Set_Chapter, {
-          data.TadId,
+          mapCfg.TabId,
           data.ChapterId
         })
         if chapterHasRedDot == true then

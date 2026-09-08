@@ -177,6 +177,9 @@ function PlayerData.Init()
   end
   
   ForEachTableLine(DataTable.EnumDesc, foreachEnumDesc)
+  local EventReminderData = require("GameCore.Data.DataClass.EventReminderData")
+  PlayerData.EventReminder = EventReminderData.new()
+  PlayerData.EventReminder:Init()
 end
 
 function PlayerData.UnInit()

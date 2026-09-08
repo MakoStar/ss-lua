@@ -1,6 +1,7 @@
 local EquipmentInstanceLevelSelectCtrl = class("EquipmentInstanceLevelSelectCtrl", BaseCtrl)
 local Actor2DManager = require("Game.Actor2D.Actor2DManager")
 local WwiseAudioMgr = CS.WwiseAudioManager.Instance
+local LocalData = require("GameCore.Data.LocalData")
 local mapToggle = {
   [1] = GameEnum.diffculty.Diffculty_1,
   [2] = GameEnum.diffculty.Diffculty_2,
@@ -103,6 +104,7 @@ EquipmentInstanceLevelSelectCtrl._mapNodeConfig = {
     sCtrlName = "Game.UI.MainlineEx.RewardListCtrl"
   },
   txtRewardTitle = {
+    nCount = 2,
     sComponentName = "TMP_Text",
     sLanguageId = "Equipment_Instance_Reward_Title"
   },
@@ -150,6 +152,46 @@ EquipmentInstanceLevelSelectCtrl._mapNodeConfig = {
     sComponentName = "TMP_Text",
     sLanguageId = "InfinityTower_Recommend_Construct"
   },
+  goNormal = {},
+  goEnhance = {},
+  txtRewardTypeCn = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "DailyInstance_ChangeReward"
+  },
+  txtRewardType = {sComponentName = "TMP_Text"},
+  btnRewardType = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_ChangeMode"
+  },
+  txtBtnRewardType = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "DailyInstance_ChangeBtn"
+  },
+  btnCloseInfo = {
+    sNodeName = "btnCloseInfo",
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_CloseChangeMode"
+  },
+  got_fullscreen_select = {
+    sNodeName = "t_fullscreen_select"
+  },
+  btnsnapshot = {
+    sComponentName = "Button",
+    callback = "OnBtnClick_CloseChangeMode"
+  },
+  goRewardSelect = {},
+  txtWindowTitleSelect = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "DailyInstance_Reward_SelectTitle"
+  },
+  ani_RewardSelect = {
+    sNodeName = "rt_RewardSelect",
+    sComponentName = "Animator"
+  },
+  svSelectReward = {
+    sComponentName = "LoopScrollView"
+  },
+  reddotSwitch = {},
   ListConditions = {},
   btnLock = {
     sComponentName = "UIButton",
@@ -167,6 +209,7 @@ EquipmentInstanceLevelSelectCtrl._mapNodeConfig = {
 EquipmentInstanceLevelSelectCtrl._mapEventConfig = {
   [EventId.UIHomeConfirm] = "OnEvent_Home",
   [EventId.UIBackConfirm] = "OnEvent_Back",
+  ChangeEquipmentInstanceRewardMode = "OnEvent_ChangeEquipmentInstanceRewardMode",
   EquipmentInstanceRaidOpen = "OnEvent_RaidOpen",
   [EventId.UpdateWorldClass] = "OnEvent_UpdateWorldClass",
   [EventId.UpdateEnergy] = "OnEvent_UpdateEnergy",
@@ -188,6 +231,7 @@ end
 function EquipmentInstanceLevelSelectCtrl:OnEnable()
   self.mapAllEquipmentInstance = {}
   self.tbEquipmentInstanceType = {}
+  self.tbCharGemRewardGroup = {}
   
   local function foreachEquipmentInstance(mapData)
     if self.mapAllEquipmentInstance[mapData.Type] == nil then
@@ -206,12 +250,31 @@ function EquipmentInstanceLevelSelectCtrl:OnEnable()
   end
   
   table.sort(self.tbEquipmentInstanceType, sortEquipmentInstance)
+  
+  local function forEachCharGemInstanceRewardGroup(mapData)
+    if self.tbCharGemRewardGroup[mapData.GroupId] == nil then
+      self.tbCharGemRewardGroup[mapData.GroupId] = {}
+    end
+    table.insert(self.tbCharGemRewardGroup[mapData.GroupId], mapData)
+  end
+  
+  ForEachTableLine(DataTable.CharGemInstanceRewardGroup, forEachCharGemInstanceRewardGroup)
+  for k, v in pairs(self.tbCharGemRewardGroup) do
+    table.sort(v, function(a, b)
+      return a.Id < b.Id
+    end)
+  end
+  self.nRewardType = PlayerData.EquipmentInstance:GetLastRewardType()
   local tbParam = self:GetPanelParam()
   if nil ~= next(tbParam) then
     if tbParam[3] == nil then
     end
     self.bJumpTo = tbParam[3]
     self.nJumpToGroup = tbParam[2] == nil and 0 or tbParam[2]
+    if tbParam[4] ~= nil then
+      self.nRewardType = tbParam[4]
+      PlayerData.EquipmentInstance:SetRewardType(self.nRewardType)
+    end
     if 0 ~= self.nJumpToGroup then
       local nMaxHard = PlayerData.EquipmentInstance:GetMaxEquipmentInstanceHard(self.nJumpToGroup)
       local nJumpToHard = (nil == tbParam[1] or 0 == tbParam[1]) and nMaxHard or tbParam[1]
@@ -242,12 +305,30 @@ end
 
 function EquipmentInstanceLevelSelectCtrl:OnDisable()
   Actor2DManager.UnsetBoardNPC2D()
+  self:UnbindAllGrids()
 end
 
 function EquipmentInstanceLevelSelectCtrl:OnDestroy()
 end
 
 function EquipmentInstanceLevelSelectCtrl:OnRelease()
+end
+
+function EquipmentInstanceLevelSelectCtrl:RefreshGrid(goGrid, gridIndex)
+  if self.mapLevelGrid[goGrid] == nil then
+    self.mapLevelGrid[goGrid] = self:BindCtrlByNode(goGrid, "Game.UI.EquipmentInstanceLevelSelect.EquipmentInstanceRewardSelectGridCtrl")
+  end
+  local nIdx = gridIndex + 1
+  local mapData = self.mapAllEquipmentInstance[self.nCurGroupId][self.curSelectHard]
+  local nType = self.tbCharGemRewardGroup[mapData.DropId][nIdx].Id
+  self.mapLevelGrid[goGrid]:Refresh(nType)
+end
+
+function EquipmentInstanceLevelSelectCtrl:UnbindAllGrids()
+  for go, mapCtrl in pairs(self.mapLevelGrid) do
+    self:UnbindCtrlByNode(mapCtrl)
+  end
+  self.mapLevelGrid = {}
 end
 
 function EquipmentInstanceLevelSelectCtrl:OpenJumpToGroup()
@@ -393,6 +474,9 @@ function EquipmentInstanceLevelSelectCtrl:RefreshEquipmentInstanceInfo(nGroupId,
   if mapEquipmentInstanceData == nil then
     return
   end
+  local bEnhance = mapEquipmentInstanceData.DropId and mapEquipmentInstanceData.DropId > 0
+  self._mapNode.goNormal:SetActive(not bEnhance)
+  self._mapNode.goEnhance:SetActive(bEnhance)
   NovaAPI.SetTMPText(self._mapNode.TMPInstanceName, mapEquipmentInstanceData.Name)
   NovaAPI.SetTMPText(self._mapNode.TMPInstanceDesc, mapEquipmentInstanceData.Desc)
   self:SetPngSprite(self._mapNode.imgLevelImg, mapEquipmentInstanceData.Icon)
@@ -446,7 +530,29 @@ function EquipmentInstanceLevelSelectCtrl:RefreshEquipmentInstanceInfo(nGroupId,
   NovaAPI.SetTMPText(self._mapNode.txtRecommendLevel, mapEquipmentInstanceData.SuggestedPower)
   local sScoreIcon = "Icon/BuildRank/BuildRank_" .. mapEquipmentInstanceData.SuggestedBuild
   self:SetPngSprite(self._mapNode.imgRecommendBuild, sScoreIcon)
-  local tbReward = decodeJson(mapEquipmentInstanceData.BaseAwardPreview)
+  local tbReward = {}
+  if bEnhance then
+    if self.tbCharGemRewardGroup[mapEquipmentInstanceData.DropId] ~= nil then
+      for k, v in ipairs(self.tbCharGemRewardGroup[mapEquipmentInstanceData.DropId]) do
+        if v.RewardType == self.nRewardType then
+          tbReward = decodeJson(v.BaseAwardPreview)
+          NovaAPI.SetTMPText(self._mapNode.txtRewardType, v.RewardName)
+        end
+      end
+      if curStar <= 0 then
+        local firstReward = mapEquipmentInstanceData.FirstRewardPreview
+        if firstReward ~= nil and 0 < #firstReward then
+          table.insert(tbReward, 1, {
+            firstReward[1],
+            firstReward[2],
+            1
+          })
+        end
+      end
+    end
+  else
+    tbReward = decodeJson(mapEquipmentInstanceData.BaseAwardPreview)
+  end
   self.tbReward = tbReward
   for index = 1, 5 do
     if self.tbReward[index] ~= nil then
@@ -504,6 +610,7 @@ function EquipmentInstanceLevelSelectCtrl:RefreshEquipmentInstanceInfo(nGroupId,
     NovaAPI.SetTMPText(tex_ConditionsTips_PL, orderedFormat(ConfigTable.GetUIText("RegusBoss_UnlockConditions_PreLevel"), ConfigTable.GetUIText(_sKey)))
     NovaAPI.SetTMPColor(tex_ConditionsTips_PL, isPreLevelStar and Color(0.3686274509803922, 0.5372549019607843, 0.7058823529411765) or Color(0.14901960784313725, 0.25882352941176473, 0.47058823529411764))
   end
+  RedDotManager.RegisterNode(RedDotDefine.CharGemInstanceSwitch, {nGroupId}, self._mapNode.reddotSwitch)
 end
 
 function EquipmentInstanceLevelSelectCtrl:OnEvent_Back(nPanelId)
@@ -532,6 +639,11 @@ function EquipmentInstanceLevelSelectCtrl:OnEvent_Home(nPanelId)
     return
   end
   PanelManager.Home()
+end
+
+function EquipmentInstanceLevelSelectCtrl:OnEvent_ChangeEquipmentInstanceRewardMode()
+  self.nRewardType = PlayerData.EquipmentInstance:GetLastRewardType()
+  self:RefreshEquipmentInstanceInfo(self.nCurGroupId, self.curSelectHard, true, true)
 end
 
 function EquipmentInstanceLevelSelectCtrl:OnBtnClick_LevelItem(btn, nIdx)
@@ -612,6 +724,30 @@ function EquipmentInstanceLevelSelectCtrl:OnBtnClick_RewardItem(btn)
     local nTid = self.tbAfterReward[nIdx][1]
     UTILS.ClickItemGridWithTips(nTid, rtBtn, true, true, false)
   end
+end
+
+function EquipmentInstanceLevelSelectCtrl:OnBtnClick_ChangeMode(btn)
+  self._mapNode.goRewardSelect:SetActive(true)
+  self._mapNode.got_fullscreen_select:SetActive(true)
+  self._mapNode.ani_RewardSelect:Play("t_window_04_t_in")
+  local mapData = self.mapAllEquipmentInstance[self.nCurGroupId][self.curSelectHard]
+  self._mapNode.svSelectReward:SetAnim(0.07)
+  self._mapNode.svSelectReward:Init(#self.tbCharGemRewardGroup[mapData.DropId], self, self.RefreshGrid)
+  local bNew = RedDotManager.GetValid(RedDotDefine.CharGemInstanceSwitch, {
+    self.nCurGroupId
+  })
+  if bNew then
+    LocalData.SetPlayerLocalData("CharGemInstanceSwitch" .. self.nCurGroupId, false)
+    PlayerData.EquipmentInstance:UpdateNewRewardSwitch(self.nCurGroupId)
+  end
+end
+
+function EquipmentInstanceLevelSelectCtrl:OnBtnClick_CloseChangeMode(btn)
+  self._mapNode.ani_RewardSelect:Play("t_window_04_t_out")
+  self._mapNode.got_fullscreen_select:SetActive(false)
+  self:AddTimer(1, 0.2, function()
+    self._mapNode.goRewardSelect:SetActive(false)
+  end, true, true, true)
 end
 
 function EquipmentInstanceLevelSelectCtrl:OnBtnClick_TogTips(btn, nIndex)

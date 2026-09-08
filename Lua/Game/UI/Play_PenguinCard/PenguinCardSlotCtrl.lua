@@ -15,7 +15,8 @@ PenguinCardSlotCtrl._mapNodeConfig = {
 PenguinCardSlotCtrl._mapEventConfig = {
   PenguinCard_AddSlot = "OnEvent_AddSlot",
   PenguinCard_SelectPenguinCard = "OnEvent_SelectPenguinCard",
-  PenguinCard_SalePenguinCard = "OnEvent_SalePenguinCard"
+  PenguinCard_SalePenguinCard = "OnEvent_SalePenguinCard",
+  PenguinCard_ChangeCardLevel = "OnEvent_ChangeCardLevel"
 }
 
 function PenguinCardSlotCtrl:Refresh()
@@ -33,6 +34,15 @@ function PenguinCardSlotCtrl:RefreshSlot(nIndex)
     imgSlotLock:SetActive(nIndex > self._panel.mapLevel.nSlotCount)
   else
     self._mapNode.PenguinCardItem[nIndex]:Refresh_Slot(mapCard)
+  end
+end
+
+function PenguinCardSlotCtrl:PlaySlotAni()
+  for i = 1, 6 do
+    local mapCard = self._panel.mapLevel.tbPenguinCard[i]
+    if mapCard ~= 0 then
+      self._mapNode.PenguinCardItem[i]:PlaySlotAni()
+    end
   end
 end
 
@@ -90,12 +100,22 @@ end
 
 function PenguinCardSlotCtrl:OnEvent_SalePenguinCard(nSlot)
   self._mapNode.goEmptySlot[nSlot].gameObject:SetActive(true)
+  local imgSlotLock = self._mapNode.goEmptySlot[nSlot]:Find("imgSlotLock").gameObject
+  imgSlotLock:SetActive(nSlot > self._panel.mapLevel.nSlotCount)
   
   local function callback()
     self._mapNode.PenguinCardItem[nSlot].gameObject:SetActive(false)
   end
   
   self._mapNode.PenguinCardItem[nSlot]:PlaySaleAni(callback)
+end
+
+function PenguinCardSlotCtrl:OnEvent_ChangeCardLevel(nSlot, nChange, mapCard)
+  local function callback()
+    self._mapNode.PenguinCardItem[nSlot]:Refresh_Slot(mapCard)
+  end
+  
+  self._mapNode.PenguinCardItem[nSlot]:PlayLevelAni(0 < nChange, callback)
 end
 
 return PenguinCardSlotCtrl

@@ -21,7 +21,8 @@ PenguinCardSelectCtrl._mapNodeConfig = {
   },
   LevelContent = {sComponentName = "Transform"},
   goHardLevel = {},
-  goNormalLevel = {}
+  goNormalLevel = {},
+  goEndlessLevel = {}
 }
 PenguinCardSelectCtrl._mapEventConfig = {
   PenguinCard_ClickLevel = "OnEvent_Click",
@@ -35,7 +36,9 @@ function PenguinCardSelectCtrl:Refresh()
   for k, nLevelId in ipairs(self.tbLevel) do
     local mapCfg = ConfigTable.GetData("ActivityPenguinCardLevel", nLevelId)
     if mapCfg then
-      if mapCfg.ScoreLevel then
+      if mapCfg.Type == GameEnum.ActivityPenguinCardLevelType.Endless then
+        self:RefreshEndless(k, nLevelId)
+      elseif mapCfg.ScoreLevel then
         self:RefreshHard(k, nLevelId)
       else
         self:RefreshNormal(k, nLevelId)
@@ -65,6 +68,18 @@ function PenguinCardSelectCtrl:RefreshHard(nIndex, nLevelId)
   self.tbGridCtrl[nIndex] = ctrlObj
   goObj:SetActive(true)
   ctrlObj:RefreshHard(self.actData, nLevelId)
+  local bLock = ctrlObj:GetLock()
+  if bLock and not self.goFirstLock then
+    self.goFirstLock = goObj
+  end
+end
+
+function PenguinCardSelectCtrl:RefreshEndless(nIndex, nLevelId)
+  local goObj = instantiate(self._mapNode.goEndlessLevel, self._mapNode.LevelContent)
+  local ctrlObj = self:BindCtrlByNode(goObj, "Game.UI.Play_PenguinCard.PenguinCardLevelGridCtrl")
+  self.tbGridCtrl[nIndex] = ctrlObj
+  goObj:SetActive(true)
+  ctrlObj:RefreshEndless(self.actData, nLevelId)
   local bLock = ctrlObj:GetLock()
   if bLock and not self.goFirstLock then
     self.goFirstLock = goObj

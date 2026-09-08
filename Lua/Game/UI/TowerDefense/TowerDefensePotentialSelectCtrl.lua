@@ -61,7 +61,7 @@ function TowerDefensePotentialSelectCtrl:SetData(nActId)
   self.TowerDefenseData = PlayerData.Activity:GetActivityDataById(nActId)
 end
 
-function TowerDefensePotentialSelectCtrl:Refresh(nCharId, tbPotential, nLevel, callback)
+function TowerDefensePotentialSelectCtrl:Refresh(nCharId, tbPotential, nLevel, callback, sTitle)
   self.nCharId = nCharId
   self.callback = callback
   local config = ConfigTable.GetData("TowerDefenseCharacter", self.nCharId)
@@ -72,7 +72,11 @@ function TowerDefensePotentialSelectCtrl:Refresh(nCharId, tbPotential, nLevel, c
     return
   end
   self.nSelectIdx = 0
-  NovaAPI.SetTMPText(self._mapNode.txtUpgrade, orderedFormat(ConfigTable.GetUIText("TowerDef_Text_LevelUp"), config.Name, nLevel))
+  if sTitle == nil then
+    NovaAPI.SetTMPText(self._mapNode.txtUpgrade, orderedFormat(ConfigTable.GetUIText("TowerDef_Text_LevelUp"), config.Name, nLevel))
+  else
+    NovaAPI.SetTMPText(self._mapNode.txtUpgrade, sTitle)
+  end
   self._mapNode.btnConfirm.gameObject:SetActive(false)
   self:RefreshPotentialList(tbPotential)
 end

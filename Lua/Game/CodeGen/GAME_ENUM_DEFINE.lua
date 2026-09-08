@@ -76,6 +76,14 @@ GameEnum.roguelikeLevelStyle = {
   Main_8_1 = 22,
   Main_8_2 = 23,
   Main_8_3 = 24,
+  Main_9_1 = 25,
+  Main_9_2 = 26,
+  Main_9_3 = 27,
+  Main_9_4 = 28,
+  Main_9_5 = 29,
+  Main_10_1 = 30,
+  Main_10_2 = 31,
+  Main_10_3 = 32,
   Roguelike_non = 101,
   Roguelike_miniboss = 102,
   Roguelike_shilaimu = 103,
@@ -95,6 +103,7 @@ GameEnum.roguelikeLevelStyle = {
   DailyInstance_03 = 117,
   Boss_TuRen = 118,
   Boss_PX = 119,
+  Boss_FL = 120,
   TravelBoss_Maoyan = 201,
   TravelBoss_Huayuan = 202,
   TravelBoss_Huochui = 203,
@@ -103,6 +112,7 @@ GameEnum.roguelikeLevelStyle = {
   JointDrill_02_SZ = 252,
   JointDrill_02_SZ_Red = 253,
   JointDrill_02_SZ_Blue = 254,
+  JointDrill_03_MSS = 255,
   VampireSurvivor_01 = 301,
   VampireSurvivor_02 = 302,
   VampireSurvivor_03 = 303,
@@ -128,9 +138,11 @@ GameEnum.roguelikeLevelStyle = {
   StoryActivity_13 = 461,
   StoryActivity_14 = 466,
   StoryActivity_15 = 471,
+  StoryActivity_15_01 = 472,
   StoryActivity_16 = 476,
   StoryActivity_16_01 = 477,
   StoryActivity_17 = 481,
+  StoryActivity_18 = 486,
   Training = 901
 }
 GameEnum.roguelikeFloorFunction = {
@@ -365,7 +377,12 @@ GameEnum.jumpType = {
   ActivityTask = 39,
   MainLineStoryChapter = 40,
   QuestNewbie = 41,
-  CharInfo = 42
+  CharInfo = 42,
+  TraceHunt = 43,
+  ActivityStory = 44,
+  ActivityLevel = 45,
+  ActivityGame1 = 46,
+  ActivityGame2 = 47
 }
 GameEnum.characterSearchTargetType = {MELEE = 1, RANGED = 2}
 GameEnum.characterSearchTargetTypeTowerDefense = {NORMAL = 1}
@@ -674,6 +691,8 @@ GameEnum.achievementCond = {
   TutorialLevelSpecificClearTotal = 121,
   DiscWithSpecificQuantityPhaseAndAttr = 122,
   WeekBossClearTotal = 123,
+  TraceHuntTraceComplete = 159,
+  TraceHuntAssistHunt = 160,
   ClientReport = 200,
   TowerBattleTimes = 501,
   TowerBossChallengeSpecificHighRewardWithTotal = 502,
@@ -1878,7 +1897,8 @@ GameEnum.activityType = {
   HistoryStory = 22,
   IceCream = 23,
   FollowSocialMedia = 24,
-  Soldier = 25
+  Soldier = 25,
+  NewStory = 30
 }
 GameEnum.activityOpenType = {
   None = 0,
@@ -2028,7 +2048,10 @@ GameEnum.BrickDropType = {
   BrickBoomBall = 7,
   BrickInv = 8,
   BrickSplit = 9,
-  BrickPortal_Hole = 10
+  BrickPortal_Hole = 10,
+  Brick_HorizontalLaser = 11,
+  Brick_VerticalLaser = 12,
+  Brick_Lightning = 13
 }
 GameEnum.starTowerRoomType = {
   BattleRoom = 0,
@@ -2317,7 +2340,8 @@ GameEnum.OpenFuncType = {
   WeeklyQuest = 30,
   QuestNewbie = 31,
   TraceHunt = 32,
-  EnergyBattery = 33
+  EnergyBattery = 33,
+  EventReminder = 34
 }
 GameEnum.TowerQuestType = {Core = 1, Normal = 2}
 GameEnum.poolType = {Elite = 1, Boss = 2}
@@ -2538,7 +2562,9 @@ GameEnum.TrialSectType = {
   MainSect1 = 1,
   MainSect2 = 2,
   SupSect1 = 3,
-  SupSect2 = 4
+  SupSect2 = 4,
+  SkinMainSect = 5,
+  SkinSupSect = 6
 }
 GameEnum.activityGroupType = {
   None = 0,
@@ -2565,7 +2591,10 @@ GameEnum.activityThemeType = {
   GunStorm_10109 = 15,
   Summer_20103 = 16,
   Summer_10110 = 17,
-  BreakOut_30103 = 19
+  CultivationManual_10111 = 18,
+  BreakOut_30103 = 19,
+  LongestDay_10112 = 20,
+  BreakOut_30104 = 21
 }
 GameEnum.ActivityLevelType = {
   Explore = 1,
@@ -2720,7 +2749,9 @@ GameEnum.PenguinCardTriggerPhase = {
   FatalDamage = 7,
   PenguinCardChange = 8,
   FlipEnd = 9,
-  ManualRoll = 10
+  ManualRoll = 10,
+  Aura = 11,
+  NextLevel = 12
 }
 GameEnum.PenguinCardTriggerType = {
   None = 1,
@@ -2741,7 +2772,8 @@ GameEnum.PenguinCardTriggerLimit = {
   None = 1,
   Round = 2,
   Turn = 3,
-  Game = 4
+  Game = 4,
+  TurnAndRound = 5
 }
 GameEnum.PenguinCardGrowthType = {
   None = 1,
@@ -2759,7 +2791,15 @@ GameEnum.PenguinCardEffectType = {
   BlockFatalDamage = 8,
   UpgradeRebate = 9,
   AddCardRollCount = 10,
-  RollSpecificCard = 11
+  RollSpecificCard = 11,
+  UpgradeDiscountAura = 12,
+  CheckRoundAura = 13,
+  AddRoundAura = 14,
+  AimScoreAura = 15,
+  CardLevel = 16,
+  ChangeHp = 17,
+  AideScoreAura = 18,
+  RetryLimit = 19
 }
 GameEnum.PenguinCardQuestType = {
   Score = 1,
@@ -2836,7 +2876,8 @@ GameEnum.CharPlotType = {CharPlot = 1, SkinPlot = 2}
 GameEnum.GoldenSpyLevelType = {
   Normal = 1,
   Quest = 2,
-  Random = 3
+  Random = 3,
+  FishingHook = 4
 }
 GameEnum.GoldenSpyBuffEffect = {
   AddScore = 1,
@@ -2871,6 +2912,11 @@ GameEnum.GoldenSpyItem = {
   BuffItem = 10
 }
 GameEnum.GoldenSpyObstacle = {Laser = 1}
+GameEnum.GoldenSpySkillType = {
+  Boom = 1,
+  Frozen = 2,
+  FishingHook = 3
+}
 GameEnum.CharRechargeSpeed = {
   SupHigh = 1,
   High = 2,
@@ -2884,7 +2930,11 @@ GameEnum.CharEnergyCostSpeed = {
   Low = 4
 }
 GameEnum.EnterMethod = {Default = 0, JumpFormation = 1}
-GameEnum.MainlineMemoryNodeType = {None = 0, DiscType = 1}
+GameEnum.MainlineMemoryNodeType = {
+  None = 0,
+  DiscType = 1,
+  LastEndType = 2
+}
 GameEnum.ChessRarity = {
   White = 1,
   Green = 2,
@@ -2990,7 +3040,11 @@ GameEnum.TraceHuntLogType = {
   HuntAfterStart = 15,
   HuntInterrupt = 16
 }
-GameEnum.TDLevelGamePlayType = {None = 1, Hot = 2}
+GameEnum.TDLevelGamePlayType = {
+  None = 1,
+  Hot = 2,
+  Dark = 3
+}
 GameEnum.SoldierPartnerNumType = {GE = 1, EQ = 2}
 GameEnum.SoldierClientCond = {
   None = 1,
@@ -3121,4 +3175,14 @@ GameEnum.PartnerLevelQuality = {
   Color = 4
 }
 GameEnum.SoldierCharacterType = {Actor = 1, Monster = 2}
+GameEnum.ActivityPenguinCardLevelType = {Normal = 1, Endless = 2}
+GameEnum.EventReminderType = {
+  WeeklyCopies = 1,
+  Vampire = 2,
+  ScoreBoss = 3,
+  StarTower = 4,
+  TraceHunt = 5
+}
+GameEnum.CharGemInstanceRewardType = {General = 1, Enhance = 2}
+GameEnum.CharGemInstanceDropGuarantee = {RoundTableGuarantee = 1, SequentialGuarantee = 2}
 return GameEnum

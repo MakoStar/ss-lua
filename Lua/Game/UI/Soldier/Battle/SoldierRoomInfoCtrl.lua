@@ -116,7 +116,8 @@ SoldierRoomInfoCtrl._mapEventConfig = {
   RestartSoldier = "OnEvent_ClearSoldier",
   SettleSoldierBattle = "OnEvent_ClearSoldier",
   LeaveSoldier = "OnEvent_ClearSoldier",
-  Soldier_Settlement_Ready = "OnEvent_SettlementReady"
+  Soldier_Settlement_Ready = "OnEvent_SettlementReady",
+  Soldier_IsStart_Ready = "OnEvent_IsStartReady"
 }
 local colorWhite = Color(1, 1, 1, 1)
 local colorRed = Color(0.8470588235294118, 0.3137254901960784, 0.32941176470588235)
@@ -457,6 +458,9 @@ function SoldierRoomInfoCtrl:OnDestroy()
 end
 
 function SoldierRoomInfoCtrl:OnBtn_Pause()
+  if not self.isStartReady then
+    return
+  end
   EventManager.Hit("OpenSoldierPause", self.tbChess, self.tbCacheSoldierEnergy)
 end
 
@@ -506,6 +510,7 @@ end
 
 function SoldierRoomInfoCtrl:OnEvent_OpenUI(nFloorId)
   self:OpenUI(nFloorId)
+  self.isStartReady = false
 end
 
 function SoldierRoomInfoCtrl:OnEvent_InputEnable(bEnable)
@@ -583,6 +588,10 @@ end
 function SoldierRoomInfoCtrl:OnEvent_SettlementReady()
   self._mapNode.BtnBg.gameObject:SetActive(false)
   self._mapNode.btnPause.gameObject:SetActive(false)
+end
+
+function SoldierRoomInfoCtrl:OnEvent_IsStartReady(isReady)
+  self.isStartReady = isReady
 end
 
 return SoldierRoomInfoCtrl

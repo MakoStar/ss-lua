@@ -647,7 +647,7 @@ function SummerAdvCtrl:OnBtn_ClickActivityEntrance(btn, nIndex)
         EventManager.Hit(EventId.OpenPanel, actData.PanelId, actData.ActivityId, self.nActId)
       end
       
-      EventManager.Hit(EventId.SetTransition, 37, func)
+      EventManager.Hit(EventId.SetTransition, 52, func)
     elseif self.ActivityGroupCfg.TransitionId ~= nil and self.ActivityGroupCfg.TransitionId > 0 then
       EventManager.Hit(EventId.SetTransition, self.ActivityGroupCfg.TransitionId, function()
         EventManager.Hit(EventId.OpenPanel, actData.PanelId, actData.ActivityId)

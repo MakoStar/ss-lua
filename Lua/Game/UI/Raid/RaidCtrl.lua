@@ -58,6 +58,8 @@ function RaidCtrl:Awake()
       self.nActId = tbParam[4]
     end
   end
+  self._mapNode.Reward.gameObject:SetActive(false)
+  self._mapNode.RaidCount.gameObject:SetActive(false)
 end
 
 function RaidCtrl:OnEnable()

@@ -12,7 +12,7 @@ local mapEventConfig = {
   ADVENTURE_LEVEL_UNLOAD_COMPLETE = "OnEvent_UnloadComplete"
 }
 
-function TraceHuntLevel:Init(parent, nLevelId, nBuildId, isAgain)
+function TraceHuntLevel:Init(parent, nLevelId, nBuildId, nFloorId, isAgain)
   self.isSettlement = false
   self.parent = parent
   self.LevelId = nLevelId
@@ -23,9 +23,9 @@ function TraceHuntLevel:Init(parent, nLevelId, nBuildId, isAgain)
   self.BattleLv = 1
   self.nTime = 0
   self.isCanPause = true
-  local leveData = ConfigTable.GetData("TraceHuntBoss", nLevelId)
+  local leveData = ConfigTable.GetData("TraceHuntFloorGroup", nFloorId)
   if leveData == nil then
-    printError("TraceHuntBoss 表不存在 id ==== " .. nLevelId)
+    printError("TraceHuntFloorGroup 表不存在 id ==== " .. nFloorId)
     return
   end
   self.ScoreGetSwitchGroupId = leveData.ScoreGetSwitchGroup
@@ -38,8 +38,10 @@ function TraceHuntLevel:Init(parent, nLevelId, nBuildId, isAgain)
   local function GetBuildCallback(mapBuildData)
     self.mapBuildData = mapBuildData
     self.tbCharId = {}
+    self.tbCharTrialId = {}
     for _, mapChar in ipairs(self.mapBuildData.tbChar) do
       table.insert(self.tbCharId, mapChar.nTid)
+      self.tbCharTrialId[mapChar.nTid] = mapChar.nTrialId
     end
     self.tbDiscId = {}
     for _, nDiscId in ipairs(self.mapBuildData.tbDisc) do
@@ -54,7 +56,7 @@ function TraceHuntLevel:Init(parent, nLevelId, nBuildId, isAgain)
     end
     PlayerData.nCurGameType = AllEnum.WorldMapNodeType.TraceHunt
     local params = NovaAPI.GetDynamicLevelParamsBootConfig()
-    CS.AdventureModuleHelper.EnterDynamic(self.LevelId, self.tbCharId, GameEnum.dynamicLevelType.TraceHunt, params)
+    CS.AdventureModuleHelper.EnterDynamic(nFloorId, self.tbCharId, GameEnum.dynamicLevelType.TraceHunt, params)
     if not isAgain then
       NovaAPI.EnterModule("AdventureModuleScene", true, 17)
     else
@@ -67,7 +69,7 @@ end
 
 function TraceHuntLevel:CalCharFixedEffect(nCharId, bMainChar, tbDiscId)
   local stActorInfo = CS.Lua2CSharpInfo_CharAttribute()
-  PlayerData.Char:CalCharacterAttrBattle(nCharId, stActorInfo, bMainChar, tbDiscId, self.mapBuildData.nBuildId)
+  PlayerData.Build:CalBuildCharacterAttrBattle(self.mapBuildData.nBuildId, nCharId, self.tbCharTrialId and self.tbCharTrialId[nCharId], stActorInfo, bMainChar, tbDiscId)
   return stActorInfo
 end
 
@@ -92,7 +94,7 @@ end
 function TraceHuntLevel:SetPersonalPerk()
   if self.mapBuildData ~= nil then
     for nCharId, tbPerk in pairs(self.mapBuildData.tbPotentials) do
-      local mapAddLevel = PlayerData.Char:GetCharEnhancedPotential(nCharId)
+      local mapAddLevel = PlayerData.Build:GetBuildEnhancedPotential(self.mapBuildData.nBuildId, nCharId, self.tbCharTrialId and self.tbCharTrialId[nCharId])
       local tbPerkInfo = {}
       for _, mapPerkInfo in ipairs(tbPerk) do
         local nAddLv = mapAddLevel[mapPerkInfo.nPotentialId] or 0
@@ -110,7 +112,7 @@ function TraceHuntLevel:SetDiscInfo()
   local tbDiscInfo = {}
   for k, nDiscId in ipairs(self.mapBuildData.tbDisc) do
     if k <= 3 then
-      local discInfo = PlayerData.Disc:CalcDiscInfoInBuild(nDiscId, self.mapBuildData.tbSecondarySkill)
+      local discInfo = PlayerData.Build:GetBuildDiscInfoInBuild(self.mapBuildData.nBuildId, nDiscId, self.mapBuildData.tbSecondarySkill)
       table.insert(tbDiscInfo, discInfo)
     end
   end

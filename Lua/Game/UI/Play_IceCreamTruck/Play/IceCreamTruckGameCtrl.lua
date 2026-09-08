@@ -244,7 +244,6 @@ function IceCreamTruckGameCtrl:OnDisable()
   self:_GuideClearGarbage()
   self._goGarbageGuide = nil
   self:UnregisterCondimentSpines()
-  self:_UnregisterFeverCatSpine()
   self:_DestroyAllSauceInstances()
   if self._progressBarTailTweener ~= nil then
     self._progressBarTailTweener:Kill()
@@ -260,7 +259,6 @@ function IceCreamTruckGameCtrl:OnDisable()
     self.timerFeverCutinDeactivate = nil
   end
   self._nRestartGen = (self._nRestartGen or 0) + 1
-  SpineManager.ClearAll()
 end
 
 function IceCreamTruckGameCtrl:ReInitData()
@@ -1587,13 +1585,7 @@ function IceCreamTruckGameCtrl:Fever_ShowSpecialSpine(bShow)
   if not bShow then
     return
   end
-  if self._nFeverCatSpineId == nil then
-    self._nFeverCatSpineId = SpineManager.Bind(self._mapNode.spCat)
-  end
-  if self._nFeverCatSpineId == nil then
-    return
-  end
-  self:SetStatusSwitch(self._nFeverCatSpineId, "in", false, "idle")
+  self:SetStatusSwitch(self._mapNode.spCat, "in", false, "idle")
   self._mapNode.imgFemale:SetActive(not PlayerBaseData:GetPlayerSex())
   self._mapNode.imgMale:SetActive(PlayerBaseData:GetPlayerSex())
   if bShow then
@@ -1613,13 +1605,9 @@ function IceCreamTruckGameCtrl:Fever_UnShowSpecialSpine_Cat()
   if CatSpine == nil or CatSpine:IsNull() then
     return
   end
-  if self._nFeverCatSpineId == nil then
-    CatSpine:SetActive(false)
-    return
-  end
-  self:SetStatusSwitch(self._nFeverCatSpineId, "out", false, nil)
+  self:SetStatusSwitch(self._mapNode.spCat, "out", false, nil)
   local nGen = self._nRestartGen or 0
-  local fDur = SpineManager.GetAnimDuration(self._nFeverCatSpineId, "out")
+  local fDur = SpineManager.GetAnimDuration(CatSpine, "out")
   if fDur == nil or fDur <= 0 then
     fDur = CAT_OUT_FALLBACK_DURATION
   end
@@ -1632,13 +1620,6 @@ function IceCreamTruckGameCtrl:Fever_UnShowSpecialSpine_Cat()
       CatSpine:SetActive(false)
     end
   end)
-end
-
-function IceCreamTruckGameCtrl:_UnregisterFeverCatSpine()
-  if self._nFeverCatSpineId ~= nil then
-    SpineManager.Unbind(self._nFeverCatSpineId)
-    self._nFeverCatSpineId = nil
-  end
 end
 
 function IceCreamTruckGameCtrl:Fever_UnShowSpecialAnimator_Cutin()
@@ -1901,7 +1882,6 @@ function IceCreamTruckGameCtrl:_TeardownForRestart()
   self:_GuideClearGarbage()
   self._goGarbageGuide = nil
   self:UnregisterCondimentSpines()
-  self:_UnregisterFeverCatSpine()
   self:_DestroyAllSauceInstances()
 end
 
@@ -1995,14 +1975,7 @@ function IceCreamTruckGameCtrl:RegisterCondimentSpines()
       local nEnum = tonumber(btn.transform:GetChild(0).name)
       local trSpine = btn.transform:Find("AnimRoot/Spine_Icon")
       if nEnum ~= nil and trSpine ~= nil and trSpine:IsNull() == false then
-        if self.tbCondimentSpineIds[nEnum] ~= nil then
-          SpineManager.Unbind(self.tbCondimentSpineIds[nEnum])
-        end
-        local nId = SpineManager.Bind(trSpine.gameObject)
-        if nId ~= nil then
-          self.tbCondimentSpineIds[nEnum] = nId
-          SpineManager.PlayAnim(nId, "idle", true)
-        end
+        SpineManager.PlayAnim(trSpine, "idle", true)
       end
     end
   end
@@ -2023,12 +1996,6 @@ function IceCreamTruckGameCtrl:GetCondimentTrByEnum(nEnum)
 end
 
 function IceCreamTruckGameCtrl:UnregisterCondimentSpines()
-  if self.tbCondimentSpineIds == nil then
-    return
-  end
-  for _, nId in pairs(self.tbCondimentSpineIds) do
-    SpineManager.Unbind(nId)
-  end
   self.tbCondimentSpineIds = nil
   self._tbCondimentTrByEnum = nil
 end
@@ -2037,23 +2004,23 @@ function IceCreamTruckGameCtrl:Cline_Spine(nEnum)
   if self.tbCondimentSpineIds == nil then
     return
   end
-  local nSpineId = self.tbCondimentSpineIds[nEnum]
-  if nSpineId == nil then
+  local spineObj = self.tbCondimentSpineIds[nEnum]
+  if spineObj == nil then
     return
   end
-  self:SetStatusSwitch(nSpineId, "in", false, "idle")
+  self:SetStatusSwitch(spineObj, "in", false, "idle")
 end
 
-function IceCreamTruckGameCtrl:SetStatusSwitch(CurSpineId, eState, bLoop, sNextLoop)
-  if not CurSpineId then
+function IceCreamTruckGameCtrl:SetStatusSwitch(spineObj, eState, bLoop, sNextLoop)
+  if not spineObj then
     return
   end
   if bLoop == nil then
     bLoop = true
   end
-  SpineManager.PlayAnim(CurSpineId, eState, bLoop)
+  SpineManager.PlayAnim(spineObj, eState, bLoop)
   if not bLoop and sNextLoop then
-    SpineManager.AddAnim(CurSpineId, sNextLoop, true, 0)
+    SpineManager.AddAnim(spineObj, sNextLoop, true, 0)
   end
 end
 

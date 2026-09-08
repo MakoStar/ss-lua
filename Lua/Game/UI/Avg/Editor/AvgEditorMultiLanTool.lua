@@ -927,6 +927,7 @@ function AvgEditorMultiLanTool:_Export_Text(tbLuaData)
         "",
         ""
       })
+      local bD_bExist = type(v.param[28]) == "string" and v.param[28] ~= ""
       if self.nFromLanIdx == 1 then
         table.insert(tbExportData, {
           "【id:" .. tostring(i) .. "】" .. "路线选项1-标题",
@@ -1000,6 +1001,32 @@ function AvgEditorMultiLanTool:_Export_Text(tbLuaData)
           "",
           ""
         })
+        if bD_bExist == true then
+          table.insert(tbExportData, {
+            "【id:" .. tostring(i) .. "】" .. "路线选项4-标题",
+            "",
+            self:_ProcText(v.param[30], true),
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          })
+          table.insert(tbExportData, {
+            "【id:" .. tostring(i) .. "】" .. "路线选项4-描述",
+            "",
+            self:_ProcText(v.param[31], true),
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          })
+        end
         table.insert(tbExportData, {
           "【id:" .. tostring(i) .. "】" .. "路线选项-主角沉思",
           "",
@@ -1085,6 +1112,32 @@ function AvgEditorMultiLanTool:_Export_Text(tbLuaData)
           "",
           ""
         })
+        if bD_bExist == true then
+          table.insert(tbExportData, {
+            "【id:" .. tostring(i) .. "】" .. "路线选项4-标题",
+            "",
+            "",
+            "",
+            "",
+            "",
+            self:_ProcText(v.param[30], true),
+            "",
+            "",
+            ""
+          })
+          table.insert(tbExportData, {
+            "【id:" .. tostring(i) .. "】" .. "路线选项4-描述",
+            "",
+            "",
+            "",
+            "",
+            "",
+            self:_ProcText(v.param[31], true),
+            "",
+            "",
+            ""
+          })
+        end
         table.insert(tbExportData, {
           "【id:" .. tostring(i) .. "】" .. "路线选项-主角沉思",
           "",
@@ -1580,6 +1633,7 @@ function AvgEditorMultiLanTool:_Import_Text(tbTranslatedData, tbLuaData)
     elseif sCmdName == "SetChoiceEnd" then
       nTranslatedDataIndex = nTranslatedDataIndex + 1
     elseif sCmdName == "SetMajorChoice" then
+      local bD_bExist = type(v.param[28]) == "string" and v.param[28] ~= ""
       nTranslatedDataIndex = nTranslatedDataIndex + 1
       local rowData = func_GetTranslatedData()
       v.param[4] = self:_ProcText(func_GetColumn_H_D(rowData), false)
@@ -1593,6 +1647,12 @@ function AvgEditorMultiLanTool:_Import_Text(tbTranslatedData, tbLuaData)
       v.param[18] = self:_ProcText(func_GetColumn_H_D(rowData), false)
       local rowData = func_GetTranslatedData()
       v.param[19] = self:_ProcText(func_GetColumn_H_D(rowData), false)
+      if bD_bExist == true then
+        local rowData = func_GetTranslatedData()
+        v.param[30] = self:_ProcText(func_GetColumn_H_D(rowData), false)
+        local rowData = func_GetTranslatedData()
+        v.param[31] = self:_ProcText(func_GetColumn_H_D(rowData), false)
+      end
       local rowData = func_GetTranslatedData()
       v.param[26] = self:_ProcText(func_GetColumn_H_D(rowData), false)
     elseif sCmdName == "SetMajorChoiceJumpTo" then

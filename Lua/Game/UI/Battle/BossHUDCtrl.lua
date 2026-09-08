@@ -9,6 +9,7 @@ local colorShieldDelay = Color(1, 1, 1, 0.5)
 local colorRed = Color(0.9176470588235294, 0.043137254901960784, 0.08627450980392157, 1)
 local colorRedHide = Color(0.9176470588235294, 0.043137254901960784, 0.08627450980392157, 0)
 local colorRecover = Color(0.9921568627450981, 0.5098039215686274, 0, 1)
+local AnimBossEnergy = 0.5
 local tabColorJDBoss = {
   [1] = {
     Color(0.9176470588235294, 0.34901960784313724, 0.27450980392156865, 1),
@@ -31,6 +32,7 @@ local jointDrillEnergyStage = {
   Stage2 = 3,
   Max = 4
 }
+local bossEnergyMaxValue = 100
 BossHUDCtrl._mapNodeConfig = {
   BossIcon = {
     sNodeName = "imgBossIcon",
@@ -161,7 +163,36 @@ BossHUDCtrl._mapNodeConfig = {
   imgGridRed = {},
   TMP_JointDrillRed = {sComponentName = "TMP_Text", nCount = 2},
   imgGridGreen = {},
-  TMP_JointDrillGreen = {sComponentName = "TMP_Text", nCount = 2}
+  TMP_JointDrillGreen = {sComponentName = "TMP_Text", nCount = 2},
+  rtEnergy = {},
+  rtEnergyCount = {},
+  rtEnergyFillDelay = {
+    sNodeName = "imgEnergyFillDelay",
+    sComponentName = "RectTransform"
+  },
+  rtEnergyFill = {
+    sNodeName = "imgEnergyFill",
+    sComponentName = "RectTransform"
+  },
+  rtEnergyFillEff = {
+    sNodeName = "imgEnergyFill_Eff"
+  },
+  aniRtEnergyDelay = {
+    sNodeName = "imgEnergyFillDelay",
+    sComponentName = "HpBarRectTransform"
+  },
+  aniRtEnergyFill = {
+    sNodeName = "imgEnergyFill",
+    sComponentName = "HpBarRectTransform"
+  },
+  ainColorEnergyFillRecoverLight = {
+    sNodeName = "imgEnergyFillRecoverLight",
+    sComponentName = "HpBarColor"
+  },
+  imgEnergyRed = {},
+  TMP_EnergyRed = {sComponentName = "TMP_Text"},
+  imgEnergyGreen = {},
+  TMP_EnergyGreen = {sComponentName = "TMP_Text"}
 }
 BossHUDCtrl._mapEventConfig = {
   AllHudShow = "OnEvent_HudShow",
@@ -296,6 +327,17 @@ function BossHUDCtrl:PlayTweenToughnessRecover()
   self.tweenerToughness3 = self._mapNode.aniRtToughnessFill:SetTarget(Vector2(self.ToughnessWidth, self.ToughnessHeight), ToughnessRecoverTime)
 end
 
+function BossHUDCtrl:PlayTweenEnergy(nEnergy, nMaxEnergy)
+  if self.bInit == true then
+    return
+  end
+  local nWidth = 1 <= nEnergy / nMaxEnergy and self.energyBarWidth or nEnergy / nMaxEnergy * self.energyBarWidth
+  if nWidth > self.energyBarWidth then
+    nWidth = self.energyBarWidth
+  end
+  self._mapNode.aniRtEnergyDelay:SetTarget(Vector2(nWidth, self.energyBarWidth), AnimBossEnergy, 0)
+end
+
 function BossHUDCtrl:ResetHit()
   self._mapNode.ainColorHpDelay:SetTarget(colorRed, 0)
   self._mapNode.ainColorHpFillHighLight:SetTarget(colorHide, 0)
@@ -311,6 +353,9 @@ function BossHUDCtrl:ResetHit()
   self._mapNode.rtNormal:SetActive(true)
   self._mapNode.imgBroken:SetActive(false)
   self._mapNode.jointDrillGridCount.gameObject:SetActive(false)
+  self._mapNode.rtEnergy.gameObject:SetActive(false)
+  self._mapNode.rtEnergyCount.gameObject:SetActive(false)
+  self.nBeforeEnergy = 0
 end
 
 function BossHUDCtrl:KillTween()
@@ -327,6 +372,9 @@ function BossHUDCtrl:KillTween()
   self._mapNode.aniRtToughnessDelay:Stop()
   self._mapNode.aniRtToughnessFill:Stop()
   self._mapNode.ainColorToughnessHighlight:Stop()
+  self._mapNode.aniRtEnergyDelay:Stop()
+  self._mapNode.aniRtEnergyFill:Stop()
+  self._mapNode.ainColorEnergyFillRecoverLight:Stop()
 end
 
 function BossHUDCtrl:Awake()
@@ -343,6 +391,8 @@ function BossHUDCtrl:Awake()
   self.isToughness = false
   self.JointDrillBossCount = 0
   self.JointDrillEnergyStage = jointDrillEnergyStage.None
+  self.energyBarWidth = self._mapNode.rtEnergyFillDelay.sizeDelta.x
+  self.energyBarHeight = self._mapNode.rtEnergyFillDelay.sizeDelta.y
 end
 
 function BossHUDCtrl:OnEnable()
@@ -374,6 +424,27 @@ function BossHUDCtrl:SetHp(hp, hpMax, bChange)
   end
   self.nBeforeHp = hp
   self.nBeforeHpMax = hpMax
+end
+
+function BossHUDCtrl:SetBossEnergy(nEnergy, nEnergyMax, bChange)
+  if self.bossId == 0 then
+    return
+  end
+  self._mapNode.rtEnergyFill.gameObject:SetActive(nEnergyMax <= nEnergy)
+  self._mapNode.rtEnergyFillEff.gameObject:SetActive(nEnergyMax <= nEnergy)
+  if nEnergyMax <= nEnergy then
+    self._mapNode.ainColorEnergyFillRecoverLight:SetTarget(colorWhite, 0)
+  else
+    self._mapNode.ainColorEnergyFillRecoverLight:SetTarget(colorHide, AniTimeHighlight, AniTime)
+  end
+  if nEnergy <= 0 then
+    self._mapNode.aniRtEnergyDelay:SetTarget(Vector2(0, self.energyBarHeight), 0)
+  elseif bChange then
+    self._mapNode.aniRtEnergyDelay:SetTarget(Vector2(nEnergy / nEnergyMax * self.energyBarWidth, self.energyBarHeight), 0)
+  else
+    self:PlayTweenEnergy(nEnergy, nEnergyMax)
+  end
+  self.nBeforeEnergy = nEnergy
 end
 
 function BossHUDCtrl:OnEvent_HpChanged(hp, hpMax)
@@ -480,6 +551,8 @@ function BossHUDCtrl:AddEntityEvent()
   EventManager.AddEntityEvent("CastUltra", self.bossId, self, self.OnEvent_JointDrillBossUseSkill)
   EventManager.AddEntityEvent("RedCellNotify", self.bossId, self, self.OnEvent_RedCellNotify)
   EventManager.AddEntityEvent("GreenCellNotify", self.bossId, self, self.OnEvent_GreenCellNotify)
+  EventManager.AddEntityEvent("BossEnergyValueChange", self.bossId, self, self.OnEvent_BossEnergyValueChange)
+  EventManager.AddEntityEvent("BossBuffChange", self.bossId, self, self.OnEvent_BossBuffChange)
 end
 
 function BossHUDCtrl:SetBossInfo(nDataId, nType, nBloodType)
@@ -745,6 +818,8 @@ function BossHUDCtrl:CloseUI()
   EventManager.RemoveEntityEvent("CastUltra", self.bossId, self, self.OnEvent_JointDrillBossUseSkill)
   EventManager.RemoveEntityEvent("RedCellNotify", self.bossId, self, self.OnEvent_RedCellNotify)
   EventManager.RemoveEntityEvent("GreenCellNotify", self.bossId, self, self.OnEvent_GreenCellNotify)
+  EventManager.RemoveEntityEvent("BossEnergyValueChange", self.bossId, self, self.OnEvent_BossEnergyValueChange)
+  EventManager.RemoveEntityEvent("BossBuffChange", self.bossId, self, self.OnEvent_BossBuffChange)
   self._mapNode.rtBuff:UnbindEntity()
   self.bossId = 0
   self.isToughness = false
@@ -870,6 +945,32 @@ function BossHUDCtrl:OnEvent_GreenCellNotify(nCount)
   self._mapNode.imgGridGreen.gameObject:SetActive(true)
   for _, v in ipairs(self._mapNode.TMP_JointDrillGreen) do
     NovaAPI.SetTMPText(v, nCount)
+  end
+end
+
+function BossHUDCtrl:OnEvent_BossEnergyValueChange(nValue)
+  self._mapNode.rtEnergy.gameObject:SetActive(true)
+  if nValue == self.nBeforeEnergy then
+    self:SetBossEnergy(nValue, bossEnergyMaxValue, true)
+  else
+    self:SetBossEnergy(nValue, bossEnergyMaxValue)
+  end
+end
+
+function BossHUDCtrl:OnEvent_BossBuffChange(nValue1, nValue2)
+  self._mapNode.rtEnergyCount.gameObject:SetActive(true)
+  if nValue1 == 0 and nValue2 == 0 then
+    self._mapNode.imgEnergyRed.gameObject:SetActive(false)
+    self._mapNode.imgEnergyGreen.gameObject:SetActive(true)
+    NovaAPI.SetTMPText(self._mapNode.TMP_EnergyGreen, 0)
+  elseif 0 < nValue1 then
+    self._mapNode.imgEnergyRed.gameObject:SetActive(false)
+    self._mapNode.imgEnergyGreen.gameObject:SetActive(true)
+    NovaAPI.SetTMPText(self._mapNode.TMP_EnergyGreen, nValue1)
+  elseif 0 < nValue2 then
+    self._mapNode.imgEnergyRed.gameObject:SetActive(true)
+    self._mapNode.imgEnergyGreen.gameObject:SetActive(false)
+    NovaAPI.SetTMPText(self._mapNode.TMP_EnergyRed, nValue2)
   end
 end
 

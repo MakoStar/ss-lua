@@ -26,17 +26,23 @@ PotentialPreselectionItemCtrl._mapNodeConfig = {
     sLanguageId = "Potential_Preselection_Select"
   },
   goMask = {},
-  txtMask = {sComponentName = "TMP_Text"}
+  txtMask = {sComponentName = "TMP_Text"},
+  imgSystemRecommend = {},
+  txtSystemRecmd = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Potential_System_Preset_Title"
+  }
 }
 PotentialPreselectionItemCtrl._mapEventConfig = {}
 PotentialPreselectionItemCtrl._mapRedDotConfig = {}
 
-function PotentialPreselectionItemCtrl:RefreshItem(mapData, bCharDiff, bSelect)
+function PotentialPreselectionItemCtrl:RefreshItem(mapData, bCharDiff, bSelect, bSystemRecommend)
   self.mapData = mapData
   self:ShowDelete(false)
   self:SetSelect(bSelect)
   NovaAPI.SetTMPText(self._mapNode.txtBuildName, mapData.sName)
   self._mapNode.imgLike.gameObject:SetActive(mapData.bPreference)
+  self._mapNode.imgSystemRecommend.gameObject:SetActive(bSystemRecommend == true)
   local bCharLock = false
   for k, v in ipairs(mapData.tbCharPotential) do
     local nCharId = v.nCharId
@@ -69,7 +75,7 @@ function PotentialPreselectionItemCtrl:RefreshItem(mapData, bCharDiff, bSelect)
 end
 
 function PotentialPreselectionItemCtrl:ShowDelete(bShow)
-  if self.mapData ~= nil and not self.mapData.bPreference then
+  if self.mapData ~= nil and not self.mapData.bPreference and self.mapData.bSystemRecommend ~= true then
     self._mapNode.btnDelete.gameObject:SetActive(bShow)
   else
     self._mapNode.btnDelete.gameObject:SetActive(false)
@@ -94,6 +100,9 @@ function PotentialPreselectionItemCtrl:OnDestroy()
 end
 
 function PotentialPreselectionItemCtrl:OnBtnClick_Delete()
+  if self.mapData == nil or self.mapData.bSystemRecommend == true then
+    return
+  end
   if self.mapData ~= nil then
     local function callback()
       EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Potential_Preselection_Delete_Suc"))

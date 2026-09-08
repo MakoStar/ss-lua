@@ -120,7 +120,7 @@ function AvgPanel:Awake()
   self.nSpeedRate = 1
   EventManager.Add(EventId.AvgSpeedUp, self, self.OnEvent_AvgSpeedUp)
   self.sExecutingCMDName = nil
-  self.nBEIndex = 0
+  self.tbBEIndex = {}
   AvgData:MarkSkip(false)
 end
 
@@ -1153,12 +1153,18 @@ function AvgPanel:JUMP_AVG_ID(tbParam)
   local sAvgId = tbParam[1]
   local nCmdId = tbParam[2]
   local sBE = tbParam[3] or ""
+  local nIdx = 0
   if sBE == "A" then
-    self.nBEIndex = 1
+    nIdx = 1
   elseif sBE == "B" then
-    self.nBEIndex = 2
+    nIdx = 2
   elseif sBE == "C" then
-    self.nBEIndex = 3
+    nIdx = 3
+  elseif sBE == "D" then
+    nIdx = 4
+  end
+  if 1 <= nIdx and nIdx <= 4 and 0 >= table.indexof(self.tbBEIndex, nIdx) then
+    table.insert(self.tbBEIndex, nIdx)
   end
   if sAvgId == nil then
     return -1

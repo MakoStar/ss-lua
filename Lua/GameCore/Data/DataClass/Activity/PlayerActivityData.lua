@@ -33,11 +33,13 @@ local PenguinCardActData = require("GameCore.Data.DataClass.Activity.PenguinCard
 local GoldenSpyData = require("GameCore.Data.DataClass.Activity.GoldenSpyData")
 local Solodance_20102Data = require("GameCore.Data.DataClass.Activity.Solodance_20102Data")
 local SwimTheme_11100Data = require("GameCore.Data.DataClass.Activity.SwimTheme_11100Data")
+local CultivationManual_10111Data = require("GameCore.Data.DataClass.Activity.CultivationManual_10111Data")
 local DoubleDropsActData = require("GameCore.Data.DataClass.Activity.DoubleDropsActData")
 local FollowSocialMediaData = require("GameCore.Data.DataClass.Activity.FollowSocialMediaData")
 local Summer_20103Data = require("GameCore.Data.DataClass.Activity.Summer_20103Data")
 local IceCreamActData = require("GameCore.Data.DataClass.Activity.IceCreamActData")
 local SoldierActData = require("GameCore.Data.DataClass.Activity.SoldierActData")
+local LongestDay_10112Data = require("GameCore.Data.DataClass.Activity.LongestDay_10112Data")
 
 function PlayerActivityData:Init()
   self.bCacheActData = false
@@ -381,7 +383,7 @@ function PlayerActivityData:CreateActivityGroupIns(actData)
       actIns = OurRegiment_10101Data.new(actData)
     elseif actCfg.ActivityThemeType == GameEnum.activityThemeType.Dream_10102 then
       actIns = Dream_10102Data.new(actData)
-    elseif actCfg.ActivityThemeType == GameEnum.activityThemeType.BreakOut_30101 or actCfg.ActivityThemeType == GameEnum.activityThemeType.BreakOut_30102 or actCfg.ActivityThemeType == GameEnum.activityThemeType.BreakOut_30103 then
+    elseif actCfg.ActivityThemeType == GameEnum.activityThemeType.BreakOut_30101 or actCfg.ActivityThemeType == GameEnum.activityThemeType.BreakOut_30102 or actCfg.ActivityThemeType == GameEnum.activityThemeType.BreakOut_30103 or actCfg.ActivityThemeType == GameEnum.activityThemeType.BreakOut_30104 then
       actIns = BreakOut_30101Data.new(actData)
     elseif actCfg.ActivityThemeType == GameEnum.activityThemeType.Christmas_20101 then
       actIns = Christmas_20101Data.new(actData)
@@ -407,6 +409,10 @@ function PlayerActivityData:CreateActivityGroupIns(actData)
       actIns = Summer_10110Data.new(actData)
     elseif actCfg.ActivityThemeType == GameEnum.activityThemeType.Summer_20103 then
       actIns = Summer_20103Data.new(actData)
+    elseif actCfg.ActivityThemeType == GameEnum.activityThemeType.CultivationManual_10111 then
+      actIns = CultivationManual_10111Data.new(actData)
+    elseif actCfg.ActivityThemeType == GameEnum.activityThemeType.LongestDay_10112 then
+      actIns = LongestDay_10112Data.new(actData)
     end
     self.tbAllActivityGroup[actData.Id] = actIns
     PlayerData.ActivityAvg:RefreshAvgRedDot()
@@ -457,6 +463,17 @@ end
 
 function PlayerActivityData:GetActivityGroupDataById(nActGroupId)
   return self.tbAllActivityGroup[nActGroupId]
+end
+
+function PlayerActivityData:GetActivityGroupDataByActivityId(nActId)
+  local bInGroup, nActGroupId = self:IsActivityInActivityGroup(nActId)
+  if bInGroup and nActGroupId ~= nil then
+    return self:GetActivityGroupDataById(nActGroupId)
+  end
+  local activityCfg = ConfigTable.GetData("Activity", nActId)
+  if activityCfg ~= nil and activityCfg.MidGroupId ~= nil and activityCfg.MidGroupId > 0 then
+    return self:GetActivityGroupDataById(activityCfg.MidGroupId)
+  end
 end
 
 function PlayerActivityData:GetMainviewShowActivityGroup()

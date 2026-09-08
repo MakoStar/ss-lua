@@ -730,4 +730,54 @@ function PlayerScoreBossData:GetVoiceKey()
   return isFirst, sTimeVoice
 end
 
+function PlayerScoreBossData:SendEnterScoreBossGM(nLevelId, nBuildId)
+  self.StartTime = 1782849600
+  self.EndTime = 2208888000
+  self.CurHPLvScore = 0
+  self.HPLvScore = 0
+  self.CurHPDamage = 0
+  self.BehaviorScore = 0
+  self.BehaviorScoreCount = 0
+  self._EntryTime = CS.ClientManager.Instance.serverTimeStampWithTimeZone
+  self.entryLevelId = nLevelId
+  self.entryBuild = nBuildId
+  if self.curLevel == nil then
+    local luaClass = require("Game.UI.GMTool.GMActivity.GMScoreBossLevel")
+    if luaClass == nil then
+      return
+    end
+    self.curLevel = luaClass
+  end
+  if type(self.curLevel.BindEvent) == "function" and not self.isGoAgain then
+    self.curLevel:BindEvent()
+  end
+  if type(self.curLevel.Init) == "function" then
+    self.curLevel:Init(self, nLevelId, nBuildId, self.isGoAgain)
+  end
+  self.isGoAgain = false
+end
+
+function PlayerScoreBossData:SendScoreBossSettleGM(totalTime)
+  self.TotalTime = totalTime
+  CS.AdventureModuleHelper.PauseLogic()
+  local totalScore = self.HPLvScore + self.CurHPLvScore + self.BehaviorScore
+  local totalStar = self:ScoreToStar()
+  CS.AdventureModuleHelper.ResumeLogic()
+  EventManager.Hit("ScoreBossSettleSuccess", self.entryLevelId, totalScore, totalStar)
+  self:LevelEnd()
+end
+
+function PlayerScoreBossData:EntryLvAgainGM()
+  if self.isGoAgain then
+    CS.AdventureModuleHelper.ClearCharacterDamageRecord(false)
+    self.CurHPLvScore = 0
+    self.HPLvScore = 0
+    self.CurHPDamage = 0
+    self.BehaviorScore = 0
+    self.BehaviorScoreCount = 0
+    EventManager.Hit("ScoreBoss_Restart_Again")
+    self:SendEnterScoreBossGM(self.entryLevelId, self.entryBuild)
+  end
+end
+
 return PlayerScoreBossData

@@ -44,6 +44,7 @@ TutorialPotentialCardItemCtrl._mapNodeConfig = {
   animCtrl = {sComponentName = "Animator", sNodeName = "AnimRoot"},
   imgReommend = {},
   imgNew = {},
+  goLayout = {},
   txtNew = {
     sComponentName = "TMP_Text",
     sLanguageId = "StarTower_Book_New_Text"
@@ -68,6 +69,7 @@ function TutorialPotentialCardItemCtrl:SetPotentialItem(nTid, bSimpleDesc, bShow
   self.nPotentialAddLevel = nPotentialAddLevel or 0
   self.nShowType = nShowType or AllEnum.PotentialCardType.CharInfo
   self._mapNode.imgNew.gameObject:SetActive(false)
+  self._mapNode.goLayout.gameObject:SetActive(false)
   self._mapNode.ArrowEffect:SetActive(false)
   local itemCfg = ConfigTable.GetData_Item(nTid)
   if nil == itemCfg then

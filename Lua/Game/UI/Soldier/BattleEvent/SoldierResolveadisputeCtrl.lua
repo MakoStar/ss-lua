@@ -248,10 +248,10 @@ function SoldierResolveadisputeCtrl:TryPlayDiceResultAnim()
     local nDice2 = 0
     if nRandomLeftOrRight == 1 then
       nDice1 = nFinalPoint
-      nDice2 = math.random(1, nFinalPoint - 1)
+      nDice2 = math.random(1, math.max(nFinalPoint - 1, 1))
     else
       nDice2 = nFinalPoint
-      nDice1 = math.random(1, nFinalPoint - 1)
+      nDice1 = math.random(1, math.max(nFinalPoint - 1, 1))
     end
     local nAnimTime_L = 0
     local nAnimTime_R = 0

@@ -14,15 +14,36 @@ end
 function AdvertiseActData:RefreshInfinityTowerActData(msgData)
 end
 
-function AdvertiseActData:GetActSortId()
+function AdvertiseActData:CheckHideFromActList()
   if self.bIsMove and self:isFinishAllTasks() then
-    return 9999
-  else
-    return self.actCfg.SortId
+    return true
   end
+  if self.actCfg ~= nil then
+    return self.actCfg.HideFromActivityList
+  end
+  return true
+end
+
+function AdvertiseActData:CheckShowBanner()
+  if self.bIsMove and self:isFinishAllTasks() then
+    return false
+  end
+  return self:CheckActPlay() and self.actCfg.BannerRes ~= "" and self.bBanner == false
 end
 
 function AdvertiseActData:isFinishAllTasks()
+  local nTotalCount, nReceivedCount = PlayerData.TutorialData:GetProgress()
+  local bHasReceiveAllGroup = PlayerData.Quest:CheckTourGroupReward(PlayerData.Quest:GetMaxTourGroupOrderIndex())
+  local nAttrQuestCount = #PlayerData.Quest.tbTeamFormationAttr or 1
+  local nAttrReceivedCount, nAttrTotalCount = 0, 0
+  for i = 1, nAttrQuestCount do
+    local nThisReceivedCount, nThisTotalCount = PlayerData.Quest:GetTeamFormationAttributeProgress(i)
+    nAttrReceivedCount = nAttrReceivedCount + nThisReceivedCount
+    nAttrTotalCount = nAttrTotalCount + nThisTotalCount
+  end
+  if bHasReceiveAllGroup and nTotalCount == nReceivedCount and nAttrReceivedCount == nAttrTotalCount then
+    return true
+  end
   return false
 end
 

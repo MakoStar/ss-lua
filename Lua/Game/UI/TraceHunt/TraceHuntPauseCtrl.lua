@@ -94,6 +94,11 @@ TraceHuntPauseCtrl._mapNodeConfig = {
     sNodeName = "sv",
     sComponentName = "GamepadScroll",
     sAction = "Scroll"
+  },
+  goLockMask = {},
+  txtLock = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "TraceHunt_Help_HuntNoneRewardMask"
   }
 }
 TraceHuntPauseCtrl._mapEventConfig = {
@@ -150,10 +155,19 @@ function TraceHuntPauseCtrl:Refresh()
       self._mapNode.ScoreStar[i].interactable = i <= totalStar
     end
   end
-  self.tbDrop = PlayerData.TraceHunt:GetStarDropCount()
+  local nDifficulty = 1
+  if self.bSelfBoss then
+    nDifficulty = PlayerData.TraceHunt:GetSelfBossHard()
+  else
+    nDifficulty = PlayerData.TraceHunt:GetHelpBossHard()
+  end
+  self.tbDrop = PlayerData.TraceHunt:GetStarDropCount(nDifficulty)
   self.nStar = totalStar
   self._mapNode.sv:SetAnim(0.04)
   self._mapNode.sv:Init(7, self, self.OnGridRefresh)
+  local nCost = PlayerData.TraceHunt:GetHuntCostCount(self.bSelfBoss)
+  local nHasCoin = PlayerData.TraceHunt:GetHuntTokenCount()
+  self._mapNode.goLockMask:SetActive(not self.bSelfBoss and nCost > nHasCoin)
 end
 
 function TraceHuntPauseCtrl:OnGridRefresh(goGrid, gridIndex)

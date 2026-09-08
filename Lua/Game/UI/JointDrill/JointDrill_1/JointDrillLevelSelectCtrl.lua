@@ -173,6 +173,14 @@ JointDrillLevelSelectCtrl._mapNodeConfig = {
     callback = "OnBtnClick_Skill"
   },
   imgBossSkill = {nCount = 6, sComponentName = "Image"},
+  btnSkillDetail = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_SkillDetail"
+  },
+  txtBtnSkillDetail = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "JointDrill_BossSkill_Detail"
+  },
   txtRewardTitle = {
     sComponentName = "TMP_Text",
     sLanguageId = "JointDrill_Challenge_Reward"
@@ -202,6 +210,7 @@ JointDrillLevelSelectCtrl._mapNodeConfig = {
     sLanguageId = "JointDrill_Btn_Start_Challenge_Simulate"
   },
   txtBossName = {sComponentName = "TMP_Text"},
+  imgBossIcon = {sComponentName = "Image"},
   goAvgWindow = {
     sNodeName = "---AVGWindow---"
   },
@@ -238,7 +247,27 @@ JointDrillLevelSelectCtrl._mapNodeConfig = {
     sComponentName = "TMP_Text",
     sLanguageId = "JointDrill_Enter_AVG"
   },
-  goSmoke = {}
+  goSmoke = {},
+  goBossSkill = {
+    sNodeName = "---BossSkill---"
+  },
+  goWindowBossSkill = {},
+  animWindowSkill = {
+    sNodeName = "goWindowBossSkill",
+    sComponentName = "Animator"
+  },
+  goBlurSkill = {},
+  txtWindowTitle = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "JointDrill_BossSkill_Title"
+  },
+  btnCloseSkill = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_CloseSkill"
+  },
+  skillListLSV = {
+    sComponentName = "LoopScrollView"
+  }
 }
 JointDrillLevelSelectCtrl._mapEventConfig = {
   RefreshJointDrillLevel = "OnEvent_RefreshJointDrillLevel",
@@ -402,10 +431,11 @@ function JointDrillLevelSelectCtrl:RefreshLevelInfo()
   end
   local nMonsterId = mapLevelCfg.BossId
   local nDiff = mapLevelCfg.Difficulty
-  local sMonsterName = PlayerData.JointDrill_1:GetMonsterName(nMonsterId)
+  local sMonsterName, sMonsterIcon = PlayerData.JointDrill_1:GetMonsterName(nMonsterId)
   NovaAPI.SetTMPText(self._mapNode.txtBossName, string.format("%s/%s", sMonsterName, ConfigTable.GetUIText("JointDrill_Difficulty_Name_" .. nDiff)))
   NovaAPI.SetTMPText(self._mapNode.txtBossHp, string.format("%s/%s", self:ThousandsNumber(nBossHp), self:ThousandsNumber(nBossHpMax)))
   NovaAPI.SetImageFillAmount(self._mapNode.imgBossHpBar, nBossHp / nBossHpMax)
+  self:SetPngSprite(self._mapNode.imgBossIcon, sMonsterIcon)
   self._mapNode.imgSimulation.gameObject:SetActive(bSimulate)
   NovaAPI.SetTMPText(self._mapNode.txtRecLevel, mapLevelCfg.RecommendLv)
   local sScoreIcon = "Icon/BuildRank/BuildRank_" .. mapLevelCfg.RecommendBuildRank
@@ -455,6 +485,7 @@ function JointDrillLevelSelectCtrl:RefreshLevelInfo()
       end
     end
   end
+  self:RefreshBossSkill()
   local rewardData = mapLevelCfg.RewardPreview
   self.tbReward = decodeJson(rewardData)
   for i = 1, 3 do
@@ -568,6 +599,42 @@ function JointDrillLevelSelectCtrl:StartTicketsRefreshTimer()
   end, true, true, true)
 end
 
+function JointDrillLevelSelectCtrl:RefreshBossSkill()
+  if self.tbBossSkill == nil or #self.tbBossSkill == 0 then
+    return
+  end
+  self._mapNode.skillListLSV:Init(#self.tbBossSkill, self, self.OnSkillGridRefresh)
+end
+
+function JointDrillLevelSelectCtrl:OnSkillGridRefresh(goGrid, gridIndex)
+  local nIndex = gridIndex + 1
+  local nAffixId = self.tbBossSkill[nIndex]
+  local mapSkillCfg = ConfigTable.GetData("JointDrillAffix", nAffixId)
+  if mapSkillCfg ~= nil then
+    local imgSkill = goGrid.transform:Find("btnGrid/AnimRoot/imgSkill"):GetComponent("Image")
+    local txtSkillName = goGrid.transform:Find("btnGrid/AnimRoot/txtSkillName"):GetComponent("TMP_Text")
+    local txtSkillDesc = goGrid.transform:Find("btnGrid/AnimRoot/txtSkillDesc"):GetComponent("TMP_Text")
+    self:SetPngSprite(imgSkill, mapSkillCfg.Icon)
+    NovaAPI.SetTMPText(txtSkillName, mapSkillCfg.Name)
+    NovaAPI.SetTMPText(txtSkillDesc, mapSkillCfg.Desc)
+  end
+end
+
+function JointDrillLevelSelectCtrl:OpenBossSkill()
+  self._mapNode.goWindowBossSkill.gameObject:SetActive(false)
+  self._mapNode.goBlurSkill.gameObject:SetActive(true)
+  self._mapNode.goBossSkill.gameObject:SetActive(true)
+  
+  local function wait()
+    coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
+    self._mapNode.goWindowBossSkill.gameObject:SetActive(true)
+    self._mapNode.animWindowSkill:Play("t_window_04_t_in")
+  end
+  
+  cs_coroutine.start(wait)
+  EventManager.Hit(EventId.TemporaryBlockInput, 0.3)
+end
+
 function JointDrillLevelSelectCtrl:Awake()
   self.nPanelType = panelType_main
   self.nSelectLevelId = 0
@@ -593,6 +660,7 @@ function JointDrillLevelSelectCtrl:OnEnable()
   self._mapNode.goLevelItem.gameObject:SetActive(false)
   self._mapNode.goLevelBattleItem.gameObject:SetActive(false)
   self._mapNode.goTip.gameObject:SetActive(false)
+  self._mapNode.goBossSkill.gameObject:SetActive(false)
   self.tbLevelItemCtrl = {}
   self.nRankReqCount = 0
   self.nActStatus = 0
@@ -869,6 +937,20 @@ function JointDrillLevelSelectCtrl:OnBtnClick_Skill(btn, nIndex)
       EventManager.Hit(EventId.OpenPanel, PanelId.SkillTips, btn.transform, mapData)
     end
   end
+end
+
+function JointDrillLevelSelectCtrl:OnBtnClick_SkillDetail()
+  self:OpenBossSkill()
+end
+
+function JointDrillLevelSelectCtrl:OnBtnClick_CloseSkill()
+  self._mapNode.animWindowSkill:Play("t_window_04_t_out")
+  
+  local function closeWindow()
+    self._mapNode.goBossSkill.gameObject:SetActive(false)
+  end
+  
+  self:AddTimer(1, 0.3, closeWindow, true, true, true, false)
 end
 
 function JointDrillLevelSelectCtrl:OnBtnClick_Reward(btn, nIndex)

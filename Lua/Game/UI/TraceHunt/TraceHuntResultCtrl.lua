@@ -14,6 +14,7 @@ TraceHuntResultCtrl._mapNodeConfig = {
   },
   bgComplete = {},
   goComplete = {},
+  goCompleteTips2 = {},
   txtCompleteTipsPrev1 = {
     sComponentName = "TMP_Text",
     sLanguageId = "TraceHunt_Result_Star"
@@ -122,6 +123,7 @@ function TraceHuntResultCtrl:RefreshSuc()
       self._mapNode.ScoreStar[i].interactable = i <= self.totalStar
     end
   end
+  self._mapNode.goCompleteTips2:SetActive(0 < self.nExp)
   NovaAPI.SetTMPText(self._mapNode.txtCompleteTipsSuf, self.nExp)
 end
 
@@ -131,8 +133,15 @@ function TraceHuntResultCtrl:RefreshFail()
   WwiseManger:SetState("system", "defeat")
   self._mapNode.btnDamageResult[2].gameObject:SetActive(self.tbCharDamage ~= nil and #self.tbCharDamage > 0)
   local nCost = PlayerData.TraceHunt:GetHuntCostCount(self.bSelfBoss)
-  self._mapNode.goFailTips:SetActive(0 < nCost)
-  if 0 < nCost then
+  local bShowRes = false
+  if self.bSelfBoss then
+    bShowRes = 0 < nCost
+  else
+    local nHasCoin = PlayerData.TraceHunt:GetHuntTokenCount()
+    bShowRes = 0 < nCost and nCost <= nHasCoin
+  end
+  self._mapNode.goFailTips:SetActive(bShowRes)
+  if bShowRes then
     local nId = ConfigTable.GetConfigNumber("TraceHuntPermitItemTid")
     local mapItemCfg = ConfigTable.GetData_Item(nId)
     self:SetSprite_Coin(self._mapNode.imgHuntCoin, nId)

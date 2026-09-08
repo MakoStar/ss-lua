@@ -116,7 +116,7 @@ function ReceivePropsNPCCtrl:RefreshNormal()
     local ctrlObj = self:BindCtrlByNode(goItem, "Game.UI.TemplateEx.TemplateItemCtrl")
     local mapCfg = ConfigTable.GetData_Item(nItemId)
     if mapCfg then
-      if mapCfg.Type == GameEnum.itemType.Char or mapCfg.Type == GameEnum.itemType.CharacterSkin then
+      if mapCfg.Type == GameEnum.itemType.Char then
         ctrlObj:SetChar(nItemId, v.count, nil, v.rewardType)
       else
         ctrlObj:SetItem(nItemId, mapCfg.Rarity, v.count, nil, nil, v.rewardType and v.rewardType == AllEnum.RewardType.First, v.rewardType and v.rewardType == AllEnum.RewardType.Three, true, false, false, v.rewardType and v.rewardType == AllEnum.RewardType.Extra)
@@ -205,7 +205,7 @@ function ReceivePropsNPCCtrl:OnGridRefresh(goGrid, gridIndex)
   end
   local mapCfg = ConfigTable.GetData_Item(mapItem.id)
   if mapCfg then
-    if mapCfg.Type == GameEnum.itemType.Char or mapCfg.Type == GameEnum.itemType.CharacterSkin then
+    if mapCfg.Type == GameEnum.itemType.Char then
       self.tbGridCtrl[nInstanceId]:SetChar(mapItem.id, mapItem.count, nil, mapItem.rewardType)
     else
       self.tbGridCtrl[nInstanceId]:SetItem(mapItem.id, mapCfg.Rarity, mapItem.count, nil, nil, mapItem.rewardType and mapItem.rewardType == AllEnum.RewardType.First, mapItem.rewardType and mapItem.rewardType == AllEnum.RewardType.Three, true, false, true, mapItem.rewardType and mapItem.rewardType == AllEnum.RewardType.Extra)

@@ -1,6 +1,6 @@
 local PenguinLevel = require("Game.UI.Play_PenguinCard.PenguinLevel")
 local PenguinLevel_Normal = class("PenguinLevel_Normal", PenguinLevel)
-local PenguinCardQuest = require("Game.UI.Play_PenguinCard.PenguinCardQuest")
+local PenguinCardQuest = require("Game.UI.Play_PenguinCard.NormalMode.PenguinCardQuest")
 local PenguinCardUtils = require("Game.UI.Play_PenguinCard.PenguinCardUtils")
 local mapEventConfig = {
   PenguinCard_ChangeScore = "OnEvent_ChangeScore"
@@ -21,7 +21,7 @@ end
 function PenguinLevel_Normal:ParseModeConfigData()
   self.nMaxRound = ConfigTable.GetConfigNumber("PenguinCardMaxRound")
   self.nMaxSlot = ConfigTable.GetConfigNumber("PenguinCardMaxSlot")
-  self.nMaxBuyLimit = ConfigTable.GetConfigNumber("PenguinCardHandCardCount")
+  self.nMaxBuyLimit = ConfigTable.GetConfigNumber("PenguinCardMaxBuyLimit")
   self.nMaxCheckRound = ConfigTable.GetConfigNumber("PenguinCardMaxCheckRound")
   self.tbRoundUpgradeCost = ConfigTable.GetConfigNumberArray("PenguinCardRoundUpgradeCost")
   self.tbSlotUpgradeCost = ConfigTable.GetConfigNumberArray("PenguinCardSlotUpgradeCost")
@@ -29,32 +29,11 @@ function PenguinLevel_Normal:ParseModeConfigData()
   self.tbCheckRoundUpgradeCost = ConfigTable.GetConfigNumberArray("PenguinCardCheckRoundUpgradeCost")
 end
 
-function PenguinLevel_Normal:ParseModeLevelData(nFloorId)
-  local mapLevelCfg = ConfigTable.GetData("PenguinCardFloor", nFloorId)
-  if not mapLevelCfg then
-    return
-  end
-  self.nMaxTurn = mapLevelCfg.MaxTurn
-  self.nScore = mapLevelCfg.InitialScore
-  self.nTotalScore = mapLevelCfg.InitialScore
-  self.nSlotCount = mapLevelCfg.InitialSlot
-  self.nRoundLimit = mapLevelCfg.InitialRound
-  self.nCheckRoundLimit = mapLevelCfg.InitialCheckRound
-  self.nBuyLimit = mapLevelCfg.InitialBuyLimit
-  self.nWeightGroupId = mapLevelCfg.WeightGroup
+function PenguinLevel_Normal:ParseModeLevelData(mapLevelCfg)
   self.nFixedTurnGroupId = mapLevelCfg.FixedTurn
-  self.sLevelDesc = mapLevelCfg.Floortips
   self.bShowWin = mapLevelCfg.ShowWin
   self.nQuestTurn = mapLevelCfg.QuestTurn
   self.nQuestGroup = mapLevelCfg.QuestGroup
-  local mapPoolCfg = ConfigTable.GetData("PenguinBaseCardPool", mapLevelCfg.PoolId)
-  if not mapPoolCfg then
-    return
-  end
-  self.mapBaseCardPool = {
-    tbId = mapPoolCfg.BaseCardId,
-    tbWeight = mapPoolCfg.Weight
-  }
 end
 
 function PenguinLevel_Normal:ClearModeLevelData()
@@ -63,6 +42,23 @@ function PenguinLevel_Normal:ClearModeLevelData()
     self.tbQuestPool = {}
   end
   self.mapQuest = nil
+end
+
+function PenguinLevel_Normal:SaveLevelData()
+  local mapLevelData = {}
+  mapLevelData.nHp = self.nHp
+  local tbPenguinCardSnap = {}
+  local tbPenguinCard = self.tbPenguinCard or {}
+  for i = 1, 6 do
+    local v = tbPenguinCard[i]
+    if v == 0 or v == nil then
+      tbPenguinCardSnap[i] = 0
+    else
+      tbPenguinCardSnap[i] = v:Serialize()
+    end
+  end
+  mapLevelData.tbPenguinCard = tbPenguinCardSnap
+  return mapLevelData
 end
 
 function PenguinLevel_Normal:CheckNextGameState()
@@ -107,8 +103,8 @@ function PenguinLevel_Normal:RunState_Start()
   EventManager.Hit("PenguinCard_RunState_Start")
 end
 
-function PenguinLevel_Normal:QuitState_Start()
-  EventManager.Hit("PenguinCard_QuitState_Start")
+function PenguinLevel_Normal:QuitState_Start(nNextState)
+  EventManager.Hit("PenguinCard_QuitState_Start", nNextState)
   local nWaitTime = 0.167
   return nWaitTime
 end
@@ -272,7 +268,7 @@ function PenguinLevel_Normal:AddRound()
     })
     return
   end
-  local nCost = self.tbRoundUpgradeCost[self.nRoundLimit + 1] * self.nUpgradeDiscount
+  local nCost = self.tbRoundUpgradeCost[self.nRoundLimit + 1] * self:GetUpgradeDiscount()
   if nCost > self.nScore then
     EventManager.Hit(EventId.OpenMessageBox, {
       nType = AllEnum.MessageBox.Tips,
@@ -301,7 +297,7 @@ function PenguinLevel_Normal:AddSlot()
     })
     return
   end
-  local nCost = self.tbSlotUpgradeCost[self.nSlotCount + 1] * self.nUpgradeDiscount
+  local nCost = self.tbSlotUpgradeCost[self.nSlotCount + 1] * self:GetUpgradeDiscount()
   if nCost > self.nScore then
     EventManager.Hit(EventId.OpenMessageBox, {
       nType = AllEnum.MessageBox.Tips,
@@ -330,7 +326,7 @@ function PenguinLevel_Normal:AddRoll()
     })
     return
   end
-  local nCost = self.tbBuyLimitUpgradeCost[self.nBuyLimit + 1] * self.nUpgradeDiscount
+  local nCost = self.tbBuyLimitUpgradeCost[self.nBuyLimit + 1] * self:GetUpgradeDiscount()
   if nCost > self.nScore then
     EventManager.Hit(EventId.OpenMessageBox, {
       nType = AllEnum.MessageBox.Tips,
@@ -348,35 +344,6 @@ function PenguinLevel_Normal:AddRoll()
   })
   self:AfterUpgrade(nCost)
   EventManager.Hit("PenguinCard_AddRoll")
-end
-
-function PenguinLevel_Normal:AddCheckRound()
-  if self.nCheckRoundLimit == self.nMaxCheckRound then
-    EventManager.Hit(EventId.OpenMessageBox, {
-      nType = AllEnum.MessageBox.Tips,
-      sSound = "Mode_Card_refresh_falied",
-      sContent = ConfigTable.GetUIText("PenguinCard_AddBtnMaxLevel")
-    })
-    return
-  end
-  local nCost = self.tbCheckRoundUpgradeCost[self.nCheckRoundLimit + 1] * self.nUpgradeDiscount
-  if nCost > self.nScore then
-    EventManager.Hit(EventId.OpenMessageBox, {
-      nType = AllEnum.MessageBox.Tips,
-      sSound = "Mode_Card_refresh_falied",
-      sContent = ConfigTable.GetUIText("PenguinCard_NotEnoughScoreUpgrade")
-    })
-    return
-  end
-  self.nCheckRoundLimit = self.nCheckRoundLimit + 1
-  self:ChangeScore(-1 * nCost)
-  EventManager.Hit(EventId.OpenMessageBox, {
-    nType = AllEnum.MessageBox.Tips,
-    sSound = "Mode_Card_buy",
-    sContent = orderedFormat(ConfigTable.GetUIText("PenguinCard_AddCheckRoundSuccess"), self.nRoundLimit)
-  })
-  self:AfterUpgrade(nCost)
-  EventManager.Hit("PenguinCard_AddCheckRound")
 end
 
 function PenguinLevel_Normal:GetPenguinCardWeightLevel()
@@ -494,17 +461,19 @@ end
 
 function PenguinLevel_Normal:QuitState_Settlement(nNextState)
   self:StopAuto()
-  self:ChangeScore(self.nRoundScore)
-  if self.mapQuest ~= nil then
-    self.mapQuest:AddProgress(GameEnum.PenguinCardQuestType.Score, {
-      nCount = self.nRoundScore
-    })
-  end
-  self:EndRound()
-  if self:GetRoundLimitInTurn() == self.nCurRound then
-    self:EndTurn()
+  if not self.bRestoreSnapshot then
+    self:ChangeScore(self.nRoundScore)
     if self.mapQuest ~= nil then
-      self.mapQuest:AddTurnCount()
+      self.mapQuest:AddProgress(GameEnum.PenguinCardQuestType.Score, {
+        nCount = self.nRoundScore
+      })
+    end
+    self:EndRound()
+    if self:GetRoundLimitInTurn() == self.nCurRound then
+      self:EndTurn()
+      if self.mapQuest ~= nil then
+        self.mapQuest:AddTurnCount()
+      end
     end
   end
   self.bCheckRound = false

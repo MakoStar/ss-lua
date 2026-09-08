@@ -18,7 +18,7 @@ FriendGridCtrl._mapNodeConfig = {
     sComponentName = "TMP_Text",
     sLanguageId = "Friend_TitleTag"
   },
-  imgStar = {},
+  imgStarFriend = {},
   txtLastLogin = {
     sComponentName = "TMP_Text",
     sLanguageId = "Friend_Login"
@@ -123,7 +123,7 @@ end
 function FriendGridCtrl:RefreshStar()
   self._mapNode.imgStarOn:SetActive(self.mapFriend.bStar)
   self._mapNode.imgStarOff:SetActive(not self.mapFriend.bStar)
-  self._mapNode.imgStar:SetActive(self.mapFriend.bStar)
+  self._mapNode.imgStarFriend:SetActive(self.mapFriend.bStar)
 end
 
 function FriendGridCtrl:RefreshSend()

@@ -1546,14 +1546,22 @@ function CmdInfo.VisualizedCmd_SetMajorChoice(ctrl, tr, param)
       "002",
       "none",
       "",
-      ""
+      "",
+      "",
+      0,
+      "",
+      "",
+      "",
+      "",
+      0
     }
   end
   NovaAPI.SetInputFieldText(tr:Find("content_groupId/input_GroupId"):GetComponent("InputField"), tostring(param[1]))
   local tbSurfix = {
     "A",
     "B",
-    "C"
+    "C",
+    "D"
   }
   local tbParamInputNode = {
     "%s/input_Icon_%s",
@@ -1564,14 +1572,18 @@ function CmdInfo.VisualizedCmd_SetMajorChoice(ctrl, tr, param)
     "%s/input_EvId_%s",
     "%s/dd_Type_%s"
   }
-  for i = 1, 3 do
-    local s = tbSurfix[i]
-    local n = (i - 1) * 7
-    for ii = 2, 8 do
-      if ii == 3 or ii == 8 then
-        ctrl:SetDDIndex(tr, string.format(tbParamInputNode[ii - 1], s, s), param[n + ii])
+  local nOffset = 1
+  for i, sChoice in ipairs(tbSurfix) do
+    if i == 4 then
+      nOffset = 6
+    end
+    for ii, sNodePath in ipairs(tbParamInputNode) do
+      local sPath = string.format(sNodePath, sChoice, sChoice)
+      local nIdx = (i - 1) * 7 + ii + nOffset
+      if ii == 2 or ii == 7 then
+        ctrl:SetDDIndex(tr, sPath, param[nIdx] or 0)
       else
-        NovaAPI.SetInputFieldText(tr:Find(string.format(tbParamInputNode[ii - 1], s, s)):GetComponent("InputField"), param[n + ii])
+        NovaAPI.SetInputFieldText(tr:Find(sPath):GetComponent("InputField"), param[nIdx] or "")
       end
     end
   end
@@ -1591,7 +1603,14 @@ function CmdInfo.TbDataToCfgStr_SetMajorChoice(ctrl, tbParam)
   local txt18 = Avg_ProcEnquotes(tbParam[18] or "")
   local txt19 = Avg_ProcEnquotes(tbParam[19] or "")
   local txt26 = Avg_ProcEnquotes(tbParam[26] or "")
-  return string.format(sCmd, tostring(tbParam[1]), tbParam[2], tostring(tbParam[3]), txt4, txt5, tbParam[6], tbParam[7], tostring(tbParam[8]), tbParam[9], tostring(tbParam[10]), txt11, txt12, tbParam[13], tbParam[14], tostring(tbParam[15]), tbParam[16], tostring(tbParam[17]), txt18, txt19, tbParam[20], tbParam[21], tostring(tbParam[22]), tbParam[23], tostring(tbParam[24]), tbParam[25], txt26, tbParam[27])
+  if tbParam[28] == nil or tbParam[28] == "" then
+    return string.format(sCmd, tostring(tbParam[1]), tbParam[2], tostring(tbParam[3]), txt4, txt5, tbParam[6], tbParam[7], tostring(tbParam[8]), tbParam[9], tostring(tbParam[10]), txt11, txt12, tbParam[13], tbParam[14], tostring(tbParam[15]), tbParam[16], tostring(tbParam[17]), txt18, txt19, tbParam[20], tbParam[21], tostring(tbParam[22]), tbParam[23], tostring(tbParam[24]), tbParam[25], txt26, tbParam[27])
+  else
+    local sCmdD = "  {cmd=\"SetMajorChoice\",param={%s,\"%s\",%s,\"%s\",\"%s\",\"%s\",\"%s\",%s,\"%s\",%s,\"%s\",\"%s\",\"%s\",\"%s\",%s,\"%s\",%s,\"%s\",\"%s\",\"%s\",\"%s\",%s,\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%s,\"%s\",\"%s\",\"%s\",\"%s\",%s}},"
+    local txt30 = Avg_ProcEnquotes(tbParam[30] or "")
+    local txt31 = Avg_ProcEnquotes(tbParam[31] or "")
+    return string.format(sCmdD, tostring(tbParam[1]), tbParam[2], tostring(tbParam[3]), txt4, txt5, tbParam[6], tbParam[7], tostring(tbParam[8]), tbParam[9], tostring(tbParam[10]), txt11, txt12, tbParam[13], tbParam[14], tostring(tbParam[15]), tbParam[16], tostring(tbParam[17]), txt18, txt19, tbParam[20], tbParam[21], tostring(tbParam[22]), tbParam[23], tostring(tbParam[24]), tbParam[25], txt26, tbParam[27], tbParam[28], tostring(tbParam[29]), txt30, txt31, tbParam[32], tbParam[33], tostring(tbParam[34]))
+  end
 end
 
 function CmdInfo.ParseParam_SetMajorChoice(ctrl, tr, tbParam)
@@ -1599,7 +1618,8 @@ function CmdInfo.ParseParam_SetMajorChoice(ctrl, tr, tbParam)
   local tbSurfix = {
     "A",
     "B",
-    "C"
+    "C",
+    "D"
   }
   local tbParamInputNode = {
     "%s/input_Icon_%s",
@@ -1610,14 +1630,18 @@ function CmdInfo.ParseParam_SetMajorChoice(ctrl, tr, tbParam)
     "%s/input_EvId_%s",
     "%s/dd_Type_%s"
   }
-  for i = 1, 3 do
-    local s = tbSurfix[i]
-    local n = (i - 1) * 7
-    for ii = 2, 8 do
-      if ii == 3 or ii == 8 then
-        tbParam[n + ii] = ctrl:GetDDIndex(tr, string.format(tbParamInputNode[ii - 1], s, s))
+  local nOffset = 1
+  for i, sChoice in ipairs(tbSurfix) do
+    if i == 4 then
+      nOffset = 6
+    end
+    for ii, sNodePath in ipairs(tbParamInputNode) do
+      local sPath = string.format(sNodePath, sChoice, sChoice)
+      local nIdx = (i - 1) * 7 + ii + nOffset
+      if ii == 2 or ii == 7 then
+        tbParam[nIdx] = ctrl:GetDDIndex(tr, sPath)
       else
-        tbParam[n + ii] = NovaAPI.GetInputFieldText(tr:Find(string.format(tbParamInputNode[ii - 1], s, s)):GetComponent("InputField"))
+        tbParam[nIdx] = NovaAPI.GetInputFieldText(tr:Find(sPath):GetComponent("InputField"))
       end
     end
   end

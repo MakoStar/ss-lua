@@ -73,6 +73,8 @@ function GoldenSpyPatrolItem:Init()
   self.vVisionPoint = Vector3(visionPoint.x, visionPoint.y, 0)
   self.bDirection = self.vEndPoint.x > self.vStartPoint.x
   self.bDestination = false
+  self.trParent = self.gameObject.transform.parent
+  self.bFrozen = false
 end
 
 function GoldenSpyPatrolItem:InitData()
@@ -375,8 +377,10 @@ function GoldenSpyPatrolItem:_CheckVision()
     radius = self.floorCtrl:GetHookRadius()
   }
   if hitArea and self:_HitAreaInSector(hitArea, vx, vy, forwardAngle, halfAngle, radius) and self.bTrigger then
-    self.floorCtrl:DropItem()
-    self.floorCtrl:DoStartRetract()
+    if self.floorCtrl:CheckCanDropItem() then
+      self.floorCtrl:DropItem()
+      self.floorCtrl:DoStartRetract()
+    end
     WwiseAudioMgr:PostEvent("Mode_steal_error")
     self.floorCtrl:SubTime(self.itemCfg.Params[2])
     self._mapNode.img_normal:SetActive(false)

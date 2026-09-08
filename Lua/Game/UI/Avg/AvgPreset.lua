@@ -17,6 +17,7 @@ local AvgPreset = {
     "BG_Black",
     "bg_temporary",
     "bossroom_inside",
+    "bossroom_inside_intact",
     "cabin_daylight",
     "cabin_night",
     "carriage_inside",
@@ -62,6 +63,8 @@ local AvgPreset = {
     "deserted_village_night",
     "deserted_village_room_night_a",
     "deserted_village_room_night_b",
+    "desert_2_daylight",
+    "desert_2_notower_daylight",
     "desert_daylight",
     "desert_notower_daylight",
     "dessert_house_inside",
@@ -114,6 +117,7 @@ local AvgPreset = {
     "luckyoasis_forest_daylight",
     "mansion_garden_daylight",
     "mine_inside",
+    "mine_inside_2",
     "mine_secretroom",
     "mirage_creche_inside_daylight",
     "mirage_creche_inside_night",
@@ -146,6 +150,18 @@ local AvgPreset = {
     "phoenix_hostel_room_night",
     "phoenix_house_inside",
     "phoenix_street",
+    "phylanis_alina_home_daylight",
+    "phylanis_alina_home_night",
+    "phylanis_bathing",
+    "phylanis_forest",
+    "phylanis_prisonvan_dusk",
+    "phylanis_street_inside_daylight",
+    "phylanis_street_inside_night",
+    "phylanis_street_outside_daylight",
+    "phylanis_street_outside_night",
+    "phylanis_tower_gate_daylight",
+    "phylanis_tower_throne_coffin",
+    "phylanis_tower_throne_nocoffin",
     "posthouse",
     "posthouse_inside",
     "posthouse_inside_dusk",
@@ -285,6 +301,7 @@ local AvgPreset = {
     "workshop_lab_night"
   },
   CgResName = {
+    "4013_B",
     "story_character_141",
     "story_event_01_001",
     "story_event_01_002",
@@ -556,6 +573,48 @@ local AvgPreset = {
     "story_main_08_010_FP",
     "story_main_08_010_MP",
     "story_main_08_011",
+    "story_main_09_001_FP",
+    "story_main_09_001_MP",
+    "story_main_09_002_a_FP",
+    "story_main_09_002_a_MP",
+    "story_main_09_002_FP",
+    "story_main_09_002_MP",
+    "story_main_09_003",
+    "story_main_09_003_a",
+    "story_main_09_003_b",
+    "story_main_09_003_c",
+    "story_main_09_003_d",
+    "story_main_09_004_a_FP",
+    "story_main_09_004_a_MP",
+    "story_main_09_004_FP",
+    "story_main_09_004_MP",
+    "story_main_09_005",
+    "story_main_09_006",
+    "story_main_09_007",
+    "story_main_09_007_a",
+    "story_main_09_008",
+    "story_main_09_009",
+    "story_main_09_010_FP",
+    "story_main_09_010_MP",
+    "story_main_09_011_FP",
+    "story_main_09_011_MP",
+    "story_main_09_012",
+    "story_main_09_012_A",
+    "story_main_09_012_AA",
+    "story_main_09_012_AAA",
+    "story_main_09_012_B",
+    "story_main_09_012_BB",
+    "story_main_09_012_BBB",
+    "story_main_09_012_C",
+    "story_main_09_012_CC",
+    "story_main_09_012_CCC",
+    "story_main_09_013_FP",
+    "story_main_09_013_MP",
+    "story_main_09_014",
+    "story_main_10001_001",
+    "story_main_10001_002_01",
+    "story_main_10001_002_02",
+    "story_main_10001_003",
     "story_main_be_01_001_FP",
     "story_main_be_01_001_MP",
     "story_main_be_01_002",
@@ -575,6 +634,9 @@ local AvgPreset = {
     "story_main_be_06_002",
     "story_main_be_06_003",
     "story_main_be_08_001",
+    "story_main_be_09_001",
+    "story_main_be_09_002",
+    "story_main_be_09_003",
     "story_mpast_01_010",
     "story_mpast_01_010_a",
     "story_tales_01_001",
@@ -616,6 +678,7 @@ local AvgPreset = {
     "story_main_07_007_c",
     "story_main_08_003_a",
     "story_main_08_003_b",
+    "story_main_09_015",
     "story_tales_13_001_a",
     "story_tales_13_001_b",
     "story_tales_13_001_c"
@@ -642,7 +705,9 @@ local AvgPreset = {
     "4054_B",
     "4029_B",
     "4055_B",
-    "4057_B"
+    "4057_B",
+    "4059_B",
+    "4061_B"
   },
   BgEffectResName = {
     "0",
@@ -6231,6 +6296,33 @@ local AvgPreset = {
         1,
         "AvgStageEffect_paint"
       }
+    }
+  },
+  PlaySpeed = {
+    zh_CN = {
+      1,
+      4,
+      16
+    },
+    zh_TW = {
+      1,
+      4,
+      16
+    },
+    ja_JP = {
+      1,
+      4,
+      16
+    },
+    en_US = {
+      1,
+      4,
+      16
+    },
+    ko_KR = {
+      1,
+      4,
+      16
     }
   }
 }

@@ -47,17 +47,17 @@ GoldenSpyLevelCtrl._mapNodeConfig = {
     callback = "OnBtnClick_Hook",
     sAction = "GoldenSpy_Hook"
   },
-  btn_Boom = {
+  img_hook = {sComponentName = "Image"},
+  btn_Skill1 = {
     sComponentName = "NaviButton",
-    callback = "OnBtnClick_Boom",
+    callback = "OnBtnClick_Skill1",
     sAction = "GoldenSpy_Boom"
   },
-  btn_Frozen = {
+  btn_Skill2 = {
     sComponentName = "NaviButton",
-    callback = "OnBtnClick_Frozen",
+    callback = "OnBtnClick_Skill2",
     sAction = "GoldenSpy_Frozen"
   },
-  img_frozenCD = {sComponentName = "Image"},
   btn_ToolBox = {
     sComponentName = "NaviButton",
     callback = "OnBtnClick_ToolBox",
@@ -187,15 +187,24 @@ function GoldenSpyLevelCtrl:Init()
   self.nLevelType = self.levelCfg.LevelType
   if self.nLevelType == GameEnum.GoldenSpyLevelType.Normal then
     self._mapNode.go_Task:SetActive(false)
+    self._mapNode.floorCtrl:SetHookType(AllEnum.GoldenSpyHookType.Normal, 0)
+    self:SetPngSprite(self._mapNode.img_hook, string.format(SpritePath, self.nActId) .. "btn_goldenspy_game_01")
   elseif self.nLevelType == GameEnum.GoldenSpyLevelType.Quest then
     self._mapNode.go_Task:SetActive(true)
+    self._mapNode.floorCtrl:SetHookType(AllEnum.GoldenSpyHookType.Normal, 0)
+    self:SetPngSprite(self._mapNode.img_hook, string.format(SpritePath, self.nActId) .. "btn_goldenspy_game_01")
   elseif self.nLevelType == GameEnum.GoldenSpyLevelType.Random then
     self._mapNode.go_Task:SetActive(true)
+    self._mapNode.floorCtrl:SetHookType(AllEnum.GoldenSpyHookType.Normal, 0)
+    self:SetPngSprite(self._mapNode.img_hook, string.format(SpritePath, self.nActId) .. "btn_goldenspy_game_01")
+  elseif self.nLevelType == GameEnum.GoldenSpyLevelType.FishingHook then
+    self._mapNode.go_Task:SetActive(false)
+    self._mapNode.floorCtrl:SetHookType(AllEnum.GoldenSpyHookType.FishingHook, self.levelCfg.Param1)
+    self:SetPngSprite(self._mapNode.img_hook, string.format(SpritePath, self.nActId) .. "btn_goldenspy_level_task_02")
   end
   for _, v in ipairs(self.tbTimer) do
     if v ~= nil then
       v:Cancel()
-      v = nil
     end
   end
   if self.addTween ~= nil then
@@ -213,29 +222,42 @@ function GoldenSpyLevelCtrl:Init()
   self.bStartFloor = false
   self.bChangeTime = false
   self.bInFrozen = false
+  self.bInFishingHook = false
   self:ResetEffect()
 end
 
 function GoldenSpyLevelCtrl:InitSkill(bNewLevel)
   local skillData = self.GoldenSpyLevelData:GetSkillData()
-  if skillData[BoomSkillId] == nil or skillData[BoomSkillId] <= 0 and bNewLevel then
-    self._mapNode.btn_Boom.gameObject:SetActive(false)
+  if bNewLevel then
+    for i = 1, 2 do
+      local btn_Skill = self._mapNode["btn_Skill" .. i]
+      btn_Skill.gameObject:SetActive(false)
+    end
+    self.skillList = {}
+    for k, v in pairs(skillData) do
+      table.insert(self.skillList, k)
+    end
+    table.sort(self.skillList, function(a, b)
+      return a < b
+    end)
   else
-    local txt_count = self._mapNode.btn_Boom.transform:Find("AnimRoot/db_skillCount/txt_skillCount"):GetComponent("TMP_Text")
-    NovaAPI.SetTMPText(txt_count, string.format("%d", skillData[BoomSkillId]))
-    local mask = self._mapNode.btn_Boom.transform:Find("AnimRoot/mask"):GetComponent("Image")
-    mask.gameObject:SetActive(skillData[BoomSkillId] <= 0)
-    self._mapNode.btn_Boom.gameObject:SetActive(true)
   end
-  if skillData[FrozenSkillId] == nil or skillData[FrozenSkillId] <= 0 and bNewLevel then
-    self._mapNode.btn_Frozen.gameObject:SetActive(false)
-  else
-    local txt_count = self._mapNode.btn_Frozen.transform:Find("AnimRoot/db_skillCount/txt_skillCount"):GetComponent("TMP_Text")
-    NovaAPI.SetTMPText(txt_count, string.format("%d", skillData[FrozenSkillId]))
-    local mask = self._mapNode.btn_Frozen.transform:Find("AnimRoot/mask"):GetComponent("Image")
-    mask.gameObject:SetActive(skillData[FrozenSkillId] <= 0)
-    self._mapNode.img_frozenCD.gameObject:SetActive(false)
-    self._mapNode.btn_Frozen.gameObject:SetActive(true)
+  for i = 1, #self.skillList do
+    local skillId = self.skillList[i]
+    local skillCfg = ConfigTable.GetData("GoldenSpySkill", skillId)
+    if skillCfg ~= nil then
+      local btn_Skill = self._mapNode["btn_Skill" .. i]
+      local img_icon = btn_Skill.transform:Find("AnimRoot/icon"):GetComponent("Image")
+      self:SetPngSprite(img_icon, string.format(SpritePath, self.nActId) .. skillCfg.icon)
+      local btn_Skill = self._mapNode["btn_Skill" .. i]
+      local txt_count = btn_Skill.transform:Find("AnimRoot/db_skillCount/txt_skillCount"):GetComponent("TMP_Text")
+      NovaAPI.SetTMPText(txt_count, string.format("%d", skillData[skillId]))
+      local mask = btn_Skill.transform:Find("AnimRoot/mask"):GetComponent("Image")
+      mask.gameObject:SetActive(skillData[skillId] <= 0)
+      local img_cd = btn_Skill.transform:Find("AnimRoot/img_CD"):GetComponent("Image")
+      img_cd.gameObject:SetActive(false)
+      btn_Skill.gameObject:SetActive(true)
+    end
   end
   self._mapNode.skill_Boom:SetActive(false)
   self._mapNode.skill_Boom.transform:SetParent(self._mapNode.rtEffectRoot.transform)
@@ -249,7 +271,15 @@ function GoldenSpyLevelCtrl:ResetEffect()
     self.FrozenTweener:Kill()
     self.FrozenTweener = nil
   end
-  self._mapNode.img_frozenCD.gameObject:SetActive(false)
+  if self.FishingHookTweener ~= nil then
+    self.FishingHookTweener:Kill()
+    self.FishingHookTweener = nil
+  end
+  for i = 1, 2 do
+    local btn_Skill = self._mapNode["btn_Skill" .. i]
+    local img_cd = btn_Skill.transform:Find("AnimRoot/img_CD"):GetComponent("Image")
+    img_cd.gameObject:SetActive(false)
+  end
   local hookMask = self._mapNode.btn_Hook.transform:Find("AnimRoot/mask"):GetComponent("Image")
   hookMask.gameObject:SetActive(false)
   self._mapNode.skill_Boom:GetComponent("RectTransform").anchoredPosition = Vector2.zero
@@ -352,7 +382,6 @@ function GoldenSpyLevelCtrl:FinishFloor()
     finishCallback = finishCallback,
     goNextCallback = goNextCallback,
     bSuccess = bSuccess,
-    bCanGoNextLevel = bCanGoNextLevel,
     goNextLevelCallback = goNextLevelCallback
   }
   if not self.GoldenSpyActData:CheckActivityOpen() then
@@ -399,24 +428,17 @@ function GoldenSpyLevelCtrl:UpdateScoreText()
   NovaAPI.SetTMPText(self._mapNode.txt_curScore, self.nCurScore)
 end
 
-function GoldenSpyLevelCtrl:CatchedItem(itemCtrl)
-  local nItemId = itemCtrl.nItemId
-  local itemCfg = ConfigTable.GetData("GoldenSpyItem", nItemId)
-  if itemCfg == nil then
+function GoldenSpyLevelCtrl:CatchedItem(tbItemCtrl)
+  if tbItemCtrl == nil or #tbItemCtrl == 0 then
     return
   end
   self.bCanBoom = true
 end
 
-function GoldenSpyLevelCtrl:CatchedComplete(itemCtrl)
-  local nItemId = itemCtrl.nItemId
-  local itemCfg = ConfigTable.GetData("GoldenSpyItem", nItemId)
-  if itemCfg == nil then
-    return nil
-  end
+function GoldenSpyLevelCtrl:CatchedComplete(tbItemCtrl)
   WwiseAudioMgr:PostEvent("Mode_steal_coin")
   local oldScore = self.nCurScore
-  local bFinishTask, addScore = self.GoldenSpyLevelData:CatchedItem(nItemId, itemCtrl)
+  local bFinishTask, addScore = self.GoldenSpyLevelData:CatchedItem(tbItemCtrl)
   addScore = math.floor(addScore or 0)
   if NovaAPI.IsEditorPlatform() then
     print("GoldenSpyLevelCtrl:抓到的道具分", addScore)
@@ -451,8 +473,35 @@ function GoldenSpyLevelCtrl:CatchedComplete(itemCtrl)
     table.insert(self.tbTimer, timer)
     self.AddScoreTimer = nil
   end, true, true, true)
-  
-  local function callback()
+  local tbTempItemCtrl = clone(tbItemCtrl)
+  self:CatchedItemProcess(tbTempItemCtrl, bFinishTask)
+end
+
+function GoldenSpyLevelCtrl:CatchedItemProcess(tbTempItemCtrl, bFinishTask)
+  if #tbTempItemCtrl <= 0 then
+    return
+  end
+  local tempItemCtrl = tbTempItemCtrl[1]
+  table.remove(tbTempItemCtrl, 1)
+  local itemCfg = tempItemCtrl:GetItemCfg()
+  if itemCfg.ItemType == GameEnum.GoldenSpyItem.BuffItem then
+    local buffId = itemCfg.Params[1]
+    if buffId == 0 then
+      self:AddRandomBuff(self.levelCfg.BuffCardPoolId, function()
+        self:CatchedItemProcessCallback(tbTempItemCtrl, tempItemCtrl, bFinishTask)
+      end)
+    else
+      self:AddRandomBuff(buffId, function()
+        self:CatchedItemProcessCallback(tbTempItemCtrl, tempItemCtrl, bFinishTask)
+      end)
+    end
+  else
+    self:CatchedItemProcessCallback(tbTempItemCtrl, tempItemCtrl, bFinishTask)
+  end
+end
+
+function GoldenSpyLevelCtrl:CatchedItemProcessCallback(tbTempItemCtrl, itemCtrl, bFinishTask)
+  if #tbTempItemCtrl <= 0 then
     if bFinishTask then
       local taskAnimator = self._mapNode.go_Task.transform:Find("AnimRoot"):GetComponent("Animator")
       self:UpdateScoreText()
@@ -469,30 +518,20 @@ function GoldenSpyLevelCtrl:CatchedComplete(itemCtrl)
       self:UpdateTaskUI()
     end
     self.bCanBoom = false
-    if itemCfg.ItemType == GameEnum.GoldenSpyItem.BuffItem then
-      local nCount = 0
-      local items = self.GoldenSpyFloorData:GetItems()
-      for k, v in pairs(items) do
-        local itemCfg = ConfigTable.GetData("GoldenSpyItem", k)
-        if itemCfg ~= nil and itemCfg.ItemType ~= GameEnum.GoldenSpyItem.Boom then
-          nCount = nCount + v.itemCount
-        end
-      end
-      if items == nil or nCount <= 0 then
-        self:FinishFloor()
-      end
-    end
   end
-  
+  local itemCfg = itemCtrl:GetItemCfg()
   if itemCfg.ItemType == GameEnum.GoldenSpyItem.BuffItem then
-    local buffId = itemCfg.Params[1]
-    if buffId == 0 then
-      self:AddRandomBuff(self.levelCfg.BuffCardPoolId, callback)
-    else
-      self:AddRandomBuff(buffId, callback)
+    local nCount = 0
+    local items = self.GoldenSpyFloorData:GetItems()
+    for k, v in pairs(items) do
+      local itemCfg = ConfigTable.GetData("GoldenSpyItem", k)
+      if itemCfg ~= nil and itemCfg.ItemType ~= GameEnum.GoldenSpyItem.Boom then
+        nCount = nCount + v.itemCount
+      end
     end
-  else
-    callback()
+    if items == nil or nCount <= 0 then
+      self:FinishFloor()
+    end
   end
 end
 
@@ -698,6 +737,9 @@ function GoldenSpyLevelCtrl:Pause()
   if self.FrozenTweener ~= nil then
     self.FrozenTweener:Pause()
   end
+  if self.FishingHookTweener ~= nil then
+    self.FishingHookTweener:Pause()
+  end
 end
 
 function GoldenSpyLevelCtrl:Resume()
@@ -710,6 +752,9 @@ function GoldenSpyLevelCtrl:Resume()
   end
   if self.FrozenTweener ~= nil then
     self.FrozenTweener:Play()
+  end
+  if self.FishingHookTweener ~= nil then
+    self.FishingHookTweener:Play()
   end
 end
 
@@ -816,6 +861,23 @@ function GoldenSpyLevelCtrl:StartRetract()
   end)
 end
 
+function GoldenSpyLevelCtrl:UseSkill(skillId)
+  if skillId == nil then
+    return
+  end
+  local skillCfg = ConfigTable.GetData("GoldenSpySkill", skillId)
+  if skillCfg == nil then
+    return
+  end
+  if skillCfg.SkillType == GameEnum.GoldenSpySkillType.Boom then
+    self:OnBtnClick_Boom()
+  elseif skillCfg.SkillType == GameEnum.GoldenSpySkillType.Frozen then
+    self:OnBtnClick_Frozen()
+  elseif skillCfg.SkillType == GameEnum.GoldenSpySkillType.FishingHook then
+    self:OnBtnClick_FishingHook()
+  end
+end
+
 function GoldenSpyLevelCtrl:OnBtnClick_Pause()
   if not self.bStartFloor then
     return
@@ -844,6 +906,7 @@ function GoldenSpyLevelCtrl:OnBtnClick_Hook()
   local nSpeed = cfg.BaseSpeed
   local nRadius = cfg.BaseRadius
   local nFactor = cfg.BaseFactor
+  local nMinSpeed = cfg.MinSpeed
   for _, v in ipairs(self.GoldenSpyLevelData:GetBuffData()) do
     local buffCfg = ConfigTable.GetData("GoldenSpyBuffCard", v.buffId)
     if buffCfg ~= nil and self.GoldenSpyLevelData:CheckBuffActive(v) then
@@ -862,62 +925,79 @@ function GoldenSpyLevelCtrl:OnBtnClick_Hook()
   local function finishCallback()
   end
   
-  local function catchedCallback(itemCtrl)
-    if itemCtrl == nil then
-      return
-    end
-    local itemCfg = itemCtrl:GetItemCfg()
-    if itemCfg.ItemType == GameEnum.GoldenSpyItem.Boom then
+  local function catchedCallback(tbItemCtrl)
+    if tbItemCtrl == nil or #tbItemCtrl == 0 then
       WwiseAudioMgr:PostEvent("Mode_steal_get_stop")
       return
     end
-    self:CatchedItem(itemCtrl)
+    if tbItemCtrl[1]:GetItemCfg().ItemType == GameEnum.GoldenSpyItem.Boom then
+      WwiseAudioMgr:PostEvent("Mode_steal_get_stop")
+      return
+    end
+    self:CatchedItem(tbItemCtrl)
     WwiseAudioMgr:PostEvent("Mode_steal_get")
-    local itemNormalWeight = itemCtrl:GetWeight()
-    for _, v in ipairs(self.GoldenSpyLevelData:GetBuffData()) do
-      local buffCfg = ConfigTable.GetData("GoldenSpyBuffCard", v.buffId)
-      if buffCfg ~= nil and buffCfg.EffectType == GameEnum.GoldenSpyBuffEffect.ReduceItemWeight and self.GoldenSpyLevelData:CheckBuffActive(v) and itemCtrl.nItemId == buffCfg.Params[1] then
-        itemNormalWeight = itemNormalWeight - buffCfg.Params[2]
+    local nTotalWeight = 0
+    for _, itemCtrl in ipairs(tbItemCtrl) do
+      local itemNormalWeight = itemCtrl:GetWeight()
+      for _, v in ipairs(self.GoldenSpyLevelData:GetBuffData()) do
+        local buffCfg = ConfigTable.GetData("GoldenSpyBuffCard", v.buffId)
+        if buffCfg ~= nil and buffCfg.EffectType == GameEnum.GoldenSpyBuffEffect.ReduceItemWeight then
+          if self.GoldenSpyLevelData:CheckBuffActive(v) and itemCtrl.nItemId == buffCfg.Params[1] then
+            itemNormalWeight = itemNormalWeight - buffCfg.Params[2]
+          end
+          nTotalWeight = nTotalWeight + itemNormalWeight
+        end
       end
     end
-    itemNormalWeight = math.max(0, itemNormalWeight)
     local cfg = ConfigTable.GetData("GoldenSpyConfig", self.levelCfg.ConfigId)
     if cfg ~= nil then
-      self._mapNode.ActorAnimRoot:SetBool("Is_PullSlow", itemNormalWeight > cfg.PullSlowWeight)
+      self._mapNode.ActorAnimRoot:SetBool("Is_PullSlow", nTotalWeight > cfg.PullSlowWeight)
     end
     self._mapNode.ActorAnimRoot:Play("ActorPanel_Pull_start")
   end
   
-  local function catchedCompleteCallback(itemCtrl)
-    if itemCtrl == nil or itemCtrl:GetItemCfg().ItemType == GameEnum.GoldenSpyItem.Boom then
+  local function catchedCompleteCallback(tbItemCtrl)
+    if tbItemCtrl == nil or #tbItemCtrl == 0 then
+      self._mapNode.floorCtrl:ResumeHookSwing()
+      self._mapNode.ActorAnimRoot:Play("ActorPanel_Pull_end")
+      return
+    end
+    if tbItemCtrl[1]:GetItemCfg().ItemType == GameEnum.GoldenSpyItem.Boom then
       self._mapNode.ActorAnimRoot:Play("ActorPanel_Pull_end")
       return
     end
     local cfg = ConfigTable.GetData("GoldenSpyConfig", self.levelCfg.ConfigId)
-    if cfg ~= nil then
+    if cfg == nil then
+      return
+    end
+    local nTotalScore = 0
+    for _, itemCtrl in ipairs(tbItemCtrl) do
       local itemCfg = itemCtrl:GetItemCfg()
       local nScore = itemCfg.Score
       for _, v in ipairs(self.GoldenSpyLevelData:GetBuffData()) do
         local buffCfg = ConfigTable.GetData("GoldenSpyBuffCard", v.buffId)
-        if buffCfg ~= nil and buffCfg.EffectType == GameEnum.GoldenSpyBuffEffect.AddScore and buffCfg.Params[1] == itemCfg.ItemType and self.GoldenSpyLevelData:CheckBuffActive(v) then
-          nScore = nScore + buffCfg.Params[2]
+        if buffCfg ~= nil and buffCfg.EffectType == GameEnum.GoldenSpyBuffEffect.AddScore and buffCfg.Params[1] == itemCfg.ItemType then
+          if self.GoldenSpyLevelData:CheckBuffActive(v) then
+            nScore = nScore + buffCfg.Params[2]
+          end
+          nTotalScore = nTotalScore + nScore
         end
       end
-      if nScore >= cfg.GetHighValue then
-        self._mapNode.ActorAnimRoot:Play("ActorPanel_Win")
-        WwiseAudioMgr:PostEvent("Mode_steal_nice")
-        self.bInCharAnimator = true
-        local timer = self:AddTimer(1, 0.7, function()
-          self._mapNode.floorCtrl:ResumeHookSwing()
-          self.bInCharAnimator = false
-          self:CatchedComplete(itemCtrl)
-        end, true, true, true)
-        table.insert(self.tbTimer, timer)
-      else
-        self._mapNode.ActorAnimRoot:Play("ActorPanel_Pull_end")
+    end
+    if nTotalScore >= cfg.GetHighValue then
+      self._mapNode.ActorAnimRoot:Play("ActorPanel_Win")
+      WwiseAudioMgr:PostEvent("Mode_steal_nice")
+      self.bInCharAnimator = true
+      local timer = self:AddTimer(1, 0.7, function()
         self._mapNode.floorCtrl:ResumeHookSwing()
-        self:CatchedComplete(itemCtrl)
-      end
+        self.bInCharAnimator = false
+        self:CatchedComplete(tbItemCtrl)
+      end, true, true, true)
+      table.insert(self.tbTimer, timer)
+    else
+      self._mapNode.ActorAnimRoot:Play("ActorPanel_Pull_end")
+      self._mapNode.floorCtrl:ResumeHookSwing()
+      self:CatchedComplete(tbItemCtrl)
     end
     WwiseAudioMgr:PostEvent("Mode_steal_get_stop")
   end
@@ -926,8 +1006,23 @@ function GoldenSpyLevelCtrl:OnBtnClick_Hook()
     print("GoldenSpyLevelCtrl:nSpeed=", nSpeed)
     print("GoldenSpyLevelCtrl:nRadius=", nRadius)
     print("GoldenSpyLevelCtrl:nFactor=", nFactor)
+    print("GoldenSpyLevelCtrl:nMinSpeed=", nMinSpeed)
   end
-  self._mapNode.floorCtrl:Shoot(nSpeed, nRadius, nFactor, finishCallback, catchedCallback, catchedCompleteCallback)
+  self._mapNode.floorCtrl:Shoot(nSpeed, nRadius, nFactor, nMinSpeed, finishCallback, catchedCallback, catchedCompleteCallback)
+end
+
+function GoldenSpyLevelCtrl:OnBtnClick_Skill1()
+  if #self.skillList < 1 then
+    return
+  end
+  self:UseSkill(self.skillList[1])
+end
+
+function GoldenSpyLevelCtrl:OnBtnClick_Skill2()
+  if #self.skillList < 2 then
+    return
+  end
+  self:UseSkill(self.skillList[2])
 end
 
 function GoldenSpyLevelCtrl:OnBtnClick_Boom()
@@ -948,16 +1043,30 @@ function GoldenSpyLevelCtrl:OnBtnClick_Boom()
     self._mapNode.ActorAnimRoot:Play("ActorPanel_Pull_end")
   end)
   if bUsed then
+    local BoomSkillId = 0
+    local btn_Skill
+    for i = 1, #self.skillList do
+      local skillId = self.skillList[i]
+      local skillCfg = ConfigTable.GetData("GoldenSpySkill", skillId)
+      if skillCfg ~= nil and skillCfg.SkillType == GameEnum.GoldenSpySkillType.Boom then
+        BoomSkillId = skillId
+        btn_Skill = self._mapNode["btn_Skill" .. i]
+        break
+      end
+    end
+    if BoomSkillId == 0 or btn_Skill == nil then
+      return
+    end
     self.GoldenSpyLevelData:UseSkill(BoomSkillId)
     local newSkillData = self.GoldenSpyLevelData:GetSkillData()
-    local mask = self._mapNode.btn_Boom.transform:Find("AnimRoot/mask"):GetComponent("Image")
+    local mask = btn_Skill.transform:Find("AnimRoot/mask"):GetComponent("Image")
     if newSkillData[BoomSkillId] == nil or newSkillData[BoomSkillId] <= 0 then
       mask.gameObject:SetActive(true)
-      local txt_count = self._mapNode.btn_Boom.transform:Find("AnimRoot/db_skillCount/txt_skillCount"):GetComponent("TMP_Text")
+      local txt_count = btn_Skill.transform:Find("AnimRoot/db_skillCount/txt_skillCount"):GetComponent("TMP_Text")
       NovaAPI.SetTMPText(txt_count, 0)
     else
       mask.gameObject:SetActive(false)
-      local txt_count = self._mapNode.btn_Boom.transform:Find("AnimRoot/db_skillCount/txt_skillCount"):GetComponent("TMP_Text")
+      local txt_count = btn_Skill.transform:Find("AnimRoot/db_skillCount/txt_skillCount"):GetComponent("TMP_Text")
       NovaAPI.SetTMPText(txt_count, string.format("%d", newSkillData[BoomSkillId]))
     end
     self._mapNode.skill_Boom:SetActive(true)
@@ -1006,16 +1115,31 @@ function GoldenSpyLevelCtrl:OnBtnClick_Frozen()
   WwiseAudioMgr:PostEvent("Mode_steal_ice_boom")
   self._mapNode.floorCtrl:StartFrozen()
   self.bInFrozen = true
+  local FrozenSkillId = 0
+  local btn_Skill
+  for i = 1, #self.skillList do
+    local skillId = self.skillList[i]
+    local skillCfg = ConfigTable.GetData("GoldenSpySkill", skillId)
+    if skillCfg ~= nil and skillCfg.SkillType == GameEnum.GoldenSpySkillType.Frozen then
+      FrozenSkillId = skillId
+      btn_Skill = self._mapNode["btn_Skill" .. i]
+      break
+    end
+  end
+  if FrozenSkillId == 0 or btn_Skill == nil then
+    self.bInFrozen = false
+    return
+  end
   self.GoldenSpyLevelData:UseSkill(FrozenSkillId)
   local newSkillData = self.GoldenSpyLevelData:GetSkillData()
-  local mask = self._mapNode.btn_Frozen.transform:Find("AnimRoot/mask"):GetComponent("Image")
+  local mask = btn_Skill.transform:Find("AnimRoot/mask"):GetComponent("Image")
   if newSkillData[FrozenSkillId] == nil or newSkillData[FrozenSkillId] <= 0 then
     mask.gameObject:SetActive(true)
-    local txt_count = self._mapNode.btn_Frozen.transform:Find("AnimRoot/db_skillCount/txt_skillCount"):GetComponent("TMP_Text")
+    local txt_count = btn_Skill.transform:Find("AnimRoot/db_skillCount/txt_skillCount"):GetComponent("TMP_Text")
     NovaAPI.SetTMPText(txt_count, 0)
   else
     mask.gameObject:SetActive(false)
-    local txt_count = self._mapNode.btn_Frozen.transform:Find("AnimRoot/db_skillCount/txt_skillCount"):GetComponent("TMP_Text")
+    local txt_count = btn_Skill.transform:Find("AnimRoot/db_skillCount/txt_skillCount"):GetComponent("TMP_Text")
     NovaAPI.SetTMPText(txt_count, string.format("%d", newSkillData[FrozenSkillId]))
   end
   local skillcfg = ConfigTable.GetData("GoldenSpySkill", FrozenSkillId)
@@ -1032,7 +1156,7 @@ function GoldenSpyLevelCtrl:OnBtnClick_Frozen()
     end
   end, true, true, true)
   table.insert(self.tbTimer, timer)
-  local img_frozenCD = self._mapNode.img_frozenCD
+  local img_frozenCD = btn_Skill.transform:Find("AnimRoot/img_CD"):GetComponent("Image")
   img_frozenCD.fillAmount = 1
   img_frozenCD.gameObject:SetActive(true)
   self.FrozenTweener = DOTween.To(function()
@@ -1041,6 +1165,69 @@ function GoldenSpyLevelCtrl:OnBtnClick_Frozen()
     img_frozenCD.fillAmount = value
   end, 0, nTime):OnComplete(function()
     img_frozenCD.gameObject:SetActive(false)
+  end)
+end
+
+function GoldenSpyLevelCtrl:OnBtnClick_FishingHook()
+  if self.bInCharAnimator then
+    return
+  end
+  if not self.bStartFloor then
+    return
+  end
+  if not self._mapNode.floorCtrl:CheckCanChangeHook() then
+    EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("GoldenSpy_CanNotChangeHook"))
+    return
+  end
+  self.bInFishingHook = true
+  local FishingHookSkillId = 0
+  local btn_Skill
+  for i = 1, #self.skillList do
+    local skillId = self.skillList[i]
+    local skillCfg = ConfigTable.GetData("GoldenSpySkill", skillId)
+    if skillCfg ~= nil and skillCfg.SkillType == GameEnum.GoldenSpySkillType.FishingHook then
+      FishingHookSkillId = skillId
+      btn_Skill = self._mapNode["btn_Skill" .. i]
+      break
+    end
+  end
+  if FishingHookSkillId == 0 or btn_Skill == nil then
+    self.bInFishingHook = false
+    return
+  end
+  self.GoldenSpyLevelData:UseSkill(FishingHookSkillId)
+  local newSkillData = self.GoldenSpyLevelData:GetSkillData()
+  local mask = btn_Skill.transform:Find("AnimRoot/mask"):GetComponent("Image")
+  if newSkillData[FishingHookSkillId] == nil or newSkillData[FishingHookSkillId] <= 0 then
+    mask.gameObject:SetActive(true)
+    local txt_count = btn_Skill.transform:Find("AnimRoot/db_skillCount/txt_skillCount"):GetComponent("TMP_Text")
+    NovaAPI.SetTMPText(txt_count, 0)
+  else
+    mask.gameObject:SetActive(false)
+    local txt_count = btn_Skill.transform:Find("AnimRoot/db_skillCount/txt_skillCount"):GetComponent("TMP_Text")
+    NovaAPI.SetTMPText(txt_count, string.format("%d", newSkillData[FishingHookSkillId]))
+  end
+  local skillcfg = ConfigTable.GetData("GoldenSpySkill", FishingHookSkillId)
+  self._mapNode.floorCtrl:SetHookType(AllEnum.GoldenSpyHookType.FishingHook, tonumber(skillcfg.Params[1]))
+  local nTime = skillcfg.Params[2]
+  if nTime <= 0 then
+    self.bInFishingHook = false
+    return
+  end
+  local timer = self:AddTimer(1, nTime, function()
+    self._mapNode.floorCtrl:SetHookType(AllEnum.GoldenSpyHookType.Normal, 0)
+    self.bInFishingHook = false
+  end, true, true, true)
+  table.insert(self.tbTimer, timer)
+  local img_FishingHookCD = btn_Skill.transform:Find("AnimRoot/img_CD"):GetComponent("Image")
+  img_FishingHookCD.fillAmount = 1
+  img_FishingHookCD.gameObject:SetActive(true)
+  self.FishingHookTweener = DOTween.To(function()
+    return img_FishingHookCD.fillAmount
+  end, function(value)
+    img_FishingHookCD.fillAmount = value
+  end, 0, nTime):OnComplete(function()
+    img_FishingHookCD.gameObject:SetActive(false)
   end)
 end
 
@@ -1126,6 +1313,10 @@ function GoldenSpyLevelCtrl:ClearTimer()
     self.FrozenTweener:Kill()
     self.FrozenTweener = nil
   end
+  if self.FishingHookTweener ~= nil then
+    self.FishingHookTweener:Kill()
+    self.FishingHookTweener = nil
+  end
   for _, v in ipairs(self.tbTimer) do
     if v ~= nil then
       v:Cancel()
@@ -1142,16 +1333,15 @@ end
 function GoldenSpyLevelCtrl:OnEvent_UpdateSkillCount(nSkillId, nCount)
   nCount = nCount or 0
   nCount = math.floor(nCount)
-  if nSkillId == BoomSkillId then
-    local txt_count = self._mapNode.btn_Boom.transform:Find("AnimRoot/db_skillCount/txt_skillCount"):GetComponent("TMP_Text")
-    NovaAPI.SetTMPText(txt_count, string.format("%d", nCount))
-    local mask = self._mapNode.btn_Boom.transform:Find("AnimRoot/mask"):GetComponent("Image")
-    mask.gameObject:SetActive(nCount == 0)
-  elseif nSkillId == FrozenSkillId then
-    local txt_count = self._mapNode.btn_Frozen.transform:Find("AnimRoot/db_skillCount/txt_skillCount"):GetComponent("TMP_Text")
-    NovaAPI.SetTMPText(txt_count, string.format("%d", nCount))
-    local mask = self._mapNode.btn_Frozen.transform:Find("AnimRoot/mask"):GetComponent("Image")
-    mask.gameObject:SetActive(nCount == 0)
+  for i = 1, #self.skillList do
+    local skillId = self.skillList[i]
+    if skillId == nSkillId then
+      local txt_count = self._mapNode["btn_Skill" .. i].transform:Find("AnimRoot/db_skillCount/txt_skillCount"):GetComponent("TMP_Text")
+      NovaAPI.SetTMPText(txt_count, string.format("%d", nCount))
+      local mask = self._mapNode["btn_Skill" .. i].transform:Find("AnimRoot/mask"):GetComponent("Image")
+      mask.gameObject:SetActive(nCount == 0)
+      break
+    end
   end
 end
 

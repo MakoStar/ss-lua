@@ -146,9 +146,11 @@ function TemplateCharCtrl:SetSelect(bSelect)
 end
 
 function TemplateCharCtrl:RefreshCharaIsFavorite()
-  local bIsFavorite = PlayerData.Char:GetCharFavoriteState(self.nCharId)
-  if bIsFavorite ~= nil then
-    self._mapNode.imgFavorite:SetActive(bIsFavorite)
+  if PlayerData.Char:CheckCharUnlock(self.nCharId) then
+    local bIsFavorite = PlayerData.Char:GetCharFavoriteState(self.nCharId)
+    if bIsFavorite ~= nil then
+      self._mapNode.imgFavorite:SetActive(bIsFavorite)
+    end
   end
 end
 

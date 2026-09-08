@@ -1,3 +1,4 @@
+local LocalData = require("GameCore.Data.LocalData")
 local PotentialPreselectionCtrl = class("PotentialPreselectionCtrl", BaseCtrl)
 PotentialPreselectionCtrl._mapNodeConfig = {
   TopBar = {
@@ -28,6 +29,16 @@ PotentialPreselectionCtrl._mapNodeConfig = {
     sComponentName = "TMP_Text",
     sLanguageId = "Potential_Preselection_Import"
   },
+  SystemRcmdSwitch = {},
+  btnSwitch = {
+    nCount = 2,
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_Switch"
+  },
+  txtSystemRcmdSwitch = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Potential_System_Preset_Rcmd"
+  },
   BuildList = {
     sComponentName = "LoopScrollView"
   },
@@ -47,6 +58,9 @@ PotentialPreselectionCtrl._mapNodeConfig = {
   btnFilter = {
     sComponentName = "UIButton",
     callback = "OnBtnClick_Filter"
+  },
+  btnRoot = {
+    sComponentName = "RectTransform"
   },
   imgFilterChoose = {},
   btnCreate = {
@@ -79,6 +93,82 @@ PotentialPreselectionCtrl._mapEventConfig = {
 PotentialPreselectionCtrl._mapRedDotConfig = {}
 local PanelState = {normal = 1, delete = 2}
 local SortOrder = {Descending = true, Ascending = false}
+local ShowSystemRcmdKey = "ShowSystemRecommend"
+
+function PotentialPreselectionCtrl:ConvertUnpackData(tbUnpackData)
+  local tbCharPotential = {}
+  if tbUnpackData == nil then
+    return tbCharPotential
+  end
+  for _, mapCharData in ipairs(tbUnpackData) do
+    local tbPotential = {}
+    for _, mapPotential in ipairs(mapCharData.Potentials or {}) do
+      table.insert(tbPotential, {
+        nId = mapPotential.Id,
+        nLevel = mapPotential.Level
+      })
+    end
+    table.insert(tbCharPotential, {
+      nCharId = mapCharData.CharId,
+      tbPotential = tbPotential
+    })
+  end
+  return tbCharPotential
+end
+
+function PotentialPreselectionCtrl:RefreshSelectCharFromTeam()
+  if self.nTeamIndex == nil or self.nTeamIndex <= 0 then
+    return
+  end
+  local _, tbTeamMemberId = PlayerData.Team:GetTeamData(self.nTeamIndex)
+  if tbTeamMemberId == nil then
+    return
+  end
+  self.tbSelectChar = {}
+  for i = 1, 3 do
+    self.tbSelectChar[i] = tbTeamMemberId[i] or 0
+  end
+end
+
+function PotentialPreselectionCtrl:GetSystemRecommendList()
+  local tbList = {}
+  if not self.bShowSystemRecommend or self.tbSelectChar == nil then
+    return tbList
+  end
+  local mapTeamCharId = {}
+  for i = 1, 3 do
+    local nCharId = self.tbSelectChar[i]
+    if nCharId ~= nil and 0 < nCharId then
+      mapTeamCharId[nCharId] = true
+    end
+  end
+  if next(mapTeamCharId) == nil then
+    return tbList
+  end
+  local tbPotentialPreset = ConfigTable.Get("PotentialPreset")
+  ForEachTableLine(tbPotentialPreset, function(mapCfg)
+    if mapTeamCharId[mapCfg.CharacterId] == true then
+      local tbUnpackData = PlayerData.PotentialPreselection:UnPackPotentialData(mapCfg.ShareCode)
+      if tbUnpackData ~= nil then
+        table.insert(tbList, {
+          nId = mapCfg.Id,
+          nSystemPresetId = mapCfg.Id,
+          nTimestamp = 0,
+          sName = mapCfg.Name,
+          sDescription = mapCfg.Description,
+          sShareCode = mapCfg.ShareCode,
+          bPreference = false,
+          bSystemRecommend = true,
+          tbCharPotential = self:ConvertUnpackData(tbUnpackData)
+        })
+      end
+    end
+  end)
+  table.sort(tbList, function(a, b)
+    return a.nSystemPresetId < b.nSystemPresetId
+  end)
+  return tbList
+end
 
 function PotentialPreselectionCtrl:InitSort()
   self._mapNode.btn_sort_time.transform:Find("AnimRoot/btn_AsceIcon"):GetComponent("Button").interactable = self.nSortOrder == SortOrder.Ascending
@@ -91,25 +181,42 @@ function PotentialPreselectionCtrl:RefreshPanel()
 end
 
 function PotentialPreselectionCtrl:RefreshList()
+  self:RefreshSelectCharFromTeam()
   self.tbAllPreselectionList = PlayerData.PotentialPreselection:GetPreselectionList()
   self.tbPreselectionList = {}
+  local tbNormalPreselectionList = {}
   for _, v in pairs(self.tbAllPreselectionList) do
     local mapMainChar = v.tbCharPotential[1]
     local nCharId = mapMainChar.nCharId
     local isFilter = PlayerData.Filter:CheckFilterByCharAndOption(nCharId, self._panel.tbOption)
     if isFilter then
-      table.insert(self.tbPreselectionList, v)
+      table.insert(tbNormalPreselectionList, v)
     end
+  end
+  table.sort(tbNormalPreselectionList, function(a, b)
+    if self.nSortOrder == SortOrder.Descending then
+      return a.nTimestamp > b.nTimestamp
+    else
+      return a.nTimestamp < b.nTimestamp
+    end
+  end)
+  local tbSystemRecommendList = self:GetSystemRecommendList()
+  for _, mapData in ipairs(tbSystemRecommendList) do
+    table.insert(self.tbPreselectionList, mapData)
+  end
+  for _, mapData in ipairs(tbNormalPreselectionList) do
+    table.insert(self.tbPreselectionList, mapData)
   end
   NovaAPI.SetTMPText(self._mapNode.txt_BuildCount, string.format("%d/%d", #self.tbAllPreselectionList, self.nAllBuildCount))
   local isDirty = PlayerData.Filter:IsDirtyByOption(self._panel.tbOption)
   self._mapNode.imgFilterChoose:SetActive(isDirty)
-  local bEmpty = #self.tbAllPreselectionList == 0
+  local bEmpty = #self.tbAllPreselectionList == 0 and #tbSystemRecommendList == 0
   self._mapNode.EmptyContent.gameObject:SetActive(bEmpty)
   self._mapNode.ExistContent.gameObject:SetActive(not bEmpty)
   self._mapNode.btn_sort_time.gameObject:SetActive(not bEmpty)
   self._mapNode.btnFilter.gameObject:SetActive(not bEmpty)
   self._mapNode.imgAllCount.gameObject:SetActive(not bEmpty)
+  CS.UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(self._mapNode.btnRoot)
   for nInstanceId, objCtrl in pairs(self.mapGridCtrl or {}) do
     self:UnbindCtrlByNode(objCtrl)
     self.mapGridCtrl[nInstanceId] = nil
@@ -122,13 +229,6 @@ function PotentialPreselectionCtrl:RefreshList()
   if #self.tbPreselectionList == 0 then
     return
   end
-  table.sort(self.tbPreselectionList, function(a, b)
-    if self.nSortOrder == SortOrder.Descending then
-      return a.nTimestamp > b.nTimestamp
-    else
-      return a.nTimestamp < b.nTimestamp
-    end
-  end)
   self._mapNode.BuildList:Init(#self.tbPreselectionList, self, self.OnGridRefresh, self.OnGridBtnClick)
 end
 
@@ -142,28 +242,28 @@ function PotentialPreselectionCtrl:OnGridRefresh(goGrid, gridIndex)
   end
   local mapData = self.tbPreselectionList[nIndex]
   if mapData ~= nil then
-    local bSelected = mapData.nId == self.nSelectPreselectionId
+    local bSelected = mapData.bSystemRecommend ~= true and mapData.nId == self.nSelectPreselectionId
     local bCharDiff = false
     if self.tbSelectChar ~= nil then
+      local tbSelectChar = {}
       for i = 1, 3 do
-        if self.tbSelectChar[i] == nil then
-          self.tbSelectChar[i] = 0
-        end
+        tbSelectChar[i] = self.tbSelectChar[i] or 0
       end
       for k, v in ipairs(mapData.tbCharPotential) do
         if k == 1 then
-          if v.nCharId ~= self.tbSelectChar[k] then
+          if v.nCharId ~= tbSelectChar[k] then
             bCharDiff = true
             break
           end
-        elseif table.indexof(self.tbSelectChar, v.nCharId) == 0 then
+        elseif table.indexof(tbSelectChar, v.nCharId) == 0 then
           bCharDiff = true
           break
         end
       end
     end
-    objCtrl:RefreshItem(mapData, bCharDiff, bSelected)
-    objCtrl:ShowDelete(self.nPanelType == PanelState.delete)
+    local bSystemRecommend = mapData.bSystemRecommend == true
+    objCtrl:RefreshItem(mapData, bCharDiff, bSelected, bSystemRecommend)
+    objCtrl:ShowDelete(self.nPanelType == PanelState.delete and not bSystemRecommend)
   end
 end
 
@@ -174,7 +274,11 @@ function PotentialPreselectionCtrl:OnGridBtnClick(goGrid, gridIndex)
   local nIndex = gridIndex + 1
   local mapData = self.tbPreselectionList[nIndex]
   if mapData ~= nil then
-    EventManager.Hit(EventId.OpenPanel, PanelId.PotentialPreselectionEdit, AllEnum.PreselectionPanelType.Preview, mapData, self.tbSelectChar, self.nTeamIndex)
+    if mapData.bSystemRecommend == true then
+      EventManager.Hit(EventId.OpenPanel, PanelId.PotentialPreselectionEdit, AllEnum.PreselectionPanelType.SystemPreview, mapData, self.tbSelectChar or {}, self.nTeamIndex or 0, mapData.sName)
+    else
+      EventManager.Hit(EventId.OpenPanel, PanelId.PotentialPreselectionEdit, AllEnum.PreselectionPanelType.Preview, mapData, self.tbSelectChar, self.nTeamIndex)
+    end
   end
 end
 
@@ -199,10 +303,15 @@ function PotentialPreselectionCtrl:OnEnable()
     end
     PlayerData.Filter:SyncFilterByCache()
   end
+  self.tbSelectChar = nil
+  self.nTeamIndex = nil
+  self.bEnableSystemRecommend = false
+  self.nSelectPreselectionId = nil
   local tbParam = self:GetPanelParam()
   if type(tbParam) == "table" then
     self.tbSelectChar = tbParam[1]
     self.nTeamIndex = tbParam[2]
+    self.bEnableSystemRecommend = tbParam[3] == true
   end
   if self.nTeamIndex ~= nil then
     self.nSelectPreselectionId = PlayerData.Team:GetTeamPreselectionId(self.nTeamIndex)
@@ -211,6 +320,21 @@ function PotentialPreselectionCtrl:OnEnable()
   self.nPanelType = PanelState.normal
   self.nSortOrder = SortOrder.Descending
   self.nAllBuildCount = ConfigTable.GetConfigNumber("PotentialPreselectionMaxCount")
+  local bHasTeamChar = false
+  if self.tbSelectChar ~= nil then
+    for i = 1, 3 do
+      local nCharId = self.tbSelectChar[i]
+      if nCharId ~= nil and 0 < nCharId then
+        bHasTeamChar = true
+        break
+      end
+    end
+  end
+  self.bEnableSystemRecommend = self.bEnableSystemRecommend and bHasTeamChar
+  self.bShowSystemRecommend = self.bEnableSystemRecommend and (LocalData.GetPlayerLocalData(ShowSystemRcmdKey) == "1" or LocalData.GetPlayerLocalData(ShowSystemRcmdKey) == nil)
+  self._mapNode.SystemRcmdSwitch.gameObject:SetActive(self.bEnableSystemRecommend)
+  self._mapNode.btnSwitch[2].gameObject:SetActive(self.bShowSystemRecommend)
+  self._mapNode.btnSwitch[1].gameObject:SetActive(not self.bShowSystemRecommend)
   self:InitSort()
   self:RefreshPanel()
 end
@@ -279,6 +403,23 @@ function PotentialPreselectionCtrl:OnBtnClick_Create()
   end
   self._panel._nFadeInType = 2
   EventManager.Hit(EventId.OpenPanel, PanelId.PotentialPreselectionEdit, AllEnum.PreselectionPanelType.Create, {}, self.tbSelectChar, self.nTeamIndex)
+end
+
+function PotentialPreselectionCtrl:OnBtnClick_Switch(btn, nIndex)
+  if not self.bEnableSystemRecommend then
+    return
+  end
+  self.bShowSystemRecommend = not self.bShowSystemRecommend
+  LocalData.SetPlayerLocalData(ShowSystemRcmdKey, self.bShowSystemRecommend and "1" or "0")
+  self._mapNode.btnSwitch[2].gameObject:SetActive(self.bShowSystemRecommend)
+  self._mapNode.btnSwitch[1].gameObject:SetActive(not self.bShowSystemRecommend)
+  local sTip = self.bShowSystemRecommend and ConfigTable.GetUIText("Potential_Preselection_SystemRecommend_Show") or ConfigTable.GetUIText("Potential_Preselection_SystemRecommend_Hide")
+  EventManager.Hit(EventId.OpenMessageBox, {
+    nType = AllEnum.MessageBox.Tips,
+    bPositive = true,
+    sContent = sTip
+  })
+  self:RefreshList()
 end
 
 function PotentialPreselectionCtrl:OnBtnClick_CloseDelete()

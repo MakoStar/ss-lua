@@ -214,43 +214,54 @@ function GoldenSpyFloorCtrl:ResumeHookSwing()
   end
 end
 
-function GoldenSpyFloorCtrl:Shoot(nSpeed, nRadius, nFactor, onRetractComplete, onCatched, onCatchedComplete)
+function GoldenSpyFloorCtrl:Shoot(nSpeed, nRadius, nFactor, nMinSpeed, onRetractComplete, onCatched, onCatchedComplete)
   local hookCtrl = self._mapNode.HookCtrl
   if not hookCtrl or not hookCtrl:IsSwinging() then
     return
   end
   hookCtrl:PauseSwing()
   self.bInvincible = false
-  hookCtrl:StartExtend(nSpeed, nRadius, nFactor, function()
+  hookCtrl:StartExtend(nSpeed, nRadius, nFactor, nMinSpeed, function()
     if onRetractComplete then
       onRetractComplete()
     end
-  end, function(itemCtrl)
+  end, function(tbItemCtrl)
     if onCatched then
-      onCatched(itemCtrl)
+      onCatched(tbItemCtrl)
     end
-    if itemCtrl:GetItemCfg().ItemType == GameEnum.GoldenSpyItem.Boom then
-      self:RemoveItem(itemCtrl)
-      return
-    end
-    self.catchedItem = itemCtrl
-  end, function(itemCtrl)
-    if itemCtrl == nil or itemCtrl:GetItemCfg().ItemType == GameEnum.GoldenSpyItem.Boom then
-      return
-    end
-    for i = #self.tbItem, 1, -1 do
-      if self.tbItem[i].Ctrl == itemCtrl then
-        table.insert(self.tbNeedRemoveItem, self.tbItem[i])
-        table.remove(self.tbItem, i)
-        break
+    for _, itemCtrl in ipairs(tbItemCtrl) do
+      if itemCtrl:GetItemCfg().ItemType == GameEnum.GoldenSpyItem.Boom then
+        self:RemoveItem(itemCtrl)
       end
     end
-    self.catchedItem = nil
+    self.tbCatchedItem = tbItemCtrl
+  end, function(tbItemCtrl)
+    for _, itemCtrl in ipairs(tbItemCtrl) do
+      if itemCtrl:GetItemCfg().ItemType == GameEnum.GoldenSpyItem.Boom then
+        self:RemoveItem(itemCtrl)
+      else
+        for i = #self.tbItem, 1, -1 do
+          if self.tbItem[i].Ctrl == itemCtrl then
+            table.insert(self.tbNeedRemoveItem, self.tbItem[i])
+            table.remove(self.tbItem, i)
+            break
+          end
+        end
+      end
+    end
+    self.tbCatchedItem = nil
     self.bInvincible = false
     if onCatchedComplete then
-      onCatchedComplete(itemCtrl)
+      onCatchedComplete(tbItemCtrl)
     end
   end)
+end
+
+function GoldenSpyFloorCtrl:SetHookType(nHookType, nFishingHookRadius)
+  local hookCtrl = self._mapNode.HookCtrl
+  if hookCtrl and hookCtrl.SetHookType then
+    hookCtrl:SetHookType(nHookType, nFishingHookRadius)
+  end
 end
 
 function GoldenSpyFloorCtrl:RemoveItem(itemCtrl, bForce)
@@ -269,15 +280,29 @@ function GoldenSpyFloorCtrl:RemoveItem(itemCtrl, bForce)
   end
 end
 
+function GoldenSpyFloorCtrl:CheckCanDropItem()
+  local hookCtrl = self._mapNode.HookCtrl
+  if hookCtrl == nil then
+    return false
+  end
+  local hookType = hookCtrl:GetHookType()
+  if hookType == AllEnum.GoldenSpyHookType.FishingHook then
+    return false
+  end
+  return true
+end
+
 function GoldenSpyFloorCtrl:DropItem()
-  if self.catchedItem == nil then
+  if self.tbCatchedItem == nil then
     return
   end
   local hookCtrl = self._mapNode.HookCtrl
   hookCtrl:DropItem()
   self.levelCtrl:DropItem()
-  self.catchedItem.gameObject.transform.parent = self.catchedItem:GetParent()
-  self.catchedItem = nil
+  for _, itemCtrl in ipairs(self.tbCatchedItem) do
+    itemCtrl.gameObject.transform.parent = itemCtrl:GetParent()
+  end
+  self.tbCatchedItem = nil
 end
 
 function GoldenSpyFloorCtrl:SetHookIsInvincible(bInvincible)
@@ -286,14 +311,6 @@ end
 
 function GoldenSpyFloorCtrl:GetHookIsInvincible()
   return self.bInvincible
-end
-
-function GoldenSpyFloorCtrl:GetHookHitArea()
-  local hookCtrl = self._mapNode.HookCtrl
-  if hookCtrl and hookCtrl.GetHookHitArea then
-    return hookCtrl:GetHookHitArea()
-  end
-  return nil
 end
 
 function GoldenSpyFloorCtrl:SubTime(nTime)
@@ -316,19 +333,29 @@ function GoldenSpyFloorCtrl:StartRetract(finishCallback)
   end
 end
 
+function GoldenSpyFloorCtrl:CheckCanChangeHook()
+  local hookCtrl = self._mapNode.HookCtrl
+  if not hookCtrl or not hookCtrl:IsSwinging() then
+    return false
+  end
+  return true
+end
+
 function GoldenSpyFloorCtrl:StartBoom(useCallback, finishCallback)
-  if self.catchedItem == nil then
+  if self.tbCatchedItem == nil or #self.tbCatchedItem <= 0 then
     return false
   end
   if useCallback then
     useCallback()
   end
-  self.catchedItem:OnSkill_Boom(function()
-    self:RemoveItem(self.catchedItem)
-    self.catchedItem = nil
-    self._mapNode.HookCtrl:DropItem()
-    self:StartRetract(finishCallback)
-  end)
+  for _, itemCtrl in ipairs(self.tbCatchedItem) do
+    itemCtrl:OnSkill_Boom(function()
+      self:RemoveItem(itemCtrl)
+    end)
+  end
+  self.tbCatchedItem = nil
+  self._mapNode.HookCtrl:DropItem()
+  self:StartRetract(finishCallback)
   return true
 end
 
@@ -347,7 +374,7 @@ end
 
 function GoldenSpyFloorCtrl:StartFrozen()
   for _, v in ipairs(self.tbItem) do
-    if v.Ctrl ~= nil and v.Ctrl ~= self.catchedItem then
+    if v.Ctrl ~= nil and (self.tbCatchedItem == nil or self.tbCatchedItem ~= nil and table.indexof(self.tbCatchedItem, v.Ctrl) <= 0) then
       v.Ctrl:OnSkill_Frozen()
     end
   end
@@ -360,7 +387,7 @@ end
 
 function GoldenSpyFloorCtrl:StopFrozen()
   for _, v in ipairs(self.tbItem) do
-    if v.Ctrl ~= nil and v.Ctrl ~= self.catchedItem then
+    if v.Ctrl ~= nil and (self.tbCatchedItem == nil or self.tbCatchedItem ~= nil and table.indexof(self.tbCatchedItem, v.Ctrl) <= 0) then
       v.Ctrl:OnSkill_Frozen_Resume()
     end
   end

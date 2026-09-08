@@ -62,6 +62,7 @@ local RedDotDefine = {
   Mall_Free = "Mall.Free",
   FreePackage = "FreePackage.<param>",
   Mall_Daily = "Mall.Daily",
+  Mall_CharSkinTrial = "Mall.CharSkinTrial<param>",
   Friend = "Friend",
   Friend_Apply = "Friend.Apply",
   Friend_Energy = "Friend.Energy",
@@ -203,6 +204,8 @@ local RedDotDefine = {
   TraceHunt_HuntItem = "TraceHunt_HuntItem",
   Activity_IceCreamTruck_New = "Activity_IceCreamTruck_New.<param>",
   Activity_IceCreamTruck_NewType = "Activity_IceCreamTruck_New.<param>.LevelType.<param>",
-  Activity_IceCreamTruck_NewLevel = "Activity_IceCreamTruck_New.<param>.LevelType.<param>.Level<param>"
+  Activity_IceCreamTruck_NewLevel = "Activity_IceCreamTruck_New.<param>.LevelType.<param>.Level<param>",
+  EventReminder = "EventReminder",
+  CharGemInstanceSwitch = "CharGemInstanceSwitch.<param>"
 }
 return RedDotDefine

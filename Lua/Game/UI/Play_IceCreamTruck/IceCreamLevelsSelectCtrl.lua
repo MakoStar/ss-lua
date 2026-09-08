@@ -1,6 +1,5 @@
 local TimerManager = require("GameCore.Timer.TimerManager")
 local IceCreamLevelsSelectCtrl = class("IceCreamLevelsSelectCtrl", BaseCtrl)
-local SpineManager = require("Game.Spine.SpineManager")
 IceCreamLevelsSelectCtrl._mapNodeConfig = {
   TopBar = {
     sNodeName = "TopBarPanel",
@@ -50,11 +49,9 @@ function IceCreamLevelsSelectCtrl:OnDisable()
     TimerManager.Remove(self._tmrSwitchDetail, false)
     self._tmrSwitchDetail = nil
   end
-  SpineManager.ClearAll()
 end
 
 function IceCreamLevelsSelectCtrl:OnDestroy()
-  SpineManager.ClearAll()
 end
 
 function IceCreamLevelsSelectCtrl:InitLevel(nActId)

@@ -552,14 +552,20 @@ end
 function LoginCtrl:OnServerCallBack(sendMsg)
   self.bOnLogin = false
   local goLaunchUI = GameObject.Find("==== Builtin UI ====/LaunchUI")
-  GameObject.Destroy(goLaunchUI)
   if sendMsg.receiveMsgId == NetMsgId.Id.player_data_succeed_ack then
     HttpNetHandler.SetPingPong()
     self.bMainMenuModule = PlayerData.Guide:GetGuideNewbie(1) ~= 0
     EventManager.Hit("LoginNextModule", self)
     if self.bMainMenuModule then
-      NovaAPI.EnterModule("MainMenuModuleScene", true)
+      local function func_EnterMainMenuModule()
+        GameObject.Destroy(goLaunchUI)
+        
+        NovaAPI.EnterModule("MainMenuModuleScene", true)
+      end
+      
+      PlayerData.Phone:PreloadPhoneAvgDataBeforeMain(func_EnterMainMenuModule)
     else
+      GameObject.Destroy(goLaunchUI)
       PlayerData.StarTower:EnterTowerPrologue()
     end
     local tab = {}
@@ -575,6 +581,7 @@ function LoginCtrl:OnServerCallBack(sendMsg)
     NovaAPI.SetBuglyPlayerUid(tostring(PlayerData.Base._nPlayerId))
     NovaAPI.TryUploadFile()
   elseif sendMsg.receiveMsgId == NetMsgId.Id.player_new_notify then
+    GameObject.Destroy(goLaunchUI)
     CS.WwiseAudioManager.Instance:SetState("system", "None")
     self.gameObject:SetActive(false)
     EventManager.Hit(EventId.OpenPanel, PanelId.CreatePlayer)

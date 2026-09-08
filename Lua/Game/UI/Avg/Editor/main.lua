@@ -5,3 +5,5 @@ DEL_RT_SIGNAL = true
 ADJUST = false
 ENABLE_NAME_CHECK = true
 ENABLE_W_CHECK = true
+ENABLE_D = false
+ENABLE_D_CHOSED = false

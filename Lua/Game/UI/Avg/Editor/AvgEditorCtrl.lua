@@ -1298,10 +1298,9 @@ function AvgEditorCtrl:Proc_EnableChoicePreview(tbCmdData)
   end
   for i, v in ipairs(self.tbAvgCfg) do
     if v.cmd == sCmd and tostring(v.param[1]) == sGroupId then
-      v.param.enable_in_visualize_preview = mapJumpTo[sGroupId] == v.param[2]
+      v.param.enable_in_visualize_preview = mapJumpTo[sGroupId] == tostring(v.param[2])
     end
   end
-  self._mapNode.loopSV:ForceRefresh()
 end
 
 function AvgEditorCtrl:OnBtnClick_BackToMain(btn)

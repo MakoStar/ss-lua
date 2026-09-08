@@ -12,6 +12,8 @@ PenguinCardItemCtrl._mapNodeConfig = {
   txtDisableLevel = {sComponentName = "TMP_Text"},
   txtName = {sComponentName = "TMP_Text"},
   imgUp = {},
+  imgHead = {},
+  imgHeadIcon = {sComponentName = "Image"},
   txtTrigger = {nCount = 2, sComponentName = "TMP_Text"},
   aniTrigger = {
     sNodeName = "txtTrigger",
@@ -29,7 +31,8 @@ PenguinCardItemCtrl._mapNodeConfig = {
 PenguinCardItemCtrl._mapEventConfig = {
   PenguinCardTriggered = "OnEvent_Triggered",
   PenguinCardWaitPlay = "OnEvent_WaitPlay",
-  PenguinCardGrowth = "OnEvent_Growth"
+  PenguinCardGrowth = "OnEvent_Growth",
+  PenguinCard_AuraTriggered = "OnEvent_AuraTriggered"
 }
 
 function PenguinCardItemCtrl:Refresh_Select(mapCard, nSelectIndex, bRoll)
@@ -48,6 +51,17 @@ function PenguinCardItemCtrl:Refresh_Select(mapCard, nSelectIndex, bRoll)
   NovaAPI.SetTMPText(self._mapNode.txtName, mapCard.sName)
   local bUpgrade = self._panel.mapLevel:CheckUpgradePenguinCard(mapCard)
   self._mapNode.imgUp:SetActive(bUpgrade)
+  self._mapNode.imgHead.gameObject:SetActive(false)
+  if self._panel.mapLevel.tbAide ~= nil then
+    self.nAideIndex = self._panel.mapLevel:CheckAideUpgrade(mapCard.nGroupId)
+    self._mapNode.imgHead.gameObject:SetActive(self.nAideIndex ~= nil)
+    if self.nAideIndex ~= nil then
+      local mapAide = self._panel.mapLevel.tbAide[self.nAideIndex]
+      if mapAide ~= 0 then
+        self:SetPngSprite(self._mapNode.imgHeadIcon, mapAide.sIcon .. AllEnum.CharHeadIconSurfix.QSS)
+      end
+    end
+  end
   self._mapNode.AnimRoot:Play("PengUinCard_Bd_Shopin", 0, 0)
 end
 
@@ -60,6 +74,7 @@ function PenguinCardItemCtrl:Refresh_Slot(mapCard)
   self._mapNode.txtName.gameObject:SetActive(false)
   self._mapNode.imgBg:SetActive(false)
   self._mapNode.imgUp:SetActive(false)
+  self._mapNode.imgHead.gameObject:SetActive(false)
   self._mapNode.goTrigger:SetActive(false)
   self._mapNode.goDisable:SetActive(not bAble)
   self._mapNode.imgHighLight:SetActive(false)
@@ -87,10 +102,22 @@ function PenguinCardItemCtrl:RefreshUpgrade(nGroupId)
   end
 end
 
+function PenguinCardItemCtrl:RefreshHead(nChangeIndex)
+  if self.nAideIndex ~= nil and self.nAideIndex == nChangeIndex then
+    self._mapNode.imgHead.gameObject:SetActive(false)
+  end
+end
+
+function PenguinCardItemCtrl:PlaySlotAni()
+  self._mapNode.AnimRoot:Play("PengUinCard_Bd_Slotin", 0, 0)
+end
+
 function PenguinCardItemCtrl:PlayFlipAni()
   self._mapNode.imgBg:SetActive(true)
   self._mapNode.txtName.gameObject:SetActive(false)
   self._mapNode.imgHighLight:SetActive(false)
+  self._mapNode.imgHead.gameObject:SetActive(false)
+  self._mapNode.imgUp:SetActive(false)
   self._mapNode.AnimRoot:Play("PengUinCard_Bd_Shopturn", 0, 0)
   local nAnimTime = NovaAPI.GetAnimClipLength(self._mapNode.AnimRoot, {
     "PengUinCard_Bd_Shopturn"
@@ -117,9 +144,54 @@ function PenguinCardItemCtrl:PlaySelectAni(callback)
   end, true, true, true)
 end
 
+function PenguinCardItemCtrl:PlayLevelAni(bUp, callback)
+  local ani_end = dotween_callback_handler(self, function()
+    EventManager.Hit("PenguinCard_Block", false)
+  end)
+  if self.sequence == nil then
+    self.sequence = DOTween.Sequence()
+    self.sequence:OnComplete(ani_end)
+    EventManager.Hit("PenguinCard_Block", true)
+  end
+  if self.sequence.active == false then
+    self.sequence:Kill(true)
+    self.sequence = nil
+    self.sequence = DOTween.Sequence()
+    self.sequence:OnComplete(ani_end)
+    EventManager.Hit("PenguinCard_Block", true)
+  end
+  if bUp then
+    self.sequence:AppendCallback(function()
+      self:PlayUpgradeAni(callback)
+    end)
+    local nAnimTime = NovaAPI.GetAnimClipLength(self._mapNode.AnimRoot, {
+      "PengUinCard_Bd_Up"
+    })
+    self.sequence:AppendInterval(nAnimTime)
+  else
+    self.sequence:AppendCallback(function()
+      self:PlayDownAni(callback)
+    end)
+    local nAnimTime = NovaAPI.GetAnimClipLength(self._mapNode.AnimRoot, {
+      "PengUinCard_Bd_Down"
+    })
+    self.sequence:AppendInterval(nAnimTime)
+  end
+end
+
 function PenguinCardItemCtrl:PlayUpgradeAni(callback)
   self._mapNode.AnimRoot:Play("PengUinCard_Bd_Up", 0, 0)
   WwiseManger:PostEvent("Mode_Card_levelup")
+  self:AddTimer(1, 0.2, function()
+    if callback then
+      callback()
+    end
+  end, true, true, true)
+end
+
+function PenguinCardItemCtrl:PlayDownAni(callback)
+  self._mapNode.AnimRoot:Play("PengUinCard_Bd_Down", 0, 0)
+  WwiseManger:PostEvent("Mode_Card_leveldown")
   self:AddTimer(1, 0.2, function()
     if callback then
       callback()
@@ -147,8 +219,12 @@ function PenguinCardItemCtrl:PlayTriggerAni()
     return
   end
   self.bTriggerCd = true
-  self:AddTimer(1, 1.433, function()
+  local nAnimTime = NovaAPI.GetAnimClipLength(self._mapNode.AnimRoot, {
+    "PengUinCard_Bd_Open"
+  })
+  self:AddTimer(1, nAnimTime, function()
     self.bTriggerCd = false
+    self._mapNode.AnimRoot.speed = 1
   end, true, true, true)
   self._mapNode.AnimRoot:Play("PengUinCard_Bd_Open", 0, 0)
   self._mapNode.AnimRoot.speed = self._panel.mapLevel.nSpeed
@@ -211,6 +287,12 @@ function PenguinCardItemCtrl:OnEnable()
 end
 
 function PenguinCardItemCtrl:OnDisable()
+  if self.sequence ~= nil then
+    if self.sequence.active then
+      self.sequence:Kill(true)
+    end
+    self.sequence = nil
+  end
 end
 
 function PenguinCardItemCtrl:OnBtnClick_OpenInfo()
@@ -231,8 +313,25 @@ function PenguinCardItemCtrl:OnEvent_Triggered(nSlotIndex)
   if mapCard == 0 or nSlotIndex ~= mapCard.nSlotIndex then
     return
   end
+  if mapCard.nTriggerPhase == GameEnum.PenguinCardTriggerPhase.Aura then
+    return
+  end
   if mapCard.nTriggerPhase == GameEnum.PenguinCardTriggerPhase.Settlement then
     self.bWaitPlay = true
+    return
+  end
+  self:PlayTriggerAni()
+end
+
+function PenguinCardItemCtrl:OnEvent_AuraTriggered()
+  if self.nSlotIndex == nil then
+    return
+  end
+  local mapCard = self._panel.mapLevel.tbPenguinCard[self.nSlotIndex]
+  if mapCard == 0 then
+    return
+  end
+  if mapCard.nTriggerPhase ~= GameEnum.PenguinCardTriggerPhase.Aura then
     return
   end
   self:PlayTriggerAni()

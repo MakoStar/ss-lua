@@ -381,7 +381,7 @@ function CookieGameCtrl:OnEnable()
   EventManager.Hit(EventId.SetTransition)
   self:Refresh()
   local nQuestActId = tonumber(tostring(self.nMainActId) .. "03")
-  local nQuestGroupId = 1080304
+  local nQuestGroupId = tonumber("1" .. string.sub(tostring(self.nMainActId), 3, 4) .. "0304")
   RedDotManager.RegisterNode(RedDotDefine.Activity_Group_Task_Group, {
     self.nMainActId,
     nQuestActId,
@@ -418,7 +418,7 @@ function CookieGameCtrl:OnBtnClick_Enter()
     EventManager.Hit(EventId.OpenPanel, PanelId.CookieBoardPanel_400016, self.nLevelId, bRhythmlMode, bPipeLineMode, levelData.CountDownLimit, self.nActId, nScoreNeedToPass or 0)
   end
   
-  local nRandom = math.random(46, 47)
+  local nRandom = math.random(50, 51)
   EventManager.Hit(EventId.SetTransition, nRandom, openPanel)
 end
 
@@ -477,7 +477,7 @@ function CookieGameCtrl:OnBtnClick_QuestDetail()
       local endTime = CS.ClientManager.Instance:ISO8601StrToTimeStamp(activityData.EndTime)
       if curTime < openTime then
         state = 1
-      elseif curTime >= openTime and curTime <= endTime then
+      elseif curTime >= openTime and curTime < endTime then
         state = 2
       else
         state = 3

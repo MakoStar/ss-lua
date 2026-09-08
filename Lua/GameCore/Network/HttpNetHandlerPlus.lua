@@ -90,6 +90,7 @@ end
 
 function HttpNetHandlerPlus.gacha_spin_failed_ack(mapMsgData)
   EventManager.Hit("GachaProcessStart", false)
+  EventManager.Hit("GachaNeedRefresh")
 end
 
 function HttpNetHandlerPlus.gacha_spin_sync_ack(mapMsgData)
@@ -399,10 +400,6 @@ end
 function HttpNetHandlerPlus.activity_ice_cream_level_settle_succeed_ack(mapMsgData)
   local mapDecodedChangeInfo = UTILS.DecodeChangeInfo(mapMsgData.Change)
   HttpNetHandler.ProcChangeInfo(mapDecodedChangeInfo)
-end
-
-function HttpNetHandlerPlus.clear_all_activity_iceCream_levels_notify(mapMsgData)
-  EventManager.Hit("ClearAllIceLevels", mapMsgData)
 end
 
 function HttpNetHandlerPlus.soldier_interact_succeed_ack(mapMsgData)

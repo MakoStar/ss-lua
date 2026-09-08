@@ -36,7 +36,9 @@ DepotPotentialItemCtrl._mapEventConfig = {
 DepotPotentialItemCtrl._mapRedDotConfig = {}
 local level_txt_color = {
   [1] = "#264278",
-  [2] = "#2c5fd5"
+  [2] = "#2c5fd5",
+  [3] = "#8cac59",
+  [4] = "#e74470"
 }
 
 function DepotPotentialItemCtrl:InitItem(nPotentialId, nLevel, nPotentialAdd, bShowAdd, bHideChoose, recommendLv)
@@ -61,18 +63,18 @@ function DepotPotentialItemCtrl:InitItem(nPotentialId, nLevel, nPotentialAdd, bS
   self.bSpecial = bSpecial
   self._mapNode.goNormal.gameObject:SetActive(not bSpecial)
   self._mapNode.goSpecial.gameObject:SetActive(bSpecial)
-  if not bSpecial then
-    self:SetNormalPotential(itemCfg, potentialCfg, bShowAdd)
-  else
-    self:SetSpecialPotential(itemCfg, potentialCfg)
-  end
   if recommendLv == nil then
     recommendLv = -1
+  end
+  if not bSpecial then
+    self:SetNormalPotential(itemCfg, potentialCfg, bShowAdd, recommendLv)
+  else
+    self:SetSpecialPotential(itemCfg, potentialCfg)
   end
   self:RefreshRecommend(recommendLv)
 end
 
-function DepotPotentialItemCtrl:SetNormalPotential(itemCfg, potentialCfg, bShowAdd)
+function DepotPotentialItemCtrl:SetNormalPotential(itemCfg, potentialCfg, bShowAdd, recommendLv)
   local sFrame = AllEnum.FrameType_New.PotentialS .. AllEnum.FrameColor_New[itemCfg.Rarity]
   self:SetAtlasSprite(self._mapNode.imgRare, "12_rare", sFrame)
   self._mapNode.goIcon:SetIcon(potentialCfg.Id)
@@ -82,8 +84,16 @@ function DepotPotentialItemCtrl:SetNormalPotential(itemCfg, potentialCfg, bShowA
     nPotentialAdd = 0
   end
   local sColor = nPotentialAdd == 0 and level_txt_color[1] or level_txt_color[2]
+  if 0 < recommendLv then
+    if recommendLv > self.nLevel then
+      sColor = level_txt_color[4]
+    elseif recommendLv <= self.nLevel then
+      sColor = level_txt_color[3]
+    end
+  end
   local _, color = ColorUtility.TryParseHtmlString(sColor)
-  NovaAPI.SetTMPText(self._mapNode.txtLevelValue, self.nLevel + nPotentialAdd)
+  local nCurLevel = self.nLevel + nPotentialAdd
+  NovaAPI.SetTMPText(self._mapNode.txtLevelValue, nCurLevel)
   NovaAPI.SetTMPColor(self._mapNode.txtLevelValue, color)
 end
 
@@ -108,10 +118,20 @@ function DepotPotentialItemCtrl:RefreshRecommend(recommendLv)
   self._mapNode.recomContainer.gameObject:SetActive(-1 < recommendLv)
   if -1 < recommendLv then
     if self.bSpecial then
-      self._mapNode.txtReCount.text = ""
+      NovaAPI.SetTMPText(self._mapNode.txtReCount, "")
     else
-      self._mapNode.txtReCount.text = recommendLv
+      NovaAPI.SetTMPText(self._mapNode.txtReCount, recommendLv)
+      if recommendLv > self.nLevel then
+        sColor = level_txt_color[4]
+      elseif recommendLv <= self.nLevel then
+        sColor = level_txt_color[3]
+      end
+      local _, color = ColorUtility.TryParseHtmlString(sColor)
+      NovaAPI.SetTMPColor(self._mapNode.txtLevelValue, color)
     end
+  elseif not self.bSpecial then
+    local _, color = ColorUtility.TryParseHtmlString(level_txt_color[1])
+    NovaAPI.SetTMPColor(self._mapNode.txtLevelValue, color)
   end
   if -1 < recommendLv then
     local function wait()

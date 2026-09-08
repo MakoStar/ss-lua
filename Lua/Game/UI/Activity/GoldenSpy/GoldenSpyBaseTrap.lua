@@ -29,6 +29,9 @@ function GoldenSpyBaseTrap:SetData(data, floorCtrl)
   self.nTrapId = data.nTrapId
   self.floorCtrl = floorCtrl
   self.trapCfg = ConfigTable.GetData("GoldenSpyObstacle", self.nTrapId)
+  if self.trapCfg == nil then
+    return
+  end
   self:InitData()
 end
 

@@ -935,7 +935,7 @@ function TrekkerVersusCtrl:CheckFirstEnterToday()
   local nNextRefresh = ClientManager:GetNextRefreshTime(nSavedTime)
   if nNow >= nNextRefresh then
     LocalData.SetPlayerLocalData(sKey, tostring(nNow))
-    local sKey1 = "TrekkerVersusLastDuelResultShowed" .. PlayerData.Base:GetPlayerId()
+    local sKey1 = "TrekkerVersusLastDuelResultShowed" .. PlayerData.Base:GetPlayerId() .. self._nActId
     local bShowed = LocalData.GetPlayerLocalData(sKey1) == "1"
     if self.bOpenSteamerDuel == false and not bShowed then
       LocalData.SetPlayerLocalData(sKey1, "1")

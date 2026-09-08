@@ -67,12 +67,7 @@ function StoryLevel:RefreshCharDamageData()
 end
 
 function StoryLevel:OnEvent_LoadLevelRefresh()
-  local mapAllEft, mapDiscEft, mapNoteEffect, tbNoteInfo = {}, {}, {}, {}
-  if self.bTrialLevel then
-    mapAllEft, mapDiscEft, mapNoteEffect, tbNoteInfo = PlayerData.Build:GetTrialBuildAllEft()
-  else
-    mapAllEft, mapDiscEft, mapNoteEffect, tbNoteInfo = PlayerData.Build:GetBuildAllEft(self.mapBuildData.nBuildId)
-  end
+  local mapAllEft, mapDiscEft, mapNoteEffect, tbNoteInfo = PlayerData.Build:GetBuildAllEft(self.mapBuildData.nBuildId)
   safe_call_cs_func(CS.AdventureModuleHelper.SetNoteInfo, tbNoteInfo)
   self.mapEftData = UTILS.AddBuildEffect(mapAllEft, mapDiscEft, mapNoteEffect)
   self:ResetCharacter()
@@ -130,8 +125,7 @@ function StoryLevel:OnEvent_AdventureModuleEnter()
   self:SetPersonalPerk()
   self:SetDiscInfo()
   for idx, nCharId in ipairs(self.tbCharId) do
-    local nTrialOrCharId = self.bTrialLevel and self.tbCharTrialId[nCharId] or nCharId
-    local stActorInfo = self:CalCharFixedEffect(nTrialOrCharId, idx == 1, self.tbDiscId, self.bTrialLevel)
+    local stActorInfo = self:CalCharFixedEffect(nCharId, idx == 1, self.tbDiscId)
     safe_call_cs_func(CS.AdventureModuleHelper.SetActorAttribute, nCharId, stActorInfo)
   end
 end
@@ -223,29 +217,16 @@ function StoryLevel:PlaySuccessPerform(FadeTime, mapChangeInfo, sVideoName)
   CS.AdventureModuleHelper.LevelStateChanged(true, FadeTime or 0.5)
 end
 
-function StoryLevel:CalCharFixedEffect(nTrialOrCharId, bMainChar, tbDiscId, bTrialLevel)
+function StoryLevel:CalCharFixedEffect(nCharId, bMainChar, tbDiscId)
   local stActorInfo = CS.Lua2CSharpInfo_CharAttribute()
-  if bTrialLevel then
-    PlayerData.Char:CalCharacterTrialAttrBattle(nTrialOrCharId, stActorInfo, bMainChar, tbDiscId, self.mapBuildData.nBuildId)
-  else
-    PlayerData.Char:CalCharacterAttrBattle(nTrialOrCharId, stActorInfo, bMainChar, tbDiscId, self.mapBuildData.nBuildId)
-  end
+  PlayerData.Build:CalBuildCharacterAttrBattle(self.mapBuildData.nBuildId, nCharId, self.tbCharTrialId and self.tbCharTrialId[nCharId], stActorInfo, bMainChar, tbDiscId)
   return stActorInfo
 end
 
 function StoryLevel:SetPersonalPerk()
   if self.mapBuildData ~= nil then
     for nCharId, tbPerk in pairs(self.mapBuildData.tbPotentials) do
-      local mapAddLevel = {}
-      if self.bTrialLevel then
-        if self.tbCharTrialId[nCharId] then
-          mapAddLevel = PlayerData.Talent:GetTrialEnhancedPotential(self.tbCharTrialId[nCharId])
-        else
-          printError("体验build内，有多余角色的潜能" .. nCharId)
-        end
-      else
-        mapAddLevel = PlayerData.Char:GetCharEnhancedPotential(nCharId)
-      end
+      local mapAddLevel = PlayerData.Build:GetBuildEnhancedPotential(self.mapBuildData.nBuildId, nCharId, self.tbCharTrialId and self.tbCharTrialId[nCharId])
       local tbPerkInfo = {}
       for _, mapPerkInfo in ipairs(tbPerk) do
         local nAddLv = mapAddLevel[mapPerkInfo.nPotentialId] or 0
@@ -263,12 +244,7 @@ function StoryLevel:SetDiscInfo()
   local tbDiscInfo = {}
   for k, nDiscId in ipairs(self.mapBuildData.tbDisc) do
     if k <= 3 then
-      local discInfo
-      if self.bTrialLevel then
-        discInfo = PlayerData.Disc:CalcTrialInfoInBuild(nDiscId, self.mapBuildData.tbSecondarySkill)
-      else
-        discInfo = PlayerData.Disc:CalcDiscInfoInBuild(nDiscId, self.mapBuildData.tbSecondarySkill)
-      end
+      local discInfo = PlayerData.Build:GetBuildDiscInfoInBuild(self.mapBuildData.nBuildId, nDiscId, self.mapBuildData.tbSecondarySkill)
       table.insert(tbDiscInfo, discInfo)
     end
   end
@@ -281,6 +257,17 @@ end
 
 function StoryLevel:OnEvnet_Pause()
   local sAim = self.bActivityStory == true and ConfigTable.GetData("ActivityStory", self.nLevelId).Aim or ConfigTable.GetData_Story(self.nLevelId).Aim
+  if not self.bActivityStory then
+    local mapStory = ConfigTable.GetData_Story(self.nLevelId)
+    if mapStory == nil then
+      printError("mapStory is nil,id = " .. self.nLevelId)
+      return
+    end
+    if mapStory.EnterMethod == GameEnum.EnterMethod.JumpFormation then
+      EventManager.Hit(EventId.OpenPanel, PanelId.ChapterPausePanel, self.nMainLineTime or 0, self.mapBuildData.tbChar, sAim)
+      return
+    end
+  end
   EventManager.Hit(EventId.OpenPanel, PanelId.MainBattlePause, self.nMainLineTime or 0, self.mapBuildData.tbChar, sAim)
 end
 
@@ -295,8 +282,7 @@ function StoryLevel:ChangeFloor()
     self:SetPersonalPerk()
     self:SetDiscInfo()
     for idx, nCharId in ipairs(self.tbCharId) do
-      local nTrialOrCharId = self.bTrialLevel and self.tbCharTrialId[nCharId] or nCharId
-      local stActorInfo = self:CalCharFixedEffect(nTrialOrCharId, idx == 1, self.tbDiscId, self.bTrialLevel)
+      local stActorInfo = self:CalCharFixedEffect(nCharId, idx == 1, self.tbDiscId)
       safe_call_cs_func(CS.AdventureModuleHelper.SetActorAttribute, nCharId, stActorInfo)
     end
     self:SetCharStatus()

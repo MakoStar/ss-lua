@@ -52,7 +52,7 @@ end
 
 function GuideGroup_302:Step_1()
   self.msg = {
-    BindIcon = "PenguinCardPanel/----SafeAreaRoot----/---Flip---/--Card--",
+    BindIcon = "PenguinCard_Normal/----SafeAreaRoot----/---Flip---/--Card--",
     Size = {1150, 330},
     Deviation = {0, 0},
     Head = "Icon/Head/head_917401",
@@ -67,7 +67,7 @@ end
 
 function GuideGroup_302:Step_2()
   self.msg = {
-    BindIcon = "PenguinCardPanel/----SafeAreaRoot----/---Flip---/--Info--/Image",
+    BindIcon = "PenguinCard_Normal/----SafeAreaRoot----/---Flip---/--Info--/Image",
     Size = {1050, 180},
     Deviation = {0, 0},
     Head = "Icon/Head/head_917401",
@@ -88,7 +88,7 @@ end
 
 function GuideGroup_302:Step_3()
   self.msg = {
-    BindIcon = "PenguinCardPanel/----SafeAreaRoot----/---Flip---/--Button--/btnShowAll/AnimRoot/Image",
+    BindIcon = "PenguinCard_Normal/----SafeAreaRoot----/---Flip---/--Button--/btnShowAll/AnimRoot/Image",
     Deviation = {0, 0},
     Type = GameEnum.guidetype.Introductory
   }

@@ -50,11 +50,34 @@ function GoldenSpyLevelData:RestartCurrentFloor()
     self:StartLevel(self.levelId)
     return
   end
+  local tbCatchItem = {}
+  for k, v in pairs(self.tempPointData.tbCatchItem) do
+    tbCatchItem[k] = {
+      itemId = k,
+      itemCount = v.itemCount
+    }
+  end
+  local tbBuff = {}
+  for k, v in pairs(self.tempPointData.tbBuff) do
+    tbBuff[k] = {
+      buffId = v.buffId,
+      tbActiveFloor = v.tbActiveFloor,
+      bActive = v.bActive
+    }
+  end
+  local tbUsedSkill = {}
+  for k, v in pairs(self.tempPointData.tbUsedSkill) do
+    tbUsedSkill[k] = v
+  end
+  local tbSkillData = {}
+  for k, v in pairs(self.tempPointData.tbSkillData) do
+    tbSkillData[k] = v
+  end
   self.nCurScore = self.tempPointData.nCurScore
-  self.tbCatchItem = self.tempPointData.tbCatchItem
-  self.tbBuff = self.tempPointData.tbBuff
-  self.tbUsedSkill = self.tempPointData.tbUsedSkill
-  self.tbSkillData = self.tempPointData.tbSkillData
+  self.tbCatchItem = tbCatchItem
+  self.tbBuff = tbBuff
+  self.tbUsedSkill = tbUsedSkill
+  self.tbSkillData = tbSkillData
   self.nCompleteTaskCount = self.tempPointData.nCompleteTaskCount
   self.nBuffRefreshCount = self.tempPointData.nBuffRefreshCount
   local tbList = {}
@@ -158,37 +181,45 @@ function GoldenSpyLevelData:GetLevelPrefabName()
   return nPrefabName
 end
 
-function GoldenSpyLevelData:CatchedItem(nItemId, itemCtrl)
-  local itemCfg = ConfigTable.GetData("GoldenSpyItem", nItemId)
-  if itemCfg == nil then
-    return
-  end
-  local nScore = itemCfg.Score
-  if itemCtrl ~= nil then
-    if itemCtrl:GetItemCfg().ItemType == GameEnum.GoldenSpyItem.SafeBox then
-      nScore = itemCtrl:GetScore()
+function GoldenSpyLevelData:CatchedItem(tbItemCtrl)
+  local nTotalScore = 0
+  for _, itemCtrl in ipairs(tbItemCtrl) do
+    local itemCfg = itemCtrl:GetItemCfg()
+    if itemCfg ~= nil then
+      local nScore = itemCfg.Score
+      if itemCfg.ItemType == GameEnum.GoldenSpyItem.SafeBox then
+        nScore = itemCtrl:GetScore()
+      end
+      if itemCfg.ItemType == GameEnum.GoldenSpyItem.Companion then
+        nScore = nScore + itemCtrl:GetBagItemPrice()
+      end
+      for _, v in ipairs(self.tbBuff) do
+        local buffCfg = ConfigTable.GetData("GoldenSpyBuffCard", v.buffId)
+        if buffCfg ~= nil and buffCfg.EffectType == GameEnum.GoldenSpyBuffEffect.AddScore and buffCfg.Params[1] == itemCfg.ItemType and self:CheckBuffActive(v) then
+          nScore = nScore + buffCfg.Params[2]
+        end
+      end
+      nTotalScore = nTotalScore + nScore
     end
-    if itemCtrl:GetItemCfg().ItemType == GameEnum.GoldenSpyItem.Companion then
-      nScore = nScore + itemCtrl:GetBagItemPrice()
+  end
+  self.nCurScore = self.nCurScore + nTotalScore
+  local bFinishTask = false
+  for _, itemCtrl in ipairs(tbItemCtrl) do
+    local itemCfg = itemCtrl:GetItemCfg()
+    if itemCfg ~= nil then
+      local nItemId = itemCfg.Id
+      if self.tbCatchItem[nItemId] == nil then
+        self.tbCatchItem[nItemId] = {itemId = nItemId, itemCount = 0}
+      end
+      self.tbCatchItem[nItemId].itemCount = self.tbCatchItem[nItemId].itemCount + 1
+      self.floorData:DeleteItem(nItemId)
+      bFinishTask = self:UpdateTask(nItemId) or bFinishTask
     end
   end
-  for _, v in ipairs(self.tbBuff) do
-    local buffCfg = ConfigTable.GetData("GoldenSpyBuffCard", v.buffId)
-    if buffCfg ~= nil and buffCfg.EffectType == GameEnum.GoldenSpyBuffEffect.AddScore and buffCfg.Params[1] == itemCfg.ItemType and self:CheckBuffActive(v) then
-      nScore = nScore + buffCfg.Params[2]
-    end
-  end
-  self.nCurScore = self.nCurScore + nScore
-  if self.tbCatchItem[nItemId] == nil then
-    self.tbCatchItem[nItemId] = {itemId = nItemId, itemCount = 0}
-  end
-  self.tbCatchItem[nItemId].itemCount = self.tbCatchItem[nItemId].itemCount + 1
-  self.floorData:DeleteItem(nItemId)
-  local bFinishTask = self:UpdateTask(nItemId)
   if bFinishTask then
     self:RefreshTask()
   end
-  return bFinishTask, nScore
+  return bFinishTask, nTotalScore
 end
 
 function GoldenSpyLevelData:GetCatchItemData()

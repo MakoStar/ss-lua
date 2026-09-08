@@ -6,7 +6,7 @@
 value (Rvalue!
 NextPackageˇ (RNextPackageBv
 com.google.protobufBAnyProtoPZ,google.golang.org/protobuf/types/known/anypb¢GPB™Google.Protobuf.WellKnownTypesbproto3
-¶ª
+∆ª
 public.protoprotogoogle/protobuf/any.proto"(
 Nil!
 NextPackageˇ (RNextPackage">
@@ -687,13 +687,16 @@ SkillScore
 NPCId (RNPCId
 Affinity (RAffinity
 PlotIds (RPlotIds!
-NextPackageˇ (RNextPackage"¶
+NextPackageˇ (RNextPackage"∆
 CharGemInstance
 Id (RId
 Star (RStar
 First (RFirst
 	ThreeStar (R	ThreeStar
-BuildId (RBuildId!
+BuildId (RBuildId
+
+RewardType (R
+RewardType!
 NextPackageˇ (RNextPackage"`
 CharGemPreset
 Name (	RName
@@ -1321,12 +1324,22 @@ ActivityId (R
 ActivityId
 StoryId (RStoryId!
 NextPackageˇ (RNextPackageP bproto3
-—
-(activity_penguin_card_level_settle.protoprotopublic.proto"Ö
+·
+.activity_penguin_card_endless_level_save.protoprotopublic.proto"è
+&ActivityPenguinCardEndlessLevelSaveReq
+LevelId (RLevelId
+Data (	RData
+Score (RScore!
+NextPackageˇ (RNextPackageP bproto3
+Ò
+(activity_penguin_card_level_settle.protoprotopublic.proto"•
 ActivityPenguinCardSettleReq
 LevelId (RLevelId
 Star (RStar
-Score (RScore!
+Score (RScore
+
+Difficulty (R
+Difficulty!
 NextPackageˇ (RNextPackageP bproto3
 Ô
 0activity_penguin_card_quest_reward_receive.protoprotopublic.proto"õ
@@ -2192,11 +2205,14 @@ LandmarkId!
 ChangeInfo (2.proto.ChangeInfoR
 ChangeInfo!
 NextPackageˇ (RNextPackageP bproto3
-¶
-char_gem_instance_apply.protoprotopublic.proto"f
+«
+char_gem_instance_apply.protoprotopublic.proto"Ü
 CharGemInstanceApplyReq
 Id (RId
-BuildId (RBuildId!
+BuildId (RBuildId
+
+RewardType (R
+RewardType!
 NextPackageˇ (RNextPackageP bproto3
 Î
 char_gem_instance_settle.protoprotopublic.proto"x
@@ -2219,12 +2235,15 @@ FirstItems6
 SurpriseItems (2.proto.ItemTplRSurpriseItems0
 DoubleItems	 (2.proto.ItemTplRDoubleItems!
 NextPackageˇ (RNextPackageP bproto3
-®
-char_gem_instance_sweep.protoprotopublic.proto"â
+»
+char_gem_instance_sweep.protoprotopublic.proto"©
 CharGemInstanceSweepReq
 Id (RId
 Times (RTimes%
-Events (2.proto.EventsREvents!
+Events (2.proto.EventsREvents
+
+RewardType (R
+RewardType!
 NextPackageˇ (RNextPackage"≥
 CharGemInstanceSweepReward.
 
@@ -2532,15 +2551,17 @@ $gacha_guarantee_reward_receive.protoprotopublic.protoP bproto3
 GachaHistories'
 List (2.proto.GachaHistoryRList!
 NextPackageˇ (RNextPackageP bproto3
-§
-gacha_information.protoprotopublic.proto"˙
+Ã
+gacha_information.protoprotopublic.proto"¢
 	GachaInfo
 Id (RId
 	DaysCount (R	DaysCount"
 AupMissTimes (RAupMissTimes
 
 AMissTimes (R
-AMissTimes.
+AMissTimes&
+RewardsRecords
+ (RRewardsRecords.
 ReveFirstTenReward (RReveFirstTenReward0
 RecvGuaranteeReward (RRecvGuaranteeReward(
 GachaTotalTimes (RGachaTotalTimes
@@ -2584,6 +2605,8 @@ TotalTimes,
 GachaNewbieSpinResp
 Cards (RCards!
 NextPackageˇ (RNextPackageP bproto3
+7
+gacha_reward_get.protoprotopublic.protoP bproto3
 õ
 gacha_spin.protoprotopublic.proto"{
 GachaSpinReq
@@ -3563,8 +3586,8 @@ ActivityId
 PlayerCharsShowReq
 CharIds (RCharIds!
 NextPackageˇ (RNextPackageP bproto3
-Ò
-player_data.protoprotopublic.proto"ò
+®
+player_data.protoprotopublic.proto"œ
 
 PlayerInfo 
 Acc (2.proto.AccInfoRAcc
@@ -3614,7 +3637,9 @@ Activities&
 WeeklyActiveIds& (RWeeklyActiveIds+
 Assists' (2.proto.AssistInfoRAssists4
 DailyMallRewardStatus( (RDailyMallRewardStatus<
-ActivityHonors) (2.proto.ActivityHonorRActivityHonors8
+ActivityHonors) (2.proto.ActivityHonorRActivityHonors6
+TowerTicketGrowthBonust (RTowerTicketGrowthBonus+
+LastReadu (2.proto.LastReadRLastRead8
 
 HuntPermitv (2.proto.TraceHuntItemInfoR
 HuntPermit<
@@ -3626,8 +3651,7 @@ HuntPermit<
 Honors| (2.proto.HonorInfoRHonors4
 DailyShopRewardStatus} (RDailyShopRewardStatus 
 TowerTicket~ (RTowerTicket
-ServerTs (RServerTs,
-LastReadÄ (2.proto.LastReadRLastRead!
+ServerTs (RServerTs!
 NextPackageˇ (RNextPackage"x
 	PhoneInfo
 
@@ -4395,13 +4419,16 @@ ChangeInfo!
 NextPackageˇ (RNextPackageP bproto3
 ?
 tower_growth_node_unlock.protoprotopublic.protoP bproto3
-Ê
-trace_hunt_apply.protoprotopublic.proto"¨
+Ü
+trace_hunt_apply.protoprotopublic.proto"Ã
 TraceHuntApplyReq
 OwnerUID (ROwnerUID
 BossID (RBossID
 BuildID (RBuildID&
-BossCreateTime (RBossCreateTime!
+BossCreateTime (RBossCreateTime
+
+Difficulty (R
+Difficulty!
 NextPackageˇ (RNextPackageP bproto3
 Ê
 $trace_hunt_boss_reward_receive.protoprotopublic.proto"û

@@ -10,6 +10,7 @@ function PenguinLevel:ParseConfigData()
   self.nBaseCardCount = ConfigTable.GetConfigNumber("PenguinCardHandCardCount")
   self.nFireScore = ConfigTable.GetConfigNumber("PenguinCardFeverScore")
   self.nPenguinCardRollCount = ConfigTable.GetConfigNumber("PenguinCardRollCount")
+  self.nMaxHp = ConfigTable.GetConfigNumber("PenguinCardMaxHP")
   self.mapBuyCost = {}
   
   local function func_ForEach_Line(mapData)
@@ -69,20 +70,32 @@ function PenguinLevel:ParseLocalData()
 end
 
 function PenguinLevel:ParseLevelData(nFloorId)
-  self.nMaxTurn = 0
-  self.nScore = 0
-  self.nTotalScore = 0
-  self.nSlotCount = 0
-  self.nRoundLimit = 0
-  self.nCheckRoundLimit = 0
-  self.nBuyLimit = 0
-  self.nWeightGroupId = 0
+  local mapLevelCfg = ConfigTable.GetData("PenguinCardFloor", nFloorId)
+  if not mapLevelCfg then
+    return
+  end
+  self.nMaxTurn = mapLevelCfg.MaxTurn
+  self.nScore = mapLevelCfg.InitialScore
+  self.nTotalScore = mapLevelCfg.InitialScore
+  self.nSlotCount = mapLevelCfg.InitialSlot
+  self.nRoundLimit = mapLevelCfg.InitialRound
+  self.nCheckRoundLimit = mapLevelCfg.InitialCheckRound
+  self.nBuyLimit = mapLevelCfg.InitialBuyLimit
+  self.nWeightGroupId = mapLevelCfg.WeightGroup
+  self.sLevelDesc = mapLevelCfg.Floortips
   self.mapBaseCardPool = {
     tbId = {},
     tbWeight = {}
   }
+  local mapPoolCfg = ConfigTable.GetData("PenguinBaseCardPool", mapLevelCfg.PoolId)
+  if mapPoolCfg then
+    self.mapBaseCardPool = {
+      tbId = mapPoolCfg.BaseCardId,
+      tbWeight = mapPoolCfg.Weight
+    }
+  end
   if type(self.ParseModeLevelData) == "function" then
-    self:ParseModeLevelData(nFloorId)
+    self:ParseModeLevelData(mapLevelCfg)
   end
 end
 
@@ -90,7 +103,7 @@ function PenguinLevel:ClearLevelData()
   self.nGameState = nil
   self.nCurTurn = 0
   self.nCurRound = 0
-  self.nHp = 3
+  self.nHp = self.nMaxHp
   if self.tbBuffPool == nil then
     self.tbBuffPool = {}
   end
@@ -129,6 +142,10 @@ function PenguinLevel:ClearLevelData()
   self.nGetPenguinCardCount = 0
   self.mapSnapshot = nil
   self.bRestoreSnapshot = false
+  local mapFieldMap = self:GetAuraFieldMap()
+  for _, sField in pairs(mapFieldMap) do
+    self[sField] = 0
+  end
   if type(self.ClearModeLevelData) == "function" then
     self:ClearModeLevelData()
   end
@@ -152,8 +169,9 @@ function PenguinLevel:RestartGame()
   if nWaitTime == 0 then
     self:StartGame()
   else
-    EventManager.Hit(EventId.TemporaryBlockInput, nWaitTime)
+    EventManager.Hit("PenguinCard_Block", true)
     TimerManager.Add(1, nWaitTime, self, function()
+      EventManager.Hit("PenguinCard_Block", false)
       self:StartGame()
     end, true, true, true)
   end
@@ -168,7 +186,7 @@ function PenguinLevel:QuitGame(callback)
       if bOpen then
         bAct = true
         local nScore = math.floor(self.nScore)
-        actData:SendActivityPenguinCardSettleReq(self.nLevelId, self.nStar or 1, nScore, callback)
+        actData:SendActivityPenguinCardSettleReq(self.nLevelId, self.nStar or 1, nScore, self.nEndlessLevel or 0, callback)
       else
         EventManager.Hit(EventId.OpenMessageBox, {
           nType = AllEnum.MessageBox.Alert,
@@ -220,8 +238,12 @@ function PenguinLevel:RunGameState(mapParam)
     if type(self.RunState_Complete) == "function" then
       self:RunState_Complete(mapParam)
     end
-  elseif self.nGameState == PenguinCardUtils.GameState.Quest and type(self.RunState_Quest) == "function" then
-    self:RunState_Quest()
+  elseif self.nGameState == PenguinCardUtils.GameState.Quest then
+    if type(self.RunState_Quest) == "function" then
+      self:RunState_Quest()
+    end
+  elseif self.nGameState == PenguinCardUtils.GameState.EndlessCheck and type(self.RunState_EndlessCheck) == "function" then
+    self:RunState_EndlessCheck()
   end
 end
 
@@ -229,7 +251,7 @@ function PenguinLevel:QuitGameState(nNextState)
   local nWaitTime = 0
   if self.nGameState == PenguinCardUtils.GameState.Start then
     if type(self.QuitState_Start) == "function" then
-      nWaitTime = self:QuitState_Start()
+      nWaitTime = self:QuitState_Start(nNextState)
     end
   elseif self.nGameState == PenguinCardUtils.GameState.Prepare then
     if type(self.QuitState_Prepare) == "function" then
@@ -251,8 +273,12 @@ function PenguinLevel:QuitGameState(nNextState)
     if type(self.QuitState_Complete) == "function" then
       nWaitTime = self:QuitState_Complete()
     end
-  elseif self.nGameState == PenguinCardUtils.GameState.Quest and type(self.QuitState_Quest) == "function" then
-    nWaitTime = self:QuitState_Quest(nNextState)
+  elseif self.nGameState == PenguinCardUtils.GameState.Quest then
+    if type(self.QuitState_Quest) == "function" then
+      nWaitTime = self:QuitState_Quest(nNextState)
+    end
+  elseif self.nGameState == PenguinCardUtils.GameState.EndlessCheck and type(self.QuitState_EndlessCheck) == "function" then
+    nWaitTime = self:QuitState_EndlessCheck(nNextState)
   end
   return nWaitTime
 end
@@ -263,8 +289,9 @@ function PenguinLevel:SwitchNextGameState(nNextState, mapParam)
     self.nGameState = nNextState
     self:RunGameState(mapParam)
   else
-    EventManager.Hit(EventId.TemporaryBlockInput, nWaitTime)
+    EventManager.Hit("PenguinCard_Block", true)
     TimerManager.Add(1, nWaitTime, self, function()
+      EventManager.Hit("PenguinCard_Block", false)
       self.nGameState = nNextState
       self:RunGameState(mapParam)
     end, true, true, true)
@@ -273,6 +300,9 @@ end
 
 function PenguinLevel:ChangeHp(nChange)
   self.nHp = self.nHp + nChange
+  if self.nHp >= self.nMaxHp then
+    self.nHp = self.nMaxHp
+  end
   if NovaAPI.IsEditorPlatform() then
     printLog("Hp变化：" .. "  " .. nChange .. "  当前：" .. self.nHp)
   end
@@ -307,6 +337,7 @@ function PenguinLevel:AddBuff(mapBuff, bWaitShow)
       EventManager.Hit("PenguinCard_AddBuff", mapBuff, bWaitShow)
     end
   end
+  self:RefreshAura()
   if NovaAPI.IsEditorPlatform() then
     printLog("获得buff：" .. "  " .. mapBuff.nId)
   end
@@ -315,6 +346,7 @@ end
 function PenguinLevel:DeleteBuff(i, nDelayTime, bSkipAni)
   self:RecycleBuff(self.tbBuff[i])
   table.remove(self.tbBuff, i)
+  self:RefreshAura()
   EventManager.Hit("PenguinCard_DeleteBuff", i, nDelayTime, bSkipAni)
 end
 
@@ -338,7 +370,7 @@ function PenguinLevel:ClearTurnData()
   self.nTurnScore = 0
   self.tbHandRankCount = {}
   self.nCheckRoundCount = 0
-  self.nUpgradeDiscount = 1
+  self.nTempUpgradeDiscount = 0
   self.nTempAddRound = 0
   self.nTempAddRollCount = 0
 end
@@ -349,16 +381,45 @@ function PenguinLevel:ClearStateData_Prepare()
   self.bSelectedPenguinCard = false
 end
 
+function PenguinLevel:ChangeRoundLimitInTurn(nTemp, nAura)
+  if self.nTempAddRound ~= nil then
+    self.nTempAddRound = self.nTempAddRound + nTemp
+  end
+  self.nRoundLimitAura = self.nRoundLimitAura + nAura
+  EventManager.Hit("PenguinCard_ChangeRoundLimitInTurn")
+end
+
 function PenguinLevel:GetRoundLimitInTurn()
   local nAdd = 0
   if self.nTempAddRound ~= nil then
     nAdd = nAdd + self.nTempAddRound
   end
-  return self.nRoundLimit + nAdd
+  nAdd = nAdd + self.nRoundLimitAura
+  local nLimit = self.nRoundLimit + nAdd
+  if nLimit < 1 then
+    nLimit = 1
+  end
+  return nLimit
+end
+
+function PenguinLevel:ChangeUpgradeDiscount(nTemp, nAura)
+  local nBeforeDiscount = self:GetUpgradeDiscount()
+  if self.nTempUpgradeDiscount ~= nil then
+    self.nTempUpgradeDiscount = self.nTempUpgradeDiscount + nTemp
+  end
+  self.nUpgradeDiscountAura = self.nUpgradeDiscountAura + nAura
+  EventManager.Hit("PenguinCard_ChangeUpgradeDiscount", nBeforeDiscount)
+end
+
+function PenguinLevel:GetUpgradeDiscount()
+  local nAura = self.nUpgradeDiscountAura or 0
+  local nTemp = self.nTempUpgradeDiscount or 0
+  local nValue = (100 + nAura + nTemp) / 100
+  return clearFloat(nValue)
 end
 
 function PenguinLevel:AfterUpgrade(nUpgradeCost)
-  self.nUpgradeDiscount = 1
+  self.nTempUpgradeDiscount = 0
   self:TriggerEffect(GameEnum.PenguinCardTriggerPhase.AfterUpgrade, {nUpgradeCost = nUpgradeCost})
   self:TriggerEffect(GameEnum.PenguinCardTriggerPhase.BeforeUpgrade)
 end
@@ -422,6 +483,12 @@ end
 
 function PenguinLevel:SelectPenguinCard(nIndex)
   local mapSelectCard = self.tbSelectablePenguinCard[nIndex]
+  if mapSelectCard == nil then
+    if nIndex ~= nil then
+      printError("企鹅牌：可选择列表没有当前卡" .. nIndex)
+    end
+    return
+  end
   local bUpgrade, nAimIndex = self:CheckUpgradePenguinCard(mapSelectCard)
   if not bUpgrade and self:GetOwnPenguinCardCount() >= self.nSlotCount then
     EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("PenguinCard_SlotMax"))
@@ -450,6 +517,7 @@ function PenguinLevel:AfterChangePenguinCard()
     end
   end
   self:TriggerEffect(GameEnum.PenguinCardTriggerPhase.PenguinCardChange, {PenguinCardLevel = nAllLevel})
+  self:RefreshAura()
 end
 
 function PenguinLevel:CheckUpgradePenguinCard(mapSelectCard)
@@ -460,7 +528,7 @@ function PenguinLevel:CheckUpgradePenguinCard(mapSelectCard)
     if v == 0 and nFirstEmpty == 0 then
       nFirstEmpty = i
     end
-    if v ~= 0 and v.nGroupId == mapSelectCard.nGroupId then
+    if v ~= 0 and v.nLevel < v.nMaxLevel and v.nGroupId == mapSelectCard.nGroupId then
       bUpgrade = true
       nAimIndex = i
       break
@@ -631,6 +699,43 @@ function PenguinLevel:ChangeSpecificCard(tbAimId)
     local nAimIndex = tbAimIndex[math.random(#tbAimIndex)]
     self.tbSelectablePenguinCard[nAimIndex]:Init(nAimId)
     self.tbSelectablePenguinCard[nAimIndex]:SetHighLight(true)
+  end
+end
+
+function PenguinLevel:ChangeCardLevel(nCount, nChange)
+  local function shuffle(arr)
+    for i = #arr, 2, -1 do
+      local j = math.random(i)
+      
+      arr[i], arr[j] = arr[j], arr[i]
+    end
+    return arr
+  end
+  
+  local tbSlot = {
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  }
+  shuffle(tbSlot)
+  for i = 1, 6 do
+    local nSlot = tbSlot[i]
+    local mapCard = self.tbPenguinCard[nSlot]
+    if mapCard ~= 0 and 0 < nCount then
+      local bAddAble = 0 < nChange and mapCard.nLevel < mapCard.nMaxLevel
+      local bReduceAble = nChange < 0 and 1 < mapCard.nLevel
+      if bAddAble or bReduceAble then
+        mapCard:Upgrade(nChange)
+        mapCard:SetSlotIndex(nSlot)
+        mapCard:ResetAllTrigger()
+        nCount = nCount - 1
+        EventManager.Hit("PenguinCard_ChangeCardLevel", nSlot, nChange, clone(mapCard))
+        self:AfterChangePenguinCard()
+      end
+    end
   end
 end
 
@@ -949,7 +1054,7 @@ function PenguinLevel:NextRound()
 end
 
 function PenguinLevel:CheckRound()
-  if self.nCheckRoundCount >= self.nCheckRoundLimit then
+  if self.nCheckRoundCount >= self:GetCheckRoundLimit() then
     EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("PenguinCard_CheckRound_TurnFail"))
     return false
   end
@@ -962,6 +1067,15 @@ function PenguinLevel:CheckRound()
   self:RestoreSnapshot()
   self:SwitchGameState()
   return true
+end
+
+function PenguinLevel:ChangeCheckRoundLimit(nAura)
+  self.nCheckRoundLimitAura = self.nCheckRoundLimitAura + nAura
+  EventManager.Hit("PenguinCard_ChangeCheckRoundLimit")
+end
+
+function PenguinLevel:GetCheckRoundLimit()
+  return self.nCheckRoundLimit + self.nCheckRoundLimitAura
 end
 
 function PenguinLevel:GetMostHandRank()
@@ -1126,9 +1240,9 @@ function PenguinLevel:ExecuteEffect(nEffectType, mapEffectValue, mapTriggerSourc
   elseif nEffectType == GameEnum.PenguinCardEffectType.MultiMultiplier then
     self:ChangeRoundScore(0, 0, mapEffectValue)
   elseif nEffectType == GameEnum.PenguinCardEffectType.UpgradeDiscount then
-    self.nUpgradeDiscount = mapEffectValue / 100
+    self:ChangeUpgradeDiscount(mapEffectValue, 0)
   elseif nEffectType == GameEnum.PenguinCardEffectType.AddRound then
-    self.nTempAddRound = self.nTempAddRound + mapEffectValue
+    self:ChangeRoundLimitInTurn(mapEffectValue, 0)
   elseif nEffectType == GameEnum.PenguinCardEffectType.AddCardRollCount then
     self.nTempAddRollCount = self.nTempAddRollCount + mapEffectValue
   elseif nEffectType == GameEnum.PenguinCardEffectType.BlockFatalDamage then
@@ -1138,11 +1252,69 @@ function PenguinLevel:ExecuteEffect(nEffectType, mapEffectValue, mapTriggerSourc
     self:ChangeScore(mapTriggerSource.nUpgradeCost * mapEffectValue / 100)
   elseif nEffectType == GameEnum.PenguinCardEffectType.RollSpecificCard then
     self:ChangeSpecificCard(mapEffectValue)
+  elseif nEffectType == GameEnum.PenguinCardEffectType.UpgradeDiscountAura then
+    self:ChangeUpgradeDiscount(0, mapEffectValue)
+  elseif nEffectType == GameEnum.PenguinCardEffectType.CheckRoundAura then
+    self:ChangeCheckRoundLimit(mapEffectValue)
+  elseif nEffectType == GameEnum.PenguinCardEffectType.AddRoundAura then
+    self:ChangeRoundLimitInTurn(0, mapEffectValue)
+  elseif nEffectType == GameEnum.PenguinCardEffectType.CardLevel then
+    self:ChangeCardLevel(mapEffectValue[1], mapEffectValue[2])
+  elseif nEffectType == GameEnum.PenguinCardEffectType.ChangeHp then
+    self:ChangeHp(mapEffectValue)
+  end
+  if type(self.ExecuteModeEffect) == "function" then
+    self:ExecuteModeEffect(nEffectType, mapEffectValue, mapTriggerSource)
   end
 end
 
-function PenguinLevel:TriggerEffect(nTriggerPhase, mapTriggerSource)
+function PenguinLevel:GetAuraFieldMap()
+  local mapField = {
+    [GameEnum.PenguinCardEffectType.UpgradeDiscountAura] = "nUpgradeDiscountAura",
+    [GameEnum.PenguinCardEffectType.CheckRoundAura] = "nCheckRoundLimitAura",
+    [GameEnum.PenguinCardEffectType.AddRoundAura] = "nRoundLimitAura"
+  }
+  if type(self.GetModeAuraFieldMap) == "function" then
+    for nEffectType, sField in pairs(self:GetModeAuraFieldMap()) do
+      mapField[nEffectType] = sField
+    end
+  end
+  return mapField
+end
+
+function PenguinLevel:RefreshAura()
+  if self.bRefreshingAura then
+    return
+  end
+  self.bRefreshingAura = true
+  local mapFieldMap = self:GetAuraFieldMap()
+  local mapCollect = {}
+  
+  local function collector(nEffectType, mapEffectValue)
+    if mapFieldMap[nEffectType] and type(mapEffectValue) == "number" then
+      mapCollect[nEffectType] = (mapCollect[nEffectType] or 0) + mapEffectValue
+      return true
+    end
+    return false
+  end
+  
+  self:TriggerEffect(GameEnum.PenguinCardTriggerPhase.Aura, nil, collector)
+  for nEffectType, sField in pairs(mapFieldMap) do
+    local nNew = mapCollect[nEffectType] or 0
+    local nCur = self[sField] or 0
+    local nDelta = nNew - nCur
+    if nDelta ~= 0 then
+      self:ExecuteEffect(nEffectType, nDelta)
+    end
+  end
+  self.bRefreshingAura = false
+end
+
+function PenguinLevel:TriggerEffect(nTriggerPhase, mapTriggerSource, fCollector)
   local function callback(nEffectType, mapEffectValue)
+    if fCollector and fCollector(nEffectType, mapEffectValue) then
+      return
+    end
     self:ExecuteEffect(nEffectType, mapEffectValue, mapTriggerSource)
   end
   
@@ -1163,13 +1335,15 @@ function PenguinLevel:TriggerEffect(nTriggerPhase, mapTriggerSource)
       v:Growth(nTriggerPhase, mapTriggerSource)
     end
   end
+  if type(self.TriggerModeEffect) == "function" then
+    self:TriggerModeEffect(nTriggerPhase, mapTriggerSource, callback)
+  end
 end
 
 function PenguinLevel:SaveSnapshot()
   local mapSnapshot = {
     nCurTurn = self.nCurTurn,
     nCurRound = self.nCurRound,
-    nHp = self.nHp,
     nScore = self.nScore,
     nTurnScore = self.nTurnScore,
     tbHandRankCount = clone(self.tbHandRankCount),
@@ -1220,7 +1394,6 @@ function PenguinLevel:RestoreSnapshot()
   end
   self.nCurTurn = mapSnapshot.nCurTurn
   self.nCurRound = mapSnapshot.nCurRound
-  self.nHp = mapSnapshot.nHp
   self.nScore = mapSnapshot.nScore
   self.nTurnScore = mapSnapshot.nTurnScore
   self.tbHandRankCount = clone(mapSnapshot.tbHandRankCount)

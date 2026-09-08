@@ -649,10 +649,10 @@ function CookieBoardCtrl:GetRhythmSwitchSoundEvent()
 end
 
 local tbCookiePutinSound = {
-  [3] = "mode_cookie4_putin_sanjiao",
-  [4] = "mode_cookie4_putin_jingzi",
-  [2] = "mode_cookie4_putin_banshou",
-  [1] = "mode_cookie4_putin_gear"
+  [3] = "mode_cookie1_putin",
+  [4] = "mode_cookie1_putin",
+  [2] = "mode_cookie1_putin",
+  [1] = "mode_cookie1_putin"
 }
 
 function CookieBoardCtrl:FillCurrentGrid(nInputCookie)
@@ -1357,14 +1357,14 @@ function CookieBoardCtrl:OnBtn_ConfirmGameOver()
       end
       if tbRewardData ~= nil and 0 < #tbRewardData then
         UTILS.OpenReceiveByDisplayItem(tbRewardData or {}, rewardChangeInfo, function()
-          local nRandom = math.random(46, 47)
+          local nRandom = math.random(50, 51)
           EventManager.Hit(EventId.SetTransition, nRandom, closePanel)
         end)
         return
       end
     end
   end
-  local nRandom = math.random(46, 47)
+  local nRandom = math.random(50, 51)
   EventManager.Hit(EventId.SetTransition, nRandom, closePanel)
 end
 

@@ -41,6 +41,9 @@ function GoldenSpyFloorData:DeleteItem(itemId, bForce)
     self.tbItem[itemId] = nil
   end
   local itemCfg = ConfigTable.GetData("GoldenSpyItem", itemId)
+  if itemCfg == nil then
+    return
+  end
   if itemCfg.ItemType == GameEnum.GoldenSpyItem.BuffItem and not bForce then
     return
   end

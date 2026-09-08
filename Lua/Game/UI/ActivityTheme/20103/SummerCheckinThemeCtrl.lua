@@ -280,11 +280,12 @@ function SummerCheckinThemeCtrl:RegisterReddot()
         local nNeedWorldLevel = tonumber(activityData.LimitParam) or 0
         if nNeedWorldLevel > PlayerData.Base:GetWorldClass() then
           self._mapNode.reddotShow:SetActive(false)
+        else
+          RedDotManager.RegisterNode(RedDotDefine.TrekkerVersus, {
+            self.nActId,
+            nActId
+          }, self._mapNode.reddotShow)
         end
-        RedDotManager.RegisterNode(RedDotDefine.TrekkerVersus, {
-          self.nActId,
-          nActId
-        }, self._mapNode.reddotShow)
       elseif i == AllEnum.ActivityThemeFuncIndex.FateCard then
         RedDotManager.RegisterNode(RedDotDefine.Activity_Group_PenguinCard_Level, {
           self.nActId

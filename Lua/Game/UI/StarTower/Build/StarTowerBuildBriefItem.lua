@@ -71,16 +71,23 @@ StarTowerBuildBriefItem._mapNodeConfig = {
   txtCharUsed = {
     sComponentName = "TMP_Text",
     sLanguageId = "JointDrill_Build_Char_Used"
+  },
+  imgLabel2 = {},
+  txtReTrial = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Reengagement_BDTrialPreview_BDLabel"
   }
 }
 StarTowerBuildBriefItem._mapEventConfig = {}
 
-function StarTowerBuildBriefItem:RefreshGrid(mapData, nPanelState, bSelectDelete, bCheckOut, bCheckIn, nType)
+function StarTowerBuildBriefItem:RefreshGrid(mapData, nPanelState, bSelectDelete, bCheckOut, bCheckIn, nType, bTrial)
   self._mapData = mapData
   self._nType = nType
+  self._bTrial = bTrial
   self:RefreshInfo()
   self:RefreshChar()
   self:RefreshDisc()
+  self._mapNode.imgLabel2:SetActive(bTrial == true)
   if nPanelState == PanelState.Delete then
     self._mapNode.img_SelectDelete:SetActive(bSelectDelete)
     self._mapNode.img_SelectPreference:SetActive(false)

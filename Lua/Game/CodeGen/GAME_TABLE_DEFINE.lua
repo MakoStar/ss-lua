@@ -249,10 +249,7 @@ GameTableDefine.CommonTable = {
   },
   CharacterSkinOverlap = {Key = true},
   CharacterSkinPanelFace = {Key = true},
-  CharacterSkinTheme = {
-    Key = true,
-    Lang = {"Name", "Desc"}
-  },
+  CharacterSkinTheme = {Key = true},
   CharacterSpine = {Key = true},
   CharacterTag = {
     Key = true,
@@ -271,6 +268,10 @@ GameTableDefine.CommonTable = {
     Lang = {"Name", "Desc"}
   },
   CharGemInstanceFloor = {Key = true},
+  CharGemInstanceRewardGroup = {
+    Key = true,
+    Lang = {"RewardName"}
+  },
   CharGemInstanceType = {
     Key = true,
     Lang = {"Name"}
@@ -349,10 +350,7 @@ GameTableDefine.CommonTable = {
       "Memory"
     }
   },
-  DatingCharResponse = {
-    Key = true,
-    Lang = {"Words"}
-  },
+  DatingCharResponse = {Key = true},
   DatingCharTag = {Key = true},
   DatingLandmark = {
     Key = true,
@@ -380,10 +378,7 @@ GameTableDefine.CommonTable = {
       "AdvanceName"
     }
   },
-  DemonQuest = {
-    Key = true,
-    Lang = {"Title"}
-  },
+  DemonQuest = {Key = true},
   DestroyObject = {Key = true},
   DestroyObjectSpr = {Key = true},
   DictionaryDiagram = {
@@ -450,6 +445,10 @@ GameTableDefine.CommonTable = {
     Lang = {"Desc"}
   },
   EventOptionsRules = {Key = true},
+  EventReminder = {
+    Key = true,
+    Lang = {"Name"}
+  },
   EventResult = {Key = true},
   FactionRelation = {Key = true},
   FateCard = {
@@ -539,6 +538,9 @@ GameTableDefine.CommonTable = {
   GoldenSpySkill = {Key = true},
   Guide = {Key = true},
   GuideGroup = {Key = true},
+  GuideMissionChapter = {Key = true},
+  GuideMissionQuest = {Key = true},
+  GuideMissionQuestGroup = {Key = true},
   Handbook = {Key = true},
   HitDamage = {Key = true},
   Honor = {
@@ -657,10 +659,7 @@ GameTableDefine.CommonTable = {
       "Desc"
     }
   },
-  Mainline = {
-    Key = true,
-    Lang = {"Name", "Desc"}
-  },
+  Mainline = {Key = true},
   MainlineFloor = {Key = true},
   MainScreenCG = {
     Key = true,
@@ -801,6 +800,11 @@ GameTableDefine.CommonTable = {
     Key = true,
     Lang = {"Title", "Desc"}
   },
+  PenguinCardAide = {
+    Key = true,
+    Lang = {"Title"}
+  },
+  PenguinCardAidePool = {Key = true},
   PenguinCardBuff = {
     Key = true,
     Lang = {"Title", "Desc"}
@@ -811,6 +815,10 @@ GameTableDefine.CommonTable = {
     Lang = {"DesText"}
   },
   PenguinCardCost = {Key = true},
+  PenguinCardEndlessLevel = {
+    Key = true,
+    Lang = {"Desc"}
+  },
   PenguinCardFixedTurn = {Key = true},
   PenguinCardFloor = {
     Key = true,
@@ -836,22 +844,6 @@ GameTableDefine.CommonTable = {
     Lang = {"DesText"}
   },
   PeriodicQuestGroup = {},
-  Perk = {Key = true},
-  PerkPassiveSkill = {
-    Key = true,
-    Lang = {
-      "Name",
-      "Desc",
-      "Desc1",
-      "Param1",
-      "Desc2",
-      "Param2",
-      "Desc3",
-      "Param3",
-      "Desc4",
-      "Param4"
-    }
-  },
   PlayerHead = {
     Key = true,
     Lang = {"Desc"}
@@ -866,15 +858,12 @@ GameTableDefine.CommonTable = {
     Key = true,
     Lang = {"BriefDesc", "Desc"}
   },
-  PotentialPassiveSkill = {
+  PotentialPassiveSkill = {Key = true},
+  PotentialPreset = {
     Key = true,
     Lang = {
-      "BriefDesc",
-      "Desc",
-      "Param1",
-      "Param2",
-      "Param3",
-      "Param4"
+      "Name",
+      "Description"
     }
   },
   PreviewMonsterGroup = {Key = true},
@@ -1252,7 +1241,11 @@ GameTableDefine.CommonTable = {
   TowerDefenseGuide = {Key = true},
   TowerDefenseItem = {
     Key = true,
-    Lang = {"Name", "Des"}
+    Lang = {
+      "Name",
+      "Des",
+      "ItemTips"
+    }
   },
   TowerDefenseLevel = {
     Key = true,
@@ -1286,7 +1279,9 @@ GameTableDefine.CommonTable = {
   TowerDefenseTeamExp = {Key = true},
   TraceHuntBoss = {Key = true},
   TraceHuntControl = {Key = true},
+  TraceHuntDifficulty = {},
   TraceHuntFloor = {Key = true},
+  TraceHuntFloorGroup = {Key = true},
   TraceHuntLevel = {},
   TraceHuntLogEntryTemplate = {
     Key = true,
@@ -1294,7 +1289,7 @@ GameTableDefine.CommonTable = {
   },
   TraceHuntScoreSwitch = {Key = true},
   TraceHuntSelfHuntExtraCost = {},
-  TraceHuntStar = {},
+  TraceHuntStar = {Key = true},
   Trap = {Key = true},
   TrapAttribute = {Key = true},
   TravelerDuelBoss = {

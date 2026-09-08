@@ -177,9 +177,11 @@ function GoldenSpyLaserTrap:_OnTriggerCheck()
   local localPos = self.floorCtrl:GetHookEndPosInRectLocal(self._mapNode.TriggerArea)
   local hookRadius = self.floorCtrl:GetHookRadius()
   if self:_IsHookInTriggerArea(localPos, hookRadius) and self.bTrigger then
-    self.floorCtrl:DropItem()
+    if self.floorCtrl:CheckCanDropItem() then
+      self.floorCtrl:DropItem()
+      self.floorCtrl:DoStartRetract()
+    end
     WwiseAudioMgr:PostEvent("Mode_steal_error")
-    self.floorCtrl:DoStartRetract()
     self.floorCtrl:SubTime(self.SUBTIME)
     self.bTrigger = false
   end

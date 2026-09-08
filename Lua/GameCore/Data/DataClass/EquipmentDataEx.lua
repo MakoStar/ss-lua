@@ -117,7 +117,7 @@ function EquipmentData:UpdateRandomAttr(mapAttrs, tbCount)
     if 0 < v then
       local mapCfg = ConfigTable.GetData("CharGemAttrValue", v)
       if mapCfg then
-        if tbCount and 0 < tbCount[k] then
+        if tbCount and tbCount[k] and 0 < tbCount[k] then
           local nId = mapCfg.TypeId * 100 + tbCount[k] + mapCfg.Level
           local mapAfterCfg = ConfigTable.GetData("CharGemAttrValue", nId)
           add(mapAfterCfg, nId)

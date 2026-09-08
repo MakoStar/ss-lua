@@ -105,13 +105,28 @@ function PlayerDatingData:CacheDatingCharIds(tbChar)
   self.tbDatingCharIds = tbChar
 end
 
-function PlayerDatingData:GetRandomLandmark()
-  if #self.tbLandmarkCfg <= 3 then
-    return self.tbLandmarkCfg
+function PlayerDatingData:GetRandomLandmark(nCharId)
+  local mapCharData = ConfigTable.GetData("DatingCharTag", nCharId)
+  local nCharSetTag = 0
+  if mapCharData ~= nil and mapCharData.CharSetTag ~= nil then
+    nCharSetTag = mapCharData.CharSetTag
+  end
+  local tbLandMark = {}
+  for _, v in ipairs(self.tbLandmarkCfg) do
+    if v.CharAvailableSetTag ~= nil and 0 < #v.CharAvailableSetTag then
+      if 0 < table.indexof(v.CharAvailableSetTag, nCharSetTag) then
+        table.insert(tbLandMark, v)
+      end
+    else
+      table.insert(tbLandMark, v)
+    end
+  end
+  if #tbLandMark <= 3 then
+    return tbLandMark
   end
   local tbResult = {}
   local tbRandom = {}
-  for i = 1, #self.tbLandmarkCfg do
+  for i = 1, #tbLandMark do
     tbRandom[i] = i
   end
   math.randomseed(os.time())
@@ -121,7 +136,7 @@ function PlayerDatingData:GetRandomLandmark()
   for i = 1, 3 do
     local randomIndex = math.random(#tbRandom)
     local nSelectIndex = tbRandom[randomIndex]
-    table.insert(tbResult, self.tbLandmarkCfg[nSelectIndex])
+    table.insert(tbResult, tbLandMark[nSelectIndex])
     table.remove(tbRandom, randomIndex)
   end
   return tbResult

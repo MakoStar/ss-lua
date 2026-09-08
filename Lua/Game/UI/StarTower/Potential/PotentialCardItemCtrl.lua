@@ -54,6 +54,8 @@ PotentialCardItemCtrl._mapNodeConfig = {
     sNodeName = "imgPreselection"
   },
   txtPreselection = {sComponentName = "TMP_Text"},
+  txtPreRecLv = {sComponentName = "TMP_Text"},
+  imgLevelDB = {},
   imgFlag = {},
   N = {},
   SR = {},
@@ -201,6 +203,8 @@ function PotentialCardItemCtrl:Awake()
     self.shieldPreselectionAnimator = true
   end
   self._mapNode.imgPreselectionAnmator.enabled = self.shieldPreselectionAnimator
+  self._mapNode.imgPreselection:SetActive(false)
+  self._mapNode.imgLevelDB:SetActive(false)
 end
 
 function PotentialCardItemCtrl:OnEnable()
@@ -247,22 +251,20 @@ function PotentialCardItemCtrl:ChangeWordRaycast(bEnable)
   NovaAPI.SetTMPRaycastTarget(self._mapNode.txtSpDesc, bEnable)
 end
 
-function PotentialCardItemCtrl:SetRecommend(bEnable, nLevel)
+function PotentialCardItemCtrl:SetRecommend(bEnable, nLevel, nCurLevel)
   local bShow = bEnable and nLevel ~= nil
-  if self.nNextLevel ~= self.nLevel or not true then
-    bShow = bShow and bShow
-  end
   self._mapNode.imgReommend:SetActive(bEnable and nLevel == nil)
-  self:DoSetRecommend(bShow, nLevel)
+  self:DoSetRecommend(bShow, nLevel, nCurLevel)
 end
 
-function PotentialCardItemCtrl:DoSetRecommend(bShow, nLevel)
+function PotentialCardItemCtrl:DoSetRecommend(bShow, nLevel, nCurLevel)
   self._mapNode.imgPreselection:SetActive(bShow)
   if not bShow then
     return
   end
   if nLevel ~= nil then
     if self.bSpecial then
+      self._mapNode.imgLevelDB:SetActive(false)
       if self.shieldSpecialPontential then
         self._mapNode.imgFlag.gameObject:SetActive(false)
       else
@@ -271,7 +273,21 @@ function PotentialCardItemCtrl:DoSetRecommend(bShow, nLevel)
       NovaAPI.SetTMPText(self._mapNode.txtPreselection, ConfigTable.GetUIText("Potential_Preselection_Recommend"))
     else
       self._mapNode.imgFlag.gameObject:SetActive(true)
+      self._mapNode.imgLevelDB:SetActive(true)
       NovaAPI.SetTMPText(self._mapNode.txtPreselection, orderedFormat(ConfigTable.GetUIText("Potential_Preselection_Recommend_Level"), nLevel))
+      if nCurLevel == nil then
+        nCurLevel = 0
+        if self.nNextLevel ~= nil and self.nNextLevel ~= self.nLevel then
+          nCurLevel = self.nLevel
+        end
+      end
+      local sCurLevel
+      if nLevel > nCurLevel then
+        sCurLevel = "<color=#e74470>" .. nCurLevel .. "</color>"
+      else
+        sCurLevel = "<color=#8cac59>" .. nCurLevel .. "</color>"
+      end
+      NovaAPI.SetTMPText(self._mapNode.txtPreRecLv, sCurLevel .. "/" .. nLevel)
     end
   end
 end

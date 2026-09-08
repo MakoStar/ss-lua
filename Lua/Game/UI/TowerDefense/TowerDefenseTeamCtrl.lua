@@ -218,7 +218,7 @@ end
 function TowerDefenseTeamCtrl:OnBtnClick_Guide()
   self._mapNode.blur.gameObject:SetActive(true)
   self._mapNode.guidPanel.gameObject:SetActive(true)
-  self._mapNode.guidPanel:SetData(self.nActId)
+  self._mapNode.guidPanel:SetData(self.nActId, self.tbSelectedCharGuideIds)
 end
 
 function TowerDefenseTeamCtrl:OnEvent_CloseTowerDefenseGuidePanel()

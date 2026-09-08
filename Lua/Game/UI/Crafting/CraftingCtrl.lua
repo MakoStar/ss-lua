@@ -131,7 +131,9 @@ function CraftingCtrl:OnDisable()
     destroy(obj)
   end
   self.tbTogCtrl = {}
-  EventManager.Hit(EventId.ClosePanel, PanelId.CraftingTip)
+  if PanelManager.CheckPanelOpen(PanelId.CraftingTip) then
+    EventManager.Hit(EventId.ClosePanel, PanelId.CraftingTip)
+  end
 end
 
 function CraftingCtrl:OnDestroy()

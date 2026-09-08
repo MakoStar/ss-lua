@@ -139,7 +139,8 @@ BattleDashboardCtrl._mapEventConfig = {
   TestSwitchSkillBtn = "OnEvent_SwitchSkillBtn",
   ProloguelEnableBtnControl = "OnEvent_ProloguelEnableBtnControl",
   [EventId.MoveAvgBubbleRoot] = "OnEvent_MoveAvgBubbleRoot",
-  [EventId.SettingsBattleClose] = "OnEvent_ChangeKeyLayout"
+  [EventId.SettingsBattleClose] = "OnEvent_ChangeKeyLayout",
+  ChangeSkillIcon = "OnEvent_ChangeSkillIcon"
 }
 
 function BattleDashboardCtrl:Awake()
@@ -548,18 +549,22 @@ function BattleDashboardCtrl:Refresh(nCurPlayerId)
       end
       local skilldata = ConfigTable.GetData_Skill(v.nSkillId)
       if skilldata ~= nil then
-        v.skillBtnCtrl:InitSkillBtn(EET, skilldata.Icon, skilldata.SectionAmount > 1, self.nCurCharId, i)
+        v.skillBtnCtrl:InitSkillBtn(EET, skilldata.Icon, skilldata.SectionAmount > 1, self.nCurCharId, i, false, 0 < skilldata.UltraEnergy)
       end
     end
   end
   self:Add_Skill_EntityEvent(self.nCurPlayerId)
   AdventureModuleHelper.ForceSyncSkillBtnToLua(self.nCurPlayerId)
   for i = 1, 2 do
-    local bSuccess, nSupportCharId, nSupportPlayerId, nSkillId, skilldata = false, 0, 0, 0
+    local bSuccess, nSupportCharId, nSupportPlayerId, nSkillId_support, nSkillId_ultra, skilldata = false, 0, 0, 0, 0
     if i == 1 then
       bSuccess, nSupportCharId, nSupportPlayerId = AdventureModuleHelper.GetFirstSlotPlayer()
     elseif i == 2 then
       bSuccess, nSupportCharId, nSupportPlayerId = AdventureModuleHelper.GetSecondSlotPlayer()
+    end
+    if nSupportPlayerId ~= 0 then
+      nSkillId_support = AdventureModuleHelper.GetCurrentActorBindSkillId(nSupportPlayerId, 2)
+      nSkillId_ultra = AdventureModuleHelper.GetCurrentActorBindSkillId(nSupportPlayerId, 4)
     end
     if self.tbDefine_SupportSkillBtn[i].nPlayerId ~= nil then
       self:Remove_SupportSkill_EntityEvent(self.tbDefine_SupportSkillBtn[i].nPlayerId, i)
@@ -571,21 +576,21 @@ function BattleDashboardCtrl:Refresh(nCurPlayerId)
       self.tbDefine_SupportUltraBtn[i].nCharId = nSupportCharId
       self.supportSkillTimeTab[nSupportCharId] = 0
       local supportCharEET = ConfigTable.GetData_Character(nSupportCharId).EET
-      nSkillId = AdventureModuleHelper.GetCurrentActorBindSkillId(nSupportPlayerId, 2)
-      skilldata = ConfigTable.GetData_Skill(nSkillId)
+      skilldata = ConfigTable.GetData_Skill(nSkillId_support)
       if skilldata ~= nil then
-        self.tbDefine_SupportSkillBtn[i].nSkillId = nSkillId
-        self.tbDefine_SupportSkillBtn[i].skillBtnCtrl:InitSkillBtn(supportCharEET, skilldata.Icon, skilldata.SectionAmount > 1, nSupportCharId, 2, true)
+        self.tbDefine_SupportSkillBtn[i].nSkillId = nSkillId_support
+        self.tbDefine_SupportSkillBtn[i].skillBtnCtrl:InitSkillBtn(supportCharEET, skilldata.Icon, skilldata.SectionAmount > 1, nSupportCharId, 2, true, 0 < skilldata.UltraEnergy)
       else
-        printError("Skill 表中，该技能 id 未找到：" .. tostring(nSkillId))
+        self.tbDefine_SupportSkillBtn[i].skillBtnCtrl:SetEmptySkillBtn()
+        self.tbDefine_SupportSkillBtn[i].skillBtnCtrl:SetBtnEnable(false)
       end
-      nSkillId = AdventureModuleHelper.GetCurrentActorBindSkillId(nSupportPlayerId, 4)
-      skilldata = ConfigTable.GetData_Skill(nSkillId)
+      skilldata = ConfigTable.GetData_Skill(nSkillId_ultra)
       if skilldata ~= nil then
-        self.tbDefine_SupportUltraBtn[i].nSkillId = nSkillId
-        self.tbDefine_SupportUltraBtn[i].skillBtnCtrl:InitSkillBtn(supportCharEET, skilldata.Icon, skilldata.SectionAmount > 1, nSupportCharId, 4, true)
+        self.tbDefine_SupportUltraBtn[i].nSkillId = nSkillId_ultra
+        self.tbDefine_SupportUltraBtn[i].skillBtnCtrl:InitSkillBtn(supportCharEET, skilldata.Icon, skilldata.SectionAmount > 1, nSupportCharId, 4, true, 0 < skilldata.UltraEnergy)
       else
-        printError("Skill 表中，该技能 id 未找到：" .. tostring(nSkillId))
+        self.tbDefine_SupportUltraBtn[i].skillBtnCtrl:SetEmptySkillBtn()
+        self.tbDefine_SupportUltraBtn[i].skillBtnCtrl:SetBtnEnable(false)
       end
       local nSkinId = PlayerCharData:GetCharSkinId(nSupportCharId)
       local mapCfgData_Skin = ConfigTable.GetData_CharacterSkin(nSkinId)
@@ -676,7 +681,7 @@ function BattleDashboardCtrl:OnEvent_SkillBind(nActionId, nSkillId, nCharId)
   end
   local skilldata = ConfigTable.GetData_Skill(nSkillId)
   if skilldata ~= nil then
-    data.skillBtnCtrl:InitSkillBtn(EET, skilldata.Icon, skilldata.SectionAmount > 1, nCharId, nActionId)
+    data.skillBtnCtrl:InitSkillBtn(EET, skilldata.Icon, skilldata.SectionAmount > 1, nCharId, nActionId, false, 0 < skilldata.UltraEnergy)
   end
 end
 
@@ -914,6 +919,47 @@ end
 
 function BattleDashboardCtrl:OnEvent_ShowOrHideBattleDash(isShow)
   self.gameObject:SetActive(isShow)
+end
+
+function BattleDashboardCtrl:OnEvent_ChangeSkillIcon(nSkillId, nIconIdx)
+  if type(nSkillId) ~= "number" or type(nIconIdx) ~= "number" then
+    return
+  end
+  local ctrl
+  if ctrl == nil then
+    for k, v in pairs(self.tbDefine_SkillBtn) do
+      if v.nSkillId == nSkillId then
+        ctrl = v.skillBtnCtrl
+        break
+      end
+    end
+  end
+  if ctrl == nil then
+    for k, v in pairs(self.tbDefine_SupportSkillBtn) do
+      if v.nSkillId == nSkillId then
+        ctrl = v.skillBtnCtrl
+        break
+      end
+    end
+  end
+  if ctrl == nil then
+    for k, v in pairs(self.tbDefine_SupportUltraBtn) do
+      if v.nSkillId == nSkillId then
+        ctrl = v.skillBtnCtrl
+        break
+      end
+    end
+  end
+  if ctrl ~= nil then
+    local mapCfgData = ConfigTable.GetData_Skill(nSkillId)
+    if mapCfgData ~= nil then
+      if nIconIdx == -1 then
+        ctrl:ChangeSkillIcon(mapCfgData.Icon)
+      elseif type(mapCfgData.IconEx) == "table" then
+        ctrl:ChangeSkillIcon(mapCfgData.IconEx[nIconIdx])
+      end
+    end
+  end
 end
 
 function BattleDashboardCtrl:OnEvent_BtnStateChange(sBtnName, nBtnState)

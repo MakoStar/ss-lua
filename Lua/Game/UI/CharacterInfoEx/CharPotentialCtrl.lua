@@ -72,6 +72,14 @@ CharPotentialCtrl._mapNodeConfig = {
   btnSwitch_off = {
     sComponentName = "UIButton",
     callback = "OnBtnClick_SetSimpleDes"
+  },
+  btnSystemPresetPotential = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_SystemPreset"
+  },
+  txtSystemPresetPotential = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Potential_System_Preset_Title"
   }
 }
 CharPotentialCtrl._mapEventConfig = {
@@ -328,6 +336,10 @@ function CharPotentialCtrl:OnDisable()
 end
 
 function CharPotentialCtrl:OnDestroy()
+end
+
+function CharPotentialCtrl:OnBtnClick_SystemPreset()
+  EventManager.Hit(EventId.OpenPanel, PanelId.CharSystemPresetPotentialPanel, self.nCharId)
 end
 
 function CharPotentialCtrl:OnBtnClick_Tab(btn, nIndex)

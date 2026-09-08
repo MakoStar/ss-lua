@@ -175,6 +175,14 @@ PotentialPreselectionEditCtrl._mapRedDotConfig = {}
 local COLOR_PREFER = Color(0.14901960784313725, 0.25882352941176473, 0.47058823529411764)
 local COLOR_NO_PREFER = Color(0.5803921568627451, 0.6666666666666666, 0.7529411764705882)
 
+function PotentialPreselectionEditCtrl:IsPreviewMode()
+  return self._panel.nPanelType == AllEnum.PreselectionPanelType.Preview or self._panel.nPanelType == AllEnum.PreselectionPanelType.SystemPreview
+end
+
+function PotentialPreselectionEditCtrl:IsSystemPreviewMode()
+  return self._panel.nPanelType == AllEnum.PreselectionPanelType.SystemPreview
+end
+
 function PotentialPreselectionEditCtrl:InitSelectList()
   self.tbSelectCharList = {}
   if self.initPreselectData ~= nil and next(self.initPreselectData) ~= nil then
@@ -206,14 +214,25 @@ function PotentialPreselectionEditCtrl:ChangePanel()
   if self.nTeamIndex == nil or self.curPreselectData == nil then
     return
   end
-  self._mapNode.btnPreviewRoot.gameObject:SetActive(self._panel.nPanelType == AllEnum.PreselectionPanelType.Preview)
-  self._mapNode.btnEditRoot.gameObject:SetActive(self._panel.nPanelType ~= AllEnum.PreselectionPanelType.Preview)
+  local bPreviewMode = self:IsPreviewMode()
+  local bSystemPreview = self:IsSystemPreviewMode()
+  local bSystemPreviewWithTeam = bSystemPreview and self.nTeamIndex > 0
+  self._mapNode.btnPreviewRoot.gameObject:SetActive(bPreviewMode)
+  self._mapNode.btnEditRoot.gameObject:SetActive((not bPreviewMode or bSystemPreview) and not bSystemPreviewWithTeam)
   self._mapNode.btn_Preference.gameObject:SetActive(self._panel.nPanelType == AllEnum.PreselectionPanelType.Preview)
   self._mapNode.btnEditName.gameObject:SetActive(self._panel.nPanelType == AllEnum.PreselectionPanelType.Preview)
+  self._mapNode.btnEdit.gameObject:SetActive(not bSystemPreview)
+  self._mapNode.btnShare.gameObject:SetActive(not bSystemPreview)
+  self._mapNode.btnDelete.gameObject:SetActive(not bSystemPreview)
+  self._mapNode.btnAbandon.gameObject:SetActive(not bSystemPreview)
+  self._mapNode.btnSave.gameObject:SetActive((bSystemPreview or not bPreviewMode) and not bSystemPreviewWithTeam)
   if self.nTeamIndex > 0 and self._panel.nPanelType == AllEnum.PreselectionPanelType.Preview then
     local nPreselectionId = PlayerData.Team:GetTeamPreselectionId(self.nTeamIndex)
     self._mapNode.btnUse.gameObject:SetActive(nPreselectionId ~= self.curPreselectData.nId)
     self._mapNode.btnCancel.gameObject:SetActive(nPreselectionId == self.curPreselectData.nId)
+  elseif self.nTeamIndex > 0 and bSystemPreview then
+    self._mapNode.btnUse.gameObject:SetActive(true)
+    self._mapNode.btnCancel.gameObject:SetActive(false)
   else
     self._mapNode.btnUse.gameObject:SetActive(false)
     self._mapNode.btnCancel.gameObject:SetActive(false)
@@ -240,7 +259,7 @@ function PotentialPreselectionEditCtrl:RefreshContent()
   end
   self:RefreshCharList()
   self:RefreshPotentialList()
-  if self._panel.nPanelType ~= AllEnum.PreselectionPanelType.Preview and self.bShowCharList then
+  if not self:IsPreviewMode() and self.bShowCharList then
     local tbSelect = {}
     for _, v in ipairs(self.tbSelectCharList) do
       table.insert(tbSelect, v.nCharId)
@@ -298,7 +317,7 @@ function PotentialPreselectionEditCtrl:RefreshPotentialList()
       end
       nPotentialCount = nPotentialCount + nAllCount
       if self.nSelectId == nil then
-        if self._panel.nPanelType == AllEnum.PreselectionPanelType.Preview then
+        if self:IsPreviewMode() then
           if nSelectId ~= 0 then
             self.nSelectId = nSelectId
           end
@@ -321,7 +340,7 @@ function PotentialPreselectionEditCtrl:RefreshPotentialList()
     else
       self._mapNode.potentialCardRoot.gameObject:SetActive(false)
     end
-    self._mapNode.potentialEmpty.gameObject:SetActive(self._panel.nPanelType == AllEnum.PreselectionPanelType.Preview and nPotentialCount == 0)
+    self._mapNode.potentialEmpty.gameObject:SetActive(self:IsPreviewMode() and nPotentialCount == 0)
     
     local function wait()
       coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
@@ -372,8 +391,8 @@ function PotentialPreselectionEditCtrl:RefreshSelectPotential(bPlayAnim)
     end
     self._mapNode.PotentialCard:SetPotentialItem(self.nSelectId, nLevel, nil, bSimple, nil, 0, AllEnum.PotentialCardType.CharInfo)
     self._mapNode.PotentialCard:ChangeWordRaycast(true)
-    self._mapNode.goQuantitySelector.gameObject:SetActive(self._panel.nPanelType ~= AllEnum.PreselectionPanelType.Preview)
-    if self._panel.nPanelType ~= AllEnum.PreselectionPanelType.Preview then
+    self._mapNode.goQuantitySelector.gameObject:SetActive(not self:IsPreviewMode())
+    if not self:IsPreviewMode() then
       local function callback(nCount)
         self.nSelectLevel = nCount
         
@@ -485,7 +504,7 @@ function PotentialPreselectionEditCtrl:SetEmpty()
     self._mapNode.txtPotentialCount[i].gameObject:SetActive(false)
     NovaAPI.SetTMPText(self._mapNode.txtCharName[i], ConfigTable.GetUIText("Potential_Preselection_Char_Empty"))
   end
-  if self._panel.nPanelType ~= AllEnum.PreselectionPanelType.Preview then
+  if not self:IsPreviewMode() then
     local tbSelect = {}
     for _, v in ipairs(self.tbSelectCharList) do
       table.insert(tbSelect, v.nCharId)
@@ -551,6 +570,7 @@ function PotentialPreselectionEditCtrl:Awake()
     self.initPreselectData = tbParam[2]
     self.tbBuildChar = tbParam[3]
     self.nTeamIndex = tbParam[4] or 0
+    self.sPresetName = tbParam[5] or ""
     self.bShowCharList = false
     self.curPreselectData = nil
   end
@@ -604,7 +624,7 @@ function PotentialPreselectionEditCtrl:OnBtnClick_EditName()
 end
 
 function PotentialPreselectionEditCtrl:OnBtnClick_CharList()
-  if self._mapNode.goCharList.gameObject.activeSelf or self._panel.nPanelType == AllEnum.PreselectionPanelType.Preview then
+  if self._mapNode.goCharList.gameObject.activeSelf or self:IsPreviewMode() then
     return
   end
   self.bShowCharList = true
@@ -636,6 +656,160 @@ function PotentialPreselectionEditCtrl:OnBtnClick_Preference()
   end
 end
 
+function PotentialPreselectionEditCtrl:GetSaveCharPotential()
+  local tbCharPotential = {}
+  for _, mapData in ipairs(self.tbSelectCharList) do
+    local tbPotential = {}
+    local nCharId = mapData.nCharId
+    for _, tb in ipairs(mapData.tbPotential or {}) do
+      for _, data in ipairs(tb) do
+        if data.nLevel > 0 then
+          local mapPotentialCfg = ConfigTable.GetData("Potential", data.nId)
+          if mapPotentialCfg ~= nil then
+            table.insert(tbPotential, {
+              Id = data.nId,
+              Level = data.nLevel
+            })
+          end
+        end
+      end
+    end
+    table.insert(tbCharPotential, {CharId = nCharId, Potentials = tbPotential})
+  end
+  return tbCharPotential
+end
+
+function PotentialPreselectionEditCtrl:CheckSavePreselectionLimit()
+  local tbAllPreselectionList = PlayerData.PotentialPreselection:GetPreselectionList()
+  local nAllCount = ConfigTable.GetConfigNumber("PotentialPreselectionMaxCount")
+  if nAllCount <= #tbAllPreselectionList then
+    EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Potential_Preselection_Build_Max"))
+    return false
+  end
+  return true
+end
+
+function PotentialPreselectionEditCtrl:GetSystemPreviewSaveName()
+  local sName = ConfigTable.GetUIText("Potential_Preselection_Name_Init")
+  if self.sPresetName ~= nil and self.sPresetName ~= "" then
+    sName = self.sPresetName
+  end
+  return sName
+end
+
+function PotentialPreselectionEditCtrl:NormalizeShareCode(sShareCode)
+  if sShareCode == nil or sShareCode == "" then
+    return nil
+  end
+  sShareCode = sShareCode:gsub("-", "+")
+  sShareCode = sShareCode:gsub("_", "/")
+  local nMod = #sShareCode % 4
+  if nMod ~= 0 then
+    sShareCode = sShareCode .. string.rep("=", 4 - nMod)
+  end
+  return sShareCode
+end
+
+function PotentialPreselectionEditCtrl:GetSavedSystemPreviewPreselection()
+  local sSystemShareCode = self:NormalizeShareCode(self.curPreselectData and self.curPreselectData.sShareCode)
+  if sSystemShareCode == nil then
+    return nil
+  end
+  local tbAllPreselectionList = PlayerData.PotentialPreselection:GetPreselectionList()
+  for _, mapPreselection in ipairs(tbAllPreselectionList) do
+    local sShareCode = self:NormalizeShareCode(PlayerData.PotentialPreselection:PackPotentialData(mapPreselection.tbCharPotential))
+    if sShareCode == sSystemShareCode then
+      return mapPreselection
+    end
+  end
+  return nil
+end
+
+function PotentialPreselectionEditCtrl:SaveSystemPreviewPreselection(callback)
+  if not self:CheckSavePreselectionLimit() then
+    return
+  end
+  PlayerData.PotentialPreselection:SavePreselectionFromRank(self:GetSystemPreviewSaveName(), false, self:GetSaveCharPotential(), callback)
+end
+
+function PotentialPreselectionEditCtrl:ApplyPreselectionToTeam(nPreselectionId, bUsePresetTeam)
+  local function callback()
+    EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Potential_Preselection_Select_Suc"))
+    
+    self:ClosePanel(true)
+  end
+  
+  local tmpDisc = PlayerData.Team:GetTeamDiscData(self.nTeamIndex)
+  local tbTeamMemberId
+  if bUsePresetTeam then
+    tbTeamMemberId = {}
+    for _, v in ipairs(self.tbSelectCharList) do
+      table.insert(tbTeamMemberId, v.nCharId)
+    end
+  else
+    _, tbTeamMemberId = PlayerData.Team:GetTeamData(self.nTeamIndex)
+  end
+  PlayerData.Team:UpdateFormationInfo(self.nTeamIndex, tbTeamMemberId, tmpDisc, nPreselectionId, callback)
+end
+
+function PotentialPreselectionEditCtrl:SaveAndApplySystemPreview(bUsePresetTeam)
+  self:SaveSystemPreviewPreselection(function(mapBuildData)
+    if mapBuildData ~= nil then
+      self:ApplyPreselectionToTeam(mapBuildData.nId, bUsePresetTeam)
+    end
+  end)
+end
+
+function PotentialPreselectionEditCtrl:OnBtnClick_UseSystemPreview(bCharDiff, bCharLock)
+  local function SaveAndApply(bApply)
+    local mapSavedPreselection = self:GetSavedSystemPreviewPreselection()
+    
+    if mapSavedPreselection ~= nil then
+      self:ApplyPreselectionToTeam(mapSavedPreselection.nId, bCharDiff and bApply)
+      return
+    end
+    local sTipsKey = "Potential_Preselection_SystemRcmd_Same"
+    local msg = {
+      nType = AllEnum.MessageBox.Confirm,
+      sContent = ConfigTable.GetUIText(sTipsKey),
+      callbackConfirm = function()
+        self:SaveAndApplySystemPreview(bCharDiff and bApply)
+      end
+    }
+    EventManager.Hit(EventId.OpenMessageBox, msg)
+  end
+  
+  if bCharLock then
+    local msg = {
+      nType = AllEnum.MessageBox.Confirm,
+      sContent = ConfigTable.GetUIText("Potential_Preselection_Char_Lock_Tip"),
+      callbackConfirm = function()
+        SaveAndApply(false)
+      end,
+      callbackCancel = function()
+        self:ClosePanel()
+      end
+    }
+    EventManager.Hit(EventId.OpenMessageBox, msg)
+  elseif bCharDiff then
+    local msg = {
+      nType = AllEnum.MessageBox.Confirm,
+      sContent = ConfigTable.GetUIText("Potential_Preselection_Build_Auto"),
+      callbackConfirm = function()
+        if self.nTeamIndex > 0 then
+          SaveAndApply(true)
+        end
+      end,
+      callbackCancel = function()
+        SaveAndApply(false)
+      end
+    }
+    EventManager.Hit(EventId.OpenMessageBox, msg)
+  else
+    SaveAndApply(true)
+  end
+end
+
 function PotentialPreselectionEditCtrl:OnBtnClick_Use()
   local bCharDiff = false
   local bCharLock = false
@@ -651,20 +825,16 @@ function PotentialPreselectionEditCtrl:OnBtnClick_Use()
       bCharLock = true
     end
   end
+  if self:IsSystemPreviewMode() then
+    self:OnBtnClick_UseSystemPreview(bCharDiff, bCharLock)
+    return
+  end
   if bCharLock then
     local msg = {
       nType = AllEnum.MessageBox.Confirm,
       sContent = ConfigTable.GetUIText("Potential_Preselection_Char_Lock_Tip"),
       callbackConfirm = function()
-        local function callback()
-          EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Potential_Preselection_Select_Suc"))
-          
-          self:ClosePanel(true)
-        end
-        
-        local tmpDisc = PlayerData.Team:GetTeamDiscData(self.nTeamIndex)
-        local _, tbTeamMemberId = PlayerData.Team:GetTeamData(self.nTeamIndex)
-        PlayerData.Team:UpdateFormationInfo(self.nTeamIndex, tbTeamMemberId, tmpDisc, self.curPreselectData.nId, callback)
+        self:ApplyPreselectionToTeam(self.curPreselectData.nId, false)
       end,
       callbackCancel = function()
         self:ClosePanel()
@@ -677,43 +847,16 @@ function PotentialPreselectionEditCtrl:OnBtnClick_Use()
       sContent = ConfigTable.GetUIText("Potential_Preselection_Build_Auto"),
       callbackConfirm = function()
         if self.nTeamIndex > 0 then
-          local function callback()
-            EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Potential_Preselection_Select_Suc"))
-            
-            self:ClosePanel(true)
-          end
-          
-          local tmpDisc = PlayerData.Team:GetTeamDiscData(self.nTeamIndex)
-          local tbTeam = {}
-          for _, v in ipairs(self.tbSelectCharList) do
-            table.insert(tbTeam, v.nCharId)
-          end
-          PlayerData.Team:UpdateFormationInfo(self.nTeamIndex, tbTeam, tmpDisc, self.curPreselectData.nId, callback)
+          self:ApplyPreselectionToTeam(self.curPreselectData.nId, true)
         end
       end,
       callbackCancel = function()
-        local function callback()
-          EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Potential_Preselection_Select_Suc"))
-          
-          self:ClosePanel(true)
-        end
-        
-        local tmpDisc = PlayerData.Team:GetTeamDiscData(self.nTeamIndex)
-        local _, tbTeamMemberId = PlayerData.Team:GetTeamData(self.nTeamIndex)
-        PlayerData.Team:UpdateFormationInfo(self.nTeamIndex, tbTeamMemberId, tmpDisc, self.curPreselectData.nId, callback)
+        self:ApplyPreselectionToTeam(self.curPreselectData.nId, false)
       end
     }
     EventManager.Hit(EventId.OpenMessageBox, msg)
   else
-    local function callback()
-      EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Potential_Preselection_Select_Suc"))
-      
-      self:ClosePanel(true)
-    end
-    
-    local tmpDisc = PlayerData.Team:GetTeamDiscData(self.nTeamIndex)
-    local _, tbTeamMemberId = PlayerData.Team:GetTeamData(self.nTeamIndex)
-    PlayerData.Team:UpdateFormationInfo(self.nTeamIndex, tbTeamMemberId, tmpDisc, self.curPreselectData.nId, callback)
+    self:ApplyPreselectionToTeam(self.curPreselectData.nId, false)
   end
 end
 
@@ -778,27 +921,15 @@ function PotentialPreselectionEditCtrl:OnBtnClick_Delete()
 end
 
 function PotentialPreselectionEditCtrl:OnBtnClick_Save()
-  local tbCharPotential = {}
-  for k, mapData in ipairs(self.tbSelectCharList) do
-    local tbPotential = {}
-    local nCharId = mapData.nCharId
-    for nType, tb in ipairs(mapData.tbPotential) do
-      for _, data in ipairs(tb) do
-        if data.nLevel > 0 then
-          local mapPotentialCfg = ConfigTable.GetData("Potential", data.nId)
-          if mapPotentialCfg ~= nil then
-            table.insert(tbPotential, {
-              Id = data.nId,
-              Level = data.nLevel
-            })
-          end
-        end
-      end
-    end
-    table.insert(tbCharPotential, {CharId = nCharId, Potentials = tbPotential})
-  end
+  local tbCharPotential = self:GetSaveCharPotential()
+  local bSystemPreview = self:IsSystemPreviewMode()
   
   local function callback(mapBuildData)
+    if bSystemPreview then
+      EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Potential_Preselection_Save_Form_Rank"))
+      EventManager.Hit("RefreshPreselectionList")
+      return
+    end
     self.initPreselectData = mapBuildData
     self.curPreselectData = clone(self.initPreselectData)
     self._panel.nPanelType = AllEnum.PreselectionPanelType.Preview
@@ -809,6 +940,8 @@ function PotentialPreselectionEditCtrl:OnBtnClick_Save()
     local sName = self.curPreselectData.sName
     local bPreference = self.curPreselectData.bPreference
     PlayerData.PotentialPreselection:SavePreselection(sName, bPreference, tbCharPotential, callback)
+  elseif self:IsSystemPreviewMode() then
+    self:SaveSystemPreviewPreselection(callback)
   else
     PlayerData.PotentialPreselection:SendUpdatePotential(self.curPreselectData.nId, tbCharPotential, callback)
   end
@@ -920,7 +1053,7 @@ function PotentialPreselectionEditCtrl:OnEvent_SelectPotential(nPotentialId, nLe
 end
 
 function PotentialPreselectionEditCtrl:OnEvent_Back()
-  if self._panel.nPanelType ~= AllEnum.PreselectionPanelType.Preview then
+  if not self:IsPreviewMode() then
     if self.bShowCharList then
       local bCloseCharList = true
       if self._panel.nPanelType == AllEnum.PreselectionPanelType.Create then
@@ -962,7 +1095,7 @@ function PotentialPreselectionEditCtrl:OnEvent_Back()
 end
 
 function PotentialPreselectionEditCtrl:OnEvent_BackHome()
-  if self._panel.nPanelType ~= AllEnum.PreselectionPanelType.Preview then
+  if not self:IsPreviewMode() then
     local bChange, tbChangeChar = self:CheckChange()
     if bChange then
       local msg = {

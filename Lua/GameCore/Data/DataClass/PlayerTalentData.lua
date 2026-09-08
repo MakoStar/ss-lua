@@ -7,6 +7,10 @@ function PlayerTalentData:Init()
   self._tbCharEnhancedSkill = {}
   self._tbCharEnhancedPotential = {}
   self._tbCharFateTalent = {}
+  self._tbLimitedTrialTalentNode = {}
+  self._tbLimitedTrialEnhancedSkill = {}
+  self._tbLimitedTrialEnhancedPotential = {}
+  self._tbLimitedTrialFateTalent = {}
   self._tbTalentBgIndex = {}
   self:ProcessTableData()
 end
@@ -638,6 +642,76 @@ function PlayerTalentData:GetTrialFateTalent(nTrialId)
     end
   end
   return tbFate
+end
+
+function PlayerTalentData:CreateLimitedTrialData(tbTrialId)
+  for _, nTrialId in ipairs(tbTrialId) do
+    local mapCfg = ConfigTable.GetData("TrialCharacter", nTrialId)
+    if mapCfg == nil then
+      printError("限时试用角色数据没有找到：" .. nTrialId)
+      return
+    end
+    local nCharId = mapCfg.CharId
+    local tbActive = mapCfg.Talent
+    self._tbLimitedTrialTalentNode[nTrialId] = {}
+    for _, v in ipairs(tbActive) do
+      self._tbLimitedTrialTalentNode[nTrialId][v] = true
+    end
+    self._tbLimitedTrialEnhancedSkill[nTrialId] = self:CreateEnhancedSkill(nCharId, tbActive)
+    self._tbLimitedTrialEnhancedPotential[nTrialId] = self:CreateEnhancedPotential(tbActive)
+    local tbTalent = CacheTable.GetData("_TalentByIndex", nCharId)
+    if tbTalent == nil then
+      printError("Talent表找不到该角色" .. nCharId)
+      tbTalent = {}
+    end
+    self._tbLimitedTrialFateTalent[nTrialId] = self:CreateFateTalent(tbTalent)
+  end
+end
+
+function PlayerTalentData:DeleteLimitedTrialData()
+  self._tbLimitedTrialTalentNode = {}
+  self._tbLimitedTrialEnhancedSkill = {}
+  self._tbLimitedTrialEnhancedPotential = {}
+  self._tbLimitedTrialFateTalent = {}
+end
+
+function PlayerTalentData:GetLimitedTrialEnhancedSkill(nTrialId)
+  return self._tbLimitedTrialEnhancedSkill[nTrialId]
+end
+
+function PlayerTalentData:GetLimitedTrialEnhancedPotential(nTrialId)
+  return self._tbLimitedTrialEnhancedPotential[nTrialId]
+end
+
+function PlayerTalentData:GetLimitedTrialFateTalent(nTrialId)
+  local tbFate = {}
+  if not self._tbLimitedTrialFateTalent[nTrialId] then
+    return tbFate
+  end
+  for i, v in ipairs(self._tbLimitedTrialFateTalent[nTrialId]) do
+    if self._tbLimitedTrialTalentNode[nTrialId] and self._tbLimitedTrialTalentNode[nTrialId][v] then
+      tbFate[i] = true
+    else
+      tbFate[i] = false
+    end
+  end
+  return tbFate
+end
+
+function PlayerTalentData:GetLimitedTrialTalentEffect(nTrialId)
+  local mapTalent = self._tbLimitedTrialTalentNode[nTrialId]
+  local tbEffect = {}
+  if mapTalent then
+    for nTalentId, bActive in pairs(mapTalent) do
+      if bActive then
+        local mapCfg = ConfigTable.GetData("Talent", nTalentId)
+        for _, nEffectId in pairs(mapCfg.EffectId) do
+          table.insert(tbEffect, nEffectId)
+        end
+      end
+    end
+  end
+  return tbEffect
 end
 
 function PlayerTalentData:GetTrialTalentEffect(nTrialId)

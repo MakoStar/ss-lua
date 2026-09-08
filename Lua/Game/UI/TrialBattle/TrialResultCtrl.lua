@@ -129,6 +129,10 @@ function TrialResultCtrl:OnEnable()
   self.nActId = tbParam[4]
   self.mapChangeInfo = tbParam[5]
   self.tbCharDamage = tbParam[6]
+  self.bHasReward = tbParam[7] ~= false
+  if PlayerData.Trial:IsSkinTrialMode() then
+    PlayerData.Trial:UserEventUpload_TrialBattle(self.bSuccess and 2 or 3)
+  end
   for i = 1, 2 do
     self._mapNode.btnDamageResult[i].gameObject:SetActive(self.tbCharDamage ~= nil and #self.tbCharDamage > 0)
   end
@@ -284,7 +288,9 @@ function TrialResultCtrl:Close()
 end
 
 function TrialResultCtrl:OnBtnClick_Close(btn)
-  PlayerData.Trial:SetSelectTrialGroup()
+  if PlayerData.Trial:IsActivityTrialMode() then
+    PlayerData.Trial:SetSelectTrialGroup()
+  end
   EventManager.Hit(EventId.ClosePanel, PanelId.TrialLevelSelect)
   self:Close()
 end
@@ -303,7 +309,7 @@ function TrialResultCtrl:OnBtnClick_ShowDamageResult()
 end
 
 function TrialResultCtrl:OpenReward()
-  if self.mapChangeInfo and next(self.mapChangeInfo) ~= nil then
+  if self.bHasReward and self.mapChangeInfo and next(self.mapChangeInfo) ~= nil then
     local function callback()
       self:ClosePanel()
     end

@@ -17,6 +17,8 @@ ExeEditorCtrl._mapNodeConfig = {
 ExeEditorCtrl._mapEventConfig = {}
 
 function ExeEditorCtrl:OnEnable()
+  local go = GameObject.Find("==== UI ROOT ====/---- UI OVERLAY ----/TouchEffectUI")
+  go:SetActive(false)
   local _goLogView = GameObject.Find("==== UI ROOT ====/---- UI OVERLAY ----/_InGameLogView")
   if _goLogView ~= nil and _goLogView:IsNull() == false then
     _goLogView:SetActive(true)

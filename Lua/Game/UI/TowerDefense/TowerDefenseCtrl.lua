@@ -840,6 +840,31 @@ function TowerDefenseCtrl:ShowCharacterDetail(characterId)
   EventManager.Hit(EventId.OpenPanel, PanelId.TowerDefenseCharacterDetailPanel, tbChar, characterId, self.TowerDefenseData.TowerDefenseLevelData)
 end
 
+function TowerDefenseCtrl:CharacterHenshin(characterId)
+  NovaAPI.DispatchEventWithData("TowerDefenseSelectedBtn", nil, {})
+  local config = ConfigTable.GetData("TowerDefenseCharacter", characterId)
+  if config == nil then
+    return
+  end
+  if not config.IsShapeshifter then
+    return
+  end
+  local nLevel = 4
+  
+  local function cb(potentialId)
+    self.TowerDefenseData.TowerDefenseLevelData:RemoveCharacterPotential(characterId, nLevel)
+    self.TowerDefenseData.TowerDefenseLevelData:AddPotential(characterId, potentialId)
+    self._mapNode.potentialSelectPanel:HidePanel()
+    self:ResumeLogic()
+    NovaAPI.DispatchEventWithData("TOWERDEFENSE_SELECTED_POTENTIAL", nil, {})
+  end
+  
+  self:PauseLogic()
+  local sTitle = ConfigTable.GetUIText("TowerDef_Text_Henshin")
+  self._mapNode.potentialSelectPanel:ShowPanel()
+  self._mapNode.potentialSelectPanel:Refresh(characterId, config["NewPotential" .. nLevel], nLevel, cb, sTitle)
+end
+
 function TowerDefenseCtrl:PauseLogic()
   PanelManager.InputDisable()
   NovaAPI.DispatchEventWithData("TowerDefenseShowFullScreenPanel", nil, {})
@@ -928,6 +953,8 @@ function TowerDefenseCtrl:OnEvent_UseCharacterCard(bUse, nEntityId, nCharacterId
       self:ShowCharacterDetail(nCharacterId)
     end, function()
       self:CharacterLevelUp(nCharacterId)
+    end, function()
+      self:CharacterHenshin(nCharacterId)
     end)
     self:UseCharacterCard(nCharacterId)
     self.TowerDefenseData.TowerDefenseLevelData:AddCharacter(nCharacterId, nEntityId)

@@ -450,7 +450,8 @@ function JointDrillLevelData_1:JointDrillSuccess(netMsg)
     }
     local bSimulate = self.parent:GetBattleSimulate()
     local nBattleCount = self.parent:GetJointDrillBattleCount()
-    EventManager.Hit(EventId.OpenPanel, JointDrillContext.GetPanelId(self.parent.nActId, "Result"), nResultType, self.nCurLevel, 0, self.nLevelId, {}, mapScore, netMsg.Items or {}, netMsg.Change or {}, netMsg.Old, netMsg.New, bSimulate, nBattleCount, self.tbCharDamage)
+    local tbLastCharIds = self.parent:GetJointDrillLastTeam()
+    EventManager.Hit(EventId.OpenPanel, JointDrillContext.GetPanelId(self.parent.nActId, "Result"), nResultType, self.nCurLevel, 0, self.nLevelId, {}, mapScore, netMsg.Items or {}, netMsg.Change or {}, netMsg.Old, netMsg.New, bSimulate, nBattleCount, self.tbCharDamage, tbLastCharIds)
     self.parent:ChallengeEnd()
   end
   
@@ -503,7 +504,6 @@ function JointDrillLevelData_1:JointDrillFail(nResultType, netMsg)
     bossInfo.nHpMax = tempBossData.nHpMax
   end
   local bSimulate = self.parent:GetBattleSimulate()
-  local nBattleCount = self.parent:GetJointDrillBattleCount()
   local mapScore = {}
   local mapReward = {}
   local mapChange = {}
@@ -528,7 +528,9 @@ function JointDrillLevelData_1:JointDrillFail(nResultType, netMsg)
     mapReward = netMsg.Items or {}
     mapChange = netMsg.Change or {}
   end
-  EventManager.Hit(EventId.OpenPanel, JointDrillContext.GetPanelId(self.parent.nActId, "Result"), nResultType, self.nCurLevel, self.nGameTime, self.nLevelId, bossInfo, mapScore, mapReward, mapChange, nOld, nNew, bSimulate, nBattleCount, self.tbCharDamage)
+  local nBattleCount = self.parent:GetJointDrillBattleCount()
+  local tbLastCharIds = self.parent:GetJointDrillLastTeam()
+  EventManager.Hit(EventId.OpenPanel, JointDrillContext.GetPanelId(self.parent.nActId, "Result"), nResultType, self.nCurLevel, self.nGameTime, self.nLevelId, bossInfo, mapScore, mapReward, mapChange, nOld, nNew, bSimulate, nBattleCount, self.tbCharDamage, tbLastCharIds)
   self.parent:LevelEnd(nResultType)
 end
 

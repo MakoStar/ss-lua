@@ -912,6 +912,7 @@ function PlayerMallData:SendMallPackageListReq(callback)
     self:UpdateMallRedDot(tbPackageList)
     self:ResetPackageNew()
     self:UpdateMallPackageRedDot(tbPackageList)
+    self:ClearDelistedSkinTrialRedDot()
   end
   
   HttpNetHandler.SendMsg(NetMsgId.Id.mall_package_list_req, {}, nil, successCallback)
@@ -1018,6 +1019,23 @@ function PlayerMallData:ResetPackageNew()
         mapCfg.Id
       }, false)
     end
+  end
+  
+  ForEachTableLine(DataTable.MallPackage, foreachFunc)
+end
+
+function PlayerMallData:ClearDelistedSkinTrialRedDot()
+  local nCurTime = ClientManager.serverTimeStamp
+  
+  local function foreachFunc(mapCfg)
+    if mapCfg.Tag ~= GameEnum.MallItemType.Skin then
+      return
+    end
+    local nDeListTime = PlayerData.Shop:ChangeToTimeStamp(mapCfg.DeListTime)
+    if nDeListTime <= 0 or nDeListTime > nCurTime then
+      return
+    end
+    PlayerData.Char:ClearCharSkinTrialRedDot(mapCfg.Id)
   end
   
   ForEachTableLine(DataTable.MallPackage, foreachFunc)

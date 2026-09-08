@@ -44,14 +44,45 @@ TraceHuntCtrl._mapNodeConfig = {
   MagnifierRoot = {},
   aniMagnifier = {sNodeName = "magnifier", sComponentName = "Animator"},
   Hunt = {sNodeName = "--Hunt--"},
+  aniHunt = {sNodeName = "--Hunt--", sComponentName = "Animator"},
   imgFullIcon = {sComponentName = "Image"},
-  txtBossName = {sComponentName = "TMP_Text"},
-  txtHuntProgressTitle = {sComponentName = "TMP_Text"},
+  txtBossName = {nCount = 2, sComponentName = "TMP_Text"},
+  txtHuntProgressTitle = {nCount = 2, sComponentName = "TMP_Text"},
   imgHuntProgress = {sComponentName = "Image"},
   txtHuntLeftTime = {sComponentName = "TMP_Text"},
   imgArrested = {},
   imgEscaped = {},
   dbHuntLeftTime = {},
+  goNormal = {},
+  goHard = {},
+  rtAffix = {},
+  txtAffix = {nCount = 3, sComponentName = "TMP_Text"},
+  goSwitch = {},
+  txtSwitchTitle = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "TraceHunt_HardSwitch_Title"
+  },
+  btnHardInfo = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_HardInfo"
+  },
+  imgExtraIcon = {sComponentName = "Image"},
+  txtExtraCount = {sComponentName = "TMP_Text"},
+  txtSwitchLock = {sComponentName = "TMP_Text"},
+  goSwitchBtn = {},
+  btnSwitch = {
+    nCount = 2,
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_Switch"
+  },
+  SwitchOn = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "TraceHunt_HardSwitch_Open"
+  },
+  SwitchOff = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "TraceHunt_HardSwitch_Close"
+  },
   txtTraceHuntTitle = {
     sComponentName = "TMP_Text",
     sLanguageId = "TraceHunt_Board_Title"
@@ -240,6 +271,10 @@ function TraceHuntCtrl:RefreshConfig()
   self.nMaxTraceProgress = ConfigTable.GetConfigNumber("TraceHuntMaxTraceProgress")
   self.nMaxMultiTrace = ConfigTable.GetConfigNumber("TraceHuntMaxMultiTrace")
   self.npcId = ConfigTable.GetConfigNumber("TraceHuntNPCId")
+  self.nNormalTime = ConfigTable.GetConfigNumber("TraceHuntBossTimeLimit")
+  self.nHardTime = ConfigTable.GetConfigNumber("TraceHuntHardBossTimeLimit")
+  self.nAtk = ConfigTable.GetConfigNumber("TraceHuntHardBossShowAtk")
+  self.nDef = ConfigTable.GetConfigNumber("TraceHuntHardBossShowDef")
 end
 
 function TraceHuntCtrl:RefreshControl()
@@ -675,6 +710,7 @@ end
 
 function TraceHuntCtrl:RefreshHunt()
   self:RefreshHuntBoard()
+  self:RefreshHuntBoardHard()
   self:RefreshHuntBtn()
   self:RefreshHuntLog()
 end
@@ -690,10 +726,12 @@ function TraceHuntCtrl:RefreshHuntBoard()
   local mData = ConfigTable.GetData("Monster", mapBossCfg.MonsterId)
   local mSkin = ConfigTable.GetData("MonsterSkin", mData.FAId)
   local mManual = ConfigTable.GetData("MonsterManual", mSkin.MonsterManual)
-  NovaAPI.SetTMPText(self._mapNode.txtBossName, mManual.Name)
   local sP = string.format("%.1f", nProgress)
-  NovaAPI.SetTMPText(self._mapNode.txtHuntProgressTitle, orderedFormat(ConfigTable.GetUIText("TraceHunt_HuntProgress"), sP))
   NovaAPI.SetImageFillAmount(self._mapNode.imgHuntProgress, nProgress / 100)
+  for i = 1, 2 do
+    NovaAPI.SetTMPText(self._mapNode.txtBossName[i], mManual.Name)
+    NovaAPI.SetTMPText(self._mapNode.txtHuntProgressTitle[i], orderedFormat(ConfigTable.GetUIText("TraceHunt_HuntProgress"), sP))
+  end
   self.nHuntLeftTime = PlayerData.TraceHunt:GetHuntLeftTime()
   if self.timerCountDownHunt == nil then
     self.timerCountDownHunt = self:AddTimer(0, 1, "RefreshHuntTime", false, true, false)
@@ -702,6 +740,30 @@ function TraceHuntCtrl:RefreshHuntBoard()
   if self.nHuntLeftTime > 0 then
     self.timerCountDownHunt:Pause(false)
   end
+end
+
+function TraceHuntCtrl:RefreshHuntBoardHard()
+  local nHard = PlayerData.TraceHunt:GetSelfBossHard()
+  self._mapNode.goNormal:SetActive(nHard == 1)
+  self._mapNode.goHard:SetActive(1 < nHard)
+  self._mapNode.rtAffix:SetActive(1 < nHard)
+  if 1 < nHard then
+    NovaAPI.SetTMPText(self._mapNode.txtAffix[1], orderedFormat(ConfigTable.GetUIText("TraceHunt_HardSwitch_AffixAtk"), self.nAtk))
+    NovaAPI.SetTMPText(self._mapNode.txtAffix[2], orderedFormat(ConfigTable.GetUIText("TraceHunt_HardSwitch_AffixDef"), self.nDef))
+    NovaAPI.SetTMPText(self._mapNode.txtAffix[3], orderedFormat(ConfigTable.GetUIText("TraceHunt_HardSwitch_AffixTime"), self.nNormalTime - self.nHardTime))
+  end
+  local bBlock = PlayerData.TraceHunt:GetControlBlockState()
+  self._mapNode.goSwitch:SetActive(not bBlock)
+  local nHardOpenLevel = PlayerData.TraceHunt:GetHardOpenLevel()
+  local nLevel = PlayerData.TraceHunt:GetTraceHuntLevel()
+  self._mapNode.goSwitchBtn:SetActive(nHardOpenLevel <= nLevel)
+  self._mapNode.txtSwitchLock.gameObject:SetActive(nHardOpenLevel > nLevel)
+  NovaAPI.SetTMPText(self._mapNode.txtSwitchLock, orderedFormat(ConfigTable.GetUIText("TraceHunt_HardSwitch_LevelLimit"), nHardOpenLevel))
+  self:SetSprite_Coin(self._mapNode.imgExtraIcon, AllEnum.CoinItemId.TraceHunt)
+  local mapDifficulty = ConfigTable.GetData("TraceHuntDifficulty", 2)
+  NovaAPI.SetTMPText(self._mapNode.txtExtraCount, string.format("+%d%%", mapDifficulty.TokenRate))
+  self._mapNode.btnSwitch[1].gameObject:SetActive(nHard == 1)
+  self._mapNode.btnSwitch[2].gameObject:SetActive(1 < nHard)
 end
 
 function TraceHuntCtrl:RefreshHuntBtn()
@@ -1202,6 +1264,28 @@ function TraceHuntCtrl:OnBtnClick_LevelInfo(btn)
   EventManager.Hit(EventId.OpenPanel, PanelId.TraceHuntLevel)
 end
 
+function TraceHuntCtrl:OnBtnClick_HardInfo(btn)
+  local mapData = {
+    Title = ConfigTable.GetUIText("TraceHunt_HardSwitch_TipsTitle"),
+    Desc = {
+      ConfigTable.GetUIText("TraceHunt_HardSwitch_TipsDesc")
+    }
+  }
+  EventManager.Hit(EventId.OpenPanel, PanelId.DescTips, btn.transform, mapData)
+end
+
+function TraceHuntCtrl:OnBtnClick_Switch(btn, nIndex)
+  local nHard = PlayerData.TraceHunt:GetSelfBossHard()
+  nHard = 3 - nHard
+  PlayerData.TraceHunt:SetSelfBossHard(nHard)
+  self:RefreshHuntBoardHard()
+  if nHard == 1 then
+    self._mapNode.aniHunt:Play("TraceHuntSelectPanelHunt_ToNormal", 0, 0)
+  else
+    self._mapNode.aniHunt:Play("TraceHuntSelectPanelHunt_ToHard", 0, 0)
+  end
+end
+
 function TraceHuntCtrl:OnBtnClick_CoinTips(btn, nIndex)
   if nIndex == 1 then
     UTILS.ClickItemGridWithTips(AllEnum.CoinItemId.TraceHunt, self._mapNode.btnResCoin[1].transform, true, true, false)
@@ -1251,6 +1335,7 @@ end
 
 function TraceHuntCtrl:OnEvent_BossExpired()
   self:RefreshHuntBoard()
+  self:RefreshHuntBoardHard()
   self:RefreshHuntBtn()
   self:RefreshHuntAddLog()
 end

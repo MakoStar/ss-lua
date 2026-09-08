@@ -69,6 +69,7 @@ function TrialBattlePanel:OnEnable()
     EventManager.Hit(EventId.ClosePanel, PanelId.MainlineFormation)
     EventManager.Hit(EventId.ClosePanel, PanelId.RegionBossFormation)
     EventManager.Hit(EventId.ClosePanel, PanelId.TrialFormation)
+    EventManager.Hit(EventId.ClosePanel, PanelId.TrialSkinFormationScenePanel)
   end
   
   cs_coroutine.start(wait)

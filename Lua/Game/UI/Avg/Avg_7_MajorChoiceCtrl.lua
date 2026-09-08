@@ -10,6 +10,10 @@ Avg_7_MajorChoiceCtrl._mapNodeConfig = {
     sNodeName = "----bg_role----",
     sComponentName = "CanvasGroup"
   },
+  cgRole = {
+    sNodeName = "----role----",
+    sComponentName = "CanvasGroup"
+  },
   animBgRole = {
     sNodeName = "----bg_role----",
     sComponentName = "Animator"
@@ -43,6 +47,10 @@ Avg_7_MajorChoiceCtrl._mapNodeConfig = {
     sNodeName = "----card----",
     sComponentName = "Transform"
   },
+  rtCard = {
+    sNodeName = "----card----",
+    sComponentName = "RectTransform"
+  },
   btnConfirm = {
     sComponentName = "NaviButton",
     callback = "OnBtnClick_MajorChoice"
@@ -54,7 +62,16 @@ Avg_7_MajorChoiceCtrl._mapNodeConfig = {
   rtBtnConfirm = {
     sNodeName = "btnConfirm",
     sComponentName = "RectTransform"
-  }
+  },
+  goTips = {
+    sNodeName = "----tips----"
+  },
+  animTips = {
+    sNodeName = "----tips----",
+    sComponentName = "Animator"
+  },
+  txtTips = {sComponentName = "TMP_Text"},
+  txtTips_ = {sComponentName = "TMP_Text"}
 }
 Avg_7_MajorChoiceCtrl._mapEventConfig = {
   GamepadUIChange = "OnEvent_GamepadUIChange",
@@ -115,9 +132,10 @@ function Avg_7_MajorChoiceCtrl:Awake()
     self.tbTMP_UnknownContent[i] = tr:Find("goDefault_1/goUnknown_1/tmpUnknownContent_1"):GetComponent("RubyTextMeshProUGUI")
   end
   self._COLOR = {
-    "#ffd9d8",
-    "#ffffd7",
-    "#d8d3ff"
+    "#ffe3e3",
+    "#fff6e5",
+    "#d1ffe9",
+    "#d8c9ff"
   }
   self.tbDesc = {}
   self.tbLogData = {}
@@ -128,7 +146,8 @@ function Avg_7_MajorChoiceCtrl:OnEnable()
 end
 
 function Avg_7_MajorChoiceCtrl:OnDisable()
-  for i = 1, 3 do
+  local n = #self.tbBtnChoice
+  for i = 1, n do
     self.tbBtnChoice[i].onSelect:RemoveListener(self.tbSelectHandler[i])
   end
   self.tbGoChoice = nil
@@ -206,11 +225,16 @@ function Avg_7_MajorChoiceCtrl:_delayHideUnloopEmoji(timer)
   end
 end
 
-function Avg_7_MajorChoiceCtrl:_ChoiceInAnim(n)
-  self.tbAnimChoice[n]:Play("animMajorChoice_In1")
-  if n == 3 then
-    self:_ForceClearAll()
+function Avg_7_MajorChoiceCtrl:_ChoiceInAnim(n, sAnimName)
+  self.tbAnimChoice[n]:Play(sAnimName)
+end
+
+function Avg_7_MajorChoiceCtrl:_PlayTipsAnim(sAnimName, sTipsText)
+  if type(sTipsText) == "string" and sTipsText ~= "" then
+    NovaAPI.SetTMPText(self._mapNode.txtTips, sTipsText)
+    NovaAPI.SetTMPText(self._mapNode.txtTips_, sTipsText)
   end
+  self._mapNode.animTips:Play(sAnimName)
 end
 
 function Avg_7_MajorChoiceCtrl:_ForceClearAll()
@@ -266,46 +290,28 @@ function Avg_7_MajorChoiceCtrl:SetMajorChoice(tbParam)
   EventManager.Hit(EventId.AvgAllMenuBtnEnable, false)
   EventManager.Hit(EventId.AvgClearTalk)
   self.nCurGroupId = tbParam[1]
-  local i = 2
-  local tbIcon = {
-    tbParam[i],
-    tbParam[i + 7],
-    tbParam[i + 14]
-  }
-  i = i + 1
-  local tbIconBg = {
-    tbParam[i],
-    tbParam[i + 7],
-    tbParam[i + 14]
-  }
-  i = i + 1
-  local tbTitle = {
-    tbParam[i],
-    tbParam[i + 7],
-    tbParam[i + 14]
-  }
-  i = i + 1
-  self.tbDesc[1] = tbParam[i]
-  self.tbDesc[2] = tbParam[i + 7]
-  self.tbDesc[3] = tbParam[i + 14]
-  i = i + 1
-  local tbUnlockCondition = {
-    tbParam[i],
-    tbParam[i + 7],
-    tbParam[i + 14]
-  }
-  i = i + 1
-  self.tbEvId = {
-    tbParam[i],
-    tbParam[i + 7],
-    tbParam[i + 14]
-  }
-  i = i + 1
-  local tbType = {
-    tbParam[i],
-    tbParam[i + 7],
-    tbParam[i + 14]
-  }
+  self.D_bExist = type(tbParam[28]) == "string" and tbParam[28] ~= ""
+  self.D_bABC = true
+  self.D_b1stAnim = false
+  local nOffset = 1
+  local _tbData = {}
+  for m = 1, 7 do
+    _tbData[m] = {}
+    for n = 1, 4 do
+      local nIdx = (n - 1) * 7 + m + nOffset
+      if n == 4 then
+        nIdx = m - 1 + 28
+      end
+      table.insert(_tbData[m], tbParam[nIdx] or "")
+    end
+  end
+  local tbIcon = _tbData[1]
+  local tbIconBg = _tbData[2]
+  local tbTitle = _tbData[3]
+  self.tbDesc = _tbData[4]
+  local tbUnlockCondition = _tbData[5]
+  self.tbEvId = _tbData[6]
+  local tbType = _tbData[7]
   local sBody = tbParam[23]
   local sFace = tbParam[24]
   local sEmoji = tbParam[25]
@@ -319,8 +325,9 @@ function Avg_7_MajorChoiceCtrl:SetMajorChoice(tbParam)
   for i = 1, 3 do
     local bIsUnlock = AvgData:IsUnlock(tbUnlockCondition[i])
     local bIsChosen, bIsChosen_Temp = AvgData:IsChosen(self._panel.sAvgId, self.nCurGroupId, i)
+    self.D_bABC = self.D_bABC == true and bIsChosen == true
     local bDisableBE = false
-    if tbType[i] == 1 and self._panel.nBEIndex == i then
+    if tbType[i] == 1 and table.indexof(self._panel.tbBEIndex, i) > 0 then
       bDisableBE = true
     end
     local bDisable = tbType[i] == 2
@@ -381,10 +388,66 @@ function Avg_7_MajorChoiceCtrl:SetMajorChoice(tbParam)
       NovaAPI.SetText_RubyTMP(self.tbTMP_UnknownContent[i], AvgUIText.AVG_ImportantChoice_UnknownDesc)
     end
   end
-  if self._panel.nBEIndex ~= 0 then
-    self._panel.nBEIndex = 0
+  if ENABLE_D ~= nil then
+    self.D_bABC = ENABLE_D
   end
-  GamepadUIManager.SetNavigation(tbSelectBtnObj)
+  if self.D_bExist == true and self.D_bABC == true then
+    NovaAPI.SetCanvasGroupAlpha(self._mapNode.cgRole, 0)
+    self._mapNode.rtCard.anchoredPosition = Vector2(0, -17.5)
+    self._mapNode.rtCard.sizeDelta = Vector2(2160, 800)
+    local goD = self._mapNode.trCard:Find("D").gameObject
+    goD:SetActive(true)
+    local D_bIsChosen, D_bIsChosen_Temp = AvgData:IsChosen(self._panel.sAvgId, self.nCurGroupId, 4)
+    local trRoot = self._mapNode.trCard:GetChild(3)
+    local tr = trRoot:Find("Choice_1")
+    local cg = tr:GetComponent("CanvasGroup")
+    NovaAPI.SetCanvasGroupBlocksRaycasts(cg, true)
+    NovaAPI.SetCanvasGroupInteractable(cg, true)
+    local imgIcon = tr:Find("goDefault_1/iconMask/icon_1"):GetComponent("Image")
+    local TMP_Title = tr:Find("goDefault_1/tmpTitle_1"):GetComponent("RubyTextMeshProUGUI")
+    local TMP_Content = tr:Find("goDefault_1/tmpContent_1"):GetComponent("RubyTextMeshProUGUI")
+    local TMP_Label = tr:Find("goDefault_1/tmpLabel_1"):GetComponent("RubyTextMeshProUGUI")
+    local GoChoosed = tr:Find("goDefault_1/goChoosed_1").gameObject
+    local TMP_Choosed = tr:Find("goDefault_1/goChoosed_1/tmpChoosed_1"):GetComponent("RubyTextMeshProUGUI")
+    self:SetPngSprite(imgIcon, Avg_ProcRes_M_F("Icon/AvgChoice/" .. tbIcon[4]))
+    NovaAPI.SetText_RubyTMP(TMP_Title, ProcAvgTextContent(tbTitle[4], nLanguageIndex))
+    NovaAPI.SetText_RubyTMP(TMP_Content, ProcAvgTextContent(self.tbDesc[4], nLanguageIndex))
+    NovaAPI.SetText_RubyTMP(TMP_Label, string.format(AvgUIText.AVG_ImportantChoice, 4))
+    GoChoosed:SetActive(D_bIsChosen == true)
+    NovaAPI.SetText_RubyTMP(TMP_Choosed, AvgUIText.AVG_ImportantChoice_Choosed)
+    self.D_b1stAnim = D_bIsChosen == false
+    if ENABLE_D_CHOSED ~= nil then
+      self.D_b1stAnim = ENABLE_D_CHOSED == false
+    end
+    local nIconIndex = tbIconBg[4] + 1
+    self._color[4] = self._COLOR[nIconIndex] or "#FFFFFF"
+    if self.tbGoChoice[4] == nil then
+      self.tbGoChoice[4] = goD
+      self.tbBtnChoice[4] = tr:GetComponent("NaviButton")
+      
+      local function func_Handler(...)
+        local ui_func = ui_handler(self, self.OnBtnSelect_Choice, self.tbBtnChoice[4], 4)
+        ui_func(...)
+      end
+      
+      self.tbSelectHandler[4] = func_Handler
+      self.tbBtnChoice[4].onSelect:AddListener(func_Handler)
+      GamepadUIManager.AddGamepadUINode("AVG", {
+        {
+          mapNode = self.tbBtnChoice[4],
+          sComponentName = "NaviButton"
+        }
+      })
+      self.tbAnimChoice[4] = tr:GetComponent("Animator")
+      self.tbCgChoice[4] = cg
+    end
+    table.insert(tbSelectBtnObj, self.tbBtnChoice[4])
+  else
+    NovaAPI.SetCanvasGroupAlpha(self._mapNode.cgRole, 1)
+    self._mapNode.rtCard.anchoredPosition = Vector2(-153, -17.5)
+    self._mapNode.rtCard.sizeDelta = Vector2(1500, 800)
+    self._mapNode.trCard:Find("D").gameObject:SetActive(false)
+  end
   local sMainRoleAvgCharId = "avg3_100"
   sMainRoleAvgCharId = AdjustMainRoleAvgCharId(sMainRoleAvgCharId)
   local spBody, spFace, v3OffsetPos, v3OffsetScale = self:GetAvgPortrait(sMainRoleAvgCharId, sBody, sFace)
@@ -421,19 +484,67 @@ function Avg_7_MajorChoiceCtrl:SetMajorChoice(tbParam)
   NovaAPI.SetCanvasGroupBlocksRaycasts(self._mapNode.cgBgRole, true)
   NovaAPI.SetCanvasGroupInteractable(self._mapNode.cgBgRole, true)
   self._mapNode.animBgRole:Play("animMajor_In")
+  local nAnimLen = 0
   local sequence = DOTween.Sequence()
+  if self.D_bExist == true and self.D_bABC == true then
+    if self.D_b1stAnim == true then
+      for i = 1, 3 do
+        self.tbBtnChoice[i].interactable = false
+        NovaAPI.SetCanvasGroupBlocksRaycasts(self.tbCgChoice[i], false)
+        NovaAPI.SetCanvasGroupInteractable(self.tbCgChoice[i], false)
+      end
+      tbSelectBtnObj = {}
+      table.insert(tbSelectBtnObj, self.tbBtnChoice[4])
+      self.nFirstSelect = 4
+      WwiseAudioMgr:PlaySound("ui_mainline_choose")
+      sequence:AppendInterval(0.1)
+      sequence:AppendCallback(dotween_callback_handler(self, self._ChoiceInAnim, 4, "animMajorChoice_InExD1"))
+      sequence:AppendInterval(0.667)
+      sequence:AppendCallback(dotween_callback_handler(self, self._ChoiceInAnim, 4, "animMajorChoice_InExD2"))
+      sequence:AppendInterval(0.2)
+      sequence:AppendCallback(dotween_callback_handler(self, self._ChoiceInAnim, 3, "animMajorChoice_InEx"))
+      sequence:AppendInterval(0.1)
+      sequence:AppendCallback(dotween_callback_handler(self, self._ChoiceInAnim, 2, "animMajorChoice_InEx"))
+      sequence:AppendInterval(0.1)
+      sequence:AppendCallback(dotween_callback_handler(self, self._ChoiceInAnim, 1, "animMajorChoice_InEx"))
+      nAnimLen = 1.5
+      self._mapNode.goTips:SetActive(true)
+      local sequenceTips = DOTween.Sequence()
+      sequenceTips:AppendInterval(0.1)
+      sequenceTips:AppendCallback(dotween_callback_handler(self, self._PlayTipsAnim, "animMajorChoice_TitleIn", AvgUIText.AVG_ImportantChoice_NewChoiceTips1))
+      sequenceTips:AppendInterval(0.733)
+      sequenceTips:AppendCallback(dotween_callback_handler(self, self._PlayTipsAnim, "animMajorChoice_TitleOut_2", nil))
+      sequenceTips:AppendInterval(0.083)
+      sequenceTips:AppendCallback(dotween_callback_handler(self, self._PlayTipsAnim, "animMajorChoice_TitleIn_2", AvgUIText.AVG_ImportantChoice_NewChoiceTips2))
+      sequenceTips:SetUpdate(true)
+    else
+      sequence:AppendInterval(0.1)
+      sequence:AppendCallback(dotween_callback_handler(self, self._ChoiceInAnim, 1, "animMajorChoice_InEx"))
+      sequence:AppendInterval(0.1)
+      sequence:AppendCallback(dotween_callback_handler(self, self._ChoiceInAnim, 2, "animMajorChoice_InEx"))
+      sequence:AppendInterval(0.1)
+      sequence:AppendCallback(dotween_callback_handler(self, self._ChoiceInAnim, 3, "animMajorChoice_InEx"))
+      sequence:AppendInterval(0.1)
+      sequence:AppendCallback(dotween_callback_handler(self, self._ChoiceInAnim, 4, "animMajorChoice_InEx"))
+      nAnimLen = 0.7
+      self._mapNode.goTips:SetActive(false)
+    end
+  else
+    sequence:AppendInterval(0.1)
+    sequence:AppendCallback(dotween_callback_handler(self, self._ChoiceInAnim, 1, "animMajorChoice_In1"))
+    sequence:AppendInterval(0.1)
+    sequence:AppendCallback(dotween_callback_handler(self, self._ChoiceInAnim, 2, "animMajorChoice_In1"))
+    sequence:AppendInterval(0.1)
+    sequence:AppendCallback(dotween_callback_handler(self, self._ChoiceInAnim, 3, "animMajorChoice_In1"))
+    nAnimLen = 1
+    self._mapNode.goTips:SetActive(false)
+  end
   sequence:AppendInterval(0.1)
-  sequence:AppendCallback(dotween_callback_handler(self, self._ChoiceInAnim, 1))
-  sequence:AppendInterval(0.1)
-  sequence:AppendCallback(dotween_callback_handler(self, self._ChoiceInAnim, 2))
-  sequence:AppendInterval(0.1)
-  sequence:AppendCallback(dotween_callback_handler(self, self._ChoiceInAnim, 3))
+  sequence:AppendCallback(dotween_callback_handler(self, self._ForceClearAll))
   sequence:SetUpdate(true)
-  EventManager.Hit(EventId.TemporaryBlockInput, 1)
+  EventManager.Hit(EventId.TemporaryBlockInput, nAnimLen + 0.2)
+  GamepadUIManager.SetNavigation(tbSelectBtnObj)
   self.nChosenIdx = 0
-  local nAnimLen = NovaAPI.GetAnimClipLength(self._mapNode.animBgRole, {
-    "animMajor_In"
-  })
   self:AddTimer(1, nAnimLen + 0.3, "SelectUI", true, true, true)
   NovaAPI.SetScreenSleepTimeout(false)
   return -1
@@ -473,21 +584,33 @@ function Avg_7_MajorChoiceCtrl:OnBtnClick_MajorChoice(btn)
   if self.nChosenIdx > 0 then
     self:ClearSelect()
     self._mapNode.btnConfirm.gameObject:SetActive(false)
-    WwiseAudioMgr:PlaySound("ui_avg_choice_confirm")
-    WwiseAudioMgr:PlaySound("ui_avg_card_flyby")
+    local sAudioConfirm = "ui_avg_choice_confirm"
+    local sAudioFade = "ui_avg_card_flyby"
+    if self.D_bExist == true and self.D_bABC == true then
+      sAudioConfirm = "ui_mainline_choose_click"
+      sAudioFade = "ui_mainline_choose_over"
+    end
+    WwiseAudioMgr:PlaySound(sAudioConfirm)
+    WwiseAudioMgr:PlaySound(sAudioFade)
     self:_SetEmoji("close")
     self._mapNode.animBgRole:Play("animMajor_Out")
     local sChoiceAnim = ""
-    for i = 1, 3 do
+    local nCount = #self.tbCgChoice
+    for i = 1, nCount do
       NovaAPI.SetCanvasGroupBlocksRaycasts(self.tbCgChoice[i], false)
       NovaAPI.SetCanvasGroupInteractable(self.tbCgChoice[i], false)
       if i == self.nChosenIdx then
-        sChoiceAnim = "animMajorChoice_SetOut_" .. tostring(i)
+        if self.D_bExist == true and self.D_bABC == true then
+          sChoiceAnim = "animMajorChoice_SetOutEx"
+        else
+          sChoiceAnim = "animMajorChoice_SetOut_" .. tostring(i)
+        end
       else
         sChoiceAnim = "animMajorChoice_UnsetOut"
       end
       self.tbAnimChoice[i]:Play(sChoiceAnim)
     end
+    self:_PlayTipsAnim("animMajorChoice_TitleOut", nil)
     self.tbLogData.nType = AllEnum.AvgLogType.Choice
     self.tbLogData.sAvgId = nil
     self.tbLogData.sContent = ProcAvgTextContent(self.tbDesc[self.nChosenIdx], self._panel.nCurLanguageIdx)
@@ -537,7 +660,12 @@ function Avg_7_MajorChoiceCtrl:SelectUI()
   local nUIType = GamepadUIManager.GetCurUIType()
   if nUIType ~= AllEnum.GamepadUIType.Other then
     local nSelect = self.nChosenIdx ~= 0 and self.nChosenIdx or self.nFirstSelect
-    GamepadUIManager.SetSelectedUI(self.tbBtnChoice[nSelect].gameObject)
+    if type(nSelect) == "number" then
+      local btn = self.tbBtnChoice[nSelect]
+      if btn ~= nil and btn.gameObject ~= nil then
+        GamepadUIManager.SetSelectedUI(btn.gameObject)
+      end
+    end
   end
 end
 

@@ -182,6 +182,7 @@ local EventId = {
   SoldierInfoResp = 606,
   SoldierInteractResp = 607,
   SoldierGiveUpResp = 608,
+  EventReminder_Update = 650,
   GMToolShow = 998,
   GMToolClose = 998.1,
   GMToolClosePanel = 998.2,

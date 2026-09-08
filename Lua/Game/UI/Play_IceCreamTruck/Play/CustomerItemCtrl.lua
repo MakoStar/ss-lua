@@ -84,7 +84,7 @@ function CustomerItemCtrl:OnDisable()
   self:_KillScorePopupTimer()
   self:_KillOrderOutDoneTimer()
   self:ClearSpine()
-  self.CurSpineId = nil
+  self.CurSpineObj = nil
 end
 
 function CustomerItemCtrl:OnDestroy()
@@ -227,43 +227,43 @@ function CustomerItemCtrl:PlayVoice(nState)
 end
 
 function CustomerItemCtrl:CreatSpine(nId)
-  if self.CurSpineId then
+  if self.CurSpineObj then
     self:ClearSpine()
-    self.CurSpineId = nil
+    self.CurSpineObj = nil
   end
-  local nCurSpineID = SpineManager.Create(nId, self._mapNode.Char.transform)
-  if not nCurSpineID then
+  local nCurSpineObj = SpineManager.Create(nId, self._mapNode.Char.transform, PanelId.IceCreamTruckGamePanel)
+  if not nCurSpineObj then
     printError("Spine对象创建失败：" .. nId)
     return
   end
-  self.CurSpineId = nCurSpineID
+  self.CurSpineObj = nCurSpineObj
 end
 
 function CustomerItemCtrl:SetStatusSwitch(eState, bLoop, sNextLoop)
   self.CustomerState = eState
-  if not self.CurSpineId then
+  if not self.CurSpineObj then
     return
   end
   if bLoop == nil then
     bLoop = true
   end
-  SpineManager.PlayAnim(self.CurSpineId, eState, bLoop)
+  SpineManager.PlayAnim(self.CurSpineObj, eState, bLoop)
   if not bLoop and sNextLoop then
-    SpineManager.AddAnim(self.CurSpineId, sNextLoop, true, 0)
+    SpineManager.AddAnim(self.CurSpineObj, sNextLoop, true, 0)
   end
   self:PlayVoice(eState)
 end
 
 function CustomerItemCtrl:ClearSpine()
-  if self.CurSpineId then
-    SpineManager.Destroy(self.CurSpineId)
-    self.CurSpineId = nil
+  if self.CurSpineObj then
+    SpineManager.Destroy(self.CurSpineObj)
+    self.CurSpineObj = nil
   end
 end
 
 function CustomerItemCtrl:SetSpineSpeed()
-  if self.CurSpineId then
-    SpineManager.SetTimeScale(self.CurSpineId, self:_GetMoveScale())
+  if self.CurSpineObj then
+    SpineManager.SetTimeScale(self.CurSpineObj, self:_GetMoveScale())
     self.time = 0.37 / self:_GetMoveScale()
   end
 end
@@ -517,14 +517,7 @@ function CustomerItemCtrl:_KillOrderOutDoneTimer()
 end
 
 function CustomerItemCtrl:MoveTrIceIcon()
-  if not self.CurSpineId then
-    return
-  end
-  local spineGo = SpineManager.GetGameObject(self.CurSpineId)
-  if not spineGo then
-    return
-  end
-  local trParent = spineGo.transform:Find("Skeleton/hand_right")
+  local trParent = self.CurSpineObj.transform:Find("Skeleton/hand_right")
   if not trParent then
     return
   end
@@ -637,7 +630,7 @@ function CustomerItemCtrl:CustomerLeaveQueue(nCustomerId, bSucceed)
   self:SetStatusSwitch(ePerform, false)
   local eWalk = LEAVE_PERFORM_MAP[ePerform]
   local nGen = IceCreamTruckGameCtrl.GetRestartGen()
-  local fDur = SpineManager.GetAnimDuration(self.CurSpineId, ePerform)
+  local fDur = SpineManager.GetAnimDuration(self.CurSpineObj, ePerform)
   if fDur == nil or fDur <= 0 then
     fDur = FALLBACK_PERFORM_DURATION
   end
@@ -808,11 +801,11 @@ function CustomerItemCtrl:Event_Pause(bPause)
   if self.orderOutDoneTimer ~= nil then
     self.orderOutDoneTimer:Pause(bPause)
   end
-  if self.CurSpineId then
+  if self.CurSpineObj then
     if bPause then
-      SpineManager.Pause(self.CurSpineId)
+      SpineManager.Pause(self.CurSpineObj)
     else
-      SpineManager.Resume(self.CurSpineId)
+      SpineManager.Resume(self.CurSpineObj)
     end
   end
 end

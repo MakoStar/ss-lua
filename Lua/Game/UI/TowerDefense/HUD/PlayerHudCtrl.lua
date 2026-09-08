@@ -1,5 +1,7 @@
 local PlayerHudCtrl = class("PlayerHudCtrl", BaseCtrl)
 local barWidth = 122
+local chargeColor = Color(0.4, 1.0, 0.996078431372549, 1)
+local costColor = Color(0.9921568627450981, 0.3215686274509804, 0.4745098039215686, 1)
 PlayerHudCtrl._mapNodeConfig = {
   go_Level = {nCount = 6},
   go_LevelUpTips = {},
@@ -7,6 +9,7 @@ PlayerHudCtrl._mapNodeConfig = {
   bar = {
     sComponentName = "RectTransform"
   },
+  img_bar = {sNodeName = "bar", sComponentName = "Image"},
   go_levelUpDes = {},
   txt_upDes = {sComponentName = "TMP_Text"}
 }
@@ -14,6 +17,7 @@ PlayerHudCtrl._mapEventConfig = {
   TowerDefense_character_levelUp = "OnEvent_LevelUp",
   TowerDefensePointChange = "OnEvent_PointChange",
   ResetEnergy = "OnEvent_UpdateEnergy",
+  BeginSkill = "OnEvent_BeginSkill",
   TowerDefenseShowFullScreenPanel = "OnEvent_PauseEnergy",
   TowerDefenseShowHideScreenPanel = "OnEvent_ResumeEnergy",
   TowerDefenseFuncShow = "OnEvent_FuncShow",
@@ -110,6 +114,7 @@ function PlayerHudCtrl:OnEvent_UpdateEnergy(entityId, characterId, skillId, curC
   if characterId ~= self.nCharacterId then
     return
   end
+  NovaAPI.SetImageColor(self._mapNode.img_bar, chargeColor)
   local cdValue = curCd:AsFloat() or 0
   local cdMaxValue = maxCd:AsFloat() or 0
   cdValue = math.max(0, cdMaxValue - cdValue)
@@ -128,6 +133,25 @@ function PlayerHudCtrl:OnEvent_UpdateEnergy(entityId, characterId, skillId, curC
   else
     self._mapNode.bar.sizeDelta = Vector2(barWidth * ((cdMaxValue - cdValue) / cdMaxValue), self._mapNode.bar.sizeDelta.y)
   end
+end
+
+function PlayerHudCtrl:OnEvent_BeginSkill(entityId, characterId, skillId, totalTime)
+  if characterId ~= self.nCharacterId then
+    return
+  end
+  NovaAPI.SetImageColor(self._mapNode.img_bar, costColor)
+  local nTotalTime = totalTime:AsFloat() or 0
+  if self.tweener ~= nil then
+    self.tweener:Kill()
+  end
+  self._mapNode.skillBar:SetActive(true)
+  self.tweener = DOTween.To(function()
+    return 1
+  end, function(v)
+    self._mapNode.bar.sizeDelta = Vector2(barWidth * v, self._mapNode.bar.sizeDelta.y)
+  end, 0, nTotalTime):OnComplete(function()
+    self._mapNode.bar.sizeDelta = Vector2(0, self._mapNode.bar.sizeDelta.y)
+  end)
 end
 
 function PlayerHudCtrl:OnEvent_PauseEnergy()

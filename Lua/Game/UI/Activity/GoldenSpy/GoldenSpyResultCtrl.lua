@@ -68,7 +68,6 @@ function GoldenSpyResultCtrl:Awake()
   self.finishCallback = self.data.finishCallback
   self.goNextCallback = self.data.goNextCallback
   self.bSuccess = self.data.bSuccess
-  self.bCanGoNextLevel = self.data.bCanGoNextLevel
   self.goNextLevelCallback = self.data.goNextLevelCallback
   self.levelCfg = ConfigTable.GetData("GoldenSpyLevel", self.nLevelId)
   self.floorCfg = ConfigTable.GetData("GoldenSpyFloor", self.nCurFloorId)
@@ -189,7 +188,7 @@ end
 
 function GoldenSpyResultCtrl:OnBtnClick_GoNext2()
   EventManager.Hit(EventId.ClosePanel, self._panel._nPanelId)
-  if self.goNextCallback ~= nil then
+  if self.goNextLevelCallback ~= nil then
     self.goNextLevelCallback(self.nextGroupId, self.nextLevelId)
   end
 end

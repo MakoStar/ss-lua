@@ -14,6 +14,7 @@ function PlayerFriendData:Init()
   self._nEnergyCount = 0
   self._nPerReceiveEnergyConfig = ConfigTable.GetConfigNumber("FriendReceiveEnergyCount")
   self._nMaxReceiveEnergyConfig = ConfigTable.GetConfigNumber("FriendReceiveEnergyMax")
+  self.bAddStrangerWarning = true
 end
 
 function PlayerFriendData:CacheFriendData(mapMsgData)
@@ -108,7 +109,7 @@ function PlayerFriendData:CacheFriendAddStranger(mapFriend)
 end
 
 function PlayerFriendData:TryOpenFriendAddStranger()
-  if not self.mapStrangerFriend then
+  if not self.mapStrangerFriend or not self.bAddStrangerWarning then
     return
   end
   local mapFriend = clone(self.mapStrangerFriend)
@@ -120,6 +121,10 @@ function PlayerFriendData:TryOpenFriendAddStranger()
   end
   
   cs_coroutine.start(wait)
+end
+
+function PlayerFriendData:SetAddStrangerWarning(bAble)
+  self.bAddStrangerWarning = bAble
 end
 
 function PlayerFriendData:JudgeEnergyGetAble()

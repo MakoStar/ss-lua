@@ -47,7 +47,7 @@ function SkillSucBarCtrl:RefreshContent()
   local mapCfgData_Skill = ConfigTable.GetData_Skill(nId)
   local sDesc = ""
   if mapCfgData_Skill ~= nil then
-    sDesc = UTILS.ParseDesc(mapCfgData_Skill, GameEnum.levelTypeData.SkillSlot, nLevel)
+    sDesc = UTILS.ParseDesc(mapCfgData_Skill, GameEnum.levelTypeData.SkillSlot)
   end
   local nAddLv = self._panel.mapData.nAddLevel
   NovaAPI.SetTMPText(self._mapNode.txtNextLevel, nLevel)
