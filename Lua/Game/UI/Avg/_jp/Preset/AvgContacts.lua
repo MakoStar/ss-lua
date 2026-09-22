@@ -184,6 +184,14 @@ return {
     signature = "休養中、復職時期は未定"
   },
   {
+    id = 139,
+    icon = "Icon/Head/head_13901_S",
+    name = "***",
+    landmark = "ミラーシュ ヒナギクの家",
+    signature = "従業員は募集していません",
+    ver = "1.16.0"
+  },
+  {
     id = 140,
     icon = "Icon/Head/head_14001_S",
     name = "スパクル",
