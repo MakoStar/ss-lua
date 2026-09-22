@@ -4007,7 +4007,7 @@ return {
       "",
       false,
       "",
-      "Good. I've got a commission perfect for a beginner. Standard monster subjugation. Want to take it?",
+      "Good. I've got a commission perfect for a beginner. Want to take it?",
       ""
     }
   },
@@ -9608,7 +9608,7 @@ return {
       "",
       false,
       "",
-      "Thanks to you, now we have even more explanations to do.",
+      "Thanks to you, now we have even more explaining to do.",
       ""
     }
   },

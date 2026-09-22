@@ -3708,7 +3708,7 @@ return {
       "",
       false,
       "",
-      "Heheh, hot like me. I drive Iris crazy all the time.==W== Good thing she's so forgiving and always lets me off the hook.",
+      "Heheh, not like me. I drive Iris crazy all the time.==W== Good thing she's so forgiving and always lets me off the hook.",
       ""
     }
   },
