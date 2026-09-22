@@ -184,6 +184,14 @@ return {
     signature = "休假中，歸期未定"
   },
   {
+    id = 139,
+    icon = "Icon/Head/head_13901_S",
+    name = "***",
+    landmark = "米拉什雛菊孤兒院",
+    signature = "照顧孩子中…",
+    ver = "1.16.0"
+  },
+  {
     id = 140,
     icon = "Icon/Head/head_14001_S",
     name = "斯帕克拉",

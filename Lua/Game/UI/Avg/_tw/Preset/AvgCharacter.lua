@@ -3089,6 +3089,48 @@ return {
     ver = "2.1.0"
   },
   {
+    id = "avg3_1321",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg2_940",
+    ver = "2.2.0"
+  },
+  {
+    id = "avg3_1322",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg2_940",
+    ver = "2.2.0"
+  },
+  {
+    id = "avg3_1323",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg2_940",
+    ver = "2.2.0"
+  },
+  {
+    id = "avg3_1324",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg2_940",
+    ver = "2.2.0"
+  },
+  {
+    id = "avg3_1325",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_219",
+    ver = "1.16.0"
+  },
+  {
+    id = "avg3_1326",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_219",
+    ver = "1.16.0"
+  },
+  {
     id = "avg4_100",
     name = "菈露發光",
     name_bg_color = "#0ABEC5"
