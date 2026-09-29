@@ -186,7 +186,7 @@ return {
   {
     id = 139,
     icon = "Icon/Head/head_13901_S",
-    name = "***",
+    name = "艾蕾",
     landmark = "米拉什雛菊孤兒院",
     signature = "照顧孩子中…",
     ver = "1.16.0"
