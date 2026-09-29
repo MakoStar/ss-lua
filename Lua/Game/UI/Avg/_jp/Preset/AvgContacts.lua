@@ -186,7 +186,7 @@ return {
   {
     id = 139,
     icon = "Icon/Head/head_13901_S",
-    name = "***",
+    name = "エリー",
     landmark = "ミラーシュ ヒナギクの家",
     signature = "従業員は募集していません",
     ver = "1.16.0"

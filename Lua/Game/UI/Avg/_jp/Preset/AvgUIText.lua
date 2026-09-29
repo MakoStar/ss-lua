@@ -4,10 +4,12 @@ return {
   AVG_ImportantChoice = "選択肢 %d",
   AVG_ImportantChoice_BE = "バッドエンドへ",
   AVG_ImportantChoice_Choosed = "選択済み",
-  AVG_ImportantChoice_Disable = "選択不可",
+  AVG_ImportantChoice_Disable = "ここはもう行きました",
   AVG_ImportantChoice_Match = "対応する選択肢",
-  AVG_ImportantChoice_UnknownDesc = "何か足りないみたい",
-  AVG_ImportantChoice_UnknownTitle = "なにか足りないみたいだ",
+  AVG_ImportantChoice_NewChoiceTips1 = "新しい選択肢が現れました",
+  AVG_ImportantChoice_NewChoiceTips2 = "最後の道",
+  AVG_ImportantChoice_UnknownDesc = "もっと情報があれば……",
+  AVG_ImportantChoice_UnknownTitle = "未知の道",
   AVG_Log_Choice_Title = "《選択肢》",
   AVG_Log_Thought_Title = "%s",
   AVG_Log_Title = "ログ",
@@ -31,7 +33,25 @@ return {
       "むすめ",
       "わかもの"
     },
+    ["==SEX16=="] = {
+      "魔女",
+      "ウィザード"
+    },
+    ["==SEX17=="] = {"少女", "少年"},
+    ["==SEX18=="] = {
+      "スカート",
+      "ズボン"
+    },
+    ["==SEX19=="] = {"メイド", "執事"},
     ["==SEX1=="] = {"彼女", "彼"},
+    ["==SEX20=="] = {
+      "ブラウス",
+      "シャツ"
+    },
+    ["==SEX21=="] = {
+      "嬢ちゃん",
+      "兄ちゃん"
+    },
     ["==SEX2=="] = {"姉さん", "兄さん"},
     ["==SEX3=="] = {
       "お姉さん",

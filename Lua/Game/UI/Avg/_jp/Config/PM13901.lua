@@ -7,13 +7,13 @@ return {
     cmd = "SetPhoneMsg",
     param = {
       0,
-      "avg1_112",
+      "avg1_139",
       "",
       "0",
       "",
       false,
       "",
-      "やっほー魔王さん！",
+      "これでフレンドになれたのかしら？",
       ""
     }
   },
@@ -21,13 +21,13 @@ return {
     cmd = "SetPhoneMsg",
     param = {
       0,
-      "avg1_112",
+      "avg1_139",
       "",
       "0",
       "",
       false,
       "",
-      "メッセージ届いてる？",
+      "このメッセージ、送れてる？",
       ""
     }
   },
@@ -35,316 +35,7 @@ return {
     cmd = "SetPhoneMsgChoiceBegin",
     param = {
       "1",
-      "届いてる",
-      "おかしいな、届いてないぞ？",
-      "",
-      "",
-      "",
-      "",
-      "avg3_100"
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceJumpTo",
-    param = {"1", "1"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "届いてる",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "届いてる届いてる届いてる",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "すまない。焦って操作を間違えた",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "なら私が初めてケータイを使ったときと同じだ！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "あのときは何度も送信ボタン押しちゃったんだよねー",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceJumpTo",
-    param = {"1", "2"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "おかしいな、届いてないぞ？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "そうなの？ケータイ壊れてる？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "新しいのを買うといくらかかるんだろう？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "とりあえずアヤメにも聞いとくよ！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      4,
-      "avg3_100",
-      "emoji_joy_a",
-      "0",
-      "",
-      false,
-      "",
-      "",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "ってそれじゃあこのやりとりは！？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      3,
-      "avg1_112",
-      "emoji_angry_b",
-      "0",
-      "",
-      false,
-      "",
-      "",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      4,
-      "avg3_100",
-      "emoji_distract_a",
-      "0",
-      "",
-      false,
-      "",
-      "",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "ごめんごめん。どんな反応が返ってくるか気になって",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "いや、ちゃんと届いてるならいいんだけどさ",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceEnd",
-    param = {"1"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "あ、それよりも",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "なにかあったときは、遠慮なく私に連絡してね！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "キミを塔から連れ出した責任は、ちゃんと取るつもりだから！",
-      ""
-    }
-  },
-  {
-    cmd = "SetGroupId",
-    param = {"02"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "今日のヨタカブレッドはおがくずを食べてるような気分になってくる…",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceBegin",
-    param = {
-      "1",
-      "賞味期限切れじゃないか？",
+      "送れているよ",
       "",
       "",
       "",
@@ -367,7 +58,7 @@ return {
       "",
       false,
       "",
-      "賞味期限切れじゃないか？",
+      "送れているよ",
       ""
     }
   },
@@ -375,13 +66,13 @@ return {
     cmd = "SetPhoneMsg",
     param = {
       0,
-      "avg1_112",
+      "avg1_139",
       "",
       "0",
       "",
       false,
       "",
-      "それはないよ",
+      "ああ、よかった",
       ""
     }
   },
@@ -389,2518 +80,26 @@ return {
     cmd = "SetPhoneMsg",
     param = {
       0,
-      "avg1_112",
+      "avg1_139",
       "",
       "0",
       "",
       false,
       "",
-      "備蓄品はアヤメが徹底的に管理してるし",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "それに古くなったヨタカブレッドって、レンガみたいに固くなるからね",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "それはイヤだな…",
+      "こういうので話すのってはじめてなのよね",
       ""
     }
   },
   {
     cmd = "SetPhoneMsgChoiceEnd",
     param = {"1"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      3,
-      "avg1_112",
-      "emoji_sad_b",
-      "0",
-      "",
-      false,
-      "",
-      "",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "この食感は何度食べても慣れないなぁ",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "焼きたてのヨタカブレッドはもうちょっと柔らかくて、優しい木の香りがするのに",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "でも焼きたてなんて、めったに手に入らないし。前はそこで運を使っちゃったからか、しばらく散々な目に遭ったし…",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "あの食感が恋しいよ",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "ないものを欲しがるくらいなら",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "手に入れる方法を考えよう",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "お？いいアイディアでもあるの！？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "運を良くするとか",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "運？お金じゃなくて？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      3,
-      "avg1_112",
-      "emoji_question_b",
-      "0",
-      "",
-      false,
-      "",
-      "",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "お金もそうだが",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "レアものを手に入れるなら、運は欠かせない",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "物事はいろんな方向から考えないと",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "たしかにそうかも！？さすが魔王さん！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "コハクとアヤメにもいい案がないか聞いてみる！",
-      ""
-    }
-  },
-  {
-    cmd = "SetGroupId",
-    param = {"03"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "私の録画箱知らない！？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      3,
-      "avg1_112",
-      "emoji_cry_b",
-      "0",
-      "",
-      false,
-      "",
-      "",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceBegin",
-    param = {
-      "1",
-      "どこに置いたんだ？",
-      "どれのことだ？最後に見たのは？",
-      "",
-      "",
-      "",
-      "",
-      "avg3_100"
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceJumpTo",
-    param = {"1", "1"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "どこに置いたんだ？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "最初はミドリちゃんのシートかと思ったんだよ",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "この前もロスレコを置きっぱにして",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "お尻で潰しちゃいそうだったから",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "でも見に行ったけどなくて…",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceJumpTo",
-    param = {"1", "2"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "どれのことだ？最後に見たのは？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "な、なんか一気に質問が…",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "あれは",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "『クマクマ大冒険』の録画箱なんだけど…",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "最後に見たのは…",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "全然思い出せないー！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceEnd",
-    param = {"1"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "あっ！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "ん？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "アヤメが見つけてくれたって！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "どこにあったんだ？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "ソファの後ろの隙間。そりゃ気づかないはずだよ",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "アヤメが床に落ちたドーラを拾おうとしたときに見つけたみたい",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "ほんとによかった！『クマクマ大冒険』の録画箱、失くしたら立ち直れないから",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "ならよかった。でも今度からは観終わったら元の場所に戻すように",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "そうすれば失くすことはないはずだから",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "はーい！",
-      ""
-    }
-  },
-  {
-    cmd = "SetGroupId",
-    param = {"04"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "昨日すごく怖い夢を見て",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceBegin",
-    param = {
-      "1",
-      "どんな夢だったんだ？",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "avg3_100"
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceJumpTo",
-    param = {"1", "1"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "どんな夢だったんだ？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceEnd",
-    param = {"1"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "ミドリちゃんとブラウディが闘う夢で",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "ミドリちゃんが人型ロボットに変形して",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "ブラウディと激しい戦いを繰り広げたの！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "ちなみにそのブラウディってのは？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "私が持ってるクマのぬいぐるみだよ",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "夢の中のブラウディは、星ノ塔よりもずっと大きくて。アモールのモニュメントを前足で折っちゃうくらいね",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "だけどミドリちゃんだって負けてなかったよ。ブラウディをずるずる引っ張って、水道橋を押しつぶしちゃったんだから",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "そしたらミドリちゃんのクーラント液とブラウディの綿が一面に散らばって…",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "とにかくものすっごい戦いだったんだよ",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "結局、どっちが勝ったんだ？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "それが分からないんだよねー。23ラウンド目で、アモールの星ノ塔が爆発しちゃってさ",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "最後には、ブラウディが泣きながらミドリちゃんを胸に抱いて、一緒に火の中に飛び込んで",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      3,
-      "avg1_112",
-      "emoji_cry_b",
-      "0",
-      "",
-      false,
-      "",
-      "",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "よくわからないけど、闘いの中でいろんなドラマがあったんだろうな",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "そうなの！覚えてる話、全部教えてあげるね！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "あ。でもメッセージだと大変だから、やっぱり直接話すことにするよ",
-      ""
-    }
-  },
-  {
-    cmd = "SetGroupId",
-    param = {"05"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "問題！今日の買い出しで何を買ったでしょーか？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceBegin",
-    param = {
-      "1",
-      "ずっと欲しがってたクーラント液？",
-      "焼きたてのバタークッキー？",
-      "ネコちゃん絵柄のプチビスケット？",
-      "",
-      "",
-      "",
-      "avg3_100"
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceJumpTo",
-    param = {"1", "1"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "ずっと欲しがってたクーラント液？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "違いまーす！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceJumpTo",
-    param = {"1", "2"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "焼きたてのバタークッキー？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "違いまーす！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceJumpTo",
-    param = {"1", "3"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "ネコちゃん絵柄のプチビスケット？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "違いまーす！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceEnd",
-    param = {"1"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "答えは？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "答えは…",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "なんと高級ステーキ肉でーす！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "で、本当は？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      4,
-      "avg3_100",
-      "emoji_cranky_a",
-      "0",
-      "",
-      false,
-      "",
-      "",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "本当だってば！夜ご飯は焼きたてジューシーなステーキなの！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "これでようやくヨタカブレッド生活とおさらばだな！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "普通の料理が食べられるなんて、何年ぶりだろう…",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "いやいや。その頃はまだ魔王さんと出会ってすらいないし",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "毎日木みたいなパンをかじってると、1日が1年くらいに感じるんだよ",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "とにかく、今日は遠慮しないでいっぱい食べてね！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "ありがとう。セイナの料理、楽しみにしてるよ",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "任せて！張り切っちゃうから！",
-      ""
-    }
-  },
-  {
-    cmd = "SetGroupId",
-    param = {"06"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      3,
-      "avg1_112",
-      "emoji_sigh_b",
-      "0",
-      "",
-      false,
-      "",
-      "",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "私の青春が終わっちゃった…",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceBegin",
-    param = {
-      "1",
-      "いきなりどうしたんだ？",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "avg3_100"
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceJumpTo",
-    param = {"1", "1"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "いきなりどうしたんだ？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceEnd",
-    param = {"1"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "ずっと読んでた『巡遊者ストーリーズ』が終わっちゃったんだ…",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "巡遊者ストーリーズ？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "セイナがよく読んでた小説のことか？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "それそれ",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "本編で明かされなかった伏線を外伝で回収するのかと思って期待したんだけど",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "そうじゃなかったみたい",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "むしろ謎が増えただけで終わっちゃったんだよ",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "ならまだストーリーは続くんじゃないか？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "たしかに魔王さんの言うとおりかも？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "外伝の外伝とか！？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "そうだ！いいこと思いついた！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      4,
-      "avg3_100",
-      "emoji_question_a",
-      "0",
-      "",
-      false,
-      "",
-      "",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "作者さんに手紙を書こう！外伝の外伝も楽しみにしてますって！",
-      ""
-    }
-  },
-  {
-    cmd = "SetGroupId",
-    param = {"07"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "おーい魔王さん？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "今日アヤメは試験なんだって",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "コハクは子ネコが生まれたばっかりのママネコのお世話に行っちゃったし",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "ようするに、今日もふたりで留守番ってことなんだよ",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      3,
-      "avg1_112",
-      "emoji_cranky_b",
-      "0",
-      "",
-      false,
-      "",
-      "",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceBegin",
-    param = {
-      "1",
-      "つまり？",
-      "言いたいことはわかる",
-      "",
-      "",
-      "",
-      "",
-      "avg3_100"
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceJumpTo",
-    param = {"1", "1"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "つまり？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "忘れちゃった？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "前にふたりで留守番してたときのこと",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "事故のことか？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "あのときは本当に大変だったな",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "いやいやそれじゃなくて！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "違う？まさか…",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceJumpTo",
-    param = {"1", "2"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "言いたいことはわかる",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "まさかとは思うけど…",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceEnd",
-    param = {"1"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "ドライブしたいとか？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "ピンポン！大正解！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "でも大丈夫！今回は事故ったりしないから！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "アヤメとも約束したし",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "そこまでしてドライブがしたいのか？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "うん！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "もちろん！！！！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "わかったよ",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "たしかに前回は楽しかったし",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "ただし安全運転で頼む",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "よーし、そうと決まれば今すぐ出発しよう！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      3,
-      "avg1_112",
-      "emoji_great_b",
-      "0",
-      "",
-      false,
-      "",
-      "",
-      ""
-    }
-  },
-  {
-    cmd = "SetGroupId",
-    param = {"08"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "魔王さん！！！！！！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "ピーチにスイートオレンジにレモンにグレープにコーラ",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "とにかく朝起きて枕元を見たら",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "いろんな味のパチパチメテオが置いてあったんだけど！！！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "魔王さん知ってる？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceBegin",
-    param = {
-      "1",
-      "今日はセイナの誕生日だから",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "avg3_100"
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceJumpTo",
-    param = {"1", "1"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "今日はセイナの誕生日だから",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "そうだけど！！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "じゃあこれ全部、私へのプレゼント！？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceEnd",
-    param = {"1"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "もちろん",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "ありがとーーーー！！！！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      3,
-      "avg1_112",
-      "emoji_flower_b",
-      "0",
-      "",
-      false,
-      "",
-      "",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "こんなにいろんな種類、集めるの大変だったでしょ？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "大したことじゃない。パチパチメテオが大量に出てくる星ノ塔を調べてから行ったし",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "コハクとアヤメにも手伝ってもらって",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "みんなで持って帰ってきたんだ",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "そっか。ならふたりが帰ってきてから飲もうっと",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "あのふたりは気にしないと思うけど",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "私が待ちたいの！みんながくれたプレゼントだし、シェアしたいんだよ！",
-      ""
-    }
-  },
-  {
-    cmd = "SetGroupId",
-    param = {"09"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "次からは、もっと難しい任務を受けてみようよ！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      3,
-      "avg1_112",
-      "emoji_pride_b",
-      "0",
-      "",
-      false,
-      "",
-      "",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "いまの私は確実にレベルアップしてるし！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceBegin",
-    param = {
-      "1",
-      "ならアヤメがやってる問題集も解ける？",
-      "凄腕アルバイターの称号を贈ろう",
-      "パチパチメテオをプレゼントだ",
-      "",
-      "",
-      "",
-      "avg3_100"
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceJumpTo",
-    param = {"1", "1"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "ならアヤメがやってる問題集も解ける？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "やっぱり今日はもう休もうかなー",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceJumpTo",
-    param = {"1", "2"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "凄腕アルバイターの称号を贈ろう",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "やったー！ありがたき幸せー！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceJumpTo",
-    param = {"1", "3"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "パチパチメテオをプレゼントだ",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "ホントにいいの！？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceEnd",
-    param = {"1"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "これからの活躍も楽しみにしてるよ",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "レベル999のゼリゼリみたいにな",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "レベル999のゼリゼリって全然強くなさそうなんだけど…",
-      ""
-    }
-  },
-  {
-    cmd = "SetGroupId",
-    param = {"10"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "いつの間にか、たくさんロスレコが集まったね！",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "これなんて空白旅団のイラストがカバーになってるよ",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceBegin",
-    param = {
-      "1",
-      "きっといい記憶なんだろうな",
-      "",
-      "",
-      "",
-      "",
-      "",
-      "avg3_100"
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceJumpTo",
-    param = {"1", "1"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "きっといい記憶なんだろうな",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsgChoiceEnd",
-    param = {"1"}
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "どんな内容でも、みんなで一緒に頑張ったことが記憶に残るなら",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "それって幸せなことなんだと思う",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      4,
-      "avg3_100",
-      "emoji_comfort_a",
-      "0",
-      "",
-      false,
-      "",
-      "",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      3,
-      "avg1_112",
-      "emoji_question_b",
-      "0",
-      "",
-      false,
-      "",
-      "",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "みんなと一緒に旅ができて",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "私も幸せだ",
-      "僕も幸せだ"
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      0,
-      "avg1_112",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "魔王さんもそう思う？",
-      ""
-    }
   },
   {
     cmd = "SetPhoneMsgChoiceBegin",
     param = {
       "2",
-      "もちろん",
-      "たぶん？",
+      "ケータイを使うのははじめて？",
+      "空白旅団のみんなと話さないの？",
       "",
       "",
       "",
@@ -2922,7 +121,7 @@ return {
       "",
       false,
       "",
-      "もちろん",
+      "ケータイを使うのははじめて？",
       ""
     }
   },
@@ -2930,13 +129,13 @@ return {
     cmd = "SetPhoneMsg",
     param = {
       0,
-      "avg1_112",
+      "avg1_139",
       "",
       "0",
       "",
       false,
       "",
-      "なんだかプロポーズみたい！",
+      "一応……使ったことはあるのだけど……",
       ""
     }
   },
@@ -2944,13 +143,27 @@ return {
     cmd = "SetPhoneMsg",
     param = {
       0,
-      "avg1_112",
+      "avg1_139",
       "",
       "0",
       "",
       false,
       "",
-      "コハクとアヤメにも転送しよーっと",
+      "メッセージを送るような相手もいなかったから",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "あまり使うこともなかったのよね",
       ""
     }
   },
@@ -2968,77 +181,7 @@ return {
       "",
       false,
       "",
-      "たぶん？",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      3,
-      "avg1_112",
-      "emoji_cranky_b",
-      "0",
-      "",
-      false,
-      "",
-      "",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      3,
-      "avg1_112",
-      "emoji_cranky_b",
-      "0",
-      "",
-      false,
-      "",
-      "",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      3,
-      "avg1_112",
-      "emoji_cranky_b",
-      "0",
-      "",
-      false,
-      "",
-      "",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "いや",
-      ""
-    }
-  },
-  {
-    cmd = "SetPhoneMsg",
-    param = {
-      1,
-      "avg3_100",
-      "",
-      "0",
-      "",
-      false,
-      "",
-      "絶対",
+      "空白旅団のみんなと話さないの？",
       ""
     }
   },
@@ -3046,13 +189,2427 @@ return {
     cmd = "SetPhoneMsg",
     param = {
       0,
-      "avg1_112",
+      "avg1_139",
       "",
       "0",
       "",
       false,
       "",
-      "魔王さんから突然のプロポーズ！コハクとアヤメにも転送しよっと！",
+      "じつはね……",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "あの子たちが巣立った頃は、ケータイを買うお金がなくて",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "魔王さんが、あの子たちを連れてきてくれたおかげで",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "やっとフレンドに追加できたわ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceEnd",
+    param = {"2"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "そうだったのか",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "あ、そろそろ子どもたちの食事の時間だわ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "また暇なときにお話ししましょうね♪",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_rose",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetGroupId",
+    param = {"02"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      3,
+      "avg1_139",
+      "emoji_awkward_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_question_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "なにかあったのか？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "そういうわけじゃないわ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "ただスタンプを使ってみたくて",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "これは『お疲れさま』って意味よね？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceBegin",
+    param = {
+      "1",
+      "たぶんちがうと思う",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceJumpTo",
+    param = {"1", "1"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "たぶんちがうと思う",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceEnd",
+    param = {"1"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "え？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "お仕事明けに汗をかきながら",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "お疲れさまって言っている表情じゃないの？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_nope",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "だとしたら本当はどういう意味なのかしら？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "アヤメもなにかと私に同じスタンプを送ってくるから",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "てっきり、挨拶だと思っていたのだけど…",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "ふむ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "アヤメが汗のスタンプを送るのは、おそらく……",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "お疲れさまではなく、本当に疲れているのかも",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_awkward_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "えっ！？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "そうなの！？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_awkward_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "待って、魔王さんも疲れているの？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "みんな無理したらダメよ？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "いや、これは『疲れた』という意味ではなく…",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "とにかく、アヤメにも忠告しておくよ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_nope",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetGroupId",
+    param = {"03"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "魔王さん、毎日ちゃんと食べてる？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceBegin",
+    param = {
+      "1",
+      "さっき食べたよ",
+      "今日はまだなんだ…",
+      "",
+      "",
+      "",
+      "",
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceJumpTo",
+    param = {"1", "1"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "さっき食べたよ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_joy_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "あらあら、いい子ね♪",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceJumpTo",
+    param = {"1", "2"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "今日はまだなんだ…",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_distract_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "食事よりも大事なことがあるの？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "体が第一なんだから、きちんと食べるのよ？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_awkward_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "さっきまで緊急の依頼をこなしていたんだ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "いま終わったところだから",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "これからみんなで食べるよ！",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_pride_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceEnd",
+    param = {"1"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "えらいえらい♡",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      3,
+      "avg1_139",
+      "emoji_comfort_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetGroupId",
+    param = {"04"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "雨が降るなんて思わなかったわ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "魔王さんは傘は持っていたかしら？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceBegin",
+    param = {
+      "1",
+      "忘れてしまったんだ",
+      "持ってきたよ",
+      "",
+      "",
+      "",
+      "",
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceJumpTo",
+    param = {"1", "1"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "忘れてしまったんだ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_sad_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "だが、雨宿りできる場所を見つけてね",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "空白旅団のみんなが迎えに来てくれる",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_joy_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceJumpTo",
+    param = {"1", "2"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "持ってきたよ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_pride_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "出先でなにが起こるかわからないからね",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceEnd",
+    param = {"1"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "だから安心してくれ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "それならよかったわ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "砂漠で突然、こんな大雨に降られるなんて",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "全然予想していなかったよ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "私もミラーシュでははじめての経験よ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "最近、気候が不安定だったからね",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "もしかして誰かが魔法を使っているとか？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_surprise_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "それはさすがに難しいんじゃないかしら",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "それもそうだね",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "あ！",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "オアシス号が見えた！",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "いまから帰るよ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "気をつけていらっしゃいね",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "もちろん！",
+      ""
+    }
+  },
+  {
+    cmd = "SetGroupId",
+    param = {"05"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "魔王さん、ちょっと聞いてくれる？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceBegin",
+    param = {
+      "1",
+      "かまわないよ",
+      "おもしろい話？",
+      "",
+      "",
+      "",
+      "",
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceJumpTo",
+    param = {"1", "1"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "かまわないよ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "昔のお布団が出てきて懐かしくなっちゃって",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "誰かと話したかったのよね",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "セイナが子どもの頃の話",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceJumpTo",
+    param = {"1", "2"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "おもしろい話？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "きっとおもしろいと思うわ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "なんてったって",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "セイナが子どもの頃の話だもの",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceEnd",
+    param = {"1"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_surprise_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "セイナってね、寝てるときも元気な子どもだったのよ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "よくお布団を蹴っ飛ばしたりしてね",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "直しても直しても、気づいたらまたお布団がなくなっていて",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "それで、ある解決策を考えたの",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "どんな方法なんだ？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "ベッドとお布団を紐で結びつけたの",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "これなら蹴られないでしょ？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "紐はセイナが起きる前にほどいていたから、一度も気づかれなかったわ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_nope",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "…予想以上に力技だった",
+      ""
+    }
+  },
+  {
+    cmd = "SetGroupId",
+    param = {"06"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "まおうさま！まおうさま！",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "いつまたあそべるの？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceBegin",
+    param = {
+      "1",
+      "君は？",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceJumpTo",
+    param = {"1", "1"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "君は？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceEnd",
+    param = {"1"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "あ！",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "ごめんなさいね",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "さっき子どもたちにケータイを取られてしまったの",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "そういうことか",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "この前子どもたちと遊んでくれたでしょう？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "みんな、またあなたに会いたいって言っているわ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "いまでは『魔王様』はヒナギクの家の人気者なの",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_sing_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "それほどでも",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "それに私もももももももももも",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "エリー？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "まおうさま！",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "ぼくもまおうさまとおはなししししたい！",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_surprise_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "えっと、もしかして…",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "ご、ごめんなさい！",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "魔王さんと話したいって、子どもたちが聞かなくて",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "いまからそっちに行こうか？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "いいの？迷惑じゃない？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_pride_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "気にすることはないさ==RT==子どもたちにも伝えておいてくれ",
+      ""
+    }
+  },
+  {
+    cmd = "SetGroupId",
+    param = {"07"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "もう遅い時間なのにまだ起きているの？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "オアシス号の明かりが消えていないみたいだけど",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceBegin",
+    param = {
+      "1",
+      "もう寝ているよ",
+      "消し忘れていただけだよ",
+      "",
+      "",
+      "",
+      "",
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceJumpTo",
+    param = {"1", "1"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "もう寝ているよ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      3,
+      "avg1_139",
+      "emoji_sneaky_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "あら？それなら寝ながらこの返事を書いているのかしら？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceJumpTo",
+    param = {"1", "2"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "消し忘れていただけだよ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      3,
+      "avg1_139",
+      "emoji_sneaky_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "そんなに明るかったら、眠れないんじゃないの？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceEnd",
+    param = {"1"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "正直に答えて",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "あなたたち、遅くまでなにをしているの？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "じつは…",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "願掛けで持ち帰ったステラキネマを見ていたんだ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_sad_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "まったく",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "また夜更かしして",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "す、すまない…",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_sad_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "今日はもう寝ることにするよ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      3,
+      "avg1_139",
+      "emoji_comfort_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "そう言うエリーは寝ないのか？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "子どもたちのお布団をかけ直していたの",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "そうしたらオアシス号の明かりが見えて",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_surprise_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "あなたたちも早く寝なさいね",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "私ももう寝るから==RT==おやすみなさい",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "ああ、おやすみ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_nope",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetGroupId",
+    param = {"08"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "魔王さん、今日は空いているかしら？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceBegin",
+    param = {
+      "1",
+      "誕生日おめでとう！",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceJumpTo",
+    param = {"1", "1"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "誕生日おめでとう！",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_rose",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "え？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceEnd",
+    param = {"1"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "今日はエリーの誕生日だろう？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "ちょっと待ってね==RT==確認してくるわ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "本当だわ…時間がたつのって早いのね",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_cheerup_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "お祝いの言葉、うれしいわ==RT==ありがとう",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_rose",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "それで魔王さん、今日は忙しい？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceBegin",
+    param = {
+      "2",
+      "空いているよ",
+      "どうしたんだ？",
+      "",
+      "",
+      "",
+      "",
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceJumpTo",
+    param = {"2", "1"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "空いているよ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceJumpTo",
+    param = {"2", "2"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "どうしたんだ？",
       ""
     }
   },
@@ -3064,13 +2621,41 @@ return {
     cmd = "SetPhoneMsg",
     param = {
       0,
-      "avg1_112",
+      "avg1_139",
       "",
       "0",
       "",
       false,
       "",
-      "ん？アヤメから伝言だ",
+      "『ヒナギクの家』に夕飯を食べに来ない？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "いいね==RT==誕生日ケーキも持っていくよ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_joy_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
       ""
     }
   },
@@ -3078,13 +2663,27 @@ return {
     cmd = "SetPhoneMsg",
     param = {
       0,
-      "avg1_112",
+      "avg1_139",
       "",
       "0",
       "",
       false,
       "",
-      "今日の夕飯は材料を好きに使っていいから、とびきりおいしいものを作ってね",
+      "ケーキなんていらないわ==RT==魔王さんが来てくれるだけで十分よ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "いやいや、誕生日はケーキがないと始まらないだろう？",
       ""
     }
   },
@@ -3092,13 +2691,13 @@ return {
     cmd = "SetPhoneMsg",
     param = {
       0,
-      "avg1_112",
+      "avg1_139",
       "",
       "0",
       "",
       false,
       "",
-      "だって",
+      "なら、お言葉に甘えさせてもらおうかしら",
       ""
     }
   },
@@ -3106,13 +2705,59 @@ return {
     cmd = "SetPhoneMsg",
     param = {
       0,
-      "avg1_112",
+      "avg1_139",
       "",
       "0",
       "",
       false,
       "",
-      "追加で買い出しする費用も出してくれたから",
+      "楽しみにしているわ==RT==またあとでね",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "ああ、またあとで",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_bye_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetGroupId",
+    param = {"09"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "みんな本当に強くなったわね",
       ""
     }
   },
@@ -3120,13 +2765,584 @@ return {
     cmd = "SetPhoneMsg",
     param = {
       0,
-      "avg1_112",
+      "avg1_139",
       "",
       "0",
       "",
       false,
       "",
-      "魔王さんも夕飯は楽しみにしててね！",
+      "セイナも、コハクも、アヤメも",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_great_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "空白旅団はたくましいよ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "そうね",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "これならもう過剰に心配しなくてもよさそう",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "セイナと戦ったら負けちゃうかも",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "それはさすがにないのではないか？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "エリーはまだまだ強いよ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "みんなとの連携技も素晴らしかったし",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "あれは、あの子たちのおかげよ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "コハクとアヤメが私に上手く合わせてくれたから",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "いやいやいや",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "エリーがみんなを引っ張ったからこその戦果だと思う",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "そう言ってもらえるとうれしいわ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "なら、そういうことにしておこうかしら",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "でもあの子たちの成長が早いのを見ると",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "私も少しプレッシャーを感じるわね",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "負けないように、もっと特訓しないと♪",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_nope",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "魔王さんも、がんばってね",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_heart_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetGroupId",
+    param = {"10"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "この記憶は…",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "劇団白猫のみんな…",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceBegin",
+    param = {
+      "1",
+      "エリー？",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceJumpTo",
+    param = {"1", "1"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "エリー？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsgChoiceEnd",
+    param = {"1"}
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "いいえ、なんでもないわ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "心配しないで",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "ちょっと不思議な気持ちになっただけだから",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "このロスレコのせいかしら",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_distract_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "ねえ、魔王さん",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "ターフェアイトはもういない",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "私は『ヒナギクの家』のママ、エリー…==RT==そうよね？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "もちろん",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "君は、子どもたちが大好きなエリーママだ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_flower_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      3,
+      "avg1_139",
+      "emoji_tete_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "だから魔王さん、お願いがあるの",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      0,
+      "avg1_139",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "このロスレコのことは、ふたりのヒミツにしてくれない？",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      "0",
+      "",
+      false,
+      "",
+      "ああ、もちろんだ",
+      ""
+    }
+  },
+  {
+    cmd = "SetPhoneMsg",
+    param = {
+      4,
+      "avg3_100",
+      "emoji_heart_a",
+      "0",
+      "",
+      false,
+      "",
+      "",
       ""
     }
   },
