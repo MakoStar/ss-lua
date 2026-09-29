@@ -1,5 +1,6 @@
 local GoldenSpyHookCtrl = class("GoldenSpyHookCtrl", BaseCtrl)
 local SpineManager = require("Game.Spine.SpineManager")
+local WwiseAudioMgr = CS.WwiseAudioManager.Instance
 local MaxOffset = 20
 local MinOffset = 10
 local OffsetDir = {
@@ -26,6 +27,10 @@ GoldenSpyHookCtrl._mapNodeConfig = {
     sNodeName = "hook",
     sComponentName = "RectTransform"
   },
+  trNet = {
+    sNodeName = "net_Hook",
+    sComponentName = "RectTransform"
+  },
   rtMaxLengthArea = {
     sNodeName = "MaxLengthArea",
     sComponentName = "RectTransform"
@@ -40,13 +45,17 @@ GoldenSpyHookCtrl._mapNodeConfig = {
   hook_catched = {},
   nethookRoot = {},
   nethook_normal = {},
-  nethook_catched = {}
+  nethook_catched = {},
+  net_Hook = {}
 }
 GoldenSpyHookCtrl.DefaultLineSize = 100
 GoldenSpyHookCtrl.DefaultHookPosY = -90
 GoldenSpyHookCtrl.HOOK_SWING_EASE = Ease.Linear
 GoldenSpyHookCtrl.HOOK_EXTEND_EASE = Ease.Linear
 GoldenSpyHookCtrl.HOOK_RETRACT_EASE = Ease.Linear
+GoldenSpyHookCtrl._mapEventConfig = {
+  GM_GoldenSpy_Show = "OnEvent_GM_GoldenSpy_Show"
+}
 local HookStage = {
   STATE_SWINGING = 1,
   STATE_EXTENDING = 2,
@@ -90,9 +99,9 @@ function GoldenSpyHookCtrl:Init(levelId, floorId, floorCtrl, levelData, floorDat
   end
   self.tbTimers = {}
   if levelCfg.LevelType == GameEnum.GoldenSpyLevelType.FishingHook then
-    self:SetHookType(AllEnum.GoldenSpyHookType.FishingHook, tonumber(levelCfg.Param1))
+    self:SetHookType(AllEnum.GoldenSpyHookType.FishingHook, tonumber(levelCfg.Param1), true)
   else
-    self:SetHookType(AllEnum.GoldenSpyHookType.Normal, 0)
+    self:SetHookType(AllEnum.GoldenSpyHookType.Normal, 0, true)
   end
   SpineManager.Resume(self._mapNode.nethook_catched)
   if self._hookType == AllEnum.GoldenSpyHookType.Normal then
@@ -109,10 +118,14 @@ function GoldenSpyHookCtrl:Init(levelId, floorId, floorCtrl, levelData, floorDat
   end
 end
 
-function GoldenSpyHookCtrl:SetHookType(hookType, fishingHookRadius)
+function GoldenSpyHookCtrl:SetHookType(hookType, fishingHookRadius, bForce)
   self._hookType = hookType
-  self._fishingHookRadius = fishingHookRadius or 0
-  if self._hookType == 0 or self._hookState == HookStage.STATE_SWINGING then
+  if bForce or self.tempHookType == nil then
+    self.tempHookType = hookType
+    self.tempHookRadius = fishingHookRadius
+  end
+  self._fishingHookRadius = tonumber(fishingHookRadius) or 0
+  if self._hookState == HookStage.STATE_SWINGING or bForce then
     if self._hookType == AllEnum.GoldenSpyHookType.Normal then
       self._mapNode.hookRoot:SetActive(true)
       self._mapNode.nethookRoot:SetActive(false)
@@ -126,10 +139,14 @@ function GoldenSpyHookCtrl:SetHookType(hookType, fishingHookRadius)
       self._mapNode.nethook_catched:SetActive(false)
     end
   end
+  if NovaAPI.IsEditorPlatform() and self._fishingHookRadius > 0 then
+    local tr = self._mapNode.trNet
+    tr.sizeDelta = Vector2(self._fishingHookRadius * 2, self._fishingHookRadius * 2)
+  end
 end
 
-function GoldenSpyHookCtrl:GetHookType()
-  return self._hookType
+function GoldenSpyHookCtrl:GetCurHookType()
+  return self.tempHookType
 end
 
 function GoldenSpyHookCtrl:DestroyItemInHook()
@@ -219,13 +236,13 @@ function GoldenSpyHookCtrl:StartSwing(leftAngle, rightAngle)
   self:StopSwing()
   self:StopExtend()
   self:StopRetract()
-  if self._hookType == AllEnum.GoldenSpyHookType.Normal then
+  if self.tempHookType == AllEnum.GoldenSpyHookType.Normal then
     self._mapNode.hookRoot:SetActive(true)
     self._mapNode.nethookRoot:SetActive(false)
     self._mapNode.hook_open:SetActive(false)
     self._mapNode.hook_normal:SetActive(true)
     self._mapNode.hook_catched:SetActive(false)
-  elseif self._hookType == AllEnum.GoldenSpyHookType.FishingHook then
+  elseif self.tempHookType == AllEnum.GoldenSpyHookType.FishingHook then
     self._mapNode.hookRoot:SetActive(false)
     self._mapNode.nethookRoot:SetActive(true)
     self._mapNode.nethook_normal:SetActive(true)
@@ -249,6 +266,10 @@ function GoldenSpyHookCtrl:StartSwing(leftAngle, rightAngle)
   EventManager.Hit("GoldenSpyHookResumeSwing")
 end
 
+function GoldenSpyHookCtrl:CanUseBoom()
+  return self.bCanUseBoom or false
+end
+
 function GoldenSpyHookCtrl:PauseSwing()
   self:StopSwing()
   if self._hookState == HookStage.STATE_SWINGING then
@@ -262,6 +283,7 @@ function GoldenSpyHookCtrl:ResumeSwing(fromCurrent)
   end
   local leftAngle = self.HOOK_SWING_LEFT_ANGLE
   local rightAngle = self.HOOK_SWING_RIGHT_ANGLE
+  self._hookState = HookStage.STATE_SWINGING
   if fromCurrent then
     self:StopExtend()
     self:StopRetract()
@@ -286,7 +308,6 @@ function GoldenSpyHookCtrl:ResumeSwing(fromCurrent)
     self:StartSwing()
     return
   end
-  self._hookState = HookStage.STATE_SWINGING
   EventManager.Hit("GoldenSpyHookResumeSwing")
 end
 
@@ -316,6 +337,8 @@ function GoldenSpyHookCtrl:StartExtend(speed, radius, factor, nMinSpeed, onCompl
   if tr == nil then
     return
   end
+  self.tempHookType = self._hookType
+  self.tempHookRadius = self._fishingHookRadius
   local maxLength = self:GetCurrentMaxLength()
   self._onExtendComplete = onComplete
   self._hookState = HookStage.STATE_EXTENDING
@@ -331,6 +354,7 @@ function GoldenSpyHookCtrl:StartExtend(speed, radius, factor, nMinSpeed, onCompl
     end
     return
   end
+  self.bCanUseBoom = true
   self._mapNode.hook_open:SetActive(true)
   self._mapNode.hook_normal:SetActive(false)
   self._mapNode.hook_catched:SetActive(false)
@@ -359,7 +383,7 @@ function GoldenSpyHookCtrl:StartExtend(speed, radius, factor, nMinSpeed, onCompl
           end)
           return
         end
-        if self._hookType == AllEnum.GoldenSpyHookType.Normal then
+        if self.tempHookType == AllEnum.GoldenSpyHookType.Normal then
           do
             local tbCatchItems = {}
             table.insert(tbCatchItems, item.Ctrl)
@@ -377,7 +401,7 @@ function GoldenSpyHookCtrl:StartExtend(speed, radius, factor, nMinSpeed, onCompl
             local itemNormalWeight = item.Ctrl:GetWeight()
             for _, v in ipairs(self:GetBuffData()) do
               local buffCfg = ConfigTable.GetData("GoldenSpyBuffCard", v.buffId)
-              if buffCfg ~= nil and buffCfg.EffectType == GameEnum.GoldenSpyBuffEffect.ReduceItemWeight and self.levelData:CheckBuffActive(v) then
+              if buffCfg ~= nil and buffCfg.EffectType == GameEnum.GoldenSpyBuffEffect.ReduceItemWeight and self.levelData:CheckBuffActive(v) and item.Ctrl:GetItemCfg().ItemType == buffCfg.Params[1] then
                 itemNormalWeight = itemNormalWeight - buffCfg.Params[2]
               end
             end
@@ -405,12 +429,14 @@ function GoldenSpyHookCtrl:StartExtend(speed, radius, factor, nMinSpeed, onCompl
           end
           break
         end
-        if self._hookType == AllEnum.GoldenSpyHookType.FishingHook then
+        if self.tempHookType == AllEnum.GoldenSpyHookType.FishingHook then
           self._mapNode.hookRoot:SetActive(false)
           self._mapNode.nethookRoot:SetActive(true)
           self._mapNode.nethook_normal:SetActive(false)
           self._mapNode.nethook_catched:SetActive(true)
           SpineManager.PlayAnim(self._mapNode.nethook_catched, "open", false)
+          WwiseAudioMgr:PostEvent("Mode_steal_net")
+          self.bCanUseBoom = false
           local tbCatchItems = self:GetCatchItems()
           local tbBoomItems = {}
           for _, item in ipairs(tbCatchItems) do
@@ -450,11 +476,11 @@ function GoldenSpyHookCtrl:StartExtend(speed, radius, factor, nMinSpeed, onCompl
               local nIndex = (index - 1) % 9 + 1
               local vOffset = OffsetDir[nIndex]
               itemCtrl.gameObject.transform:SetParent(self._mapNode.itemParent)
-              itemCtrl.gameObject.transform.localPosition = Vector3(vOffset.x * math.random(MinOffset, MaxOffset), vOffset.y * math.random(MinOffset, MaxOffset) - 150, 0)
+              itemCtrl.gameObject.transform.localPosition = Vector3(vOffset.x * math.random(MinOffset, MaxOffset), vOffset.y * math.random(MinOffset, MaxOffset) - 100, 0)
               local itemNormalWeight = itemCtrl:GetWeight()
               for _, v in ipairs(self:GetBuffData()) do
                 local buffCfg = ConfigTable.GetData("GoldenSpyBuffCard", v.buffId)
-                if buffCfg ~= nil and buffCfg.EffectType == GameEnum.GoldenSpyBuffEffect.ReduceItemWeight and self.levelData:CheckBuffActive(v) then
+                if buffCfg ~= nil and buffCfg.EffectType == GameEnum.GoldenSpyBuffEffect.ReduceItemWeight and self.levelData:CheckBuffActive(v) and itemCtrl:GetItemCfg().ItemType == buffCfg.Params[1] then
                   itemNormalWeight = itemNormalWeight - buffCfg.Params[2]
                 end
               end
@@ -469,7 +495,9 @@ function GoldenSpyHookCtrl:StartExtend(speed, radius, factor, nMinSpeed, onCompl
               sSpineAnim = "catched1"
             end
             SpineManager.PlayAnim(self._mapNode.nethook_catched, sSpineAnim, false)
+            self.bCanUseBoom = false
             local timer2 = self:AddTimer(1, 0.16, function()
+              self.bCanUseBoom = true
               self:StartRetract(nbackSpeed, function()
                 self._mapNode.hookRoot:SetActive(false)
                 self._mapNode.nethookRoot:SetActive(true)
@@ -511,8 +539,12 @@ end
 function GoldenSpyHookCtrl:GetCatchItems()
   local tbCatchItems = {}
   local items = self.floorCtrl.tbItem
+  local hookEndPos = self:GetHookEndWorldPosition()
+  if self.tempHookType == AllEnum.GoldenSpyHookType.FishingHook then
+    hookEndPos = self:GetHookEndWorldPositionWithNet()
+  end
   for _, item in ipairs(items) do
-    if self:CheckCatchIntersect(self:GetHookEndWorldPosition(), self._fishingHookRadius, item.Ctrl) then
+    if self:CheckCatchIntersect(hookEndPos, self.tempHookRadius, item.Ctrl) then
       table.insert(tbCatchItems, item.Ctrl)
     end
   end
@@ -523,9 +555,13 @@ function GoldenSpyHookCtrl:GetHookEndWorldPosition()
   local rootTr = self.gameObject.transform
   local trEnd = self._mapNode.trHookEnd
   local localPt = rootTr:InverseTransformPoint(trEnd.position)
-  if self.nHookType == AllEnum.GoldenSpyHookType.FishingHook then
-    localPt.y = localPt.y - 100
-  end
+  return Vector3(localPt.x, localPt.y, 0)
+end
+
+function GoldenSpyHookCtrl:GetHookEndWorldPositionWithNet()
+  local rootTr = self.gameObject.transform
+  local trEnd = self._mapNode.trNet
+  local localPt = rootTr:InverseTransformPoint(trEnd.position)
   return Vector3(localPt.x, localPt.y, 0)
 end
 
@@ -568,13 +604,13 @@ function GoldenSpyHookCtrl:StartRetract(speed, onComplete, bIsCatched)
     end
     return
   end
-  if self._hookType == AllEnum.GoldenSpyHookType.Normal then
+  if self.tempHookType == AllEnum.GoldenSpyHookType.Normal then
     self._mapNode.hookRoot:SetActive(true)
     self._mapNode.nethookRoot:SetActive(false)
     self._mapNode.hook_open:SetActive(false)
     self._mapNode.hook_normal:SetActive(false)
     self._mapNode.hook_catched:SetActive(true)
-  elseif self._hookType == AllEnum.GoldenSpyHookType.FishingHook then
+  elseif self.tempHookType == AllEnum.GoldenSpyHookType.FishingHook then
     self._mapNode.hookRoot:SetActive(false)
     self._mapNode.nethookRoot:SetActive(true)
     self._mapNode.nethook_normal:SetActive(not bIsCatched)
@@ -849,6 +885,10 @@ function GoldenSpyHookCtrl:Exit()
   self:StopSwing()
   self:StopExtend()
   self:StopRetract()
+end
+
+function GoldenSpyHookCtrl:OnEvent_GM_GoldenSpy_Show()
+  self._mapNode.net_Hook:SetActive(true)
 end
 
 return GoldenSpyHookCtrl

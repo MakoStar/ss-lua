@@ -121,7 +121,9 @@ end
 
 function StoryLevel:OnEvent_AdventureModuleEnter()
   PlayerData.Achievement:SetSpecialBattleAchievement(GameEnum.levelType.Mainline)
-  EventManager.Hit(EventId.OpenPanel, PanelId.Adventure, self.tbCharId)
+  local mapStory = self.bActivityStory == true and ConfigTable.GetData("ActivityStory", self.nLevelId) or ConfigTable.GetData_Story(self.nLevelId)
+  local nMapId = mapStory and mapStory.FloorId[self.curFloorIdx]
+  EventManager.Hit(EventId.OpenPanel, PanelId.Adventure, self.tbCharId, nMapId)
   self:SetPersonalPerk()
   self:SetDiscInfo()
   for idx, nCharId in ipairs(self.tbCharId) do
@@ -263,7 +265,7 @@ function StoryLevel:OnEvnet_Pause()
       printError("mapStory is nil,id = " .. self.nLevelId)
       return
     end
-    if mapStory.EnterMethod == GameEnum.EnterMethod.JumpFormation then
+    if mapStory.EnterMethod == GameEnum.EnterMethod.JumpFormationPause then
       EventManager.Hit(EventId.OpenPanel, PanelId.ChapterPausePanel, self.nMainLineTime or 0, self.mapBuildData.tbChar, sAim)
       return
     end

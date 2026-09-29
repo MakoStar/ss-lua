@@ -27,15 +27,6 @@ ChapterLineCtrl._mapEventConfig = {
   Story_RewardClosed = "OnEvent_Story_RewardClosed",
   Story_Done = "OnEvent_Story_Done"
 }
-local UnlockConditionPriority = {
-  [1] = "MustStoryIds",
-  [2] = "OneofStoryIds",
-  [3] = "MustEvIds",
-  [4] = "OneofEvIds",
-  [5] = "WorldLevel",
-  [6] = "MustAchievementIds",
-  [7] = "TimeUnlock"
-}
 
 function ChapterLineCtrl:Awake()
   self.bCanClick = true
@@ -54,7 +45,7 @@ function ChapterLineCtrl:Awake()
   self.lineAnimTime = 0.14
   self.tbBranchGrid = {}
   self.tbLockedBranchGrid = {}
-  self.tbSpecialParentGrid = {}
+  self.tbDiscNodeParentGrid = {}
   self.bFocusNotReadNode = true
   self.Rect = self._mapNode.tranContent:GetComponent("RectTransform")
   self:CacheCurChapterConfig()
@@ -134,12 +125,19 @@ function ChapterLineCtrl:RefreshGridDepthInfo()
         depth = i
       })
       local storyConfig = AvgData:GetStoryCfgData(avgId)
+      if storyConfig == nil then
+        print("Error: Story config not found for avgId: " .. avgId)
+      end
       local bUnlock = AvgData:IsUnlock(storyConfig.ConditionId, storyConfig.StoryId)
-      if storyConfig.MemoryType ~= GameEnum.MainlineMemoryNodeType.None and self.tbSpecialParentGrid[avgId] == nil then
-        self.tbSpecialParentGrid[avgId] = {}
-        for k, v in pairs(storyConfig.ParentStoryId) do
-          table.insert(self.tbSpecialParentGrid[avgId], v)
+      if storyConfig.MemoryType == GameEnum.MainlineMemoryNodeType.DiscType then
+        if self.tbDiscNodeParentGrid[avgId] == nil then
+          self.tbDiscNodeParentGrid[avgId] = {}
+          for k, v in pairs(storyConfig.ParentStoryId) do
+            table.insert(self.tbDiscNodeParentGrid[avgId], v)
+          end
         end
+      elseif storyConfig.MemoryType == GameEnum.MainlineMemoryNodeType.LastEndType then
+        self.LastEndNodeAvgId = avgId
       end
       if i > self.maxStoryDepth then
         self.maxStoryDepth = i
@@ -200,11 +198,36 @@ function ChapterLineCtrl:Refresh()
   end
 end
 
+function ChapterLineCtrl:IsAvgIdPendingUnlockAnim(avgId)
+  if table.indexof(self.tbLockedPlayedAnim, avgId) > 0 then
+    return false
+  end
+  for k, v in ipairs(self.tbNeedPlayUnlockAnimGird) do
+    if v.avgId == avgId then
+      return true
+    end
+  end
+  return false
+end
+
 function ChapterLineCtrl:RefreshGrid(goGrid, gridDepth)
   local avgId = goGrid.name
   local storyConfig = AvgData:GetStoryCfgData(avgId)
   local bUnlock = AvgData:IsUnlock(storyConfig.ConditionId, avgId)
   local bAllLock = 1 < gridDepth and true or false
+  local bSelfNeedPlayUnlockAnim = self:IsAvgIdPendingUnlockAnim(avgId)
+  local allParentDepthLock = false
+  if bSelfNeedPlayUnlockAnim then
+    allParentDepthLock = 1 < gridDepth and true or false
+    for i = 1, #storyConfig.ParentStoryId do
+      local parentId = storyConfig.ParentStoryId[i]
+      local parentConfig = AvgData:GetStoryCfgData(parentId)
+      local parentUnlock = AvgData:IsUnlock(parentConfig.ConditionId, parentConfig.StoryId)
+      if parentUnlock and not self:IsAvgIdPendingUnlockAnim(parentId) then
+        allParentDepthLock = false
+      end
+    end
+  end
   for i = 1, #storyConfig.ParentStoryId do
     local parentConfig = AvgData:GetStoryCfgData(storyConfig.ParentStoryId[i])
     local parentUnlock = AvgData:IsUnlock(parentConfig.ConditionId, parentConfig.StoryId)
@@ -216,32 +239,8 @@ function ChapterLineCtrl:RefreshGrid(goGrid, gridDepth)
     self.tbDepthLockCount[gridDepth].DisableCount = self.tbDepthLockCount[gridDepth].DisableCount + 1
   end
   self.tbDepthLockCount[gridDepth].Node.gameObject:SetActive(self.tbDepthLockCount[gridDepth].DisableCount < self.tbDepthLockCount[gridDepth].ChildCount)
-  local allParentDepthLock = true
-  if self.tbDepthLockCount[gridDepth - 1] ~= nil then
-    allParentDepthLock = self.tbDepthLockCount[gridDepth - 1].DisableCount == self.tbDepthLockCount[gridDepth - 1].ChildCount
-  end
-  for i = 1, #storyConfig.ParentStoryId do
-    local parentId = storyConfig.ParentStoryId[i]
-    for _, gridInfo in ipairs(self.tbGridList) do
-      if gridInfo.avgId == parentId and gridInfo.depth == gridDepth then
-        local parentConfig = AvgData:GetStoryCfgData(parentId)
-        local parentUnlock = AvgData:IsUnlock(parentConfig.ConditionId, parentConfig.StoryId)
-        if not parentUnlock then
-          allParentDepthLock = true
-        end
-        break
-      end
-    end
-  end
-  local bNeedPlayUnlockAnim = false
-  for k, v in ipairs(self.tbNeedPlayUnlockAnimGird) do
-    if v.avgId == avgId then
-      bNeedPlayUnlockAnim = true
-      break
-    end
-  end
   local bPlayedLockAnim = table.indexof(self.tbLockedPlayedAnim, avgId) > 0
-  local bShowGrid = (not bAllLock or not allParentDepthLock) and not bNeedPlayUnlockAnim or bPlayedLockAnim
+  local bShowGrid = not bAllLock and not allParentDepthLock and not bSelfNeedPlayUnlockAnim or bPlayedLockAnim
   bShowGrid = (storyConfig.MemoryType ~= GameEnum.MainlineMemoryNodeType.LastEndType or bUnlock) and bShowGrid
   goGrid.gameObject:SetActive(bShowGrid)
   local bReaded = AvgData:IsStoryReaded(storyConfig.Id)
@@ -258,6 +257,7 @@ function ChapterLineCtrl:RefreshGrid(goGrid, gridDepth)
   local imgLeftPoint_1 = goGrid:Find("imgLeftPoint_1")
   local imgRightPoint_1 = goGrid:Find("imgRightPoint_1")
   local txtUnlock = LockRoot:Find("txtUnlock"):GetComponent("TMP_Text")
+  local imgTips = NormalRoot:Find("imgTips")
   local cgComp = storyConfig.IsBattle and NormalRoot:GetComponent("CanvasGroup") or BattleRoot:GetComponent("CanvasGroup")
   NovaAPI.SetCanvasGroupAlpha(cgComp, bUnlock and 1 or 0.5)
   local bShowLockRoot = not bUnlock or bPlayedLockAnim
@@ -291,6 +291,9 @@ function ChapterLineCtrl:RefreshGrid(goGrid, gridDepth)
   end
   NormalRoot.gameObject:SetActive(not storyConfig.IsBattle and not isSpecial)
   BattleRoot.gameObject:SetActive(storyConfig.IsBattle and not isSpecial)
+  if imgTips ~= nil then
+    imgTips.gameObject:SetActive(false)
+  end
   if isSpecial and SpecialRoot ~= nil then
     SpecialRoot.gameObject:SetActive(not bNeedPlayUnlockAnim)
   end
@@ -327,25 +330,29 @@ function ChapterLineCtrl:RefreshGrid(goGrid, gridDepth)
     local goReaded = rootTrans:Find("goReaded")
     local goNotRead = rootTrans:Find("goNotRead")
     local txtNotRead = goNotRead:Find("txtNotRead"):GetComponent("TMP_Text")
-    local txtLevelName = goReaded:Find("txtLevelName"):GetComponent("TMP_Text")
-    local txtLevelIndex = goReaded:Find("txtLevelIndex"):GetComponent("TMP_Text")
     local txtNewUnlock = goNotRead:Find("txtNewUnlock"):GetComponent("TMP_Text")
-    goReaded.gameObject:SetActive(bReaded)
-    goNotRead.gameObject:SetActive(not bReaded)
+    goNotRead.gameObject:SetActive(not bReaded and goNotRead ~= nil or goReaded == nil)
+    if goReaded ~= nil then
+      local txtLevelName = goReaded:Find("txtLevelName"):GetComponent("TMP_Text")
+      local txtLevelIndex = goReaded:Find("txtLevelIndex"):GetComponent("TMP_Text")
+      goReaded.gameObject:SetActive(bReaded)
+      NovaAPI.SetTMPText(txtLevelName, storyConfig.Title)
+      NovaAPI.SetTMPText(txtLevelIndex, storyConfig.Index)
+    end
     NovaAPI.SetTMPText(txtNotRead, storyConfig.Index)
-    NovaAPI.SetTMPText(txtLevelName, storyConfig.Title)
-    NovaAPI.SetTMPText(txtLevelIndex, storyConfig.Index)
     NovaAPI.SetTMPText(txtNewUnlock, ConfigTable.GetUIText("Story_NewStory_Unlock"))
-    if not storyConfig.IsBattle and not isSpecial then
+    if not storyConfig.IsBattle and not isSpecial and goReaded ~= nil then
       local imgClueReaded = goReaded:Find("imgClueReaded")
       imgClueReaded.gameObject:SetActive(storyConfig.HasEvidence)
     end
     self:PlayUnlockAnim(rootTrans, "Empty")
     if isSpecial and SpecialRoot ~= nil then
-      local zsBg1 = rootTrans:Find("imgBg/zsBg1")
-      local zsBg2 = rootTrans:Find("imgBg/zsBg2")
-      zsBg2.gameObject:SetActive(not bFocus)
-      zsBg1.gameObject:SetActive(not bFocus)
+      if storyConfig.MemoryType == GameEnum.MainlineMemoryNodeType.DiscType then
+        local zsBg1 = rootTrans:Find("imgBg/zsBg1")
+        local zsBg2 = rootTrans:Find("imgBg/zsBg2")
+        zsBg2.gameObject:SetActive(not bFocus)
+        zsBg1.gameObject:SetActive(not bFocus)
+      end
       goLeftBorder.gameObject:SetActive(false)
       goRightBorder.gameObject:SetActive(false)
       imgRightPoint_1.gameObject:SetActive(false)
@@ -358,11 +365,22 @@ function ChapterLineCtrl:RefreshGrid(goGrid, gridDepth)
   end
   if not isSpecial then
     local isParentSpecial = self:CheckIsParentSpecialNode(avgId)
-    local isChildSpecial = self:CheckIsChildSpecialNode(avgId)
-    goLeftBorder.gameObject:SetActive(not isParentSpecial)
-    goRightBorder.gameObject:SetActive(not isChildSpecial)
-    imgRightPoint_1.gameObject:SetActive(not isChildSpecial)
-    imgLeftPoint_1.gameObject:SetActive(not isParentSpecial and 1 < gridDepth)
+    local isChildSpecial, specialType = self:CheckIsChildSpecialNode(avgId)
+    if isChildSpecial then
+      if specialType == GameEnum.MainlineMemoryNodeType.DiscType then
+        goLeftBorder.gameObject:SetActive(not isParentSpecial)
+        goRightBorder.gameObject:SetActive(not isChildSpecial)
+        imgRightPoint_1.gameObject:SetActive(not isChildSpecial)
+        imgLeftPoint_1.gameObject:SetActive(not isParentSpecial and 1 < gridDepth)
+      elseif specialType == GameEnum.MainlineMemoryNodeType.LastEndType then
+        local lastEndState = AvgData:GetLastEndState()
+        if lastEndState == AllEnum.MainlineLastEndState.WaitUnlock and imgTips ~= nil then
+          imgTips.gameObject:SetActive(true)
+          local txtTips = imgTips:Find("txtTips"):GetComponent("TMP_Text")
+          NovaAPI.SetTMPText(txtTips, ConfigTable.GetUIText("Mainline_Last_End_WaitUnlock"))
+        end
+      end
+    end
   end
   if self.tbBranch[avgId] ~= nil then
     if bNeedPlayUnlockAnim == false and 0 < table.indexof(self.tbLockedBranchGrid, avgId) then
@@ -444,6 +462,7 @@ function ChapterLineCtrl:RefreshBranchGrid(root, avgId, depth, isNeedPlayUnlockA
       })
     end
     if branchGrid ~= nil then
+      local lastEndState = AvgData:GetLastEndState()
       local goUnlock = branchGrid:Find("AnimRoot/goUnlock")
       local goLock = branchGrid:Find("AnimRoot/goLock")
       local goLevelIndex = branchGrid:Find("AnimRoot/goUnlock/txtLevelIndex")
@@ -455,7 +474,15 @@ function ChapterLineCtrl:RefreshBranchGrid(root, avgId, depth, isNeedPlayUnlockA
       NovaAPI.SetCanvasGroupAlpha(cgLevelIndex, 1)
       NovaAPI.SetTMPText(txtLevelIndex, storyConfig.Index)
       goUnlock.gameObject:SetActive(bUnlock)
-      goLock.gameObject:SetActive(not bUnlock)
+      goLock.gameObject:SetActive(not bUnlock or lastEndState == AllEnum.MainlineLastEndState.Fobidden)
+      local goLockEffect = goLock:Find("rtZsing")
+      if goLockEffect ~= nil then
+        goLockEffect.gameObject:SetActive(lastEndState == AllEnum.MainlineLastEndState.Fobidden)
+      else
+        goLockEffect = self:CreatePrefabInstance("UI/MainlineEx/FX/fx_BranchLockEffect.prefab", goLock)
+        goLockEffect.name = "rtZsing"
+        goLockEffect.gameObject:SetActive(lastEndState == AllEnum.MainlineLastEndState.Fobidden)
+      end
       txtLevelIndex.gameObject:SetActive(bUnlock)
       if bReaded then
         NovaAPI.SetTMPText(txtLevelName, storyConfig.Title)
@@ -479,6 +506,11 @@ function ChapterLineCtrl:RefreshBranchGrid(root, avgId, depth, isNeedPlayUnlockA
       local btnEnter = branchGrid:GetComponent("UIButton")
       btnEnter.onClick:RemoveAllListeners()
       btnEnter.onClick:AddListener(function()
+        if lastEndState == AllEnum.MainlineLastEndState.Fobidden then
+          local sTip = ConfigTable.GetUIText("Mainline_Last_End_Fobidden_Click")
+          EventManager.Hit(EventId.OpenMessageBox, sTip)
+          return
+        end
         self:OnClickGrid(v.StoryId)
       end)
     end
@@ -563,7 +595,7 @@ function ChapterLineCtrl:CheckLineReasonable(grid)
       local parentAvgId = storyConfig.ParentStoryId[index]
       local curBorderPos = self.tbGridBorderPos and self.tbGridBorderPos[avgId]
       local parentBorderPos = self.tbGridBorderPos and self.tbGridBorderPos[parentAvgId]
-      if parentBorderPos.grid ~= nil and parentBorderPos.grid.gameObject.activeInHierarchy ~= false and curBorderPos ~= nil and curBorderPos.left ~= nil and parentBorderPos ~= nil and parentBorderPos.right ~= nil then
+      if curBorderPos ~= nil and curBorderPos.left ~= nil and parentBorderPos ~= nil and parentBorderPos.right ~= nil then
         local isHitA, worldPosA = RectTransformUtility.ScreenPointToWorldPointInRectangle(grid, parentBorderPos.right, uiCamera)
         local isHitB, worldPosB = RectTransformUtility.ScreenPointToWorldPointInRectangle(grid, curBorderPos.left, uiCamera)
         local localPosA = grid:InverseTransformPoint(worldPosA)
@@ -683,7 +715,14 @@ function ChapterLineCtrl:RefreshUnlockAnimList()
           local bHasPlayedAnim = LocalData.GetPlayerLocalData("MainlineUnlock_" .. storyConfig.Id)
           local parentUnlock = AvgData:IsUnlock(parentStoryConfig.ConditionId, parentStoryConfig.StoryId)
           if cachedGird[v.avgId] == nil and (bHasPlayedAnim == nil or bHasPlayedAnim == 0) and parentUnlock then
-            table.insert(self.tbNeedPlayUnlockAnimGird, v)
+            if storyConfig.MemoryType == GameEnum.MainlineMemoryNodeType.LastEndType then
+              local lastEndState = AvgData:GetLastEndState()
+              if lastEndState == AllEnum.MainlineLastEndState.WaitUnlock then
+                table.insert(self.tbNeedPlayUnlockAnimGird, v)
+              end
+            else
+              table.insert(self.tbNeedPlayUnlockAnimGird, v)
+            end
             cachedGird[v.avgId] = v
             if self.curShouldPlayDepth > v.depth then
               self.curShouldPlayDepth = v.depth
@@ -714,6 +753,18 @@ function ChapterLineCtrl:DoPlayUnlockAnim(depth)
     if node.depth == depth then
       table.insert(nodes, node)
     end
+  end
+  if #nodes == 0 then
+    local nextDepth
+    for _, node in ipairs(self.tbNeedPlayUnlockAnimGird) do
+      if depth < node.depth and (nextDepth == nil or nextDepth > node.depth) then
+        nextDepth = node.depth
+      end
+    end
+    if nextDepth ~= nil then
+      self:DoPlayUnlockAnim(nextDepth)
+    end
+    return
   end
   local samDepthAvgIds = {}
   for _, node in ipairs(nodes) do
@@ -795,6 +846,9 @@ function ChapterLineCtrl:PlayNormalNodeUnlockAnim(nodeInfo, depth)
   local isSpecial = storyConfig.MemoryType ~= GameEnum.MainlineMemoryNodeType.None
   if isSpecial then
     specialNode.gameObject:SetActive(false)
+    if storyConfig.MemoryType == GameEnum.MainlineMemoryNodeType.LastEndType and not bUnlock then
+      grid.gameObject:SetActive(false)
+    end
   end
   local rootNode
   local bNewUnlock = 0 < table.indexof(self.tbLockedPlayedAnim, nodeInfo.avgId)
@@ -860,13 +914,19 @@ function ChapterLineCtrl:PlayNormalNodeUnlockAnim(nodeInfo, depth)
   
   self:AddTimer(1, PlayLineAnimTime, function()
     lockNode.gameObject:SetActive(false)
-    rootNode.gameObject:SetActive(true)
+    if bUnlock or storyConfig.MemoryType ~= GameEnum.MainlineMemoryNodeType.LastEndType then
+      rootNode.gameObject:SetActive(true)
+    end
     if isSpecial then
       specialNode.gameObject:SetActive(true)
     end
     local animName = ""
     if isSpecial and bUnlock then
-      animName = "SpecialRoot_in"
+      if storyConfig.MemoryType == GameEnum.MainlineMemoryNodeType.DiscType then
+        animName = "SpecialRoot_in"
+      elseif storyConfig.MemoryType == GameEnum.MainlineMemoryNodeType.LastEndType then
+        animName = "SpecialRoot02_in"
+      end
     else
       animName = bUnlock and "BattleRoot_in" or "LockRoot_in"
     end
@@ -878,7 +938,8 @@ function ChapterLineCtrl:PlayNormalNodeUnlockAnim(nodeInfo, depth)
         WwiseAudioMgr:PostEvent("ui_mainline_level")
       end
     end
-    local animTime = self:PlayUnlockAnim(rootNode, animName)
+    local animTime = 0
+    animTime = self:PlayUnlockAnim(rootNode, animName)
     animTime = animTime == 0 and 0.01 or animTime
     DoAfterAnim(animTime)
   end, true, true, true)
@@ -911,122 +972,65 @@ function ChapterLineCtrl:PlayLineAnim(goLine)
   lineRect:DOScaleX(1, self.lineAnimTime)
 end
 
+function ChapterLineCtrl:GetTimeUnlockLockText(remainTime)
+  local lockTxt = ""
+  if remainTime <= 60 then
+    local sec = math.floor(remainTime)
+    lockTxt = orderedFormat(ConfigTable.GetUIText("Mainline_Open_Time_Sec") or "", sec)
+  elseif 60 < remainTime and remainTime <= 3600 then
+    local min = math.floor(remainTime / 60)
+    local sec = math.floor(remainTime - min * 60)
+    if sec == 0 then
+      min = min - 1
+      sec = 60
+    end
+    lockTxt = orderedFormat(ConfigTable.GetUIText("Mainline_Open_Time_Min") or "", min, sec)
+  elseif 3600 < remainTime and remainTime <= 86400 then
+    local hour = math.floor(remainTime / 3600)
+    local min = math.floor((remainTime - hour * 3600) / 60)
+    if min == 0 then
+      hour = hour - 1
+      min = 60
+    end
+    lockTxt = orderedFormat(ConfigTable.GetUIText("Mainline_Open_Time_Hour") or "", hour, min)
+  elseif 86400 < remainTime then
+    local day = math.floor(remainTime / 86400)
+    local hour = math.floor((remainTime - day * 86400) / 3600)
+    if hour == 0 then
+      day = day - 1
+      hour = 24
+    end
+    lockTxt = orderedFormat(ConfigTable.GetUIText("Mainline_Open_Time_Day") or "", day, hour)
+  end
+  return lockTxt
+end
+
 function ChapterLineCtrl:OnClickGrid(avgId)
   if self.bCanClick == false then
     return
   end
   local storyConfig = AvgData:GetStoryCfgData(avgId)
+  local configValue = ConfigTable.GetConfigValue("TimeUnlockStory", "")
+  if configValue ~= nil and configValue == avgId then
+    local curTime = CS.ClientManager.Instance.serverTimeStamp
+    local time = ConfigTable.GetConfigValue("StoryUnlockTime", "")
+    local openTime = CS.ClientManager.Instance:ISO8601StrToTimeStamp(time)
+    if curTime < openTime then
+      WwiseAudioMgr:PostEvent("ui_systerm_locked")
+      local lockTxt = self:GetTimeUnlockLockText(openTime - curTime)
+      local msg = {
+        nType = AllEnum.MessageBox.Alert,
+        sContent = lockTxt
+      }
+      EventManager.Hit(EventId.OpenMessageBox, msg)
+      return
+    end
+  end
   local bUnlock, tbResult = AvgData:IsUnlock(storyConfig.ConditionId, avgId)
   if not bUnlock then
     WwiseAudioMgr:PostEvent("ui_systerm_locked")
     if tbResult ~= nil then
-      local lockTxt = ""
-      for i = 1, #tbResult do
-        local value = tbResult[i]
-        if value[1] == false then
-          if UnlockConditionPriority[i] == "MustStoryIds" then
-            do
-              local tbStoryIds = value[2]
-              for k, v in pairs(tbStoryIds) do
-                if v == false then
-                  local storyData = ConfigTable.GetData_Story(AvgData.CFG_Story[k])
-                  lockTxt = orderedFormat(ConfigTable.GetUIText("Story_UnlockPreId") or "", storyData.Title)
-                  break
-                end
-              end
-            end
-            break
-          end
-          if UnlockConditionPriority[i] == "OneofStoryIds" then
-            do
-              local tbStoryIds = value[2]
-              for k, v in pairs(tbStoryIds) do
-                if v == false then
-                  local storyData = ConfigTable.GetData_Story(AvgData.CFG_Story[k])
-                  lockTxt = orderedFormat(ConfigTable.GetUIText("Story_UnlockPreId") or "", storyData.Title)
-                  break
-                end
-              end
-            end
-            break
-          end
-          if UnlockConditionPriority[i] == "MustEvIds" then
-            lockTxt = ConfigTable.GetUIText("Story_UnlockClueCondition")
-            break
-          end
-          if UnlockConditionPriority[i] == "OneofEvIds" then
-            lockTxt = ConfigTable.GetUIText("Story_UnlockClueCondition")
-            break
-          end
-          if UnlockConditionPriority[i] == "WorldLevel" then
-            do
-              local level = value[2]
-              lockTxt = orderedFormat(ConfigTable.GetUIText("Story_UnlockWorldLv") or "", level)
-            end
-            break
-          end
-          if UnlockConditionPriority[i] == "MustAchievementIds" then
-            if self.bHasAchievementData == true then
-              local tbAchievementList = value[2]
-              for k, v in pairs(tbAchievementList) do
-                if v == false then
-                  local achievementId = k
-                  local achievement = ConfigTable.GetData("Achievement", achievementId)
-                  lockTxt = orderedFormat(ConfigTable.GetUIText("Story_UnlockAchievement") or "", achievement.Title) .. "\n" .. "(" .. achievement.Desc .. ")"
-                  break
-                end
-              end
-            end
-            break
-          end
-          if UnlockConditionPriority[i] == "TimeUnlock" then
-            local curTime = CS.ClientManager.Instance.serverTimeStamp
-            local openTime = value[2]
-            local remainTime = openTime - curTime
-            if remainTime <= 60 then
-              do
-                local sec = math.floor(remainTime)
-                lockTxt = orderedFormat(ConfigTable.GetUIText("Mainline_Open_Time_Sec") or "", sec)
-              end
-              break
-            end
-            if 60 < remainTime and remainTime <= 3600 then
-              do
-                local min = math.floor(remainTime / 60)
-                local sec = math.floor(remainTime - min * 60)
-                if sec == 0 then
-                  min = min - 1
-                  sec = 60
-                end
-                lockTxt = orderedFormat(ConfigTable.GetUIText("Mainline_Open_Time_Min") or "", min, sec)
-              end
-              break
-            end
-            if 3600 < remainTime and remainTime <= 86400 then
-              do
-                local hour = math.floor(remainTime / 3600)
-                local min = math.floor((remainTime - hour * 3600) / 60)
-                if min == 0 then
-                  hour = hour - 1
-                  min = 60
-                end
-                lockTxt = orderedFormat(ConfigTable.GetUIText("Mainline_Open_Time_Hour") or "", hour, min)
-              end
-              break
-            end
-            if 86400 < remainTime then
-              local day = math.floor(remainTime / 86400)
-              local hour = math.floor((remainTime - day * 86400) / 3600)
-              if hour == 0 then
-                day = day - 1
-                hour = 24
-              end
-              lockTxt = orderedFormat(ConfigTable.GetUIText("Mainline_Open_Time_Day") or "", day, hour)
-            end
-          end
-          break
-        end
-      end
+      local lockTxt = AvgData:GetLockReasonText(tbResult, self.bHasAchievementData)
       local msg = {
         nType = AllEnum.MessageBox.Alert,
         sContent = lockTxt
@@ -1128,17 +1132,30 @@ function ChapterLineCtrl:CheckIsParentSpecialNode(avgId)
 end
 
 function ChapterLineCtrl:CheckIsChildSpecialNode(avgId)
-  for k, v in pairs(self.tbSpecialParentGrid) do
+  for k, v in pairs(self.tbDiscNodeParentGrid) do
     for _, parentId in ipairs(v) do
       if parentId == avgId then
         local childId = k
         local childConfig = AvgData:GetStoryCfgData(childId)
         local isUnlock = AvgData:IsUnlock(childConfig.ConditionId, childConfig.StoryId)
-        return isUnlock
+        return isUnlock, childConfig.MemoryType
       end
     end
   end
-  return false
+  if self.LastEndNodeAvgId ~= nil then
+    local childConfig = AvgData:GetStoryCfgData(self.LastEndNodeAvgId)
+    for _, parentId in ipairs(childConfig.ParentStoryId) do
+      if parentId == avgId then
+        local lastEndState = AvgData:GetLastEndState()
+        if lastEndState ~= nil and lastEndState ~= AllEnum.MainlineLastEndState.None then
+          return true, GameEnum.MainlineMemoryNodeType.LastEndType
+        else
+          return false, GameEnum.MainlineMemoryNodeType.None
+        end
+      end
+    end
+  end
+  return false, GameEnum.MainlineMemoryNodeType.None
 end
 
 return ChapterLineCtrl

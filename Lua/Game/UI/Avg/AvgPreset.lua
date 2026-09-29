@@ -21,6 +21,7 @@ local AvgPreset = {
     "cabin_daylight",
     "cabin_night",
     "carriage_inside",
+    "carriage_inside_a",
     "carriage_inside_dusk",
     "carriage_inside_night",
     "cavern",
@@ -78,6 +79,7 @@ local AvgPreset = {
     "field_town_daylight",
     "flatlands_daylight",
     "flatlands_dusk",
+    "flatlands_floralsea_daylight",
     "flatlands_night",
     "flavio_city_livehouse_a",
     "flavio_city_livehouse_b",
@@ -584,6 +586,7 @@ local AvgPreset = {
     "story_main_09_003_b",
     "story_main_09_003_c",
     "story_main_09_003_d",
+    "story_main_09_003_e",
     "story_main_09_004_a_FP",
     "story_main_09_004_a_MP",
     "story_main_09_004_FP",
@@ -592,6 +595,8 @@ local AvgPreset = {
     "story_main_09_006",
     "story_main_09_007",
     "story_main_09_007_a",
+    "story_main_09_007_b",
+    "story_main_09_007_c",
     "story_main_09_008",
     "story_main_09_009",
     "story_main_09_010_FP",
@@ -615,6 +620,32 @@ local AvgPreset = {
     "story_main_10001_002_01",
     "story_main_10001_002_02",
     "story_main_10001_003",
+    "story_main_10001_004_01",
+    "story_main_10001_004_02",
+    "story_main_10001_004_03",
+    "story_main_10001_004_04",
+    "story_main_10001_004_05",
+    "story_main_10001_004_06",
+    "story_main_10001_004_07",
+    "story_main_10001_004_08",
+    "story_main_10001_004_09",
+    "story_main_10001_004_10",
+    "story_main_10001_004_11",
+    "story_main_10001_004_12",
+    "story_main_10001_005",
+    "story_main_10001_005_a",
+    "story_main_10001_005_b",
+    "story_main_10001_006",
+    "story_main_10001_007",
+    "story_main_10001_008_01",
+    "story_main_10001_008_02",
+    "story_main_10001_009_01_FP",
+    "story_main_10001_009_01_MP",
+    "story_main_10001_009_02_FP",
+    "story_main_10001_009_02_MP",
+    "story_main_10001_009_03_FP",
+    "story_main_10001_009_03_MP",
+    "story_main_10001_011",
     "story_main_be_01_001_FP",
     "story_main_be_01_001_MP",
     "story_main_be_01_002",
@@ -659,7 +690,9 @@ local AvgPreset = {
     "story_tales_16_001",
     "story_tales_16_001_a",
     "story_tales_16_001_b",
-    "story_tales_17_001"
+    "story_tales_17_001",
+    "story_tales_18_001",
+    "story_tales_19_001"
   },
   FgResName = {
     "circle_light",
@@ -2140,6 +2173,126 @@ local AvgPreset = {
         },
         true
       }
+    },
+    {
+      "loopLite",
+      {
+        {
+          {
+            0.0,
+            2.0,
+            0.0
+          },
+          {
+            0.4,
+            0.4,
+            0.0
+          },
+          {
+            1.0,
+            1.0,
+            0.0
+          },
+          {
+            0.5,
+            0.5,
+            0.5
+          },
+          {
+            1,
+            1,
+            1
+          }
+        },
+        {
+          {
+            0.0,
+            0.0,
+            0.0
+          },
+          {
+            0.4,
+            0.4,
+            0.4
+          },
+          {
+            1.0,
+            1.0,
+            1.0
+          },
+          {
+            1,
+            1,
+            1
+          },
+          {
+            1,
+            1,
+            1
+          }
+        },
+        true
+      }
+    },
+    {
+      "diantou",
+      {
+        {
+          {
+            0.0,
+            15.0,
+            0.0
+          },
+          {
+            0.3,
+            0.3,
+            0.0
+          },
+          {
+            1.0,
+            1.0,
+            0.0
+          },
+          {
+            0,
+            0,
+            0
+          },
+          {
+            0,
+            0,
+            0
+          }
+        },
+        {
+          {
+            0.0,
+            0.0,
+            0.0
+          },
+          {
+            0.3,
+            0.3,
+            0.3
+          },
+          {
+            1.0,
+            1.0,
+            1.0
+          },
+          {
+            0,
+            0,
+            0
+          },
+          {
+            0,
+            0,
+            0
+          }
+        },
+        false
+      }
     }
   },
   EaseType = {
@@ -2196,12 +2349,20 @@ local AvgPreset = {
     "ab",
     "ba",
     "bb",
-    "bc"
+    "bc",
+    "bd",
+    "be",
+    "bf",
+    "bg"
   },
   CharPose_1 = {
     "ca",
     "cb",
     "cc",
+    "cd",
+    "ce",
+    "cf",
+    "cg",
     "ac",
     "ad",
     "p",
@@ -5207,6 +5368,66 @@ local AvgPreset = {
         },
         true
       }
+    },
+    {
+      "loopLite",
+      {
+        {
+          {
+            0.0,
+            2.0,
+            0.0
+          },
+          {
+            0.4,
+            0.4,
+            0.0
+          },
+          {
+            1.0,
+            1.0,
+            0.0
+          },
+          {
+            0.5,
+            0.5,
+            0.5
+          },
+          {
+            1,
+            1,
+            1
+          }
+        },
+        {
+          {
+            0.0,
+            0.0,
+            0.0
+          },
+          {
+            0.4,
+            0.4,
+            0.4
+          },
+          {
+            1.0,
+            1.0,
+            1.0
+          },
+          {
+            1,
+            1,
+            1
+          },
+          {
+            1,
+            1,
+            1
+          }
+        },
+        true
+      }
     }
   },
   CharEnter = {
@@ -5957,6 +6178,50 @@ local AvgPreset = {
     },
     {
       "fx_avg_water_splash",
+      ""
+    },
+    {
+      "fx_avg_ice_buff_a",
+      ""
+    },
+    {
+      "fx_avg_ice_buff_b",
+      ""
+    },
+    {
+      "fx_avg_red_eye",
+      ""
+    },
+    {
+      "fx_avg_hurt",
+      ""
+    },
+    {
+      "fx_avg_bullet_2",
+      ""
+    },
+    {
+      "fx_avg_clock",
+      ""
+    },
+    {
+      "fx_avg_blood",
+      ""
+    },
+    {
+      "fx_avg_blood_ splatter",
+      ""
+    },
+    {
+      "fx_avg_story_016",
+      ""
+    },
+    {
+      "fx_avg_story_017",
+      ""
+    },
+    {
+      "fx_avg_shock_wave",
       ""
     },
     {

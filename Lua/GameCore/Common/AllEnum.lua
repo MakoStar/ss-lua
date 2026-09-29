@@ -1107,6 +1107,7 @@ AllEnum.Star_Tag = {
   [809] = {sLanguage = 809},
   [810] = {sLanguage = 810},
   [811] = {sLanguage = 811},
+  [813] = {sLanguage = 813},
   [817] = {sLanguage = 817},
   [818] = {sLanguage = 818},
   [823] = {sLanguage = 823}
@@ -1727,5 +1728,12 @@ AllEnum.ReengagementTog = {
   DoubleDrop = 3,
   ShopMall = 4,
   BDTrial = 5
+}
+AllEnum.MainlineLastEndState = {
+  None = 0,
+  WaitUnlock = 1,
+  Unlock = 2,
+  Readed = 3,
+  Fobidden = 4
 }
 return AllEnum

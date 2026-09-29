@@ -126,6 +126,7 @@ function TowerDefenseCharacterFuncCtrl:ShowIcon(characterId)
       NovaAPI.SetTMPText(txt_costPoint:GetComponent("TMP_Text"), config.PointNeeded[level])
       icon_levelUp.gameObject:SetActive(not (config.PointNeeded[level] > self.point))
       icon_lock.gameObject:SetActive(config.PointNeeded[level] > self.point)
+      btn_LevelUp:GetComponent("NaviButton").interactable = not (config.PointNeeded[level] > self.point)
       if config.PointNeeded[level] > self.point then
         NovaAPI.SetTMPColor(txt_costPoint:GetComponent("TMP_Text"), lockLevelUpTextColor)
       else
@@ -165,20 +166,25 @@ function TowerDefenseCharacterFuncCtrl:UpdateFunc(characterId, go)
   local btn_henshin = go.transform:Find("btn_henshin")
   btn_henshin.gameObject:SetActive(false)
   if level < 6 then
-    btn_LevelUp.gameObject:SetActive(true)
-    local icon_levelUp = go.transform:Find("btn_levelUp/AnimRoot/img_levelUp")
-    local icon_lock = go.transform:Find("btn_levelUp/AnimRoot/img_lock")
-    local txt_costPoint = go.transform:Find("btn_levelUp/AnimRoot/img_point/txt_needPoint")
-    local txt_animator = go.transform:Find("btn_levelUp/AnimRoot"):GetComponent("Animator")
-    NovaAPI.SetTMPText(txt_costPoint:GetComponent("TMP_Text"), config.PointNeeded[level])
-    icon_levelUp.gameObject:SetActive(not (config.PointNeeded[level] > self.point))
-    icon_lock.gameObject:SetActive(config.PointNeeded[level] > self.point)
-    if config.PointNeeded[level] > self.point then
-      NovaAPI.SetTMPColor(txt_costPoint:GetComponent("TMP_Text"), lockLevelUpTextColor)
-      txt_animator:Play("btn_levelUp_Unlock")
+    if not self.bIsShowLevelBtn then
+      btn_LevelUp.gameObject:SetActive(false)
     else
-      NovaAPI.SetTMPColor(txt_costPoint:GetComponent("TMP_Text"), normalLevelUpTextColor)
-      txt_animator:Play("New State")
+      btn_LevelUp.gameObject:SetActive(true)
+      local icon_levelUp = go.transform:Find("btn_levelUp/AnimRoot/img_levelUp")
+      local icon_lock = go.transform:Find("btn_levelUp/AnimRoot/img_lock")
+      local txt_costPoint = go.transform:Find("btn_levelUp/AnimRoot/img_point/txt_needPoint")
+      local txt_animator = go.transform:Find("btn_levelUp/AnimRoot"):GetComponent("Animator")
+      NovaAPI.SetTMPText(txt_costPoint:GetComponent("TMP_Text"), config.PointNeeded[level])
+      icon_levelUp.gameObject:SetActive(not (config.PointNeeded[level] > self.point))
+      icon_lock.gameObject:SetActive(config.PointNeeded[level] > self.point)
+      btn_LevelUp.interactable = not (config.PointNeeded[level] > self.point)
+      if config.PointNeeded[level] > self.point then
+        NovaAPI.SetTMPColor(txt_costPoint:GetComponent("TMP_Text"), lockLevelUpTextColor)
+        txt_animator:Play("btn_levelUp_Unlock")
+      else
+        NovaAPI.SetTMPColor(txt_costPoint:GetComponent("TMP_Text"), normalLevelUpTextColor)
+        txt_animator:Play("New State")
+      end
     end
   else
     btn_LevelUp.gameObject:SetActive(false)

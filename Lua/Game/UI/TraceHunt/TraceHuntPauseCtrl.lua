@@ -111,7 +111,7 @@ TraceHuntPauseCtrl._mapEventConfig = {
 function TraceHuntPauseCtrl:Awake()
   self._mapNode.safeAreaRoot:SetActive(false)
   self.tbGamepadUINode = self:GetGamepadUINode()
-  local nTime = ConfigTable.GetConfigNumber("TraceHuntBossTimeLimit")
+  local nTime = PlayerData.TraceHunt:GetBossTimeLimit()
   self:OnEvent_Time(nTime)
   self.isSettlementReady = false
   local tbConfig = {

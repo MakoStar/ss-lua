@@ -219,7 +219,7 @@ function MainlineExCtrl:OnEvent_SelectMainlineBattle(bConfirm)
     local storyCfgData = PlayerData.Avg:GetStoryCfgData(self.avgId)
     if storyCfgData ~= nil then
       local nBattleType = storyCfgData.EnterMethod
-      if nBattleType == GameEnum.EnterMethod.JumpFormation then
+      if nBattleType == GameEnum.EnterMethod.JumpFormation or nBattleType == GameEnum.EnterMethod.JumpFormationPause then
         PlayerData.Avg:SendMsg_STORY_ENTER(self.avgId, 0)
         return
       end

@@ -256,6 +256,18 @@ function AvgPanel:BindCmdProcFunc()
     ctrl = self,
     func = self.JUMP_AVG_ID
   }
+  self.mapProcFunc.CheckBE = {
+    ctrl = self,
+    func = self.CheckBE
+  }
+  self.mapProcFunc.CheckBECase = {
+    ctrl = self,
+    func = self.CheckBECase
+  }
+  self.mapProcFunc.CheckBEEnd = {
+    ctrl = self,
+    func = self.CheckBEEnd
+  }
 end
 
 function AvgPanel:DelayRunInAvgEditor()
@@ -341,6 +353,13 @@ function AvgPanel:RequireAndPreProcAvgConfig(sAvgConfigPath, sHead, _sGroupId)
       self.tbIfUnlockTarget[self.sAvgId] = {}
     end
     local tbIfUnlock = self.tbIfUnlockTarget[self.sAvgId]
+    if self.tbCheckBETarget == nil then
+      self.tbCheckBETarget = {}
+    end
+    if self.tbCheckBETarget[self.sAvgId] == nil then
+      self.tbCheckBETarget[self.sAvgId] = {}
+    end
+    local tbCheckBE = self.tbCheckBETarget[self.sAvgId]
     self.END_CMD_ID = nil
     self.BadEndingMarkId = nil
     for i, v in ipairs(self.tbAvgCfg) do
@@ -481,37 +500,42 @@ function AvgPanel:RequireAndPreProcAvgConfig(sAvgConfigPath, sHead, _sGroupId)
         local sGroupId = v.param[1]
         if tbIfUnlock[sGroupId] == nil then
           tbIfUnlock[sGroupId] = {
-            nStartCmdId = 0,
-            nElseCmdId = 0,
-            nEndCmdId = 0,
-            bSucc = false
+            tbCmdId = {},
+            nSuccIndex = 0
           }
         end
-        tbIfUnlock[sGroupId].nStartCmdId = i
+        table.insert(tbIfUnlock[sGroupId].tbCmdId, i)
       elseif v.cmd == "IfUnlockElse" then
         local sGroupId = v.param[1]
-        if tbIfUnlock[sGroupId] == nil then
-          tbIfUnlock[sGroupId] = {
-            nStartCmdId = 0,
-            nElseCmdId = 0,
-            nEndCmdId = 0,
-            bSucc = false
-          }
-        end
-        tbIfUnlock[sGroupId].nElseCmdId = i
+        table.insert(tbIfUnlock[sGroupId].tbCmdId, i)
       elseif v.cmd == "IfUnlockEnd" then
         local sGroupId = v.param[1]
-        if tbIfUnlock[sGroupId] == nil then
-          tbIfUnlock[sGroupId] = {
-            nStartCmdId = 0,
-            nElseCmdId = 0,
-            nEndCmdId = 0,
-            bSucc = false
-          }
-        end
-        tbIfUnlock[sGroupId].nEndCmdId = i
+        table.insert(tbIfUnlock[sGroupId].tbCmdId, i)
       elseif v.cmd == "BadEnding_Mark" then
         self.BadEndingMarkId = i
+      elseif v.cmd == "CheckBE" then
+        local sGroupId = v.param[1]
+        if tbCheckBE[sGroupId] == nil then
+          tbCheckBE[sGroupId] = {
+            [1] = 0,
+            [2] = 0,
+            [3] = 0,
+            [4] = 0,
+            CheckBEEnd = 0,
+            result = 0
+          }
+        end
+      elseif v.cmd == "CheckBECase" then
+        local sGroupId = v.param[1]
+        local nCase = v.param[2]
+        if type(tbCheckBE[sGroupId]) == "table" then
+          tbCheckBE[sGroupId][nCase] = i
+        end
+      elseif v.cmd == "CheckBEEnd" then
+        local sGroupId = v.param[1]
+        if type(tbCheckBE[sGroupId]) == "table" then
+          tbCheckBE[sGroupId].CheckBEEnd = i
+        end
       end
     end
     AvgData:MarkStoryId(self.sAvgId)
@@ -945,27 +969,66 @@ end
 function AvgPanel:IfUnlock(tbParam)
   local sGroupId = tbParam[1]
   local sConditionId = tbParam[2]
-  if AvgData:IsUnlock(sConditionId) == true then
-    self.tbIfUnlockTarget[self.sAvgId][sGroupId].bSUcc = true
-    return 0
+  local mapIfUnlock = self.tbIfUnlockTarget[self.sAvgId][sGroupId]
+  if mapIfUnlock.nSuccIndex > 0 then
+    local n = #mapIfUnlock.tbCmdId
+    self.nJumpTarget = mapIfUnlock.tbCmdId[n]
+  elseif AvgData:IsUnlock(sConditionId) == true then
+    self.tbIfUnlockTarget[self.sAvgId][sGroupId].nSuccIndex = table.indexof(mapIfUnlock.tbCmdId, self.nCurIndex)
   else
-    self.tbIfUnlockTarget[self.sAvgId][sGroupId].bSUcc = false
-    self.nJumpTarget = self.tbIfUnlockTarget[self.sAvgId][sGroupId].nElseCmdId
-    return 0
+    local n = table.indexof(mapIfUnlock.tbCmdId, self.nCurIndex) + 1
+    self.nJumpTarget = mapIfUnlock.tbCmdId[n]
   end
+  return 0
 end
 
 function AvgPanel:IfUnlockElse(tbParam)
   local sGroupId = tbParam[1]
-  if self.tbIfUnlockTarget[self.sAvgId][sGroupId].bSUcc == true then
-    self.nJumpTarget = self.tbIfUnlockTarget[self.sAvgId][sGroupId].nEndCmdId
-    return 0
+  local mapIfUnlock = self.tbIfUnlockTarget[self.sAvgId][sGroupId]
+  if mapIfUnlock.nSuccIndex > 0 then
+    local n = #mapIfUnlock.tbCmdId
+    self.nJumpTarget = mapIfUnlock.tbCmdId[n]
   else
-    return 0
   end
+  return 0
 end
 
 function AvgPanel:IfUnlockEnd(tbParam)
+  return 0
+end
+
+function AvgPanel:CheckBE(tbParam)
+  local sGroupId = tbParam[1]
+  local nChapterFrom = tbParam[2]
+  local nChapterTo = tbParam[3]
+  local nValue = tbParam[4]
+  nValue = nValue / 100
+  local n = AvgData:CheckBE(nChapterFrom, nChapterTo)
+  local nIndex = 1
+  if n == 0 then
+    nIndex = 1
+  elseif 0 < n and nValue >= n then
+    nIndex = 2
+  elseif nValue < n and n < 1 then
+    nIndex = 3
+  elseif n == 1 then
+    nIndex = 4
+  end
+  self.nJumpTarget = self.tbCheckBETarget[self.sAvgId][sGroupId][nIndex]
+  self.tbCheckBETarget[self.sAvgId][sGroupId].result = nIndex
+  return 0
+end
+
+function AvgPanel:CheckBECase(tbParam)
+  local sGroupId = tbParam[1]
+  local nCase = tbParam[2]
+  if nCase ~= self.tbCheckBETarget[self.sAvgId][sGroupId].result then
+    self.nJumpTarget = self.tbCheckBETarget[self.sAvgId][sGroupId].CheckBEEnd
+  end
+  return 0
+end
+
+function AvgPanel:CheckBEEnd(tbParam)
   return 0
 end
 
@@ -1152,19 +1215,22 @@ end
 function AvgPanel:JUMP_AVG_ID(tbParam)
   local sAvgId = tbParam[1]
   local nCmdId = tbParam[2]
-  local sBE = tbParam[3] or ""
-  local nIdx = 0
-  if sBE == "A" then
-    nIdx = 1
-  elseif sBE == "B" then
-    nIdx = 2
-  elseif sBE == "C" then
-    nIdx = 3
-  elseif sBE == "D" then
-    nIdx = 4
-  end
-  if 1 <= nIdx and nIdx <= 4 and 0 >= table.indexof(self.tbBEIndex, nIdx) then
-    table.insert(self.tbBEIndex, nIdx)
+  local sBEs = tbParam[3] or ""
+  local tbBE = string.split(sBEs, ",")
+  for i, sBE in ipairs(tbBE) do
+    local nIdx = 0
+    if sBE == "A" then
+      nIdx = 1
+    elseif sBE == "B" then
+      nIdx = 2
+    elseif sBE == "C" then
+      nIdx = 3
+    elseif sBE == "D" then
+      nIdx = 4
+    end
+    if 1 <= nIdx and nIdx <= 4 and 0 >= table.indexof(self.tbBEIndex, nIdx) then
+      table.insert(self.tbBEIndex, nIdx)
+    end
   end
   if sAvgId == nil then
     return -1
@@ -1187,21 +1253,32 @@ end
 
 function AvgPanel:ParseEndJump(mapConfig)
   local sGroupId = mapConfig.param[1]
-  local mapUnlock = self.tbIfUnlockTarget[self.sAvgId][sGroupId]
-  local mapConfig_IfUnlock = self.tbAvgCfg[mapUnlock.nStartCmdId]
-  if mapConfig_IfUnlock ~= nil and mapConfig_IfUnlock.param ~= nil and mapConfig_IfUnlock.cmd == "IfUnlock" then
-    local nCheckCmdId_From, nCheckCmdId_To
-    local sConditionId = mapConfig_IfUnlock.param[2]
-    if AvgData:IsUnlock(sConditionId) then
-      nCheckCmdId_From = mapUnlock.nStartCmdId
-      nCheckCmdId_To = mapUnlock.nElseCmdId
-    else
-      nCheckCmdId_From = mapUnlock.nElseCmdId
-      nCheckCmdId_To = mapUnlock.nEndCmdId
+  local mapIfUnlock = self.tbIfUnlockTarget[self.sAvgId][sGroupId]
+  local nCheckFrom, nCheckTo = 0, 0
+  if 0 < mapIfUnlock.nSuccIndex then
+    nCheckFrom = mapIfUnlock.tbCmdId[mapIfUnlock.nSuccIndex]
+    nCheckTo = mapIfUnlock.tbCmdId[mapIfUnlock.nSuccIndex + 1]
+  else
+    for i, nCmdId in ipairs(mapIfUnlock.tbCmdId) do
+      local mapCmd = self.tbAvgCfg[nCmdId]
+      if mapCmd.cmd == "IfUnlock" then
+        local sConditionId = mapCmd.param[2]
+        if AvgData:IsUnlock(sConditionId) == true then
+          nCheckFrom = nCmdId
+          nCheckTo = mapIfUnlock.tbCmdId[i + 1]
+          break
+        end
+      elseif mapCmd.cmd == "IfUnlockElse" then
+        nCheckFrom = nCmdId
+        nCheckTo = mapIfUnlock.tbCmdId[i + 1]
+        break
+      end
     end
-    for i = nCheckCmdId_From, nCheckCmdId_To do
-      local mapConfig = self.tbAvgCfg[i]
-      if mapConfig ~= nil and mapConfig.cmd == "JUMP_AVG_ID" then
+  end
+  if 0 < nCheckFrom and nCheckFrom < nCheckTo then
+    for i = nCheckFrom, nCheckTo do
+      local mapData = self.tbAvgCfg[i]
+      if mapData ~= nil and mapData.cmd == "JUMP_AVG_ID" then
         return i
       end
     end

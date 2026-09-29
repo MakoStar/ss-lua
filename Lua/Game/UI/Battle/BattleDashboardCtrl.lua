@@ -6,6 +6,10 @@ local InteractiveManagerIns = CS.InteractiveManager.Instance
 local InputManagerIns = CS.InputManager.Instance
 local LocalSettingData = require("GameCore.Data.LocalSettingData")
 local GamepadUIManager = require("GameCore.Module.GamepadUIManager")
+local HINT_EFFECT_PREFAB_PATH = "UI/GuideProloguel/GuideProloguelEffect.prefab"
+local HINT_EFFECT_INDEX = 1
+local HINT_EFFECT_SHOW_DELAY = 0.5
+local HINT_EFFECT_SCALE = 0.8
 BattleDashboardCtrl._mapNodeConfig = {
   ShowBtn = {sComponentName = "Button"},
   cgMainRole = {
@@ -120,6 +124,8 @@ BattleDashboardCtrl._mapEventConfig = {
   InputEnable = "OnEvent_InputEnable",
   AliveChanged = "OnEvent_AliveChanged",
   EnableBtnControl = "OnEvent_EnableBtnControl",
+  HintUltraButton = "OnEvent_HintUltraButton",
+  HintButton = "OnEvent_HintButton",
   interactiveUI = "OnEvent_ShowHand",
   InteractiveEnable = "OnEvent_ClickHand",
   SkillHintStart = "OnEvent_SkillHintStart",
@@ -237,6 +243,8 @@ function BattleDashboardCtrl:Awake()
   self.dodgeTipTime = 0
   self.supportSkillTimeTab = {}
   self.bInteractiveInCD = false
+  self.tbBtnHintFx = {}
+  self.tbBtnHintTimer = {}
 end
 
 function BattleDashboardCtrl:OnEnable()
@@ -259,6 +267,7 @@ function BattleDashboardCtrl:OnPreExit()
 end
 
 function BattleDashboardCtrl:OnDestroy()
+  self:RemoveAllBtnHintEffect()
   NovaAPI.DispatchEventWithData("BlockTouchEffect", nil, {false})
   NovaAPI.UnRegisterVirtualJoystick("Horizontal", "Vertical")
   for nIndex, v in ipairs(self.tbDefine_SkillBtn) do
@@ -361,6 +370,7 @@ function BattleDashboardCtrl:OnEvent_BattleDashboardVisible(bVisible)
 end
 
 function BattleDashboardCtrl:OnEvent_LevelUnloadComplete()
+  self:RemoveAllBtnHintEffect()
 end
 
 function BattleDashboardCtrl:OnEvent_LoadLevelRefresh()
@@ -421,6 +431,108 @@ function BattleDashboardCtrl:OnEvent_EnableBtnControl(sBtnNames, bEnable)
         NovaAPI.SetRealButtonActive(sName, bEnable)
       end
     end
+  end
+end
+
+function BattleDashboardCtrl:OnEvent_HintButton(sBtnNames, bPlayHintEffect)
+  local tbName = string.split(sBtnNames, "+")
+  if tbName ~= nil then
+    for i, sName in pairs(tbName) do
+      if type(sName) == "string" and sName ~= "" then
+        self:ScheduleBtnHintEffect(sName, bPlayHintEffect == true)
+      end
+    end
+  end
+end
+
+function BattleDashboardCtrl:GetBtnHintRoot(sName)
+  if sName == "Fire1" then
+    return self.tbDefine_SkillBtn[1].skillBtnCtrl.gameObject.transform
+  elseif sName == "Fire2" then
+    return self.tbDefine_SkillBtn[2].skillBtnCtrl.gameObject.transform
+  elseif sName == "Fire4" then
+    return self.tbDefine_SkillBtn[4].skillBtnCtrl.gameObject.transform
+  elseif sName == "Interactive" then
+    return self._mapNode.trHand
+  elseif sName == "ActorSwitch1" then
+    return self.tbDefine_SupportSkillBtn[1].skillBtnCtrl.gameObject.transform
+  elseif sName == "ActorSwitch2" then
+    return self.tbDefine_SupportSkillBtn[2].skillBtnCtrl.gameObject.transform
+  elseif sName == "SwitchWithUltra1" then
+    return self.tbDefine_SupportUltraBtn[1].skillBtnCtrl.gameObject.transform
+  elseif sName == "SwitchWithUltra2" then
+    return self.tbDefine_SupportUltraBtn[2].skillBtnCtrl.gameObject.transform
+  end
+  return nil
+end
+
+function BattleDashboardCtrl:ScheduleBtnHintEffect(sName, bImmediate)
+  self:RemoveBtnHintEffect(sName)
+  if bImmediate == true then
+    self:PlayBtnHintEffect(sName)
+    return
+  end
+  self.tbBtnHintTimer[sName] = self:AddTimer(1, HINT_EFFECT_SHOW_DELAY, function()
+    self.tbBtnHintTimer[sName] = nil
+    self:PlayBtnHintEffect(sName)
+  end, true, true, true)
+end
+
+function BattleDashboardCtrl:OnEvent_HintUltraButton(sName)
+  if type(sName) ~= "string" or sName == "" then
+    return
+  end
+  self:ScheduleBtnHintEffect(sName, true)
+end
+
+function BattleDashboardCtrl:PlayBtnHintEffect(sName)
+  local trRoot = self:GetBtnHintRoot(sName)
+  if trRoot == nil then
+    return
+  end
+  local goFx = self:CreatePrefabInstance(HINT_EFFECT_PREFAB_PATH, trRoot)
+  if goFx == nil then
+    return
+  end
+  goFx.transform.localScale = Vector3(HINT_EFFECT_SCALE, HINT_EFFECT_SCALE, 1)
+  goFx.transform.localPosition = Vector3.zero
+  local trEffect = goFx.transform:Find("Effect" .. HINT_EFFECT_INDEX)
+  if trEffect ~= nil then
+    trEffect.gameObject:SetActive(true)
+  end
+  self._mapPrefab[HINT_EFFECT_PREFAB_PATH] = nil
+  self.tbBtnHintFx[sName] = goFx
+end
+
+function BattleDashboardCtrl:RemoveBtnHintEffect(sName)
+  local timer = self.tbBtnHintTimer[sName]
+  if timer ~= nil then
+    timer:Cancel()
+    self.tbBtnHintTimer[sName] = nil
+  end
+  local goFx = self.tbBtnHintFx[sName]
+  if goFx ~= nil then
+    destroy(goFx)
+    self.tbBtnHintFx[sName] = nil
+  end
+end
+
+function BattleDashboardCtrl:RemoveAllBtnHintEffect()
+  if self.tbBtnHintTimer ~= nil then
+    for _, timer in pairs(self.tbBtnHintTimer) do
+      if timer ~= nil then
+        timer:Cancel()
+      end
+    end
+    self.tbBtnHintTimer = {}
+  end
+  if self.tbBtnHintFx ~= nil then
+    for _, goFx in pairs(self.tbBtnHintFx) do
+      if goFx ~= nil then
+        destroy(goFx)
+      end
+    end
+    self.tbBtnHintFx = {}
   end
 end
 
@@ -507,16 +619,19 @@ function BattleDashboardCtrl:OnEvent_UseSkillSucc(nCharId, nSkillId)
   for i, v in ipairs(self.tbDefine_SkillBtn) do
     if v.nCharId == nCharId and v.nSkillId == nSkillId and v.skillBtnCtrl ~= nil then
       v.skillBtnCtrl:SetMainAlpha(false)
+      self:RemoveBtnHintEffect(v.sName)
     end
   end
   for i, v in ipairs(self.tbDefine_SupportSkillBtn) do
     if v.nSkillId == nSkillId and v.skillBtnCtrl ~= nil then
       v.skillBtnCtrl:SetMainAlpha(false)
+      self:RemoveBtnHintEffect(v.sName)
     end
   end
   for i, v in ipairs(self.tbDefine_SupportUltraBtn) do
     if v.nSkillId == nSkillId and v.skillBtnCtrl ~= nil then
       v.skillBtnCtrl:SetMainAlpha(false)
+      self:RemoveBtnHintEffect(v.sName)
     end
   end
 end

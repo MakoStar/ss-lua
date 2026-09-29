@@ -76,6 +76,14 @@ function PlayerGachaData:GetOpenedPool()
   return ret
 end
 
+function PlayerGachaData:CheckPoolOpen(nPoolId)
+  local mapPoolCfgData = ConfigTable.GetData("Gacha", nPoolId)
+  if mapPoolCfgData == nil then
+    return false
+  end
+  return IsOpenCardPool(mapPoolCfgData.StartTime, mapPoolCfgData.EndTime)
+end
+
 function PlayerGachaData:CacheGachaData(mapData)
   for k, v in pairs(mapData) do
     self._mapGachaCount[v.Id] = v.DaysCount

@@ -2929,7 +2929,11 @@ GameEnum.CharEnergyCostSpeed = {
   Mid = 3,
   Low = 4
 }
-GameEnum.EnterMethod = {Default = 0, JumpFormation = 1}
+GameEnum.EnterMethod = {
+  Default = 0,
+  JumpFormation = 1,
+  JumpFormationPause = 2
+}
 GameEnum.MainlineMemoryNodeType = {
   None = 0,
   DiscType = 1,

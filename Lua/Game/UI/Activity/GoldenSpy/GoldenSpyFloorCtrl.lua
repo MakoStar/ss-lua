@@ -257,10 +257,11 @@ function GoldenSpyFloorCtrl:Shoot(nSpeed, nRadius, nFactor, nMinSpeed, onRetract
   end)
 end
 
-function GoldenSpyFloorCtrl:SetHookType(nHookType, nFishingHookRadius)
+function GoldenSpyFloorCtrl:SetHookType(nHookType, nFishingHookRadius, bForce)
   local hookCtrl = self._mapNode.HookCtrl
+  self.nHookType = nHookType
   if hookCtrl and hookCtrl.SetHookType then
-    hookCtrl:SetHookType(nHookType, nFishingHookRadius)
+    hookCtrl:SetHookType(nHookType, nFishingHookRadius, bForce)
   end
 end
 
@@ -285,7 +286,7 @@ function GoldenSpyFloorCtrl:CheckCanDropItem()
   if hookCtrl == nil then
     return false
   end
-  local hookType = hookCtrl:GetHookType()
+  local hookType = hookCtrl:GetCurHookType()
   if hookType == AllEnum.GoldenSpyHookType.FishingHook then
     return false
   end
@@ -344,6 +345,15 @@ end
 function GoldenSpyFloorCtrl:StartBoom(useCallback, finishCallback)
   if self.tbCatchedItem == nil or #self.tbCatchedItem <= 0 then
     return false
+  end
+  local hookCtrl = self._mapNode.HookCtrl
+  if hookCtrl and not hookCtrl:CanUseBoom() then
+    return false
+  end
+  for _, itemCtrl in ipairs(self.tbCatchedItem) do
+    if itemCtrl:GetItemCfg().ItemType == GameEnum.GoldenSpyItem.Boom then
+      return false
+    end
   end
   if useCallback then
     useCallback()

@@ -1155,9 +1155,9 @@ GameTableDefine.CommonTable = {
       "Aplus",
       "Bplus",
       "Cplus",
-      "Ab",
-      "Ac",
-      "Bc",
+      "Abc",
+      "Bac",
+      "Cab",
       "Normal"
     }
   },

@@ -1,5 +1,5 @@
 
-òù
+¢ú
 client_table.protonova.client"Ù
 Achievement
 Id (RId
@@ -6231,7 +6231,7 @@ AchieveIds"G
 Title (	RTitle
 Icon (	RIcon"C
 table_StoryPreview-
-list (2.nova.client.StoryPreviewRlist"ø
+list (2.nova.client.StoryPreviewRlist"Š
 StoryRolePersonality
 Id (RId
 	AvgCharId (	R	AvgCharId"
@@ -6255,16 +6255,16 @@ AchieveIds"G
 	BplusHead (	R	BplusHead
 Cplus (	RCplus
 	CplusFace (	R	CplusFace
-	CplusHead (	R	CplusHead
-Ab (	RAb
-AbFace (	RAbFace
-AbHead (	RAbHead
-Ac (	RAc
-AcFace (	RAcFace
-AcHead (	RAcHead
-Bc (	RBc
-BcFace (	RBcFace
-BcHead (	RBcHead
+	CplusHead (	R	CplusHead
+Abc (	RAbc
+AbcFace (	RAbcFace
+AbcHead (	RAbcHead
+Bac (	RBac
+BacFace (	RBacFace
+BacHead (	RBacHead
+Cab (	RCab
+CabFace (	RCabFace
+CabHead (	RCabHead
 Normal  (	RNormal
 
 NormalFace! (	R
@@ -6848,7 +6848,7 @@ Difficulty
 FloorId (RFloorId0
 ScoreGetSwitchGroup (RScoreGetSwitchGroup"Q
 table_TraceHuntFloorGroup4
-list (2 .nova.client.TraceHuntFloorGroupRlist"Š
+list (2 .nova.client.TraceHuntFloorGroupRlist"¨
 TraceHuntLevel
 Level (RLevel
 Exp (RExp
@@ -6863,7 +6863,8 @@ WorldClass
 DisplayLuckyRate	 (RDisplayLuckyRate&
 DisplayAddRate
  (RDisplayAddRate(
-DisplayFreeRate (RDisplayFreeRate"G
+DisplayFreeRate (RDisplayFreeRate
+	Voluntary (R	Voluntary"G
 table_TraceHuntLevel/
 list (2.nova.client.TraceHuntLevelRlist"o
 TraceHuntLogEntryTemplate

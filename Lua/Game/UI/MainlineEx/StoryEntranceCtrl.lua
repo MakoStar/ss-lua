@@ -289,16 +289,11 @@ function StoryEntranceCtrl:OnBtn_ClickActivity()
 end
 
 function StoryEntranceCtrl:OnBtn_ClickMainlineQuickEntrance()
-  local isUnlock, lockText = PlayerData.Avg:IsStoryChapterUnlock(self.curChapter)
-  if not isUnlock then
-    EventManager.Hit(EventId.OpenMessageBox, lockText)
+  local chapterData = ConfigTable.GetData("StoryChapter", self.curChapter, "")
+  if chapterData.Type == GameEnum.chapterType.Mainline then
+    EventManager.Hit(EventId.OpenPanel, PanelId.MainlineEx, self.curChapter)
   else
-    local chapterData = ConfigTable.GetData("StoryChapter", self.curChapter, "")
-    if chapterData.Type == GameEnum.chapterType.Mainline then
-      EventManager.Hit(EventId.OpenPanel, PanelId.MainlineEx, self.curChapter)
-    else
-      EventManager.Hit(EventId.OpenPanel, chapterData.StoryPanelId, self.curChapter)
-    end
+    EventManager.Hit(EventId.OpenPanel, chapterData.StoryPanelId, self.curChapter)
   end
 end
 

@@ -8,6 +8,7 @@ HudMainCtrl._mapNodeConfig = {
 }
 HudMainCtrl._mapEventConfig = {
   PlayerShow = "OnEvent_PlayerShowChanged",
+  PlayerBloodShow = "OnEvent_PlayerBloodShow",
   ShowBossHUD = "OnEvent_ShowBossHUD",
   MonsterHUDChange = "OnEvent_MonsterHUDChange",
   AllHudShow = "OnEvent_AllHudShowChanged",
@@ -36,6 +37,7 @@ function HudMainCtrl:OnEnable()
   self.resistanceTipInterval = ConfigTable.GetConfigNumber("HudResistanceTipInterval")
   self.hudId = 0
   self.playerHuds = {}
+  self.tbPlayerBloodState = {}
   self.monsterHuds = {}
   self.monsterAdvHuds = {}
   self.numberHuds = {}
@@ -116,6 +118,7 @@ function HudMainCtrl:Clear()
   end
   self.hudId = 0
   self.playerHuds = {}
+  self.tbPlayerBloodState = {}
   self.monsterHuds = {}
   self.monsterAdvHuds = {}
   self.numberHuds = {}
@@ -214,10 +217,25 @@ function HudMainCtrl:OnEvent_PlayerShowChanged(id, showed)
     if playerHud ~= nil then
       playerHud:SetPlayerId(id)
       AdventureModuleHelper.SetHudFollowTarget(id, playerHud.gameObject, Vector3.zero, false)
+      if self.tbPlayerBloodState[id] == false then
+        playerHud:SetBloodVisible(false)
+      end
     end
   elseif playerHud ~= nil then
     self:DespawnPrefabInstance(playerHud, "HUD")
     self.playerHuds[id] = nil
+  end
+end
+
+function HudMainCtrl:OnEvent_PlayerBloodShow(id, showed)
+  printLog("HudMainCtrl:OnEvent_PlayerBloodShow id=" .. tostring(id) .. " showed=" .. tostring(showed))
+  if id == 0 then
+    return
+  end
+  self.tbPlayerBloodState[id] = showed
+  local playerHud = self.playerHuds[id]
+  if playerHud ~= nil then
+    playerHud:SetBloodVisible(showed)
   end
 end
 

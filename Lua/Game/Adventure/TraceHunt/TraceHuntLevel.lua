@@ -197,7 +197,12 @@ function TraceHuntLevel:TraceHuntResult(levelState, totalTime)
   local nLeft = self.parent:GetControlLeftTime()
   if nLeft <= 0 then
     local bEmpty = self.parent:GetSelfHuntCount() == 0
-    local sTip = bEmpty and ConfigTable.GetUIText("TraceHunt_ControlTimeOverInFirstBattle") or ConfigTable.GetUIText("TraceHunt_ControlTimeOverInBattle")
+    local sTip = ""
+    if self.parent.bSelfBoss then
+      sTip = bEmpty and ConfigTable.GetUIText("TraceHunt_ControlTimeOverInFirstBattle") or ConfigTable.GetUIText("TraceHunt_ControlTimeOverInBattle")
+    else
+      sTip = ConfigTable.GetUIText("TraceHunt_ControlTimeOverInFirstBattle")
+    end
     local msg = {
       nType = AllEnum.MessageBox.Alert,
       sContent = sTip,

@@ -141,6 +141,10 @@ end
 function GoldenSpyPatrolItem:onCatch(callback)
   self:StopMove()
   self._mapNode.trDrone.anchoredPosition = Vector2.zero
+  if self.visionTimer ~= nil then
+    self.visionTimer:Cancel()
+    self.visionTimer = nil
+  end
   self._mapNode.img_warning:SetActive(false)
   self._mapNode.img_normal:SetActive(false)
   self._mapNode.animator:Play("Companion_out")
@@ -385,7 +389,7 @@ function GoldenSpyPatrolItem:_CheckVision()
     self.floorCtrl:SubTime(self.itemCfg.Params[2])
     self._mapNode.img_normal:SetActive(false)
     self._mapNode.img_warning:SetActive(true)
-    self:AddTimer(1, 0.5, function()
+    self.visionTimer = self:AddTimer(1, 0.5, function()
       self._mapNode.img_normal:SetActive(true)
       self._mapNode.img_warning:SetActive(false)
     end, true, true, true)

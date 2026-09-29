@@ -58,6 +58,7 @@ function GoldenSpyResultCtrl:Awake()
   local tbParam = self:GetPanelParam()
   if type(tbParam) == "table" then
     self.data = tbParam[1]
+    self.nActId = tbParam[2]
   end
   self.bResult = self.data.bResult
   self.nLevelId = self.data.nLevelId
@@ -154,7 +155,13 @@ function GoldenSpyResultCtrl:SetFinishActive(bActive)
       UTILS.OpenReceiveByChangeInfo(msgData)
       self.nextGroupId = nextGroupId
       self.nextLevelId = nextLevelId
-      if self.bSuccess and self.nextGroupId ~= nil and self.nextLevelId ~= nil then
+      local bCurLevelPass = false
+      local actData = PlayerData.Activity:GetActivityDataById(self.nActId)
+      local levelData = actData:GetLevelDataById(self.nLevelId)
+      if levelData ~= nil then
+        bCurLevelPass = levelData.nMaxScore >= self.levelCfg.Score
+      end
+      if self.bSuccess and self.nextGroupId ~= nil and self.nextLevelId ~= nil and bCurLevelPass then
         self._mapNode.btn_goNext2.gameObject:SetActive(true)
       else
         self._mapNode.btn_goNext2.gameObject:SetActive(false)

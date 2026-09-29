@@ -44,7 +44,9 @@ function MainBattleCtrl:OnEnable()
   self._mapNode.PopupTipsPanel.gameObject:SetActive(false)
   self.battleType = self._panel.BattleType == nil and GameEnum.worldLevelType.Mainline or self._panel.BattleType
   self.dynamicType = self._panel.DynamicType
-  self._mapNode.AutoBattlePanel:SetBattleType(self.battleType, self.dynamicType)
+  local tbParam = self._panel._tbParam
+  local floorId = tbParam and tbParam[2]
+  self._mapNode.AutoBattlePanel:SetBattleType(self.battleType, self.dynamicType, floorId)
   if self.battleType == GameEnum.worldLevelType.InfinityTower then
     local sKey = "PlayerAutoBattleState" .. self.battleType
     local sData = LocalData.GetPlayerLocalData(sKey)

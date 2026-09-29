@@ -2279,4 +2279,62 @@ function CmdInfo.ParseParam_PlayVideo(ctrl, tr, tbParam)
   tr:Find("dd_EaseType").gameObject:SetActive(tbParam[1] <= 1)
 end
 
+function CmdInfo.VisualizedCmd_CheckBE(ctrl, tr, param)
+  if param == nil then
+    return {
+      "a1",
+      0,
+      0,
+      0.5
+    }
+  end
+  NovaAPI.SetInputFieldText(tr:Find("input_GroupId"):GetComponent("InputField"), param[1])
+  NovaAPI.SetInputFieldText(tr:Find("input_From"):GetComponent("InputField"), param[2])
+  NovaAPI.SetInputFieldText(tr:Find("input_To"):GetComponent("InputField"), param[3])
+  NovaAPI.SetInputFieldText(tr:Find("input_Value"):GetComponent("InputField"), param[4])
+end
+
+function CmdInfo.TbDataToCfgStr_CheckBE(ctrl, tbParam)
+  return string.format("  {cmd=\"CheckBE\",param={\"%s\",%s,%s,%s}},", tostring(tbParam[1]), tostring(tbParam[2]), tostring(tbParam[3]), tostring(tbParam[4]))
+end
+
+function CmdInfo.ParseParam_CheckBE(ctrl, tr, tbParam)
+  tbParam[1] = NovaAPI.GetInputFieldText(tr:Find("input_GroupId"):GetComponent("InputField"))
+  tbParam[2] = NovaAPI.GetInputFieldText(tr:Find("input_From"):GetComponent("InputField"))
+  tbParam[3] = NovaAPI.GetInputFieldText(tr:Find("input_To"):GetComponent("InputField"))
+  tbParam[4] = NovaAPI.GetInputFieldText(tr:Find("input_Value"):GetComponent("InputField"))
+end
+
+function CmdInfo.VisualizedCmd_CheckBECase(ctrl, tr, param)
+  if param == nil then
+    return {"a1", 0}
+  end
+  NovaAPI.SetInputFieldText(tr:Find("input_GroupId"):GetComponent("InputField"), param[1])
+  NovaAPI.SetInputFieldText(tr:Find("input_Case"):GetComponent("InputField"), param[2])
+end
+
+function CmdInfo.TbDataToCfgStr_CheckBECase(ctrl, tbParam)
+  return string.format("  {cmd=\"CheckBECase\",param={\"%s\",%s}},", tostring(tbParam[1]), tostring(tbParam[2]))
+end
+
+function CmdInfo.ParseParam_CheckBECase(ctrl, tr, tbParam)
+  tbParam[1] = NovaAPI.GetInputFieldText(tr:Find("input_GroupId"):GetComponent("InputField"))
+  tbParam[2] = NovaAPI.GetInputFieldText(tr:Find("input_Case"):GetComponent("InputField"))
+end
+
+function CmdInfo.VisualizedCmd_CheckBEEnd(ctrl, tr, param)
+  if param == nil then
+    return {"a1"}
+  end
+  NovaAPI.SetInputFieldText(tr:Find("input_GroupId"):GetComponent("InputField"), param[1])
+end
+
+function CmdInfo.TbDataToCfgStr_CheckBEEnd(ctrl, tbParam)
+  return string.format("  {cmd=\"CheckBEEnd\",param={\"%s\"}},", tostring(tbParam[1]))
+end
+
+function CmdInfo.ParseParam_CheckBEEnd(ctrl, tr, tbParam)
+  tbParam[1] = NovaAPI.GetInputFieldText(tr:Find("input_GroupId"):GetComponent("InputField"))
+end
+
 return CmdInfo

@@ -63,7 +63,6 @@ LongestDayCtrl._mapNodeConfig = {
   txtTaskProgress_End = {},
   imgTaskActivityUnlockTime = {},
   txtTaskActivityUnlockTime = {sComponentName = "TMP_Text"},
-  dbTaskEnd = {},
   txtTaskProgressEnd = {sComponentName = "TMP_Text"},
   dbTask = {},
   dbTaskEnd = {},
@@ -164,11 +163,11 @@ end
 
 function LongestDayCtrl:OnEnable()
   self:RefreshPanel()
-  for i = 1, 6 do
+  for i = 1, 5 do
     local actData = self.ActData:GetActivityDataByIndex(i)
     local nActId = actData ~= nil and actData.ActivityId or 0
     local state = self.tbActState[nActId]
-    if nActId ~= nil and 0 < nActId and state ~= nil then
+    if 0 < nActId and state ~= nil then
       if i == AllEnum.ActivityThemeFuncIndex.Task then
         if state == ActivityState.Closed then
           self._mapNode.redDotEntrance2:SetActive(false)
@@ -183,31 +182,14 @@ function LongestDayCtrl:OnEnable()
           self.nActId,
           nActId
         }, self._mapNode.reddotLevel)
-      elseif i == AllEnum.ActivityThemeFuncIndex.FateCard then
-        RedDotManager.RegisterNode(RedDotDefine.Activity_Group_PenguinCard_Level, {
-          self.nActId
-        }, self._mapNode.reddotFatecard)
       elseif i == AllEnum.ActivityThemeFuncIndex.MiniGame then
-        local bOld = LocalData.GetPlayerLocalData("Activity_MiniGame_10112_New") or state ~= ActivityState.Open
-        RedDotManager.SetValid(RedDotDefine.Activity_GroupNew_MiniGame, {
-          self.nActId
-        }, not bOld)
-        RedDotManager.RegisterNode(RedDotDefine.Activity_GroupNew_MiniGame, {
+        RedDotManager.RegisterNode(RedDotDefine.Activity_GoldenSpy, {
           self.nActId
         }, self._mapNode.miniGameRedDot)
       end
     end
   end
-  local sAnimName = "LongestDayPanel_Full"
-  local sAudioName = "Mode_10112_activity"
-  if self.animRoot ~= nil then
-    self.animRoot = self.gameObject:GetComponent("Animator")
-    sAnimName = "LongestDayPanel_Pullback"
-    sAudioName = "Mode_10112_activity_01"
-  end
-  self.animRoot = self.gameObject:GetComponent("Animator")
-  self.animRoot:Play(sAnimName, 0, 0)
-  WwiseAudioMgr:PostEvent(sAudioName)
+  self:SetEnterState()
 end
 
 function LongestDayCtrl:OnDisable()
@@ -235,6 +217,45 @@ function LongestDayCtrl:OnDisable()
     TimerManager.Remove(self.taskRemainTimer)
     self.taskRemainTimer = nil
   end
+  self:RedDotUnRegister()
+end
+
+function LongestDayCtrl:RedDotUnRegister()
+  for i = 1, 5 do
+    local actData = self.ActData:GetActivityDataByIndex(i)
+    local nActId = actData ~= nil and actData.ActivityId or 0
+    local state = self.tbActState[nActId]
+    if 0 < nActId and state ~= nil then
+      if i == AllEnum.ActivityThemeFuncIndex.Task then
+        RedDotManager.UnRegisterNode(RedDotDefine.Activity_Group_Task, {
+          self.nActId,
+          nActId
+        }, self._mapNode.redDotEntrance2)
+      elseif i == AllEnum.ActivityThemeFuncIndex.Level then
+        RedDotManager.UnRegisterNode(RedDotDefine.ActivityLevel, {
+          self.nActId,
+          nActId
+        }, self._mapNode.reddotLevel)
+      elseif i == AllEnum.ActivityThemeFuncIndex.MiniGame then
+        RedDotManager.UnRegisterNode(RedDotDefine.Activity_GroupNew_MiniGame, {
+          self.nActId
+        }, self._mapNode.miniGameRedDot)
+      end
+    end
+  end
+end
+
+function LongestDayCtrl:SetEnterState()
+  local sAnimName = "LongestDayPanel_Full"
+  local sAudioName = "Mode_10112_activity"
+  if self.bFirstEnter then
+    sAnimName = "LongestDayPanel_Pullback"
+    sAudioName = "Mode_10112_activity_01"
+  end
+  self.bFirstEnter = true
+  self.animRoot = self.gameObject:GetComponent("Animator")
+  self.animRoot:Play(sAnimName, 0, 0)
+  WwiseAudioMgr:PostEvent(sAudioName)
 end
 
 function LongestDayCtrl:RefreshPanel()
@@ -342,7 +363,7 @@ function LongestDayCtrl:RefreshButtonState()
 end
 
 function LongestDayCtrl:RefreshButtonTimer(actData, timer, txtTrans, imgTrans, refreshFunc)
-  local countDowmTimer
+  local countDownTimer
   local activityId = actData.ActivityId
   local state, bShowCountDown, openTime, endTime = self.ActData:GetActivityEntranceTimerData(activityId)
   if state == ActivityState.NotOpen then
@@ -359,8 +380,8 @@ function LongestDayCtrl:RefreshButtonTimer(actData, timer, txtTrans, imgTrans, r
           end
         else
           imgTrans:SetActive(false)
-          TimerManager.Remove(countDowmTimer)
-          countDowmTimer = nil
+          TimerManager.Remove(countDownTimer)
+          countDownTimer = nil
           self.tbActState[activityId] = ActivityState.Open
           refreshFunc(actData)
           self:RefreshActivityData()
@@ -368,7 +389,7 @@ function LongestDayCtrl:RefreshButtonTimer(actData, timer, txtTrans, imgTrans, r
       end
       
       fcTimer()
-      countDowmTimer = self:AddTimer(0, 1, fcTimer, true, true, false)
+      countDownTimer = self:AddTimer(0, 1, fcTimer, true, true, false)
     end
   elseif state == ActivityState.Open and endTime ~= nil and timer == nil and bShowCountDown then
     self:RefreshRemainTime(endTime, txtTrans)
@@ -376,16 +397,16 @@ function LongestDayCtrl:RefreshButtonTimer(actData, timer, txtTrans, imgTrans, r
     local function fcTimer()
       local remainTime = self:RefreshRemainTime(endTime, txtTrans)
       if remainTime <= 0 then
-        TimerManager.Remove(countDowmTimer)
-        countDowmTimer = nil
+        TimerManager.Remove(countDownTimer)
+        countDownTimer = nil
         refreshFunc(actData)
       end
     end
     
     fcTimer()
-    countDowmTimer = self:AddTimer(0, 1, fcTimer, true, true, false)
+    countDownTimer = self:AddTimer(0, 1, fcTimer, true, true, false)
   end
-  return state, bShowCountDown, countDowmTimer
+  return state, bShowCountDown, countDownTimer
 end
 
 function LongestDayCtrl:RefreshMiniGameButtonState(actData)
@@ -396,9 +417,9 @@ function LongestDayCtrl:RefreshMiniGameButtonState(actData)
       self:RefreshMiniGameButtonState(actData)
     end
     
-    local state, bShowCountDown, countDowmTimer = self:RefreshButtonTimer(actData, self.minigameRemainTimer, self._mapNode.txtMiniGameActivityTime, self._mapNode.imgMiniGameActivityUnlockTime, refreshFunc)
+    local state, bShowCountDown, countDownTimer = self:RefreshButtonTimer(actData, self.minigameRemainTimer, self._mapNode.txtMiniGameActivityTime, self._mapNode.imgMiniGameActivityUnlockTime, refreshFunc)
     if self.minigameRemainTimer == nil then
-      self.minigameRemainTimer = countDowmTimer
+      self.minigameRemainTimer = countDownTimer
     end
     self._mapNode.imgMiniGameActivityUnlockTime:SetActive(state == ActivityState.NotOpen)
     self._mapNode.imgMiniGameActivityTime.gameObject:SetActive(state == ActivityState.Open and bShowCountDown)
@@ -408,8 +429,6 @@ function LongestDayCtrl:RefreshMiniGameButtonState(actData)
     self._mapNode.goMiniGameEnd.gameObject:SetActive(state == ActivityState.Closed)
     self._mapNode.dbMiniGame.gameObject:SetActive(state ~= ActivityState.Closed)
     self._mapNode.dbMiniGameEnd.gameObject:SetActive(state == ActivityState.Closed)
-    if state ~= ActivityState.Open then
-    end
     self.tbActState[activityId] = state
   end
 end
@@ -426,9 +445,9 @@ function LongestDayCtrl:RefreshTaskButtonState(actData)
       self:RefreshTaskButtonState(actData)
     end
     
-    local state, bShowCountDown, countDowmTimer = self:RefreshButtonTimer(actData, self.taskRemainTimer, self._mapNode.txtTaskActivityTime, self._mapNode.imgTaskActivityUnlockTime, refreshFunc)
+    local state, bShowCountDown, countDownTimer = self:RefreshButtonTimer(actData, self.taskRemainTimer, self._mapNode.txtTaskActivityTime, self._mapNode.imgTaskActivityUnlockTime, refreshFunc)
     if self.taskRemainTimer == nil then
-      self.taskRemainTimer = countDowmTimer
+      self.taskRemainTimer = countDownTimer
     end
     if state == ActivityState.Closed and actInsData ~= nil then
       actInsData:RefreshTaskRedDot()
@@ -442,10 +461,9 @@ function LongestDayCtrl:RefreshTaskButtonState(actData)
     self._mapNode.dbTaskEnd.gameObject:SetActive(state == ActivityState.Closed)
     self._mapNode.txtTaskProgressEnd.gameObject:SetActive(state == ActivityState.Closed)
     self.tbActState[activityId] = state
-    local ActivityTaskData = PlayerData.Activity:GetActivityDataById(activityId)
     local nDone, nTotal = 0, 0
-    if ActivityTaskData ~= nil then
-      nDone, nTotal = ActivityTaskData:CalcTotalProgress()
+    if actInsData ~= nil then
+      nDone, nTotal = actInsData:CalcTotalProgress()
     end
     local progress = string.format("%d/%d", nDone, nTotal)
     NovaAPI.SetTMPText(self._mapNode.txtTaskProgress, progress)
@@ -466,9 +484,9 @@ function LongestDayCtrl:RefreshLevelButtonState(actData)
       self:RefreshLevelButtonState(actData)
     end
     
-    local state, bShowCountDown, countDowmTimer = self:RefreshButtonTimer(actData, self.levelRemainTimer, self._mapNode.txtLevelActivityTime, self._mapNode.imgLevelActivityUnlockTime, refreshFunc)
+    local state, bShowCountDown, countDownTimer = self:RefreshButtonTimer(actData, self.levelRemainTimer, self._mapNode.txtLevelActivityTime, self._mapNode.imgLevelActivityUnlockTime, refreshFunc)
     if self.levelRemainTimer == nil then
-      self.levelRemainTimer = countDowmTimer
+      self.levelRemainTimer = countDownTimer
     end
     if state == ActivityState.Closed then
       local activityLevelsData = PlayerData.Activity:GetActivityDataById(activityId)
@@ -496,9 +514,9 @@ function LongestDayCtrl:RefreshShopButtonState(actData)
       self:RefreshShopButtonState(actData)
     end
     
-    local state, bShowCountDown, countDowmTimer = self:RefreshButtonTimer(actData, self.shopRemainTimer, self._mapNode.txtShopActivityTime, self._mapNode.imgShopActivityUnlockTime, refreshFunc)
+    local state, bShowCountDown, countDownTimer = self:RefreshButtonTimer(actData, self.shopRemainTimer, self._mapNode.txtShopActivityTime, self._mapNode.imgShopActivityUnlockTime, refreshFunc)
     if self.shopRemainTimer == nil then
-      self.shopRemainTimer = countDowmTimer
+      self.shopRemainTimer = countDownTimer
     end
     self._mapNode.imgShopActivityTime:SetActive(state == ActivityState.Open and bShowCountDown)
     self._mapNode.imgShopActivityUnlockTime:SetActive(state == ActivityState.NotOpen)
@@ -523,7 +541,7 @@ function LongestDayCtrl:RefreshStoryButtonState()
   self._mapNode.dbStoryEnd.gameObject:SetActive(false)
 end
 
-function LongestDayCtrl:RequireActiviyData()
+function LongestDayCtrl:RequireActivityData()
   if self.bRequiredActData then
     return
   end
@@ -544,7 +562,9 @@ function LongestDayCtrl:RefreshActivityData()
   if self.bRequiredActData then
     return
   end
-  self:AddTimer(1, 3, self.RequireActiviyData, true, true, true)
+  self:AddTimer(1, 3, function()
+    self:RequireActivityData()
+  end, true, true, true)
 end
 
 function LongestDayCtrl:OnBtn_ClickActivityEntrance(btn, nIndex)
@@ -554,7 +574,21 @@ function LongestDayCtrl:OnBtn_ClickActivityEntrance(btn, nIndex)
     if isUnlock then
       EventManager.Hit(EventId.OpenPanel, PanelId.MainlineEx, chapterId)
     else
-      EventManager.Hit(EventId.OpenPanel, PanelId.StoryChapter)
+      local sLockReadTipsKey = "Mainline_Preview_Lock_Read_" .. chapterId
+      if LocalData.GetPlayerLocalData(sLockReadTipsKey) then
+        EventManager.Hit(EventId.OpenPanel, PanelId.MainlineEx, chapterId)
+        return
+      end
+      local sTip = ConfigTable.GetUIText("Mainline_Preview_Lock_Read")
+      local msg = {
+        nType = AllEnum.MessageBox.Confirm,
+        sContent = sTip,
+        callbackConfirm = function()
+          LocalData.SetPlayerLocalData(sLockReadTipsKey, true)
+          EventManager.Hit(EventId.OpenPanel, PanelId.MainlineEx, chapterId)
+        end
+      }
+      EventManager.Hit(EventId.OpenMessageBox, msg)
     end
     return
   end
@@ -565,7 +599,7 @@ function LongestDayCtrl:OnBtn_ClickActivityEntrance(btn, nIndex)
   local bOpen, _state, _sTips, bNeedRefreshData = self.ActData:CheckActivityEntranceOpen(actData.ActivityId, actData.PanelId, true, self.bRequiredActData)
   if not bOpen then
     if bNeedRefreshData then
-      self:RequireActiviyData()
+      self:RequireActivityData()
     end
     return
   end

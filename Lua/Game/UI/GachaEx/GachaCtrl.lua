@@ -1579,6 +1579,11 @@ function GachaCtrl:OnEvent_GachaCoverEntranceGo()
   if self.bGachaProcess then
     return
   end
+  local bOpen = PlayerData.Gacha:CheckPoolOpen(self.curPoolId)
+  if not bOpen then
+    EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Activity_End_Notice"))
+    return
+  end
   local gachaData = ConfigTable.GetData("Gacha", self.curPoolId)
   if gachaData ~= nil then
     local nTrailId = gachaData.TrailId

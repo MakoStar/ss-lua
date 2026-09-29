@@ -157,14 +157,6 @@ function Avg_6_MenuCtrl:Awake()
   self._mapNode.trOffscreenRenderer.localScale = Vector3(_nScale, _nScale, _nScale)
   self:InitActionBarConfig()
   self:SetAutoLineWrap(true)
-  self.tbSpeed = {
-    1,
-    4,
-    16
-  }
-  if AVG_EDITOR == true then
-    table.insert(self.tbSpeed, 32)
-  end
   self.mapIntroData = {}
   self.bUnfoldMenu = false
   self.bUILog = false
@@ -193,6 +185,19 @@ function Avg_6_MenuCtrl:OnEnable()
     self.bAutoPlayOn = false
   end
   self:SetAutoPlayOnOff(true)
+  if self._panel.tbAvgPreset ~= nil then
+    self.tbSpeed = self._panel.tbAvgPreset.PlaySpeed[self._panel.sTxtLan]
+  end
+  if self.tbSpeed == nil then
+    self.tbSpeed = {
+      1,
+      4,
+      16
+    }
+  end
+  if AVG_EDITOR == true then
+    table.insert(self.tbSpeed, 32)
+  end
   self.nSpeedIdx = 1
   self:SetSpeedUp()
   if self:GetPanelId() ~= PanelId.AvgEditor then

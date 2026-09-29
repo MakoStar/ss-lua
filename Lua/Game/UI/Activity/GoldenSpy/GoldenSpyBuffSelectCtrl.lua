@@ -69,9 +69,11 @@ GoldenSpyBuffSelectCtrl._mapNodeConfig = {
   },
   btn_Refresh = {
     sComponentName = "NaviButton",
-    callback = "OnBtnClick_Refresh"
+    callback = "OnBtnClick_Refresh",
+    sAction = "Roll"
   },
   txt_Refresh = {
+    nCount = 2,
     sComponentName = "TMP_Text",
     sLanguageId = "GoldenSpy_Refresh_Title"
   },
@@ -194,7 +196,7 @@ end
 
 function GoldenSpyBuffSelectCtrl:RefreshRefreshCount()
   local nRefreshCount = self.getRefreshCallback() or 0
-  NovaAPI.SetTMPText(self._mapNode.txt_num, nRefreshCount)
+  NovaAPI.SetTMPText(self._mapNode.txt_num, string.format("%d", nRefreshCount))
 end
 
 function GoldenSpyBuffSelectCtrl:ShowBuffSelect(tbShowItem, tbBuff, tbSelectBuff, selectedCallback)
@@ -361,11 +363,12 @@ function GoldenSpyBuffSelectCtrl:OnBtnClick_Confirm(btn, nIndex)
     animator:Play("btnBuff_get")
     self._mapNode.animCtrl:Play("GoldenSpyBuffSelectPanel_out")
     self:AddTimer(1, 0.6, function()
-      self.selectedCallback(self.tbSelectBuff[self.nSelectIdx])
-      
       local function wait()
         coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
+        
         EventManager.Hit(EventId.ClosePanel, self._panel._nPanelId)
+        coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
+        self.selectedCallback(self.tbSelectBuff[self.nSelectIdx])
       end
       
       cs_coroutine.start(wait)

@@ -212,8 +212,8 @@ function TraceHuntHelpCtrl:RefreshHuntBtn()
   local nId = ConfigTable.GetConfigNumber("TraceHuntPermitItemTid")
   local nCost = PlayerData.TraceHunt:GetHuntCostCount()
   local nHasCoin = PlayerData.TraceHunt:GetHuntTokenCount()
-  local bBlock = PlayerData.TraceHunt:GetControlBlockState()
-  if bBlock then
+  local bOpen = PlayerData.TraceHunt:CheckNoneRewardHelpOpen()
+  if not bOpen then
     self:SetSprite_Coin(self._mapNode.imgReqHuntIcon, nId)
     NovaAPI.SetTMPText(self._mapNode.txtReqHuntCount, math.ceil(nCost))
     NovaAPI.SetTMPColor(self._mapNode.txtReqHuntCount, nCost <= nHasCoin and Blue_Normal or Red_Unable)
@@ -325,6 +325,7 @@ function TraceHuntHelpCtrl:OnEnable()
   self._mapNode.Info:SetActive(false)
   self._mapNode.List:SetActive(false)
   self.bGetInfo = false
+  self:RefreshRes()
   
   local function callback()
     self._mapNode.Info:SetActive(true)
@@ -361,8 +362,8 @@ function TraceHuntHelpCtrl:OnBtnClick_Hunt(btn)
   if self.nSelectIndex == 0 or next(self.tbRecommend) == nil then
     return
   end
-  local bBlock = PlayerData.TraceHunt:GetControlBlockState()
-  if bBlock then
+  local bOpen = PlayerData.TraceHunt:CheckNoneRewardHelpOpen()
+  if not bOpen then
     local nId = ConfigTable.GetConfigNumber("TraceHuntPermitItemTid")
     local nCost = PlayerData.TraceHunt:GetHuntCostCount()
     local nHasCoin = PlayerData.TraceHunt:GetHuntTokenCount()

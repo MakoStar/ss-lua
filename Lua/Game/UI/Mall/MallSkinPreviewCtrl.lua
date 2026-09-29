@@ -158,6 +158,9 @@ function MallSkinPreviewCtrl:RefreshSelectSkinInfo()
   end
   self._mapNode.txtSaleTip.gameObject:SetActive(false)
   self.nSkinId = skinData.nId
+  if self.sMallPackageId ~= nil then
+    self:UnRegisterRedNode(self.sMallPackageId)
+  end
   self.sMallPackageId = skinData.mapCfg and skinData.mapCfg.Id or nil
   self.nCharId = 0
   local bUsed = false
@@ -694,6 +697,7 @@ function MallSkinPreviewCtrl:RegisterRedNode(sId)
 end
 
 function MallSkinPreviewCtrl:UnRegisterRedNode(sId)
+  RedDotManager.SetValid(RedDotDefine.Mall_CharSkinTrial, {sId}, false)
   RedDotManager.UnRegisterNode(RedDotDefine.Mall_CharSkinTrial, {sId}, self._mapNode.redH)
 end
 

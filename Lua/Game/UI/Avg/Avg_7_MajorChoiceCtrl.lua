@@ -391,7 +391,8 @@ function Avg_7_MajorChoiceCtrl:SetMajorChoice(tbParam)
   if ENABLE_D ~= nil then
     self.D_bABC = ENABLE_D
   end
-  if self.D_bExist == true and self.D_bABC == true then
+  local bD = self.D_bExist == true and self.D_bABC == true and AvgData:IsUnlock(tbUnlockCondition[4]) == true
+  if bD == true then
     NovaAPI.SetCanvasGroupAlpha(self._mapNode.cgRole, 0)
     self._mapNode.rtCard.anchoredPosition = Vector2(0, -17.5)
     self._mapNode.rtCard.sizeDelta = Vector2(2160, 800)
@@ -486,7 +487,7 @@ function Avg_7_MajorChoiceCtrl:SetMajorChoice(tbParam)
   self._mapNode.animBgRole:Play("animMajor_In")
   local nAnimLen = 0
   local sequence = DOTween.Sequence()
-  if self.D_bExist == true and self.D_bABC == true then
+  if bD == true then
     if self.D_b1stAnim == true then
       for i = 1, 3 do
         self.tbBtnChoice[i].interactable = false

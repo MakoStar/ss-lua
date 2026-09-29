@@ -1,4 +1,5 @@
 local JumpUtil = {}
+local LocalData = require("GameCore.Data.LocalData")
 
 function JumpUtil.JumpTo(jumpId, ...)
   if jumpId == nil then
@@ -481,10 +482,24 @@ function JumpUtil.JumpToActivity(tbJumpData)
   if tbJumpData[1] == GameEnum.jumpType.MainLineStoryChapter then
     local chapterIndex = tbJumpData[2]
     local isUnlock = PlayerData.Avg:IsStoryChapterUnlock(chapterIndex)
-    if not isUnlock then
-      EventManager.Hit(EventId.OpenPanel, PanelId.StoryChapter)
-    else
+    if isUnlock then
       EventManager.Hit(EventId.OpenPanel, PanelId.MainlineEx, chapterIndex)
+    else
+      local sLockReadTipsKey = "Mainline_Preview_Lock_Read_" .. chapterIndex
+      if LocalData.GetPlayerLocalData(sLockReadTipsKey) then
+        EventManager.Hit(EventId.OpenPanel, PanelId.MainlineEx, chapterIndex)
+        return
+      end
+      local sTip = ConfigTable.GetUIText("Mainline_Preview_Lock_Read")
+      local msg = {
+        nType = AllEnum.MessageBox.Confirm,
+        sContent = sTip,
+        callbackConfirm = function()
+          LocalData.SetPlayerLocalData(sLockReadTipsKey, true)
+          EventManager.Hit(EventId.OpenPanel, PanelId.MainlineEx, chapterIndex)
+        end
+      }
+      EventManager.Hit(EventId.OpenMessageBox, msg)
     end
     return
   end

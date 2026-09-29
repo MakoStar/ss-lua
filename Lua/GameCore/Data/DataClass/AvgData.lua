@@ -10,6 +10,7 @@ function AvgData:Init()
   self.CFG_StoryCondition = {}
   self.CFG_StoryEvidence = {}
   self.CFG_ConditionStoryNumIds = {}
+  self.tbLastEndStoryIds = {}
   
   local function forEachLine_Story(mapLineData)
     self.CFG_Story[mapLineData.StoryId] = mapLineData.Id
@@ -23,6 +24,9 @@ function AvgData:Init()
       table.insert(self.CFG_ConditionStoryNumIds[mapLineData.ConditionId], mapLineData.Id)
     end
     table.insert(self.CFG_ChapterStoryNumIds[mapLineData.Chapter], mapLineData.Id)
+    if mapLineData.MemoryType == GameEnum.MainlineMemoryNodeType.LastEndType then
+      table.insert(self.tbLastEndStoryIds, mapLineData.Id)
+    end
   end
   
   local function forEachLine_StoryCondition(mapLineData)
@@ -33,9 +37,9 @@ function AvgData:Init()
     self.CFG_StoryEvidence[mapLineData.EvId] = mapLineData.Id
   end
   
-  ForEachTableLine(DataTable.Story, forEachLine_Story)
   ForEachTableLine(DataTable.StoryCondition, forEachLine_StoryCondition)
   ForEachTableLine(DataTable.StoryEvidence, forEachLine_StoryEvidence)
+  ForEachTableLine(DataTable.Story, forEachLine_Story)
   self.tbStoryIds = {}
   self.tbTempStoryIds = {}
   self.tbEvIds = {}
@@ -276,6 +280,9 @@ function AvgData:CacheAvgData(StoryInfo)
   end
   self.mapRecentStoryId = decodeJson(LocalData.GetPlayerLocalData("RecentStoryId")) or {}
   self:CheckNewStoryRedDot()
+  for k, v in ipairs(self.tbLastEndStoryIds) do
+    self:SetLastEndState(v)
+  end
 end
 
 function AvgData:GetChapterStoryNumIds(nChapterId)
@@ -424,28 +431,91 @@ function AvgData:IsUnlock(sConditionId, avgId)
   local nNeedWorldLevel = cfgData.PlayerWorldLevel or 0
   local bNeedLv = nNeedWorldLevel <= PlayerData.Base:GetWorldClass()
   local bMustAchievementIds, mapAchieveInfo = PlayerData.Achievement:CheckAchieveIds(cfgData.AchieveIds)
-  local bTimeUnlock = true
-  local openTime
-  local configValue = ConfigTable.GetConfigValue("TimeUnlockStory", "")
-  if configValue ~= nil and configValue == avgId then
-    local curTime = CS.ClientManager.Instance.serverTimeStamp
-    local time = ConfigTable.GetConfigValue("StoryUnlockTime", "")
-    openTime = CS.ClientManager.Instance:ISO8601StrToTimeStamp(time)
-    if curTime < openTime then
-      bTimeUnlock = false
-    end
-  end
   local tbResult = {
     {bMustStoryIds, mapMustStoryIds},
     {bOneOfStoryIds, mapOneOfStoryIds},
     {bMustEvIds, mapMustEvIds},
     {bOneOfEvIds, mapOneOfEvIds},
     {bNeedLv, nNeedWorldLevel},
-    {bMustAchievementIds, mapAchieveInfo},
-    {bTimeUnlock, openTime}
+    {bMustAchievementIds, mapAchieveInfo}
   }
-  local bResult = bMustEvIds == true and bOneOfEvIds == true and bMustStoryIds == true and bOneOfStoryIds == true and bNeedLv == true and bMustAchievementIds == true and bTimeUnlock == true
+  local bResult = bMustEvIds == true and bOneOfEvIds == true and bMustStoryIds == true and bOneOfStoryIds == true and bNeedLv == true and bMustAchievementIds == true
   return bResult, tbResult
+end
+
+local UnlockConditionPriority = {
+  [1] = "MustStoryIds",
+  [2] = "OneofStoryIds",
+  [3] = "MustEvIds",
+  [4] = "OneofEvIds",
+  [5] = "WorldLevel",
+  [6] = "MustAchievementIds"
+}
+
+function AvgData:GetLockReasonText(tbResult, bHasAchievementData)
+  if tbResult == nil then
+    return ""
+  end
+  local lockTxt = ""
+  for i = 1, #tbResult do
+    local value = tbResult[i]
+    if value[1] == false then
+      if UnlockConditionPriority[i] == "MustStoryIds" then
+        do
+          local tbStoryIds = value[2]
+          for k, v in pairs(tbStoryIds) do
+            if v == false then
+              local storyData = ConfigTable.GetData_Story(self.CFG_Story[k])
+              lockTxt = orderedFormat(ConfigTable.GetUIText("Story_UnlockPreId") or "", storyData.Title)
+              break
+            end
+          end
+        end
+        break
+      end
+      if UnlockConditionPriority[i] == "OneofStoryIds" then
+        do
+          local tbStoryIds = value[2]
+          for k, v in pairs(tbStoryIds) do
+            if v == false then
+              local storyData = ConfigTable.GetData_Story(self.CFG_Story[k])
+              lockTxt = orderedFormat(ConfigTable.GetUIText("Story_UnlockPreId") or "", storyData.Title)
+              break
+            end
+          end
+        end
+        break
+      end
+      if UnlockConditionPriority[i] == "MustEvIds" then
+        lockTxt = ConfigTable.GetUIText("Story_UnlockClueCondition")
+        break
+      end
+      if UnlockConditionPriority[i] == "OneofEvIds" then
+        lockTxt = ConfigTable.GetUIText("Story_UnlockClueCondition")
+        break
+      end
+      if UnlockConditionPriority[i] == "WorldLevel" then
+        do
+          local level = value[2]
+          lockTxt = orderedFormat(ConfigTable.GetUIText("Story_UnlockWorldLv") or "", level)
+        end
+        break
+      end
+      if UnlockConditionPriority[i] == "MustAchievementIds" and bHasAchievementData == true then
+        local tbAchievementList = value[2]
+        for k, v in pairs(tbAchievementList) do
+          if v == false then
+            local achievementId = k
+            local achievement = ConfigTable.GetData("Achievement", achievementId)
+            lockTxt = orderedFormat(ConfigTable.GetUIText("Story_UnlockAchievement") or "", achievement.Title) .. "\n" .. "(" .. achievement.Desc .. ")"
+            break
+          end
+        end
+      end
+      break
+    end
+  end
+  return lockTxt
 end
 
 function AvgData:MarkStoryId(sAvgId)
@@ -692,10 +762,26 @@ function AvgData:CalcPersonality(nId)
   for i, v in ipairs(tbPData) do
     tbPData[i].nPercent = tbPData[i].nCount / nTotalCount
   end
+  local tbRetPercent = {
+    tbPData[1].nPercent,
+    tbPData[2].nPercent,
+    tbPData[3].nPercent
+  }
   local sTitle, sFace, sHead
   table.sort(tbPData, function(a, b)
     return a.nCount > b.nCount
   end)
+  if self.TempLocalData ~= nil then
+    tbPData = self.TempLocalData
+    tbRetPercent = {
+      tbPData[1].nPercent,
+      tbPData[2].nPercent,
+      tbPData[3].nPercent
+    }
+    table.sort(tbPData, function(a, b)
+      return a.nPercent > b.nPercent
+    end)
+  end
   local nMaxIndex = tbPData[1].nIndex
   local nMaxPercent = tbPData[1].nPercent
   local nIdx = nMaxIndex
@@ -746,19 +832,19 @@ function AvgData:CalcPersonality(nId)
   else
     local tbTitleFace = {
       [1] = {
-        sTitle = cfgData_SRP.Ab,
-        sFace = cfgData_SRP.AbFace,
-        sHead = cfgData_SRP.AbHead
+        sTitle = cfgData_SRP.Abc,
+        sFace = cfgData_SRP.AbcFace,
+        sHead = cfgData_SRP.AbcHead
       },
       [2] = {
-        sTitle = cfgData_SRP.Ac,
-        sFace = cfgData_SRP.AcFace,
-        sHead = cfgData_SRP.AcHead
+        sTitle = cfgData_SRP.Bac,
+        sFace = cfgData_SRP.BacFace,
+        sHead = cfgData_SRP.BacHead
       },
       [3] = {
-        sTitle = cfgData_SRP.Bc,
-        sFace = cfgData_SRP.BcFace,
-        sHead = cfgData_SRP.BcHead
+        sTitle = cfgData_SRP.Cab,
+        sFace = cfgData_SRP.CabFace,
+        sHead = cfgData_SRP.CabHead
       }
     }
     local data = tbTitleFace[nMaxIndex]
@@ -814,6 +900,18 @@ function AvgData:IsStoryChapterUnlock(nChapterId)
       local cfgData = ConfigTable.GetData_Story(self.CFG_Story[nPrevId])
       local chapterConfig = ConfigTable.GetData("StoryChapter", cfgData.Chapter)
       return false, orderedFormat(ConfigTable.GetUIText("Story_UnlockPreId") or "", chapterConfig.Name)
+    end
+  end
+  local nPrevChapterId = nChapterId - 1
+  local mapPrevChapterData = 0 < nPrevChapterId and ConfigTable.GetData("StoryChapter", nPrevChapterId) or nil
+  if mapPrevChapterData ~= nil then
+    if nCurWorldClass < mapPrevChapterData.WorldClass then
+      return false, orderedFormat(ConfigTable.GetUIText("Story_UnlockWorldLv") or "", mapPrevChapterData.WorldClass)
+    end
+    for __, nPrevId in ipairs(mapPrevChapterData.PrevStories) do
+      if not self:IsStoryReaded(self.CFG_Story[nPrevId]) then
+        return false, orderedFormat(ConfigTable.GetUIText("Story_UnlockPreId") or "", mapPrevChapterData.Name)
+      end
     end
   end
   return true
@@ -1029,6 +1127,14 @@ function AvgData:SendMsg_STORY_DONE(callBack, tbBattleEvents)
       local nRecentChapterId = self.CFG_Story[self.tbTempStoryIds[#self.tbTempStoryIds]]
       self:SetRecentStoryId(nRecentChapterId)
     end
+    if self.tbLastEndStoryIds ~= nil then
+      for _, nLastEndStoryId in ipairs(self.tbLastEndStoryIds) do
+        local mapLastEndStoryCfg = ConfigTable.GetData_Story(nLastEndStoryId)
+        if mapLastEndStoryCfg ~= nil and 0 < table.indexof(self.tbTempStoryIds, mapLastEndStoryCfg.StoryId) then
+          self:SetLastEndState(nLastEndStoryId)
+        end
+      end
+    end
     func_merge(self.tbTempStoryIds, self.tbStoryIds)
     self.tbTempStoryIds = {}
     func_merge(self.tbTempEvIds, self.tbEvIds)
@@ -1242,15 +1348,20 @@ end
 
 function AvgData:CheckNewStory(nChapterId)
   local tbNewUnlockStorys = {}
-  for k, v in ipairs(self.CFG_ChapterStoryNumIds[nChapterId]) do
-    local config = ConfigTable.GetData("Story", v)
-    local bUnlock = self:IsUnlock(config.ConditionId, config.StoryId)
-    if bUnlock then
-      local bReaded = self:IsStoryReaded(v)
-      if not bReaded then
-        tbNewUnlockStorys[v] = true
+  local map = self.CFG_ChapterStoryNumIds[nChapterId]
+  if type(map) == "table" then
+    for k, v in ipairs(map) do
+      local config = ConfigTable.GetData("Story", v)
+      local bUnlock = self:IsUnlock(config.ConditionId, config.StoryId)
+      if bUnlock then
+        local bReaded = self:IsStoryReaded(v)
+        if not bReaded then
+          tbNewUnlockStorys[v] = true
+        end
       end
     end
+  else
+    printError("[AvgData:CheckNewStory] can't find story id in chapter:" .. tostring(nChapterId))
   end
   return tbNewUnlockStorys
 end
@@ -1266,6 +1377,45 @@ function AvgData:GetNewLockChapterIndex()
   local tempIndex = self.nNewLockChapterIndex
   self.nNewLockChapterIndex = -1
   return tempIndex
+end
+
+function AvgData:SetLastEndState(nStoryId)
+  local storyConifg = ConfigTable.GetData_Story(nStoryId)
+  if storyConifg == nil then
+    return
+  end
+  local isUnlock = self:IsUnlock(storyConifg.ConditionId, storyConifg.StoryId)
+  if isUnlock then
+    local isReaded = self:IsStoryReaded(nStoryId)
+    if isReaded then
+      self.LastEndState = AllEnum.MainlineLastEndState.Fobidden
+    else
+      self.LastEndState = AllEnum.MainlineLastEndState.Unlock
+    end
+  else
+    local chapterId = storyConifg.Chapter
+    local allReaded = true
+    local map = self.CFG_ChapterStoryNumIds[chapterId]
+    if type(map) == "table" then
+      for k, v in pairs(map) do
+        if v ~= storyConifg.StoryId then
+          local isReaded = self:IsStoryReaded(v)
+          if not isReaded then
+            allReaded = false
+            break
+          end
+        end
+      end
+    end
+    self.LastEndState = allReaded and AllEnum.MainlineLastEndState.WaitUnlock or AllEnum.MainlineLastEndState.None
+  end
+end
+
+function AvgData:GetLastEndState()
+  if self.LastEndState == nil then
+    return AllEnum.MainlineLastEndState.None
+  end
+  return self.LastEndState
 end
 
 function AvgData:ChangeActivityAvgState(IsActivityAvg)
@@ -1402,7 +1552,31 @@ function AvgData:RefreshActPersonalityData(nChapterId, personalityData, personal
       tbPData[_idx] = tbPData[_idx] + nFactor
     end
   end
-  self.mapActivityPersonality[nChapterId] = tbPData
+  for i, v in ipairs(tbPData) do
+    if v ~= 0 then
+      self.mapActivityPersonality[nChapterId][i] = v
+    end
+  end
+end
+
+function AvgData:CheckBE(nChapterFrom, nChapterTo)
+  local nTotal = 0
+  local nRead = 0
+  
+  local function foreach_Story(cfg)
+    local nChapterId = cfg.Chapter
+    local bIsBranch = cfg.IsBranch == true
+    if bIsBranch == true and nChapterId >= nChapterFrom and nChapterId <= nChapterTo then
+      nTotal = nTotal + 1
+      if self:IsStoryReaded(cfg.Id) == true then
+        nRead = nRead + 1
+      end
+    end
+  end
+  
+  ForEachTableLine(DataTable.Story, foreach_Story)
+  local nResult = nRead / nTotal
+  return nResult
 end
 
 return AvgData
