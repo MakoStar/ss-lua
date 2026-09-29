@@ -3076,7 +3076,7 @@ return {
   },
   {
     id = "avg3_1319",
-    name = "***",
+    name = "앙주A",
     name_bg_color = "#0ABEC5",
     reuse = "avg1_136",
     ver = "1.16.0"
@@ -3118,14 +3118,14 @@ return {
   },
   {
     id = "avg3_1325",
-    name = "***",
+    name = "미라슈 주민A",
     name_bg_color = "#0ABEC5",
     reuse = "avg3_219",
     ver = "1.16.0"
   },
   {
     id = "avg3_1326",
-    name = "***",
+    name = "미라슈 주민B",
     name_bg_color = "#0ABEC5",
     reuse = "avg3_219",
     ver = "1.16.0"

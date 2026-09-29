@@ -2696,7 +2696,7 @@ return {
       nil,
       nil,
       0.9,
-      "avg3_138",
+      "avg2_984",
       "a",
       "002",
       "none",
@@ -2715,7 +2715,7 @@ return {
   {
     cmd = "CtrlChar",
     param = {
-      "avg3_138",
+      "avg2_984",
       "a",
       "006",
       "avg_emoji_attention",
@@ -2784,7 +2784,7 @@ return {
       nil,
       nil,
       nil,
-      "avg3_138",
+      "avg2_984",
       "a",
       "002",
       "none",

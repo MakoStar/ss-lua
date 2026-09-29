@@ -184,6 +184,14 @@ return {
     signature = "휴가 중 복귀일 미정"
   },
   {
+    id = 139,
+    icon = "Icon/Head/head_13901_S",
+    name = "엘리",
+    landmark = "미라슈 히나기쿠의 집",
+    signature = "아이 돌보는 중……",
+    ver = "1.16.0"
+  },
+  {
     id = 140,
     icon = "Icon/Head/head_14001_S",
     name = "스파클",
