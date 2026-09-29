@@ -8385,7 +8385,7 @@ return {
       "",
       false,
       "",
-      "This is merely the edge of civilization...==W== A newly formed one, barely a century old.",
+      "To see the true Edge of the World, you must travel west for days,==W== cross the quicksand and the mountains, all the way to where the desert meets the sea.",
       ""
     }
   },
@@ -10554,7 +10554,7 @@ return {
       "",
       false,
       "",
-      "Alas, I must have arrived so suddenly that you did not have time to finish reading it.",
+      "The diary explicitly states that you are the legendary Tyrant. The late Empress even drew your portrait with her own hand.",
       ""
     }
   },
