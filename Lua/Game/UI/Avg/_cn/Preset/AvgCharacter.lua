@@ -3076,7 +3076,7 @@ return {
   },
   {
     id = "avg3_1319",
-    name = "***",
+    name = "安琪A",
     name_bg_color = "#0ABEC5",
     reuse = "avg1_136",
     ver = "1.16.0"
@@ -3087,6 +3087,48 @@ return {
     name_bg_color = "#0ABEC5",
     reuse = "avg3_232",
     ver = "2.1.0"
+  },
+  {
+    id = "avg3_1321",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg4_106",
+    ver = "2.2.0"
+  },
+  {
+    id = "avg3_1322",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg4_106",
+    ver = "2.2.0"
+  },
+  {
+    id = "avg3_1323",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg4_106",
+    ver = "2.2.0"
+  },
+  {
+    id = "avg3_1324",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg4_106",
+    ver = "2.2.0"
+  },
+  {
+    id = "avg3_1325",
+    name = "米拉什居民女A",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_219",
+    ver = "1.16.0"
+  },
+  {
+    id = "avg3_1326",
+    name = "米拉什居民女B",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_219",
+    ver = "1.16.0"
   },
   {
     id = "avg4_100",
@@ -3119,6 +3161,12 @@ return {
     name = "一块右侧的石头",
     name_bg_color = "#0ABEC5",
     ver = "1.13.0"
+  },
+  {
+    id = "avg4_106",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    ver = "2.2.0"
   },
   {
     id = "avg4_999",

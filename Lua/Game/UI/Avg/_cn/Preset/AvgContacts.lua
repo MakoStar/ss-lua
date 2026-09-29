@@ -184,6 +184,14 @@ return {
     signature = "休假中，返岗时间未定"
   },
   {
+    id = 139,
+    icon = "Icon/Head/head_13901_S",
+    name = "艾蕾",
+    landmark = "米拉什雏菊孤儿院",
+    signature = "照顾孩子中……",
+    ver = "1.16.0"
+  },
+  {
     id = 140,
     icon = "Icon/Head/head_14001_S",
     name = "斯帕克拉",
