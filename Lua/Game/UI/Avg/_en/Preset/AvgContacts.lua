@@ -184,6 +184,14 @@ return {
     signature = "On leave. Return date TBD."
   },
   {
+    id = 139,
+    icon = "Icon/Head/head_13901_S",
+    name = "Allie",
+    landmark = "Daisy Orphanage, Mirage",
+    signature = "Looking after the little ones.",
+    ver = "1.16.0"
+  },
+  {
     id = 140,
     icon = "Icon/Head/head_14001_S",
     name = "Sparkla",
