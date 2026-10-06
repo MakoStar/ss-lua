@@ -2029,13 +2029,13 @@ return {
     cmd = "SetBg",
     param = {
       0,
-      "story_main_01_023",
+      "story_main_01_023_a",
       "0",
       "Linear",
       0.5,
       true,
       "default",
-      nil
+      0
     }
   },
   {
