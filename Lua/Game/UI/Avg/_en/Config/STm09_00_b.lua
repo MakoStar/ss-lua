@@ -4806,7 +4806,7 @@ return {
       false,
       "",
       "I have visual! The sands show the white-haired Tyrant and ==SEX3== sole bodyguard hiding near the White Cat secret room!",
-      ""
+      "I have visual! The sands show the black-haired Tyrant and ==SEX3== sole bodyguard hiding near the White Cat secret room!"
     }
   },
   {
@@ -18009,7 +18009,7 @@ return {
       "",
       false,
       "",
-      "Even though the ancient book stated that I am the Tyrant, I have no right to drag innocent people into our battle.",
+      "But ... I have no idea how many troops Angie mobilized this time. Plus, the children at the orphanage and the citizens of Mirage still need protection.",
       ""
     }
   },
@@ -18549,7 +18549,7 @@ return {
       "",
       false,
       "",
-      "Regardless, this is between me, Boss Accord, and the Salvation Committee. Mirage shouldn't get caught in the crossfire.",
+      "Since we don't know the enemy's strength, let's evacuate the mine and pull back to Mirage to protect the orphanage and the citizens.",
       ""
     }
   },
