@@ -16323,7 +16323,7 @@ return {
       "vo_STm09_07A_049",
       false,
       "",
-      "ただ……ごめん、言いたかったこと、ぜんぶはなしたら……==RT==なんかホッとして、ねむくなってきちゃった。",
+      "ただ……ごめん、言いたいこと、ぜんぶはなしたら……==RT==なんかホッとして、ねむくなってきちゃった。",
       ""
     }
   },
@@ -17498,7 +17498,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.1====Off==<margin-right=5em><align=right><size=60><alpha=#22>セイナが教えてくれた剣裁きがあっただろう？==RT==今日もこっそり、ひとりで練習していたんだ。==RT==今度披露するから、ぜひ意見を聞かせてくれ。==RT==</color></size></align></margin>==RT==<margin-left=5em><align=left><size=60><color=#ffe39e><alpha=#00>…………うん。==RT==</size></align></margin>",
+      "_NOT_IN_LOG_==A0.1====Off==<margin-right=5em><align=right><size=60><alpha=#22>セイナが教えてくれた剣捌きがあっただろう？==RT==今日もこっそり、ひとりで練習していたんだ。==RT==今度披露するから、ぜひ意見を聞かせてくれ。==RT==</color></size></align></margin>==RT==<margin-left=5em><align=left><size=60><color=#ffe39e><alpha=#00>…………うん。==RT==</size></align></margin>",
       ""
     }
   },
@@ -17512,7 +17512,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.1====Off==<margin-right=5em><align=right><size=60><alpha=#44>セイナが教えてくれた剣裁きがあっただろう？==RT==今日もこっそり、ひとりで練習していたんだ。==RT==今度披露するから、ぜひ意見を聞かせてくれ。==RT==</color></size></align></margin>==RT==<margin-left=5em><align=left><size=60><color=#ffe39e><alpha=#00>…………うん。==RT==</size></align></margin>",
+      "_NOT_IN_LOG_==A0.1====Off==<margin-right=5em><align=right><size=60><alpha=#44>セイナが教えてくれた剣捌きがあっただろう？==RT==今日もこっそり、ひとりで練習していたんだ。==RT==今度披露するから、ぜひ意見を聞かせてくれ。==RT==</color></size></align></margin>==RT==<margin-left=5em><align=left><size=60><color=#ffe39e><alpha=#00>…………うん。==RT==</size></align></margin>",
       ""
     }
   },
@@ -17526,7 +17526,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.1====Off==<margin-right=5em><align=right><size=60><alpha=#66>セイナが教えてくれた剣裁きがあっただろう？==RT==今日もこっそり、ひとりで練習していたんだ。==RT==今度披露するから、ぜひ意見を聞かせてくれ。==RT==</color></size></align></margin>==RT==<margin-left=5em><align=left><size=60><color=#ffe39e><alpha=#00>…………うん。==RT==</size></align></margin>",
+      "_NOT_IN_LOG_==A0.1====Off==<margin-right=5em><align=right><size=60><alpha=#66>セイナが教えてくれた剣捌きがあっただろう？==RT==今日もこっそり、ひとりで練習していたんだ。==RT==今度披露するから、ぜひ意見を聞かせてくれ。==RT==</color></size></align></margin>==RT==<margin-left=5em><align=left><size=60><color=#ffe39e><alpha=#00>…………うん。==RT==</size></align></margin>",
       ""
     }
   },
@@ -17540,7 +17540,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.1====Off==<margin-right=5em><align=right><size=60><alpha=#88>セイナが教えてくれた剣裁きがあっただろう？==RT==今日もこっそり、ひとりで練習していたんだ。==RT==今度披露するから、ぜひ意見を聞かせてくれ。==RT==</color></size></align></margin>==RT==<margin-left=5em><align=left><size=60><color=#ffe39e><alpha=#00>…………うん。==RT==</size></align></margin>",
+      "_NOT_IN_LOG_==A0.1====Off==<margin-right=5em><align=right><size=60><alpha=#88>セイナが教えてくれた剣捌きがあっただろう？==RT==今日もこっそり、ひとりで練習していたんだ。==RT==今度披露するから、ぜひ意見を聞かせてくれ。==RT==</color></size></align></margin>==RT==<margin-left=5em><align=left><size=60><color=#ffe39e><alpha=#00>…………うん。==RT==</size></align></margin>",
       ""
     }
   },
@@ -17554,7 +17554,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.1====Off==<margin-right=5em><align=right><size=60><alpha=#AA>セイナが教えてくれた剣裁きがあっただろう？==RT==今日もこっそり、ひとりで練習していたんだ。==RT==今度披露するから、ぜひ意見を聞かせてくれ。==RT==</color></size></align></margin>==RT==<margin-left=5em><align=left><size=60><color=#ffe39e><alpha=#00>…………うん。==RT==</size></align></margin>",
+      "_NOT_IN_LOG_==A0.1====Off==<margin-right=5em><align=right><size=60><alpha=#AA>セイナが教えてくれた剣捌きがあっただろう？==RT==今日もこっそり、ひとりで練習していたんだ。==RT==今度披露するから、ぜひ意見を聞かせてくれ。==RT==</color></size></align></margin>==RT==<margin-left=5em><align=left><size=60><color=#ffe39e><alpha=#00>…………うん。==RT==</size></align></margin>",
       ""
     }
   },
@@ -17568,7 +17568,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.1====Off==<margin-right=5em><align=right><size=60><alpha=#CC>セイナが教えてくれた剣裁きがあっただろう？==RT==今日もこっそり、ひとりで練習していたんだ。==RT==今度披露するから、ぜひ意見を聞かせてくれ。==RT==</color></size></align></margin>==RT==<margin-left=5em><align=left><size=60><color=#ffe39e><alpha=#00>…………うん。==RT==</size></align></margin>",
+      "_NOT_IN_LOG_==A0.1====Off==<margin-right=5em><align=right><size=60><alpha=#CC>セイナが教えてくれた剣捌きがあっただろう？==RT==今日もこっそり、ひとりで練習していたんだ。==RT==今度披露するから、ぜひ意見を聞かせてくれ。==RT==</color></size></align></margin>==RT==<margin-left=5em><align=left><size=60><color=#ffe39e><alpha=#00>…………うん。==RT==</size></align></margin>",
       ""
     }
   },
@@ -17582,7 +17582,7 @@ return {
       "",
       false,
       "",
-      "==Off==<margin-right=5em><align=right><size=60><alpha=#FF>セイナが教えてくれた剣裁きがあっただろう？==RT==今日もこっそり、ひとりで練習していたんだ。==RT==今度披露するから、ぜひ意見を聞かせてくれ。==RT==</color></size></align></margin>==RT====RT==",
+      "==Off==<margin-right=5em><align=right><size=60><alpha=#FF>セイナが教えてくれた剣捌きがあっただろう？==RT==今日もこっそり、ひとりで練習していたんだ。==RT==今度披露するから、ぜひ意見を聞かせてくれ。==RT==</color></size></align></margin>==RT====RT==",
       ""
     }
   },
@@ -17600,7 +17600,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.1====Off==<margin-right=5em><align=right><size=60><alpha=#FF>セイナが教えてくれた剣裁きがあっただろう？==RT==今日もこっそり、ひとりで練習していたんだ。==RT==今度披露するから、ぜひ意見を聞かせてくれ。==RT==</color></size></align></margin>==RT==<margin-left=11em><align=left><size=70><color=#ffe39e><alpha=#22>…………うん。==RT==</size></align></margin>",
+      "_NOT_IN_LOG_==A0.1====Off==<margin-right=5em><align=right><size=60><alpha=#FF>セイナが教えてくれた剣捌きがあっただろう？==RT==今日もこっそり、ひとりで練習していたんだ。==RT==今度披露するから、ぜひ意見を聞かせてくれ。==RT==</color></size></align></margin>==RT==<margin-left=11em><align=left><size=70><color=#ffe39e><alpha=#22>…………うん。==RT==</size></align></margin>",
       ""
     }
   },
@@ -17614,7 +17614,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.1====Off==<margin-right=5em><align=right><size=60><alpha=#FF>セイナが教えてくれた剣裁きがあっただろう？==RT==今日もこっそり、ひとりで練習していたんだ。==RT==今度披露するから、ぜひ意見を聞かせてくれ。==RT==</color></size></align></margin>==RT==<margin-left=11em><align=left><size=70><color=#ffe39e><alpha=#44>…………うん。==RT==</size></align></margin>",
+      "_NOT_IN_LOG_==A0.1====Off==<margin-right=5em><align=right><size=60><alpha=#FF>セイナが教えてくれた剣捌きがあっただろう？==RT==今日もこっそり、ひとりで練習していたんだ。==RT==今度披露するから、ぜひ意見を聞かせてくれ。==RT==</color></size></align></margin>==RT==<margin-left=11em><align=left><size=70><color=#ffe39e><alpha=#44>…………うん。==RT==</size></align></margin>",
       ""
     }
   },
@@ -17628,7 +17628,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.1====Off==<margin-right=5em><align=right><size=60><alpha=#FF>セイナが教えてくれた剣裁きがあっただろう？==RT==今日もこっそり、ひとりで練習していたんだ。==RT==今度披露するから、ぜひ意見を聞かせてくれ。==RT==</color></size></align></margin>==RT==<margin-left=11em><align=left><size=70><color=#ffe39e><alpha=#66>…………うん。==RT==</size></align></margin>",
+      "_NOT_IN_LOG_==A0.1====Off==<margin-right=5em><align=right><size=60><alpha=#FF>セイナが教えてくれた剣捌きがあっただろう？==RT==今日もこっそり、ひとりで練習していたんだ。==RT==今度披露するから、ぜひ意見を聞かせてくれ。==RT==</color></size></align></margin>==RT==<margin-left=11em><align=left><size=70><color=#ffe39e><alpha=#66>…………うん。==RT==</size></align></margin>",
       ""
     }
   },
@@ -17642,7 +17642,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.1====Off==<margin-right=5em><align=right><size=60><alpha=#FF>セイナが教えてくれた剣裁きがあっただろう？==RT==今日もこっそり、ひとりで練習していたんだ。==RT==今度披露するから、ぜひ意見を聞かせてくれ。==RT==</color></size></align></margin>==RT==<margin-left=11em><align=left><size=70><color=#ffe39e><alpha=#88>…………うん。==RT==</size></align></margin>",
+      "_NOT_IN_LOG_==A0.1====Off==<margin-right=5em><align=right><size=60><alpha=#FF>セイナが教えてくれた剣捌きがあっただろう？==RT==今日もこっそり、ひとりで練習していたんだ。==RT==今度披露するから、ぜひ意見を聞かせてくれ。==RT==</color></size></align></margin>==RT==<margin-left=11em><align=left><size=70><color=#ffe39e><alpha=#88>…………うん。==RT==</size></align></margin>",
       ""
     }
   },
@@ -17656,7 +17656,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.1====Off==<margin-right=5em><align=right><size=60><alpha=#FF>セイナが教えてくれた剣裁きがあっただろう？==RT==今日もこっそり、ひとりで練習していたんだ。==RT==今度披露するから、ぜひ意見を聞かせてくれ。==RT==</color></size></align></margin>==RT==<margin-left=11em><align=left><size=70><color=#ffe39e><alpha=#AA>…………うん。==RT==</size></align></margin>",
+      "_NOT_IN_LOG_==A0.1====Off==<margin-right=5em><align=right><size=60><alpha=#FF>セイナが教えてくれた剣捌きがあっただろう？==RT==今日もこっそり、ひとりで練習していたんだ。==RT==今度披露するから、ぜひ意見を聞かせてくれ。==RT==</color></size></align></margin>==RT==<margin-left=11em><align=left><size=70><color=#ffe39e><alpha=#AA>…………うん。==RT==</size></align></margin>",
       ""
     }
   },
@@ -17670,7 +17670,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.1====Off==<margin-right=5em><align=right><size=60><alpha=#FF>セイナが教えてくれた剣裁きがあっただろう？==RT==今日もこっそり、ひとりで練習していたんだ。==RT==今度披露するから、ぜひ意見を聞かせてくれ。==RT==</color></size></align></margin>==RT==<margin-left=11em><align=left><size=70><color=#ffe39e><alpha=#CC>…………うん。==RT==</size></align></margin>",
+      "_NOT_IN_LOG_==A0.1====Off==<margin-right=5em><align=right><size=60><alpha=#FF>セイナが教えてくれた剣捌きがあっただろう？==RT==今日もこっそり、ひとりで練習していたんだ。==RT==今度披露するから、ぜひ意見を聞かせてくれ。==RT==</color></size></align></margin>==RT==<margin-left=11em><align=left><size=70><color=#ffe39e><alpha=#CC>…………うん。==RT==</size></align></margin>",
       ""
     }
   },
@@ -17684,7 +17684,7 @@ return {
       "vo_STm09_07A_051",
       false,
       "",
-      "==Off==<margin-right=5em><align=right><size=60><alpha=#FF>セイナが教えてくれた剣裁きがあっただろう？==RT==今日もこっそり、ひとりで練習していたんだ。==RT==今度披露するから、ぜひ意見を聞かせてくれ。==RT==</color></size></align></margin>==RT==<margin-left=11em><align=left><size=70><color=#ffe39e><alpha=#FF>…………うん。==RT==</size></align></margin>",
+      "==Off==<margin-right=5em><align=right><size=60><alpha=#FF>セイナが教えてくれた剣捌きがあっただろう？==RT==今日もこっそり、ひとりで練習していたんだ。==RT==今度披露するから、ぜひ意見を聞かせてくれ。==RT==</color></size></align></margin>==RT==<margin-left=11em><align=left><size=70><color=#ffe39e><alpha=#FF>…………うん。==RT==</size></align></margin>",
       ""
     }
   },
