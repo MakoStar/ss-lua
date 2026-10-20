@@ -302,6 +302,14 @@ return {
     ver = "1.13.0"
   },
   {
+    id = 162,
+    icon = "Icon/Head/head_16201_S",
+    name = "破曉塵沙",
+    landmark = "菲蘭尼斯",
+    signature = "這裡要我簽名，可是我沒有筆要怎麼簽？",
+    ver = "2.0.0"
+  },
+  {
     id = 3136,
     icon = "Icon/Head/head_npc13601_S",
     name = "紅寶石",
@@ -346,7 +354,7 @@ return {
   {
     id = 995,
     icon = "Icon/Head/head_anonymity_S",
-    name = "",
+    name = "匿名",
     landmark = "",
     signature = ""
   },

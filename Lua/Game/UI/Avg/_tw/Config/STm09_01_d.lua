@@ -41763,7 +41763,7 @@ return {
       "",
       false,
       "",
-      "==A1==\t\t\t<align=left><margin-left=2em><color=#000000><size=110>==Off==此即，最終之死；==RT====RT==\t\t亦是，諾瓦新生。",
+      "_NOT_IN_LOG_==A1==\t\t\t<align=left><margin-left=2em><color=#000000><size=110>==Off==此即，最終之死；==RT====RT==\t\t亦是，諾瓦新生。",
       ""
     }
   },
