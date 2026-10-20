@@ -98,7 +98,11 @@ function SoldierCharCardItemCtrl:SetAttribute(nIndex)
   local nCfgId = PlayerData.SoldierData:GetSoldierPositionEffectDataId(nIndex)
   local cfg = ConfigTable.GetData("SoldierPositionEffect", nCfgId)
   if cfg then
-    self._mapNode.imgAttribute.gameObject:SetActive(true)
+    local bUnlock = true
+    if cfg.TechNodeId > 0 then
+      bUnlock = PlayerData.SoldierData:CheckTechNodeActiveById(cfg.TechNodeId)
+    end
+    self._mapNode.imgAttribute.gameObject:SetActive(bUnlock)
     self:SetPngSprite(self._mapNode.imgAttribute, iconPath2 .. cfg.Icon)
   end
 end

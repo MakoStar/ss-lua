@@ -1,5 +1,6 @@
 local StarTowerFastBattleLogPanel = class("StarTowerFastBattleLogPanel", BasePanel)
 StarTowerFastBattleLogPanel._bIsMainPanel = false
+StarTowerFastBattleLogPanel._sSortingLayerName = AllEnum.SortingLayerName.UI_Top
 StarTowerFastBattleLogPanel._tbDefine = {
   {
     sPrefabPath = "StarTowerFastBattle/StarTowerFastBattleLogPanel.prefab",

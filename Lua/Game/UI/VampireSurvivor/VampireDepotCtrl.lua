@@ -174,13 +174,19 @@ function VampireDepotCtrl:OnEvent_OpenVampireDepot(mapFateCard, nTog, nParam, ca
   
   local function wait()
     coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
-    CS.GameCameraStackManager.Instance:CloseMainCamera(0.1)
-    self:SetDefaultTog()
-    self._mapNode.goRoot:SetActive(true)
-    self._mapNode.aniRoot:Play("depot_t_in")
-    if self.nCurTog == AllEnum.StarTowerDepotTog.CharInfo then
-      self._mapNode.animActor2D:Play("Actor2D_PNG_down_in", 0, 0)
-      self._mapNode.animActorBg:Play("imgActorBg_in", 0, 0)
+    local bSuccess, sError = xpcall(function()
+      CS.GameCameraStackManager.Instance:CloseMainCamera(0.1)
+      self:SetDefaultTog()
+      self._mapNode.goRoot:SetActive(true)
+      self._mapNode.aniRoot:Play("depot_t_in")
+      if self.nCurTog == AllEnum.StarTowerDepotTog.CharInfo then
+        self._mapNode.animActor2D:Play("Actor2D_PNG_down_in", 0, 0)
+        self._mapNode.animActorBg:Play("imgActorBg_in", 0, 0)
+      end
+    end, debug.traceback)
+    if not bSuccess then
+      self:OnBtnClick_CloseDepot()
+      printError(sError)
     end
   end
   
@@ -189,7 +195,8 @@ function VampireDepotCtrl:OnEvent_OpenVampireDepot(mapFateCard, nTog, nParam, ca
 end
 
 function VampireDepotCtrl:OnEvent_RefreshActor2D(nCharId)
-  Actor2DManager.SetActor2D_PNG(self._mapNode.trActor2D_PNG, PanelId.MainView, nCharId)
+  local mapChar = self._panel.mapCharData[nCharId]
+  Actor2DManager.SetActor2D_PNG(self._mapNode.trActor2D_PNG, PanelId.MainView, nCharId, mapChar and mapChar.nSkinId)
 end
 
 function VampireDepotCtrl:OnBtnClick_Dictionary()

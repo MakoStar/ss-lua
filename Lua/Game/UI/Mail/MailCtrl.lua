@@ -407,6 +407,9 @@ function MailCtrl:OpenMailDetail(data, goGrid)
       local mapPackageCfg = ConfigTable.GetData("MallPackage", sId, true)
       local mapMonthCfg = ConfigTable.GetData("MallMonthlyCard", sId, true)
       local mapGemCfg = ConfigTable.GetData("MallGem", sId, true)
+      local mapReturneePackCfg = ConfigTable.GetData("ActivityReturneePack", sId, true)
+      local mapReturneeCardCfg = ConfigTable.GetData("ActivityReturneeCard", sId, true)
+      local mapMallActivityCfg = ConfigTable.GetData("MallActivity", sId, true)
       local sBattlePass = PlayerData.BattlePass:GetBattlePassName(sId)
       if mapPackageCfg then
         data.DescArgs[1] = mapPackageCfg.DetailName
@@ -419,6 +422,12 @@ function MailCtrl:OpenMailDetail(data, goGrid)
         data.DescArgs[3] = nil
       elseif sBattlePass then
         data.DescArgs[1] = sBattlePass
+      elseif mapReturneePackCfg then
+        data.DescArgs[1] = mapReturneePackCfg.DetailName
+      elseif mapReturneeCardCfg then
+        data.DescArgs[1] = mapReturneeCardCfg.Name
+      elseif mapMallActivityCfg then
+        data.DescArgs[1] = mapMallActivityCfg.Name
       end
     end
     local tmpFormatStr = self:MailFormat(str, data.DescArgs)

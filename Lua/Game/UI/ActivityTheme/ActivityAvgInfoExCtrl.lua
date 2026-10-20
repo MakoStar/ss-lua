@@ -1,5 +1,4 @@
 local ActivityAvgInfoExCtrl = class("ActivityAvgInfoExCtrl", BaseCtrl)
-local AvgData = PlayerData.ActivityAvg
 ActivityAvgInfoExCtrl._mapNodeConfig = {
   mainLineAvgLvName = {sComponentName = "TMP_Text"},
   mainLineAvgLvNum = {sComponentName = "TMP_Text"},
@@ -74,11 +73,14 @@ end
 function ActivityAvgInfoExCtrl:OnRelease()
 end
 
-function ActivityAvgInfoExCtrl:OpenLevelInfo(avgId, actId, bNewestStory)
+function ActivityAvgInfoExCtrl:OpenLevelInfo(avgId, actId, bNewestStory, bReview)
+  EventManager.Hit("ActivityStoryReceive_SetVisible", false)
   self.avgId = avgId
   self.actId = actId
   self.bNewestStory = bNewestStory
-  local mapActivityAvg = AvgData:GetStoryCfgData(avgId)
+  self.bReview = bReview == true
+  self.storyData = self.bReview and PlayerData.StoryReview or PlayerData.ActivityAvg
+  local mapActivityAvg = self.storyData:GetStoryCfgData(avgId)
   if mapActivityAvg == nil then
     printError("nil mainlineData" .. avgId)
     return
@@ -98,7 +100,7 @@ function ActivityAvgInfoExCtrl:OpenLevelInfo(avgId, actId, bNewestStory)
   self._mapNode.txtClueNotice:SetActive(mapActivityAvg.HasEvidence)
   self._mapNode.imgClueNotice:SetActive(mapActivityAvg.HasEvidence)
   self._mapNode.goRewardInfo:SetActive(false)
-  if not AvgData:IsStoryReaded(mapActivityAvg.Id) then
+  if not self.storyData:IsStoryReaded(mapActivityAvg.Id) then
     local tbReward = decodeJson(mapActivityAvg.FirstCompleteReward)
     if tbReward ~= nil then
       self._mapNode.goRewardInfo:SetActive(true)
@@ -113,6 +115,7 @@ end
 
 function ActivityAvgInfoExCtrl:OnBtnClick_Close()
   self.gameObject:SetActive(false)
+  EventManager.Hit("ActivityStoryReceive_SetVisible", true)
   EventManager.Hit("SelectMainlineBattle", false)
   EventManager.Hit("CloseActivityAvgInfo", false)
 end
@@ -123,9 +126,10 @@ end
 
 function ActivityAvgInfoExCtrl:OnBtnClick_OpenAvg(btn)
   self.gameObject:SetActive(false)
+  EventManager.Hit("ActivityStoryReceive_SetVisible", true)
   if not self.IsBattle then
     EventManager.Hit("SelectMainlineBattle", false)
-    AvgData:SendMsg_STORY_ENTER(self.actId, self.avgId, 0, self.bNewestStory)
+    self.storyData:SendMsg_STORY_ENTER(self.actId, self.avgId, 0, self.bNewestStory)
   else
     EventManager.Hit("SelectMainlineBattle", true)
   end

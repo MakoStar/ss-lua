@@ -5,6 +5,11 @@ local PenguinLevel_Normal = require("Game.UI.Play_PenguinCard.NormalMode.Penguin
 local PenguinLevel_Endless = require("Game.UI.Play_PenguinCard.EndlessMode.PenguinLevel_Endless")
 local ClientManager = CS.ClientManager.Instance
 local RapidJson = require("rapidjson")
+local tbGuideGroupId = {
+  301,
+  302,
+  303
+}
 
 function PenguinCardActData:Init()
   self.mapLevelData = {}
@@ -211,6 +216,39 @@ function PenguinCardActData:CheckLevelLockByPrev(nLevelId)
   return true
 end
 
+function PenguinCardActData:CheckLevelSkipAble(nLevelId)
+  local mapCfg = ConfigTable.GetData("ActivityPenguinCardLevel", nLevelId)
+  if not mapCfg then
+    return false
+  end
+  for _, nGroupId in ipairs(tbGuideGroupId) do
+    if not PlayerData.Guide:CheckGuideFinishById(nGroupId) then
+      return false
+    end
+  end
+  local mapLevel = self:GetLevelData(nLevelId)
+  local bComplete = false
+  if mapCfg.Type == GameEnum.ActivityPenguinCardLevelType.Endless then
+    bComplete = mapLevel.nScore > 0
+  else
+    bComplete = 0 < mapLevel.nStar
+  end
+  return mapCfg.Skip and not bComplete
+end
+
+function PenguinCardActData:CheckEndlessLevelUnlock()
+  for _, nLevelId in ipairs(self.tbLevelList) do
+    local mapCfg = ConfigTable.GetData("ActivityPenguinCardLevel", nLevelId)
+    if mapCfg and mapCfg.Type == GameEnum.ActivityPenguinCardLevelType.Endless then
+      local bLock = self:CheckLevelLock(nLevelId)
+      if not bLock then
+        return true
+      end
+    end
+  end
+  return false
+end
+
 function PenguinCardActData:GetLevelData(nId)
   return self.mapLevelData[nId] or {
     nScore = 0,
@@ -286,7 +324,7 @@ function PenguinCardActData:RefreshLevelRedDot()
       end
     else
       local bLock = self:CheckLevelLock(nId)
-      local bHasScore = self.mapLevelData[nId] and 0 < self.mapLevelData[nId].nScore
+      local bHasScore = self.mapLevelData[nId] and (0 < self.mapLevelData[nId].nScore or 0 < self.mapLevelData[nId].nStar)
       local bNew = not bLock and not bHasScore
       if bNew then
         table.insert(self.tbNewLevel, nId)
@@ -314,6 +352,14 @@ function PenguinCardActData:SkipLevelRedDot()
   LocalData.SetPlayerLocalData("PenguinCardLevel", RapidJson.encode(self.tbSkipNewLevel))
 end
 
+function PenguinCardActData:SendSkipLevelReq(nLevelId, callback)
+  local bAble = self:CheckLevelSkipAble(nLevelId)
+  if not bAble then
+    return
+  end
+  self:SendActivityPenguinCardSettleReq(nLevelId, 3, 0, 0, callback)
+end
+
 function PenguinCardActData:SendActivityPenguinCardSettleReq(nLevelId, nStar, nScore, nDifficulty, callback)
   nScore = math.floor(nScore)
   local msgData = {
@@ -326,11 +372,12 @@ function PenguinCardActData:SendActivityPenguinCardSettleReq(nLevelId, nStar, nS
   local function successCallback(_, mapMainData)
     local bEmpty = self.mapLevelData[nLevelId] == nil
     local bBetterDifficulty = not bEmpty and nDifficulty > self.mapLevelData[nLevelId].nDifficulty
-    local bBetterScore = not bEmpty and nDifficulty == self.mapLevelData[nLevelId].nDifficulty and nScore > self.mapLevelData[nLevelId].nScore
+    local bBetterStar = not bEmpty and nDifficulty == self.mapLevelData[nLevelId].nDifficulty and nStar > self.mapLevelData[nLevelId].nStar
+    local bBetterScore = not bEmpty and nDifficulty == self.mapLevelData[nLevelId].nDifficulty and nStar == self.mapLevelData[nLevelId].nStar and nScore > self.mapLevelData[nLevelId].nScore
     if not bEmpty then
       self.mapLevelData[nLevelId].sData = ""
     end
-    if bEmpty or bBetterDifficulty or bBetterScore then
+    if bEmpty or bBetterDifficulty or bBetterStar or bBetterScore then
       self.mapLevelData[nLevelId] = {
         nScore = nScore,
         nStar = nStar,

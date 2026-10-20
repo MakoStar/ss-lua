@@ -82,7 +82,7 @@ function ActivityShopGoodsDetailCtrl:RefreshInfo()
     local nStar = 6 - mapCfg.Rarity
     self._mapNode.goDiscStar:SetStar(nStar, nStar)
   end
-  if mapCfg.Type == GameEnum.itemType.Disc or mapCfg.Type == GameEnum.itemType.Char or mapCfg.Type == GameEnum.itemType.CharacterSkin then
+  if mapCfg.Type == GameEnum.itemType.Disc or mapCfg.Type == GameEnum.itemType.Char or mapCfg.Type == GameEnum.itemType.CharacterSkin or mapCfg.Stype == GameEnum.itemStype.DormFurniture then
     self._mapNode.txtHas.gameObject:SetActive(false)
   else
     self._mapNode.txtHas.gameObject:SetActive(true)

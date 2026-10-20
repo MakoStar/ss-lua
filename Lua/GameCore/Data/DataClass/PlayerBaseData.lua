@@ -208,11 +208,9 @@ function PlayerBaseData:CacheEnergyInfo(mapData)
 end
 
 function PlayerBaseData:CacheTitleInfo(mapData)
+  self._tbTitle = {}
   if not mapData then
     return
-  end
-  if not self._tbTitle then
-    self._tbTitle = {}
   end
   for _, v in pairs(mapData) do
     table.insert(self._tbTitle, v.TitleId)
@@ -230,11 +228,9 @@ function PlayerBaseData:CacheHonorTitleInfo(mapData)
 end
 
 function PlayerBaseData:CacheHonorTitleList(mapData)
+  self._tbHonorTitleList = {}
   if not mapData then
     return
-  end
-  if not self._tbHonorTitleList then
-    self._tbHonorTitleList = {}
   end
   for _, v in pairs(mapData) do
     local data = {Id = v}
@@ -796,7 +792,7 @@ function PlayerBaseData:BackToHome()
           if PanelManager.GetCurPanelId() == PanelId.MainView then
             return
           end
-          PanelManager.Home()
+          self:GoHomeFromCurModule()
         end
       }
       EventManager.Hit(EventId.OpenMessageBox, msg)
@@ -804,6 +800,61 @@ function PlayerBaseData:BackToHome()
       self.bSkipNewDayWind = false
     end
   end
+end
+
+function PlayerBaseData:GoHomeFromCurModule()
+  if ModuleManager.GetCurModuleName() == "DormModuleScene" then
+    local function transitionOpenCallback()
+      local function OnEventAfterEnterMain()
+        EventManager.Remove(EventId.AfterEnterMain, self, OnEventAfterEnterMain)
+        
+        PanelManager.IGNORE_CS_TRANS_EVENT = false
+        
+        local function wait()
+          PanelManager.Home()
+          coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
+          coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
+          EventManager.Hit(EventId.SetTransition)
+        end
+        
+        cs_coroutine.start(wait)
+      end
+      
+      local function OnEventDormLevelFinish()
+        EventManager.Remove("DORM_LEVEL_FINISH", self, OnEventDormLevelFinish)
+        PanelManager.IGNORE_CS_TRANS_EVENT = true
+        NovaAPI.EnterModule("MainMenuModuleScene", true)
+      end
+      
+      EventManager.Add("DORM_LEVEL_FINISH", self, OnEventDormLevelFinish)
+      EventManager.Add(EventId.AfterEnterMain, self, OnEventAfterEnterMain)
+      NovaAPI.DispatchEventWithData("DORM_LEVEL_STATE_CHANGED", nil, {true, 0})
+    end
+    
+    EventManager.Hit(EventId.SetTransition, 6, transitionOpenCallback, AllEnum.MainViewCorner.Dorm)
+    return
+  elseif ModuleManager.GetCurModuleName() == "MathParkourModuleScene" then
+    local function OnEventEnterModule(_, _, sEnterModuleName)
+      EventManager.Remove("EnterModule", self, OnEventEnterModule)
+      
+      if sEnterModuleName ~= "MainMenuModuleScene" then
+        return
+      end
+      
+      local function wait()
+        coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
+        coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
+        PanelManager.Home()
+      end
+      
+      cs_coroutine.start(wait)
+    end
+    
+    EventManager.Add("EnterModule", self, OnEventEnterModule)
+    NovaAPI.EnterModule("MainMenuModuleScene", true)
+    return
+  end
+  PanelManager.Home()
 end
 
 function PlayerBaseData:SetSkipNewDayWindow(bSkip)

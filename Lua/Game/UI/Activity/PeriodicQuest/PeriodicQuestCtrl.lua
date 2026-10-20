@@ -1,5 +1,4 @@
 local PeriodicQuestCtrl = class("PeriodicQuestCtrl", BaseCtrl)
-local TimerManager = require("GameCore.Timer.TimerManager")
 PeriodicQuestCtrl._mapNodeConfig = {
   loopSv = {
     sNodeName = "srGuideQuest",
@@ -22,74 +21,36 @@ PeriodicQuestCtrl._mapNodeConfig = {
     sComponentName = "UIButton",
     callback = "OnBtnClick_GroupLock"
   },
-  btnDetail = {
-    sComponentName = "UIButton",
-    callback = "OnBtnClick_Detail"
-  },
-  txtBtnDetail = {
-    sComponentName = "TMP_Text",
-    sLanguageId = "Activity_Btn_Detail"
-  },
   btnQuickRec = {
     sComponentName = "UIButton",
     callback = "OnBtnClick_QuickRec"
+  },
+  btnCanNotQuickRec = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_CannotQuickRec"
   },
   txtBtnQuickRec = {
     sComponentName = "TMP_Text",
     sLanguageId = "Activity_Btn_Quick_Receive"
   },
-  goActTime = {},
-  txtActivityTime = {sComponentName = "TMP_Text"}
+  txtBtnCannotQuickRec = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Activity_Btn_Quick_Receive"
+  },
+  btnShop = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_Shop"
+  },
+  btnGuideMission = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_GuideMission"
+  },
+  txtBtnGuideMission = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Activity_AvgReview"
+  }
 }
 PeriodicQuestCtrl._mapEventConfig = {}
-
-function PeriodicQuestCtrl:RefreshRemainTime()
-  local endTime = self.actData:GetActEndTime()
-  local curTime = CS.ClientManager.Instance.serverTimeStamp
-  local remainTime = endTime - curTime
-  if remainTime < 0 then
-    TimerManager.Remove(self.remainTimer)
-    self.remainTimer = nil
-    EventManager.Hit(EventId.OpenMessageBox, {
-      nType = AllEnum.MessageBox.Alert,
-      sContent = ConfigTable.GetUIText("Activity_Invalid_Tip_1"),
-      callbackConfirm = function()
-        EventManager.Hit(EventId.ClosePanel, PanelId.ActivityList)
-      end
-    })
-    return
-  end
-  local sTimeStr = ""
-  if remainTime <= 60 then
-    local sec = math.floor(remainTime)
-    sTimeStr = orderedFormat(ConfigTable.GetUIText("Activity_Remain_Time_Sec") or "", sec)
-  elseif 60 < remainTime and remainTime <= 3600 then
-    local min = math.floor(remainTime / 60)
-    local sec = math.floor(remainTime - min * 60)
-    if sec == 0 then
-      min = min - 1
-      sec = 60
-    end
-    sTimeStr = orderedFormat(ConfigTable.GetUIText("Activity_Remain_Time_Min") or "", min, sec)
-  elseif 3600 < remainTime and remainTime <= 86400 then
-    local hour = math.floor(remainTime / 3600)
-    local min = math.floor((remainTime - hour * 3600) / 60)
-    if min == 0 then
-      hour = hour - 1
-      min = 60
-    end
-    sTimeStr = orderedFormat(ConfigTable.GetUIText("Activity_Remain_Time_Hour") or "", hour, min)
-  elseif 86400 < remainTime then
-    local day = math.floor(remainTime / 86400)
-    local hour = math.floor((remainTime - day * 86400) / 3600)
-    if hour == 0 then
-      day = day - 1
-      hour = 24
-    end
-    sTimeStr = orderedFormat(ConfigTable.GetUIText("Activity_Remain_Time_Day") or "", day, hour)
-  end
-  NovaAPI.SetTMPText(self._mapNode.txtActivityTime, orderedFormat(ConfigTable.GetUIText("PerActivity_Remain_Time") or "", sTimeStr))
-end
 
 function PeriodicQuestCtrl:RefreshQuestList()
   self.tbAllQuestList = self.actData:GetQuestListByGroup()
@@ -116,6 +77,7 @@ function PeriodicQuestCtrl:RefreshQuestList()
   end
   local _, _, canReceive = self.actData:GetQuestProgress()
   self._mapNode.btnQuickRec.gameObject:SetActive(0 < canReceive)
+  self._mapNode.btnCanNotQuickRec.gameObject:SetActive(canReceive <= 0)
   for k, v in ipairs(self._mapNode.PerActGroupItem) do
     local nAllQuest, nReceivedQuest = self.actData:GetDayQuestStatus(k)
     v:RefreshStatus(nAllQuest <= nReceivedQuest and 0 < nReceivedQuest)
@@ -192,30 +154,11 @@ function PeriodicQuestCtrl:InitActData(actData, bResetGroup)
     EventManager.Hit(EventId.ClosePanel, PanelId.ActivityList)
     return
   end
-  local actCfg = self.actData:GetActCfgData()
-  if actCfg.EndType == GameEnum.activityEndType.NoLimit then
-    self._mapNode.goActTime.gameObject:SetActive(false)
-  else
-    self._mapNode.goActTime.gameObject:SetActive(true)
-    self:RefreshRemainTime()
-    if nil == self.remainTimer then
-      self.remainTimer = self:AddTimer(0, 1, "RefreshRemainTime", true, true, false)
-    end
-  end
 end
 
 function PeriodicQuestCtrl:Awake()
   self.tbGridCtrl = {}
   self.tbSequences = {}
-end
-
-function PeriodicQuestCtrl:FadeIn()
-end
-
-function PeriodicQuestCtrl:FadeOut()
-end
-
-function PeriodicQuestCtrl:OnEnable()
 end
 
 function PeriodicQuestCtrl:OnDisable()
@@ -224,12 +167,6 @@ function PeriodicQuestCtrl:OnDisable()
     self.tbGridCtrl[nInstanceId] = nil
   end
   self.tbGridCtrl = {}
-end
-
-function PeriodicQuestCtrl:OnDestroy()
-end
-
-function PeriodicQuestCtrl:OnRelease()
 end
 
 function PeriodicQuestCtrl:OnBtnClick_Group(_, nIndex)
@@ -256,16 +193,6 @@ function PeriodicQuestCtrl:OnBtnClick_GroupLock()
   EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("PerActivity_Not_Open"))
 end
 
-function PeriodicQuestCtrl:OnBtnClick_Detail()
-  local perQuestActCfg = self.actData:GetPerQuestCfg()
-  local msg = {
-    nType = AllEnum.MessageBox.Desc,
-    sContent = perQuestActCfg.DesText,
-    sTitle = ConfigTable.GetUIText("Activity_Btn_Detail")
-  }
-  EventManager.Hit(EventId.OpenMessageBox, msg)
-end
-
 function PeriodicQuestCtrl:OnBtnClick_QuickRec()
   local function callback()
     EventManager.Hit("RefreshPeriodicAct", self.nActId)
@@ -274,6 +201,24 @@ function PeriodicQuestCtrl:OnBtnClick_QuickRec()
   end
   
   PlayerData.Activity:SendReceivePerQuest(self.nActId, 0, callback)
+end
+
+function PeriodicQuestCtrl:OnBtnClick_CannotQuickRec()
+  EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("InfinityTower_Reward_Tips"))
+end
+
+function PeriodicQuestCtrl:OnBtnClick_Shop()
+  EventManager.Hit(EventId.OpenPanel, PanelId.GuideMission, 3)
+end
+
+function PeriodicQuestCtrl:OnBtnClick_GuideMission()
+  local nActivityId = tonumber(self.actData:GetSpecialParam())
+  if type(nActivityId) == "number" then
+    local data = ConfigTable.GetData("ActivityStoryChapter", nActivityId)
+    if data ~= nil then
+      PlayerData.StoryReview:TryOpenStoryChapter(data.ChapterId)
+    end
+  end
 end
 
 return PeriodicQuestCtrl

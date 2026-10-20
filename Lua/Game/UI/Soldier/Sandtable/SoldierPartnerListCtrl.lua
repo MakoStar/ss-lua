@@ -54,6 +54,8 @@ function SoldierPartnerListCtrl:OnPartnerRefreshGrid(goGrid, gridIndex)
   local txtPartner = goGrid.transform:Find("Common/imgPartnerbg/txtPartner"):GetComponent("TMP_Text")
   local txtPartner2 = goGrid.transform:Find("Common/txtPartner2"):GetComponent("TMP_Text")
   local img_Trace = goGrid.transform:Find("Common/imgBuildsIcon")
+  local fxRoot = goGrid.transform:Find("Common/PartnerQualityFx")
+  fxRoot.gameObject:SetActive(partner.nActiveLevel > 0 and (partnerCfg.PartnerLevelQuality == GameEnum.PartnerLevelQuality.Color or partnerCfg.PartnerLevelQuality == GameEnum.PartnerLevelQuality.Special))
   if partner.nActiveLevel == 0 then
     self:SetPngSprite(img_bg, iconPath .. AllEnum.SoldierPartnerLevelIcon[GameEnum.PartnerLevelQuality.None].bg)
   else
@@ -73,7 +75,7 @@ function SoldierPartnerListCtrl:OnPartnerRefreshGrid(goGrid, gridIndex)
     if i ~= partner.nActiveLevel then
       strLevel = strLevel .. partner.tbNumList[i]
     else
-      strLevel = strLevel .. "<color=#EED9BD>" .. partner.tbNumList[i] .. "</color>"
+      strLevel = strLevel .. "<color=#FAFAFA>" .. partner.tbNumList[i] .. "</color>"
     end
   end
   NovaAPI.SetTMPText(txtPartner, strLevel)
@@ -100,6 +102,9 @@ function SoldierPartnerListCtrl:OnEvent_SoldierPartnerNewActive(tbActivePartner)
   self.tbNewPartner = {}
   for k, v in pairs(tbActivePartner) do
     table.insert(self.tbNewPartner, k)
+  end
+  if not PlayerData.Guide:CheckGuideFinishById(508) then
+    EventManager.Hit("Guide_PassiveCheck_Msg", "Guide_Solider_508")
   end
 end
 

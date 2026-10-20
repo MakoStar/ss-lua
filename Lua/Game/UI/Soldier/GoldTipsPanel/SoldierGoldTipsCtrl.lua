@@ -95,6 +95,11 @@ function SoldierGoldTipsCtrl:ParseConfig()
     self.nCoinInterestRatio = tonumber(tbSoldierCoinInterest[2]) or 1
     self.nCoinInterestMax = tonumber(tbSoldierCoinInterest[3]) or 0
   end
+  local nEffectAdd = 0
+  if PlayerData.SoldierData:GetCurLevelData() ~= nil then
+    nEffectAdd = PlayerData.SoldierData:GetCurLevelData():GetInterestLimit()
+    self.nCoinInterestMax = self.nCoinInterestMax + nEffectAdd
+  end
 end
 
 function SoldierGoldTipsCtrl:_RefreshDes()

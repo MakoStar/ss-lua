@@ -39,7 +39,7 @@ function BoardCharCtrl:RefreshItemData(bShowFavorite)
       local rareIconName = AllEnum.FrameType_New.BoardFrame .. AllEnum.BoardFrameColor[discItemCfgData.Rarity]
       self:SetAtlasSprite(self._mapNode.imgItemRare, "12_rare", rareIconName)
     end
-  elseif handbookData:GetType() == GameEnum.handbookType.PLOT or handbookData:GetType() == GameEnum.handbookType.StorySet then
+  elseif handbookData:GetType() == GameEnum.handbookType.PLOT or handbookData:GetType() == GameEnum.handbookType.StorySet or handbookData:GetType() == GameEnum.handbookType.StoryReview then
     local plotCfgData = handbookData:GetPlotCfgData()
     if nil ~= plotCfgData then
       local tbResourcePath = PlayerData.Handbook:GetPlotResourcePath(self.nId)

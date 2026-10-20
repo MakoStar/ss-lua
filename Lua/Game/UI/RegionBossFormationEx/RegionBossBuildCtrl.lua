@@ -53,7 +53,8 @@ RegionBossBuildCtrl._mapNodeConfig = {
 RegionBossBuildCtrl._mapEventConfig = {
   [EventId.UIHomeConfirm] = "OnEvent_BackHome",
   [EventId.UIBackConfirm] = "OnEvent_Back",
-  [EventId.FilterConfirm] = "OnEvent_RefreshByFilter"
+  [EventId.FilterConfirm] = "OnEvent_RefreshByFilter",
+  [EventId.IsNewDay] = "RefreshBuildData"
 }
 local SortType = {Time = 1, Score = 2}
 local SortOrder = {Descending = true, Ascending = false}
@@ -161,6 +162,20 @@ function RegionBossBuildCtrl:RefreshList()
       end
     end
   end
+  if self.nSortype == SortType.Score then
+    PlayerData.Build:PrioritizeLimitedTrialBuilds(self.tbCurShow, function(mapBuild)
+      if self.nType == AllEnum.RegionBossFormationType.InfinityTower then
+        return mapBuild.isCanUse and 1 or 0
+      elseif self.nPanelState == PanelState.Delete then
+        return self.mapDelete[mapBuild.nBuildId] ~= nil and 1 or 0
+      elseif self.nPanelState == PanelState.Preference then
+        local bCheckIn = self.mapPreferenceCheckIn[mapBuild.nBuildId] ~= nil
+        local bCheckOut = self.mapPreferenceCheckOut[mapBuild.nBuildId] ~= nil
+        return (not (not mapBuild.bPreference or bCheckOut) or not mapBuild.bPreference and bCheckIn) and 1 or 0
+      end
+      return 0
+    end)
+  end
   if #self.tbCurShow == 0 then
     self._mapNode.EmptyContent:SetActive(true)
     self._mapNode.ListContent:SetActive(false)
@@ -171,7 +186,13 @@ function RegionBossBuildCtrl:RefreshList()
     self._mapNode.ListContent:SetActive(true)
   end
   self._mapNode.BuildList:Init(#self.tbCurShow, self, self.RefreshBuildGrid)
-  NovaAPI.SetTMPText(self._mapNode.txt_BuildCount, string.format("%d/%d", #self._tbAllBuild, ConfigTable.GetConfigNumber("StarTowerBuildNumberMax")))
+  local nBuildCount = 0
+  for _, mapBuild in ipairs(self._tbAllBuild) do
+    if PlayerData.Build:GetBuildSourceByData(mapBuild) == AllEnum.BuildSource.Normal then
+      nBuildCount = nBuildCount + 1
+    end
+  end
+  NovaAPI.SetTMPText(self._mapNode.txt_BuildCount, string.format("%d/%d", nBuildCount, ConfigTable.GetConfigNumber("StarTowerBuildNumberMax")))
 end
 
 function RegionBossBuildCtrl:FilterAndSortBuildData()
@@ -292,6 +313,9 @@ end
 
 function RegionBossBuildCtrl:OnBuildGridLock(nIdx, itemCtrl)
   local mapBuild = self.tbCurShow[nIdx]
+  if not PlayerData.Build:IsBuildEditable(mapBuild.nBuildId) then
+    return
+  end
   
   local function callback()
     mapBuild.bLock = not mapBuild.bLock
@@ -313,6 +337,9 @@ function RegionBossBuildCtrl:OnBuildGridPreference(nIdx, itemCtrl)
     return
   end
   local mapBuild = self.tbCurShow[nIdx]
+  if not PlayerData.Build:IsBuildEditable(mapBuild.nBuildId) then
+    return
+  end
   local tbPreferenceCheckIn = {}
   local tbPreferenceCheckOut = {}
   
@@ -329,6 +356,22 @@ function RegionBossBuildCtrl:OnBuildGridPreference(nIdx, itemCtrl)
 end
 
 function RegionBossBuildCtrl:OnBtnClickGrid(nIdx, itemCtrl)
+  local mapBuild = self.tbCurShow[nIdx]
+  if mapBuild == nil then
+    return
+  end
+  if mapBuild.nBuildSource == AllEnum.BuildSource.LimitedTrial and not PlayerData.Build:IsLimitedTrialBuildAllowedType(self.nType) then
+    EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("LimitedTrialBuild_UnableTip"))
+    return
+  end
+  if mapBuild.nBuildSource == AllEnum.BuildSource.LimitedTrial and not PlayerData.Build:IsLimitedTrialBuildValid(mapBuild.nBuildId, self.nType) then
+    EventManager.Hit(EventId.OpenMessageBox, {
+      nType = AllEnum.MessageBox.Tips,
+      sContent = ConfigTable.GetUIText("Reengagement_BuildInvalid")
+    })
+    self:RefreshBuildData()
+    return
+  end
   if self.nType == AllEnum.RegionBossFormationType.RegionBoss then
     PlayerData.RogueBoss:SetSelBuildId(self.tbCurShow[nIdx].nBuildId)
   elseif self.nType == AllEnum.RegionBossFormationType.TravelerDuel then
@@ -364,7 +407,8 @@ function RegionBossBuildCtrl:OnBtnClickGrid(nIdx, itemCtrl)
     local activityLevelsData = PlayerData.Activity:GetActivityDataById(nActId)
     activityLevelsData:SetCachedSelBuildId(self.tbCurShow[nIdx].nBuildId, self.selLvId)
   elseif self.nType == AllEnum.RegionBossFormationType.ActivityStory then
-    PlayerData.ActivityAvg:SetSelBuildId(self.tbCurShow[nIdx].nBuildId)
+    local storyData = self.bReview and PlayerData.StoryReview or PlayerData.ActivityAvg
+    storyData:SetSelBuildId(self.tbCurShow[nIdx].nBuildId, self.nActId)
   end
   local tbChar = self.tbCurShow[nIdx].tbChar
   local nRandomIdx = math.random(1, #tbChar)
@@ -440,6 +484,8 @@ function RegionBossBuildCtrl:OnEnable()
   if tbParam[4] ~= nil then
     self.Other = tbParam[4]
   end
+  self.nActId = tbParam[5]
+  self.bReview = tbParam[6] == true
   if next(self._panel.mapCacheFilter) ~= nil then
     for fKey, data in pairs(self._panel.mapCacheFilter) do
       for sKey, value in pairs(data) do
@@ -448,6 +494,11 @@ function RegionBossBuildCtrl:OnEnable()
     end
     PlayerData.Filter:SyncFilterByCache()
   end
+  self:RefreshBuildData()
+end
+
+function RegionBossBuildCtrl:RefreshBuildData()
+  self.tbSelChar = {}
   
   local function GetDataCallback(tbBuildData, mapAllBuild)
     self._mapAllBuild = mapAllBuild
@@ -476,7 +527,7 @@ function RegionBossBuildCtrl:OnEnable()
     EventManager.Hit("Guide_RegionBossRefresh")
   end
   
-  PlayerData.Build:GetAllBuildBriefData(GetDataCallback)
+  PlayerData.Build:GetSelectableBuildBriefData(GetDataCallback, self.nType, true)
 end
 
 function RegionBossBuildCtrl:OnDisable()

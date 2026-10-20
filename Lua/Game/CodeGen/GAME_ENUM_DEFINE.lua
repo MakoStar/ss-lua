@@ -49,7 +49,10 @@ GameEnum.handbookType = {
   OUTFIT = 2,
   PLOT = 3,
   CG = 4,
-  StorySet = 5
+  StorySet = 5,
+  DormSkin = 6,
+  DormFurniture = 7,
+  StoryReview = 8
 }
 GameEnum.roguelikeLevelStyle = {
   CountrySide = 1,
@@ -142,7 +145,19 @@ GameEnum.roguelikeLevelStyle = {
   StoryActivity_16 = 476,
   StoryActivity_16_01 = 477,
   StoryActivity_17 = 481,
+  StoryActivity_17_Boss01 = 482,
   StoryActivity_18 = 486,
+  StoryActivity_19 = 491,
+  StoryActivity_19_01 = 492,
+  StoryActivity_20 = 496,
+  StoryActivity_20_01 = 497,
+  StoryActivity_21 = 501,
+  StoryActivity_22 = 506,
+  StoryActivity_22_01 = 507,
+  StoryActivity_23 = 511,
+  StoryActivity_24 = 516,
+  StoryActivity_25 = 521,
+  StoryActivity_25_01 = 522,
   Training = 901
 }
 GameEnum.roguelikeFloorFunction = {
@@ -311,7 +326,8 @@ GameEnum.referenceattrib = {
   SEP = 18,
   AEP = 19,
   LEP = 20,
-  DEP = 21
+  DEP = 21,
+  CurrentHp = 22
 }
 GameEnum.subMapName = {
   ThunderBluff = 1,
@@ -382,7 +398,9 @@ GameEnum.jumpType = {
   ActivityStory = 44,
   ActivityLevel = 45,
   ActivityGame1 = 46,
-  ActivityGame2 = 47
+  ActivityGame2 = 47,
+  Soldier = 48,
+  Dorm = 49
 }
 GameEnum.characterSearchTargetType = {MELEE = 1, RANGED = 2}
 GameEnum.characterSearchTargetTypeTowerDefense = {NORMAL = 1}
@@ -391,7 +409,8 @@ GameEnum.gachaStorageType = {
   CharacterCardPool = 2,
   DiscUpCardPool = 3,
   DiscCardPool = 4,
-  BeginnerCardPool = 5
+  BeginnerCardPool = 5,
+  CharacterCardRewardPool = 6
 }
 GameEnum.guidetype = {
   ForcedClick = 1,
@@ -420,7 +439,9 @@ GameEnum.guideprepose = {
   UnlockFunction = 4,
   HoldItem = 5,
   FinishStarTowerQuest = 6,
-  UnFinishCharacterPlot = 7
+  UnFinishCharacterPlot = 7,
+  FinishDormQuest = 8,
+  FinishDormQuestGroup = 9
 }
 GameEnum.guidepost = {UnDoneGuide = 1}
 GameEnum.guidetrigger = {
@@ -550,7 +571,9 @@ GameEnum.itemType = {
   LevelHonor = 15,
   TraceRequest = 16,
   HuntPermit = 17,
-  SoldierItem = 18
+  SoldierItem = 18,
+  DormFurniture = 19,
+  DormHonor = 20
 }
 GameEnum.expireType = {
   ExpireMin = 1,
@@ -693,6 +716,19 @@ GameEnum.achievementCond = {
   WeekBossClearTotal = 123,
   TraceHuntTraceComplete = 159,
   TraceHuntAssistHunt = 160,
+  DormFurnitureAcquire = 161,
+  DormRewardReceive = 162,
+  DormUnlockRoom = 163,
+  DormPlaceFurniture = 164,
+  DormRoleInteractionReward = 165,
+  DormFurnitureCollect = 166,
+  DormDailyReceiveReward = 171,
+  DormSendGift = 172,
+  ActivityStoryPass = 173,
+  SoldierClearTotal = 174,
+  SoldierClearTotalWithSeason = 175,
+  SoldierSpecificRankWithSeason = 176,
+  DormSaveRoom = 177,
   ClientReport = 200,
   TowerBattleTimes = 501,
   TowerBossChallengeSpecificHighRewardWithTotal = 502,
@@ -788,7 +824,12 @@ GameEnum.activityQuestCompleteCond = {
   ActivityIceCreamLevelPassed = 155,
   ActivityIceCreamCumulativeUseItem = 156,
   ActivityIceCreamCumulativeCombo = 157,
-  ActivitySoldierScore = 158
+  ActivitySoldierScore = 158,
+  ActivityMathParkourCumulativeUseItem = 167,
+  ActivityMathParkourCumulativeScore = 168,
+  ActivityMathParkourLevelPassed = 169,
+  ActivityPenguinCardClearDifficulty = 170,
+  ActivityStoryPass = 173
 }
 GameEnum.chatCond = {
   CharacterAcquire = 5,
@@ -815,7 +856,9 @@ GameEnum.handBookCond = {
   SkinAcquire = 61,
   StoryClear = 63,
   StorySetClearSpecific = 116,
-  CharacterWithSpecificSkillAndLevel = 118
+  CharacterWithSpecificSkillAndLevel = 118,
+  DormFurnitureAcquire = 161,
+  ActivityStoryPass = 173
 }
 GameEnum.jointDrillCond = {JointDrillScoreTotal = 95}
 GameEnum.questAcceptCond = {
@@ -942,6 +985,18 @@ GameEnum.questCompleteCond = {
   WeekBossClearTotal = 123,
   ActivityStoryReadStory = 124,
   ActivitySoldierScore = 158,
+  DormRewardReceive = 162,
+  DormUnlockRoom = 163,
+  DormPlaceFurniture = 164,
+  DormRoleInteractionReward = 165,
+  DormFurnitureCollect = 166,
+  DormDailyReceiveReward = 171,
+  DormSendGift = 172,
+  ActivityStoryPass = 173,
+  SoldierClearTotal = 174,
+  SoldierClearTotalWithSeason = 175,
+  SoldierSpecificRankWithSeason = 176,
+  DormSaveRoom = 177,
   ClientReport = 200,
   TowerBattleTimes = 501,
   TowerBossChallengeSpecificHighRewardWithTotal = 502,
@@ -1043,7 +1098,8 @@ GameEnum.honorType = {
   Normal = 1,
   Character = 2,
   Group = 3,
-  Levels = 4
+  Levels = 4,
+  Dorm = 5
 }
 GameEnum.headType = {
   HeroineAvatar = 1,
@@ -1545,7 +1601,15 @@ GameEnum.itemStype = {
   CharacterSkin = 46,
   SouvenirEnergyItem = 47,
   Build = 48,
-  Chess = 49
+  Chess = 49,
+  DormHonor = 50,
+  DormFurniture = 51,
+  DormKit = 52,
+  DormScene = 53,
+  DormSkin = 54,
+  DormRoom = 55,
+  DormLayout = 56,
+  TokenItem = 57
 }
 GameEnum.targetType = {
   AllActor = 1,
@@ -1898,7 +1962,12 @@ GameEnum.activityType = {
   IceCream = 23,
   FollowSocialMedia = 24,
   Soldier = 25,
-  NewStory = 30
+  Reengagement = 26,
+  MathParkour = 27,
+  MailBind = 28,
+  NewStory = 30,
+  MallLogin = 31,
+  SignIn = 32
 }
 GameEnum.activityOpenType = {
   None = 0,
@@ -2206,7 +2275,8 @@ GameEnum.force = {
   Force14 = 14,
   Force15 = 15,
   Force16 = 16,
-  Force17 = 17
+  Force17 = 17,
+  Force18 = 18
 }
 GameEnum.bubbleDirection = {Left = 1, Right = 2}
 GameEnum.attributeType = {BaseAttrType = 1, PlayerAttrType = 2}
@@ -2341,7 +2411,11 @@ GameEnum.OpenFuncType = {
   QuestNewbie = 31,
   TraceHunt = 32,
   EnergyBattery = 33,
-  EventReminder = 34
+  EventReminder = 34,
+  Dorm = 35,
+  GuideMission = 36,
+  Soldier = 37,
+  ActivityReview = 38
 }
 GameEnum.TowerQuestType = {Core = 1, Normal = 2}
 GameEnum.poolType = {Elite = 1, Boss = 2}
@@ -2594,7 +2668,9 @@ GameEnum.activityThemeType = {
   CultivationManual_10111 = 18,
   BreakOut_30103 = 19,
   LongestDay_10112 = 20,
-  BreakOut_30104 = 21
+  BreakOut_30104 = 21,
+  DustDawn_20104 = 22,
+  UnchartedMap_10113 = 23
 }
 GameEnum.ActivityLevelType = {
   Explore = 1,
@@ -2651,9 +2727,24 @@ GameEnum.PopUpSeqType = {
   ActivityFaceAnnounce = 5,
   ActivityLogin = 6,
   NewChat = 7,
-  MessageBox = 8
+  MessageBox = 8,
+  Reengagement = 9,
+  ReengagementAvg = 10,
+  StarTowerBuildSave = 12,
+  MainViewGuide = 13
 }
-GameEnum.MallItemType = {Package = 1, Skin = 2}
+GameEnum.MallItemType = {
+  Package = 1,
+  Skin = 2,
+  Furniture = 3
+}
+GameEnum.MallItemSubType = {
+  Package = 1,
+  Skin = 2,
+  Furniture = 3,
+  FurnitureSet = 4,
+  FurnitureTheme = 5
+}
 GameEnum.GetLinesType = {
   GachaNew = 1,
   Gacha = 2,
@@ -2840,7 +2931,8 @@ GameEnum.MallAdvRecommendItemType = {
   MonthlyCard = 1,
   BattlePass = 2,
   Package = 3,
-  Skin = 4
+  Skin = 4,
+  Furniture = 5
 }
 GameEnum.StoryPreviewType = {
   None = 0,
@@ -2976,7 +3068,25 @@ GameEnum.ChessPartnerType = {
   DianFengZhanShi = 16,
   MeiLiManYi = 17,
   RenDuoShiZhong = 18,
-  MoYu = 19
+  MoYu = 19,
+  LongYi = 20,
+  BaiMaoJuTuan = 21,
+  ShaXieYongBingTuan = 22,
+  LiMingJinWei = 23,
+  HangHaiJia = 24,
+  WangPaiTeGong = 25,
+  ZhiHuiGuan = 26,
+  QiLiMoFa = 27,
+  HuoLiYaZhi = 28,
+  XueFuWuChe = 29,
+  MeiShiJianShangJia = 30,
+  QiShiJingShen = 31,
+  WuQiDaShi = 32,
+  ShouYeRen = 33,
+  GaoGeDaXinWen = 34,
+  QianBianRenZhe = 35,
+  RenDaoChuanCheng = 36,
+  BenZunJiaDao = 37
 }
 GameEnum.ActivityIceCreamLevelType = {
   Teaching = 1,
@@ -3005,13 +3115,17 @@ GameEnum.soldierNodeType = {
   Event = 1,
   Battle = 2,
   MidBossBattle = 3,
-  FinalBossBattle = 4
+  FinalBossBattle = 4,
+  CheckStage = 5
 }
 GameEnum.soldierEventType = {
   FinalBossBattle = 1,
   MidBossBattle = 2,
   NormalBattle = 3,
-  BattleOptions = 4
+  BattleOptions = 4,
+  StoryPersonality = 5,
+  StoryCost = 6,
+  CheckStage = 7
 }
 GameEnum.soldierLevelName = {
   Simple = 1,
@@ -3071,70 +3185,39 @@ GameEnum.SoldierClientEffect = {
   AmendAttr = 2,
   PercentAmendAttr = 3,
   PartnerTag = 4,
-  BattleAttrHalve = 5
+  BattleAttrHalve = 5,
+  BaseAmendAttr = 6,
+  BasePercentAmendAttr = 7
+}
+GameEnum.soldierEffectLifecycleType = {
+  IMMEDIATE = 0,
+  CONDITIONAL = 1,
+  PERMANENT = 2
 }
 GameEnum.soldierBuffCond = {
-  CurrentNodeEqual = 1,
-  CurrentNodeAfterKeep = 2,
-  CurrentNodeSpecific = 3,
-  NextNodes = 4,
-  EnterNodeCountKeep = 5,
-  EnterNodeCountEqual = 6,
-  EnterNodeCountEqualLoop = 7,
-  CurrentStageSpecific = 8,
-  CurrentStage = 9,
-  NextNodeType = 11,
-  BattleCount = 12,
-  BattleCountLoop = 13,
-  BattleVictoryCount = 14,
-  BattleVictoryCountLoop = 15,
-  BattleDefeatCount = 16,
-  BattleDefeatCountLoop = 17,
-  BattleContinuousVictoryCount = 18,
-  BattleContinuousVictoryCountLoop = 19,
-  BattleContinuousDefeatCount = 20,
-  BattleContinuousDefeatCountLoop = 21,
-  BattleContinuousDefeatCountKeep = 22,
-  BattleContinuousVictoryCountKeep = 23,
-  ShopLevelSpecific = 24,
-  ShopLevelUpgrade = 25,
-  ShopLevelKeep = 26,
-  ShopRefreshCountKeep = 28,
-  ShopRefreshCountLoop = 30,
-  ShopPurchaseChess = 32,
-  ShopPurchaseChessLoop = 33,
-  ShopPurchaseChessCost = 34,
-  ShopPurchaseChessCostLoop = 35,
-  ShopPurchaseChessPartner = 36,
-  ShopPurchaseChessPartnerLoop = 37,
-  ShopPurchaseChessType = 38,
-  ShopPurchaseChessTypeLoop = 39,
-  ShopChessSell = 40,
-  ShopChessSellLoop = 41,
-  ShopPurchaseExpCount = 42,
-  ShopPurchaseExpCountLoop = 43,
-  HpEqual = 44,
-  HpGreaterThan = 45,
-  HpLessThan = 46,
-  ResAdd = 47,
-  ResDeductKeep = 48,
-  ResDeductLoop = 49,
-  ResKeep = 50,
-  ChessMergeSpecificStar = 51,
-  ChessMergeSpecificStarWithCost = 52,
-  ChessMergeSpecificStarWithType = 53,
-  ChessMergeSpecificStarWithPartner = 54,
-  DeployChessSpecificCountWithCost = 55,
-  DeployChessSpecificCountWithType = 56,
-  DeployChessSpecificCountWithPartner = 57,
-  UsageQuota = 58,
-  UsageQuotaPerNode = 59,
-  ShopRefreshCount = 60,
-  ResDeduct = 61,
-  DeployChessEqualCountWithPartner = 62,
-  HpGreaterThanLoop = 63,
-  HpLessThanLoop = 64,
-  DeployChessEqualCountWithType = 65
+  EnterNodeCountEqual = 1,
+  NextNodeType = 2,
+  BattleCount = 3,
+  BattleVictoryCount = 4,
+  BattleDefeatCount = 5,
+  BattleContinuousVictoryCount = 6,
+  BattleContinuousDefeatCount = 7,
+  ShopRefreshCount = 8,
+  ShopPurchaseChess = 9,
+  ShopPurchaseChessCost = 10,
+  ShopPurchaseChessPartner = 11,
+  ShopPurchaseChessType = 12,
+  ShopChessSell = 13,
+  ShopPurchaseExpCount = 14,
+  ResAdd = 15,
+  ResDeduct = 16,
+  HpGreaterThan = 17,
+  HpLessThan = 18,
+  ChessMergeSpecificStar = 19,
+  ChessMergeSpecificStarWithCost = 20,
+  ChessMergeSpecificStarWithType = 21,
+  ChessMergeSpecificStarWithPartner = 22,
+  NextNode = 23
 }
 GameEnum.soldierBuffEffect = {
   GainItem = 1,
@@ -3151,32 +3234,75 @@ GameEnum.soldierBuffEffect = {
   PartnerSpecificAddCount = 12,
   NodeTypeModify = 13,
   ShopAddExp = 14,
-  ResMultiply = 15,
-  ResSet = 16,
-  RandomChessAddByStar = 17,
-  RandomChessAddByStarAndCost = 18,
-  RandomChessAddByType = 19,
-  ShopRefreshDiscount = 20,
-  ShopPurchaseExpDiscount = 21,
-  GainResScale = 22,
-  HoldResScale = 23,
-  ShopRandomRarityWeightDouble = 24,
-  GetTwoDice = 25,
-  RandomStrategyCardSpecificRarity = 26,
-  LeftmostWaitingChessChange = 27,
-  LeftmostWaitingChessSpecificCostChange = 28,
-  ShopRandomChessBecomeAnotherHigherCost = 29,
-  ExchangeHpAndGold = 30,
-  ShopGoodsProbabilityBecomingHigherStar = 31,
-  ChessWeightUpWithSpecificPartner = 32,
-  ClientEffect = 33
+  ResSet = 15,
+  RandomChessAddByStar = 16,
+  RandomChessAddByStarAndCost = 17,
+  RandomChessAddByType = 18,
+  ShopRefreshDiscount = 19,
+  ShopPurchaseExpDiscount = 20,
+  GainResScale = 21,
+  HoldResScale = 22,
+  ShopRandomRarityWeightDouble = 23,
+  GetTwoDice = 24,
+  RandomStrategyCardSpecificRarity = 25,
+  LeftmostWaitingChessChange = 26,
+  LeftmostWaitingChessSpecificCostChange = 27,
+  ShopRandomChessBecomeAnotherHigherCost = 28,
+  ExchangeHpAndGold = 29,
+  ShopGoodsProbabilityBecomingHigherStar = 30,
+  ChessWeightUpWithSpecificPartner = 31,
+  ClientEffectAttr = 32,
+  ClientEffectHarvest = 33,
+  InterestLimitAdd = 34,
+  CardReRollAddCount = 35,
+  DiceAddPoint = 36,
+  ShopRandomTempFreeRefresh = 37,
+  PartnerAddShopExp = 38,
+  HarvestAddRes = 39,
+  HarvestBattleDefeatAddRes = 40,
+  ClientEffectAddGold = 41
+}
+GameEnum.soldierBuffEvent = {
+  EnterNode = 1,
+  HpChange = 2,
+  Battle = 3,
+  Deploy = 4,
+  ShopPurchase = 5,
+  ShopUpgrade = 6,
+  ShopRefresh = 7,
+  ShopSell = 8,
+  ResChange = 9,
+  ChessMerge = 10,
+  Client = 11
+}
+GameEnum.soldierBuffState = {
+  NextNodes = 1,
+  CurrentNode = 2,
+  CurrentStage = 3,
+  CurrentNodeAfter = 4,
+  CheckNode = 5,
+  CheckStage = 6,
+  CheckNodeType = 7,
+  CheckHp = 8,
+  CheckRes = 9,
+  CheckShopLevel = 10,
+  CheckDeployChessByPartner = 11,
+  CheckDeployChessByType = 12,
+  CheckDeployChessByCost = 13,
+  CheckDeployChessById = 14,
+  CheckBattleResult = 15,
+  CheckBattleCount = 16,
+  CheckShopRefreshCount = 17,
+  CheckResConsume = 18,
+  CheckResObtain = 19
 }
 GameEnum.PartnerLevelQuality = {
   None = 0,
   Copper = 1,
   Silver = 2,
   Gold = 3,
-  Color = 4
+  Color = 4,
+  Special = 5
 }
 GameEnum.SoldierCharacterType = {Actor = 1, Monster = 2}
 GameEnum.ActivityPenguinCardLevelType = {Normal = 1, Endless = 2}
@@ -3189,4 +3315,170 @@ GameEnum.EventReminderType = {
 }
 GameEnum.CharGemInstanceRewardType = {General = 1, Enhance = 2}
 GameEnum.CharGemInstanceDropGuarantee = {RoundTableGuarantee = 1, SequentialGuarantee = 2}
+GameEnum.DormRoomType = {Outdoor = 0, Indoor = 1}
+GameEnum.DormRoomSizeType = {OutdoorSize1 = 0, IndoorSize1 = 1}
+GameEnum.DormFurType = {
+  OnFloor = 0,
+  OnWall = 1,
+  Carpet = 2,
+  Poster = 3,
+  Wall = 4,
+  Floor = 5,
+  FloorCarpet = 6,
+  FloorPoster = 7
+}
+GameEnum.DormFurFixedType = {
+  None = 0,
+  Wall = 1,
+  Floor = 2,
+  Doll = 3,
+  Drink = 4,
+  Elevator = 5
+}
+GameEnum.DormFurRotate = {
+  None = 0,
+  Quarter = 1,
+  Half = 2,
+  Quarter3 = 3
+}
+GameEnum.DormRoleType = {
+  MoWang = 0,
+  Character = 1,
+  NPC = 2
+}
+GameEnum.DormRewardType = {Normal = 0, Entry = 1}
+GameEnum.DormConditionType = {
+  Room = 1,
+  Furniture = 2,
+  Role = 3
+}
+GameEnum.DormInterType = {Common = 1, Approproative = 2}
+GameEnum.DormAchievementType = {FurnitureCollectionValue = 1}
+GameEnum.ActivityStoryPreviewType = {
+  None = 0,
+  MainlineStory = 1,
+  StorySet = 2,
+  ActivityStory = 3
+}
+GameEnum.MathParkourObjectType = {
+  Enemy = 1,
+  TrappedActor = 2,
+  AccelerationConveyor = 3,
+  DecelerationConveyor = 4,
+  SpecialConveyor = 5,
+  BenefitItem = 6,
+  Boss = 7,
+  Wall = 8
+}
+GameEnum.MathParkourBuffType = {
+  Rocket = 1,
+  Drill = 2,
+  Saw = 3,
+  Shield = 4,
+  ActorA = 5,
+  ActorB = 6,
+  ActorC = 7,
+  Boom = 8
+}
+GameEnum.TowerVitaOptionCategories = {
+  Potential = 1,
+  Shop = 2,
+  Event = 3
+}
+GameEnum.TowerVitaOptionType = {
+  Switch = 1,
+  Selector = 2,
+  DropList = 3,
+  NumberInput = 4,
+  SortTableList = 5
+}
+GameEnum.SoldierTechNodeType = {
+  None = 0,
+  Core = 1,
+  Attribute = 2,
+  BossAbility = 3
+}
+GameEnum.SoldierTechBattleEffect = {
+  None = 0,
+  FinalDamageUp = 1,
+  FinalDamageReduceUp = 2,
+  SkillCritRateUp = 3,
+  SkillFinalDamageUp = 4
+}
+GameEnum.ShopType = {
+  None = 0,
+  Resident = 1,
+  GuideMission = 2
+}
+GameEnum.SoldierTechBattleBuffTarget = {
+  All = 0,
+  Team = 1,
+  Enemy = 2
+}
+GameEnum.SoldierPersonalityGrade = {
+  PersonalityGrade_1 = 1,
+  PersonalityGrade_2 = 2,
+  PersonalityGrade_3 = 3,
+  PersonalityGrade_4 = 4,
+  PersonalityGrade_5 = 5,
+  PersonalityGrade_6 = 6,
+  PersonalityGrade_7 = 7
+}
+GameEnum.SoldierRolePersonality = {
+  Personality_Intuition = 1,
+  Personality_Analysis = 2,
+  Personality_Chaos = 3
+}
+GameEnum.SoldierRoleSkillType = {
+  SoldierRoleSkillType_1 = 1,
+  SoldierRoleSkillType_2 = 2,
+  SoldierRoleSkillType_3 = 3,
+  SoldierRoleSkillType_4 = 4
+}
+GameEnum.SoldierSeason = {None = 0, S1 = 1}
+GameEnum.SoldierStoryOptionCond = {
+  BossPersonalityGrade = 1,
+  OptionChosenInRun = 2,
+  EndingUnlocked = 3,
+  GradeLevelUnlocked = 4,
+  CoinUnlocked = 5,
+  HpUnlocked = 6
+}
+GameEnum.SoldierStoryRewardType = {
+  GainItem = 1,
+  GainChessStarCostWeight = 2,
+  GainChessByCost = 3,
+  GainChessStarPartnerWeight = 4,
+  GainCardQualityWeight = 5,
+  GainCardByQuality = 6,
+  RecoverHp = 7,
+  GainHiddenCard = 8,
+  LoseHp = 9,
+  LoseItem = 10,
+  LoseAllCoin = 11
+}
+GameEnum.EndingCondition = {FinalBossDefeated = 1, FinalBossNotDefeated = 2}
+GameEnum.SoldierStoryCondFailMode = {Hide = 1, Disable = 2}
+GameEnum.SoldierStoryResultType = {Default = 1, Fail = 2}
+GameEnum.PartnerCatalogue = {Camp = 1, Style = 2}
+GameEnum.EventOptionTag = {
+  Preservative = 1,
+  Standard = 2,
+  Aggresive = 3,
+  Correct = 4,
+  PotentialCommon = 5,
+  PotentialRare = 6,
+  PotentialMain = 7,
+  PotentialAssist = 8,
+  PotentialRandom = 9,
+  NoteRandom = 10,
+  Note90011 = 11,
+  Note90012 = 12,
+  Note90013 = 13,
+  Note90014 = 14,
+  Note90015 = 15,
+  Note90016 = 16,
+  Note90017 = 17,
+  Coin = 18
+}
 return GameEnum

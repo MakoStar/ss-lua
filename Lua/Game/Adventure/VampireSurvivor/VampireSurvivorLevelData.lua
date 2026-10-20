@@ -188,7 +188,7 @@ function VampireSurvivorLevelData:Init(parent, nLevelId, nBuildId1, nBuildId2, t
     local tbActivedDropData = PlayerData.VampireSurvivor:GetActivedDropItem()
     CS.AdventureModuleHelper.EnterVampireFloor(self.floorId, self.tbCharId, true, self.tbFirstHalfEventType1, self.tbFirstHalfEventType2, self.bHalfBattle, tbActivedDropData)
     NovaAPI.EnterModule("AdventureModuleScene", true, 17)
-    EventManager.Hit(EventId.OpenPanel, PanelId.VampireSurvivorBattlePanel, self.tbCharId, self.nLevelId)
+    EventManager.Hit(EventId.OpenPanel, PanelId.VampireSurvivorBattlePanel, self.tbCharId, self.nLevelId, self.mapBuildData)
   end
   
   PlayerData.Build:GetBuildDetailData(GetBuildCallback, nBuildId1)
@@ -442,7 +442,7 @@ function VampireSurvivorLevelData:InitReEnter(parent, nLevelId, nBuildId1, nBuil
     local tbActivedDropData = PlayerData.VampireSurvivor:GetActivedDropItem()
     CS.AdventureModuleHelper.EnterVampireFloor(self.floorId, self.tbCharId, false, self.tbSecondHalfEventType1, self.tbSecondHalfEventType2, self.bHalfBattle, tbActivedDropData)
     NovaAPI.EnterModule("AdventureModuleScene", true, 17)
-    EventManager.Hit(EventId.OpenPanel, PanelId.VampireSurvivorBattlePanel, self.tbCharId, self.nLevelId)
+    EventManager.Hit(EventId.OpenPanel, PanelId.VampireSurvivorBattlePanel, self.tbCharId, self.nLevelId, self.mapBuildData)
   end
   
   PlayerData.Build:GetBuildDetailData(GetBuildCallback, nBuildId2)
@@ -1044,7 +1044,7 @@ function VampireSurvivorLevelData:ChangeArea()
         end
       end
       
-      EventManager.Hit("VampireSurvivorChangeArea", self.tbCharId)
+      EventManager.Hit("VampireSurvivorChangeArea", self.tbCharId, self.mapBuildData)
       EventManager.Add("ADVENTURE_LEVEL_UNLOAD_COMPLETE", self, levelEndCallback)
       NovaAPI.DispatchEventWithData("Level_Restart", nil, {})
       
@@ -1259,7 +1259,7 @@ function VampireSurvivorLevelData:ReTry()
       end
       
       EventManager.Hit("BattleRestart")
-      EventManager.Hit("VampireSurvivorChangeArea", self.tbCharId)
+      EventManager.Hit("VampireSurvivorChangeArea", self.tbCharId, self.mapBuildData)
       EventManager.Add("ADVENTURE_LEVEL_UNLOAD_COMPLETE", self, levelEndCallback)
       NovaAPI.DispatchEventWithData("Level_Restart", nil, {})
       
@@ -1273,15 +1273,22 @@ function VampireSurvivorLevelData:ReTry()
       cs_coroutine.start(wait)
     end
     
-    local BuildIds = {
+    local tbBuildId = {
       self.nBuildId1
     }
     if self.nBuildId2 > 0 then
-      table.insert(BuildIds, self.nBuildId2)
+      table.insert(tbBuildId, self.nBuildId2)
+    end
+    local tbBuilds = {}
+    for _, nBuildId in ipairs(tbBuildId) do
+      table.insert(tbBuilds, {
+        Type = PlayerData.Build:IsUseTrialRuntime(nBuildId) and 2 or 1,
+        BuildId = nBuildId
+      })
     end
     local msg = {
       Id = self.nLevelId,
-      BuildIds = BuildIds
+      Builds = tbBuilds
     }
     HttpNetHandler.SendMsg(NetMsgId.Id.vampire_survivor_apply_req, msg, nil, NetCallback)
   else
@@ -1326,7 +1333,7 @@ function VampireSurvivorLevelData:ReTry()
         end
       end
       
-      EventManager.Hit("VampireSurvivorChangeArea", self.tbCharId)
+      EventManager.Hit("VampireSurvivorChangeArea", self.tbCharId, self.mapBuildData)
       EventManager.Hit("BattleRestart")
       EventManager.Add("ADVENTURE_LEVEL_UNLOAD_COMPLETE", self, levelEndCallback)
       NovaAPI.DispatchEventWithData("Level_Restart", nil, {})
@@ -1564,8 +1571,11 @@ function VampireSurvivorLevelData:OnEvent_Time(nTime)
 end
 
 function VampireSurvivorLevelData:OnEvent_BattlePause()
+  if self.bBattleEnd then
+    return
+  end
   local nScore = self:CalCurScore()
-  EventManager.Hit("OpenVampirePause", self.nLevelId, self.tbCharId, self.nCurTotalTime, nScore)
+  EventManager.Hit("OpenVampirePause", self.nLevelId, self.tbCharId, self.nCurTotalTime, nScore, self.tbCharTrialId)
 end
 
 function VampireSurvivorLevelData:OnEvent_Abandon()

@@ -168,7 +168,13 @@ DailyInstanceLevelSelectCtrl._mapNodeConfig = {
   Conditions_ = {nCount = 2},
   imgDoubleDrop = {},
   txtDoubleDrop = {sComponentName = "TMP_Text"},
-  txtDoubleDropCount = {sComponentName = "TMP_Text"}
+  txtDoubleDropCount = {sComponentName = "TMP_Text"},
+  imgReengagementDrop = {},
+  txtReengagementDoubleDrop = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Reengagement_DoubleDrop_LevelTip"
+  },
+  txtReengagementDoubleDropCount = {sComponentName = "TMP_Text"}
 }
 DailyInstanceLevelSelectCtrl._mapEventConfig = {
   [EventId.UIHomeConfirm] = "OnEvent_Home",
@@ -441,10 +447,20 @@ function DailyInstanceLevelSelectCtrl:RefreshDailyInstanceInfo(nType, nHard, bLo
   self._mapNode.btnLock.gameObject:SetActive(not isUnLock)
   self._mapNode.ListConditions:SetActive(not isUnLock)
   self._mapNode.imgDoubleDrop:SetActive(false)
+  self._mapNode.imgReengagementDrop:SetActive(false)
+  local nReengagementCount = PlayerData.Reengagement:GetDoubleDropCount()
   self.actData = PlayerData.Activity:GetActivityDataByType(GameEnum.activityType.Double)
+  local bShowNormalDouble = false
   if self.actData ~= nil and self.actData:CheckActShow() and self.actData:CheckInstanceType(GameEnum.instanceType.DailyInstance) then
+    local nCurCount, nMaxCount = self.actData:GetDoubleDropsTimes()
+    bShowNormalDouble = 0 < nMaxCount - nCurCount
+  end
+  if bShowNormalDouble then
     self._mapNode.imgDoubleDrop:SetActive(isUnLock)
     self:RefreshDoubleDropCount()
+  elseif isUnLock and 0 < nReengagementCount then
+    self._mapNode.imgReengagementDrop:SetActive(true)
+    self:RefreshReengagementCount()
   end
   if not isUnLock then
     local imgConditions_Lock_WC = self._mapNode.Conditions_[1].gameObject.transform:Find("imgConditions_Lock").gameObject
@@ -474,6 +490,14 @@ function DailyInstanceLevelSelectCtrl:RefreshDoubleDropCount()
     NovaAPI.SetTMPText(self._mapNode.txtDoubleDrop, str)
     NovaAPI.SetTMPText(self._mapNode.txtDoubleDropCount, string.format("%s/%s", nMaxCount - nCount, nMaxCount))
   end
+end
+
+function DailyInstanceLevelSelectCtrl:RefreshReengagementCount()
+  local nReengagementCount = PlayerData.Reengagement:GetDoubleDropCount()
+  local str = ConfigTable.GetUIText("Reengagement_DoubleDrop_LevelTip") .. ":"
+  NovaAPI.SetTMPText(self._mapNode.txtReengagementDoubleDrop, str)
+  local nMaxCount = PlayerData.Reengagement:GetMaxDoubleDropCount()
+  NovaAPI.SetTMPText(self._mapNode.txtReengagementDoubleDropCount, string.format("%s/%s", nReengagementCount, nMaxCount))
 end
 
 function DailyInstanceLevelSelectCtrl:OnEvent_Home(nPanelId)
@@ -606,6 +630,7 @@ end
 
 function DailyInstanceLevelSelectCtrl:OnEvent_RaidSuccess()
   self:RefreshDoubleDropCount()
+  self:RefreshReengagementCount()
 end
 
 return DailyInstanceLevelSelectCtrl

@@ -168,7 +168,7 @@ function DiscSkillCtrl:Refresh()
         local discData = self.mapDiscData[nDiscId]
         if nil ~= discData then
           local objCtrl = self:BindCtrlByNode(self._mapNode.DiscItem[i], "Game.UI.TemplateEx.TemplateDiscItemCtrl")
-          objCtrl:Refresh(nDiscId, discData.nStar, discData.nMaxStar, discData.nLevel, self.mapNote)
+          objCtrl:Refresh(discData.nId, discData.nStar, discData.nMaxStar, discData.nLevel, self.mapNote)
           self._mapNode.DiscItem[i]:SetActive(true)
           self._mapNode.goNone[i]:SetActive(false)
         end
@@ -178,6 +178,8 @@ function DiscSkillCtrl:Refresh()
       end
     end
   end
+  local nTempIdx = table.indexof(self.tbDisc, self.nCurId)
+  nDiscToSelect = 0 < nTempIdx and nTempIdx or nDiscToSelect
   if nDiscToSelect ~= 0 then
     self:OnBtnClick_DiscItem(nil, nDiscToSelect)
   end
@@ -337,6 +339,7 @@ function DiscSkillCtrl:Awake()
     self.tbDisc = tbParam[1]
     self.mapNote = tbParam[2]
     self.mapDiscData = tbParam[3]
+    self.nCurId = tbParam[4] ~= nil and tbParam[4] or self.tbDisc[1]
   end
   self.tbDiscId = {}
   self.tbSubNoteItem = {}

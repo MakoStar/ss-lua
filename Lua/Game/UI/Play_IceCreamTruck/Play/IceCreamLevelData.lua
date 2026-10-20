@@ -17,6 +17,10 @@ function IceCreamLevelData:InitData(nLevelId, nActId)
   if type(tb) == "table" then
     self.cacheHasDicList = tb
   end
+  local nOctopusFoot = ConfigTable.GetConfigNumberArray("IceCreamOctopusClick")
+  self.nOctopusFoot_min = nOctopusFoot[1]
+  self.nOctopusFoot_max = nOctopusFoot[2]
+  self.nLevelMaxScore = ConfigTable.GetConfigNumber("IceCreamMaxTotalScore") or 999999999
 end
 
 function IceCreamLevelData:InitTbBuffs()
@@ -124,6 +128,37 @@ function IceCreamLevelData:OnEvent_SetFloorHasDic(nLevelId)
     end
     LocalData.SetPlayerLocalData("IceCreamDicId", RapidJson.encode(tbLocalSave))
   end
+end
+
+function IceCreamLevelData:CreatOctopusFoots()
+  local tbOctopus = {}
+  local tbPool = {
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  }
+  local nNumberOctopus = math.random(self.nOctopusFoot_min, self.nOctopusFoot_max)
+  if nNumberOctopus < 0 then
+    return nil
+  end
+  for i = 1, nNumberOctopus do
+    local nIndex = math.random(i, #tbPool)
+    tbPool[i], tbPool[nIndex] = tbPool[i], tbPool[nIndex]
+    tbOctopus[i] = tbPool[i]
+  end
+  if #tbOctopus == 0 then
+    return nil
+  else
+    return tbOctopus
+  end
+end
+
+function IceCreamLevelData:GetProtectScore(nLevelScore)
+  nLevelScore = math.min(nLevelScore, self.nLevelMaxScore)
+  return nLevelScore
 end
 
 return IceCreamLevelData

@@ -4,6 +4,7 @@ local LocalData = require("GameCore.Data.LocalData")
 local RapidJson = require("rapidjson")
 local RedDotManager = require("GameCore.RedDot.RedDotManager")
 local BreakOutLevelData = require("GameCore.Data.DataClass.Activity.BreakOutLevelData")
+local ModuleManager = require("GameCore.Module.ModuleManager")
 
 function BreakOutData:Init()
   self.allLevelData = {}
@@ -435,7 +436,12 @@ function BreakOutData:ShowActivityClosedAlert()
 end
 
 function BreakOutData:ForceExitOnFinishFail()
-  EventManager.Hit(EventId.ClosePanel, PanelId.BreakOutPlayPanelS4)
+  local bInAdventure = ModuleManager.GetIsAdventure()
+  if bInAdventure then
+    CS.AdventureModuleHelper.LevelStateChanged(true, 0, true)
+  else
+    EventManager.Hit(EventId.ClosePanel, PanelId.BreakOutPlayPanelS4)
+  end
   EventManager.Hit(EventId.ClosePanel, PanelId.BreakOutLevelDetailPanelS4)
 end
 

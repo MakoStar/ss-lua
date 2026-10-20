@@ -60,7 +60,8 @@ function ShopGoodsItemCtrl:RefreshInfo(mapData)
         bMax = true
       end
     end
-    if bMax then
+    local bGuideMissionShop = mapData.bGuideMissionShop == true
+    if bMax or bGuideMissionShop then
       NovaAPI.SetTMPText(self._mapNode.txtRestock, ConfigTable.GetUIText("Mall_Package_SoldOut"))
     else
       NovaAPI.SetTMPText(self._mapNode.txtRestock, ConfigTable.GetUIText("Shop_Restock"))
@@ -69,7 +70,12 @@ function ShopGoodsItemCtrl:RefreshInfo(mapData)
     self:SetPngSprite(self._mapNode.imgIcon, mapCfg.Icon)
     self._mapNode.imgElement.gameObject:SetActive(false)
     self._mapNode.goStar.gameObject:SetActive(false)
-    NovaAPI.SetTMPText(self._mapNode.txtRestock, ConfigTable.GetUIText("Shop_Restock"))
+    local bGuideMissionShop = mapData.bGuideMissionShop == true
+    if bGuideMissionShop then
+      NovaAPI.SetTMPText(self._mapNode.txtRestock, ConfigTable.GetUIText("Mall_Package_SoldOut"))
+    else
+      NovaAPI.SetTMPText(self._mapNode.txtRestock, ConfigTable.GetUIText("Shop_Restock"))
+    end
   end
   local sPath = AllEnum.FrameType_New.ShopGoods .. AllEnum.FrameColor_New[mapCfg.Rarity]
   self:SetAtlasSprite(self._mapNode.imgRare, "12_rare", sPath)

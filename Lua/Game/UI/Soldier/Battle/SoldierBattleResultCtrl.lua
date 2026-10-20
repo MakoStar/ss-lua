@@ -17,6 +17,7 @@ SoldierBattleResultCtrl._mapNodeConfig = {
   BarContainer = {
     sComponentName = "RectTransform"
   },
+  imgNodeIcon = {sComponentName = "Image"},
   txt_NodeIndex = {sComponentName = "TMP_Text"},
   Partner = {nCount = 2},
   txt_PartnerBattle = {
@@ -56,10 +57,20 @@ SoldierBattleResultCtrl._mapNodeConfig = {
   goBattleExpansion = {},
   NumLayout = {sComponentName = "Transform"},
   NumRootItem = {sComponentName = "Transform"},
-  txtIntegralTitle = {
+  txtListTitle1 = {
     sComponentName = "TMP_Text",
-    sLanguageId = "Soldier_Result_Imntergral"
+    sLanguageId = "Soldier_Result_ScoreTitle_1"
   },
+  txtListTitle2 = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Soldier_Result_ScoreTitle_2"
+  },
+  txtListTitle3 = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Soldier_Result_ScoreTitle_3"
+  },
+  txtListNum = {nCount = 3, sComponentName = "TMP_Text"},
+  goReward = {nCount = 3, sComponentName = "Transform"},
   txtAwardTitle = {
     sComponentName = "TMP_Text",
     sLanguageId = "Soldier_Result_AwardTitle"
@@ -68,7 +79,6 @@ SoldierBattleResultCtrl._mapNodeConfig = {
     sComponentName = "TMP_Text",
     sLanguageId = "Soldier_Result_ScoreTitle"
   },
-  txtIntegralNum = {sComponentName = "TMP_Text"},
   btnConfirm = {
     sComponentName = "UIButton",
     callback = "OnBtnClick_Confirm"
@@ -87,6 +97,9 @@ SoldierBattleResultCtrl._mapNodeConfig = {
   },
   Mask = {
     sComponentName = "CanvasGroup"
+  },
+  goBattleReport = {
+    sCtrlName = "Game.UI.Soldier.Battle.SoldierResultReportCtrl"
   }
 }
 SoldierBattleResultCtrl._mapEventConfig = {
@@ -99,8 +112,11 @@ local _NS = AllEnum.SoldierResultType.NodeSuccess
 local _NF = AllEnum.SoldierResultType.NodeFail
 local _CS = AllEnum.SoldierResultType.ChallengeSuccess
 local _CF = AllEnum.SoldierResultType.ChallengeFail
+local AssetRoot = "Icon/SoldierOtherIcon/"
 
 function SoldierBattleResultCtrl:RefreshResult()
+  self.bInBattleReport = false
+  self._mapNode.goBattleReport.gameObject:SetActive(false)
   self._mapNode.BgFail.gameObject:SetActive(self.nResultType == _NF or self.nResultType == _CF)
   self._mapNode.Bg.gameObject:SetActive(self.nResultType == _NS or self.nResultType == _CS)
   self._mapNode.goNodeSuccess.gameObject:SetActive(self.nResultType == _NS)
@@ -121,6 +137,7 @@ function SoldierBattleResultCtrl:RefreshResult()
       self._mapNode.btnConfirm.gameObject:SetActive(false)
       self._mapNode.btnSettlement.gameObject:SetActive(true)
     end
+    NovaAPI.SetTMPText(self._mapNode.txtBtnConfirm, ConfigTable.GetUIText("Soldier_Result_Continue"))
   elseif self.nResultType == _CS or self.nResultType == _CF then
     self.challengeColor = self.nResultType == _CS and CSColor or CFColor
     self:SetGoBattleExpansionMsg()
@@ -129,6 +146,7 @@ function SoldierBattleResultCtrl:RefreshResult()
     self._mapNode.goBattleExpansion:SetActive(true)
     self._mapNode.btnConfirm.gameObject:SetActive(true)
     self._mapNode.btnSettlement.gameObject:SetActive(false)
+    NovaAPI.SetTMPText(self._mapNode.txtBtnConfirm, ConfigTable.GetUIText("Soldier_Result_Continue_Report"))
   end
   self:AddTimer(1, 0.1, function()
     if self.nResultType == _NS then
@@ -175,6 +193,7 @@ function SoldierBattleResultCtrl:OnEnable()
   self.mapNextData = nil
   CS.AdventureModuleHelper.PauseLogic()
   self.nAnimator = self.gameObject:GetComponent("Animator")
+  self._mapNode.goBattleReport.gameObject:SetActive(false)
   local tbParam = self:GetPanelParam()
   if type(tbParam) == "table" then
     self.nResultType = tbParam[1]
@@ -219,8 +238,27 @@ function SoldierBattleResultCtrl:OnBtnClick_Confirm()
     self.callback = self.mapNextData.callback
     self:RefreshResult()
     self.mapNextData = nil
-  else
-    self:ClosePanel()
+    return
+  end
+  if (self.nResultType == _CS or self.nResultType == _CF) and not self.bInBattleReport then
+    self:ShowBattleReport()
+    return
+  end
+  self:ClosePanel()
+end
+
+function SoldierBattleResultCtrl:ShowBattleReport()
+  self.bInBattleReport = true
+  self._mapNode.goBattleExpansion:SetActive(false)
+  self._mapNode.goNodeExpansion.gameObject:SetActive(false)
+  self._mapNode.goNodeExpansionFail.gameObject:SetActive(false)
+  self._mapNode.goBattleReport.gameObject:SetActive(true)
+  self._mapNode.goBattleReport:SetData(self.mapData or {})
+  NovaAPI.SetTMPText(self._mapNode.txtBtnConfirm, ConfigTable.GetUIText("Soldier_Result_Report_Confirm"))
+  if self.nResultType == _CS then
+    self.nAnimator:Play("SoldierResult_successfulexpansion03")
+  elseif self.nResultType == _CF then
+    self.nAnimator:Play("SoldierResult_failexpansion03")
   end
 end
 
@@ -301,9 +339,12 @@ end
 
 function SoldierBattleResultCtrl:SetGoBattleRoundMsg()
   local nStage, nNodexIndex = self:GetCurChallengeState()
+  local nNodeType = self.mapData.tbChange.tbNodeChange.nLastNodeType
+  local tbNodeType = AllEnum.SoliderNoteTypeCfg[nNodeType]
+  self:SetPngSprite(self._mapNode.imgNodeIcon, AssetRoot .. tbNodeType.Icon)
+  NovaAPI.SetTMPText(self._mapNode.txt_PartnerBattle, ConfigTable.GetUIText(tbNodeType.Language))
   NovaAPI.SetTMPText(self._mapNode.txt_NodeIndex, nStage .. "-" .. nNodexIndex)
   if self.mapData.bEventBattle then
-    NovaAPI.SetTMPText(self._mapNode.txt_PartnerBattle, ConfigTable.GetUIText("SoldierNodeType_Event"))
     self._mapNode.Partner[2]:SetActive(false)
   else
     local nWiningStreak, nLosingStreak = self.levelData:GetStreakCount()
@@ -314,7 +355,6 @@ function SoldierBattleResultCtrl:SetGoBattleRoundMsg()
       NovaAPI.SetTMPText(self._mapNode.txt_PartnerWinning, ConfigTable.GetUIText("Soldier_Result_LosingingTitle"))
       NovaAPI.SetTMPText(self._mapNode.txt_PartnerWinningNum, "x" .. nLosingStreak)
     end
-    NovaAPI.SetTMPText(self._mapNode.txt_PartnerBattle, ConfigTable.GetUIText("SoldierNodeType_Battle"))
     self._mapNode.Partner[2]:SetActive(true)
   end
   local nCurLevel, nMaxLevel = self.levelData:GetShopLevel()
@@ -388,12 +428,55 @@ function SoldierBattleResultCtrl:SetSoldierDamageItem(id, damageData, maxDamage)
 end
 
 function SoldierBattleResultCtrl:SetGoBattleExpansionMsg()
-  local totalScore = self.mapData.nTotalScore
-  if totalScore ~= nil and 0 < totalScore then
+  local tbSettle = self.mapData.tbSettle or {}
+  local nPassedNode = tbSettle.nPassedNode or 0
+  local nRemainingHp = tbSettle.nRemainingHp or 0
+  local nCheckStageDps = tbSettle.nCheckStageDps or 0
+  local nCheckStageTime = tbSettle.nCheckStageTime or 0
+  local nChessTotalCost = tbSettle.nChessTotalCost or 0
+  local nTotalScore = nPassedNode + nRemainingHp + nCheckStageDps + nCheckStageTime + nChessTotalCost
+  if 0 < nTotalScore then
     CS.WwiseAudioManager.Instance:PostEvent("mode_900001_chess_result_countPoint")
   end
-  self:RefreshScoreDigits(totalScore)
-  NovaAPI.SetTMPText(self._mapNode.txtIntegralNum, self.mapData.nRewardScore)
+  self:RefreshScoreDigits(nTotalScore)
+  local tbListNum = {
+    nPassedNode + nRemainingHp,
+    nChessTotalCost,
+    nCheckStageDps + nCheckStageTime
+  }
+  for i = 1, 3 do
+    NovaAPI.SetTMPText(self._mapNode.txtListNum[i], "+" .. tostring(tbListNum[i]))
+  end
+  local tbRewardCfg = {
+    {
+      nValue = tbSettle.nGetSchedule or 0,
+      sLangId = "SoldierResult_RewardTitle_Progress"
+    },
+    {
+      nValue = tbSettle.nGetTechPoint or 0,
+      sLangId = "SoldierResult_RewardTitle_Technology"
+    },
+    {
+      nValue = tbSettle.nGetGradeExp or 0,
+      sLangId = "SoldierResult_RewardTitle_Grade"
+    }
+  }
+  local nRewardCount = 0
+  for i = 1, 3 do
+    local goReward = self._mapNode.goReward[i]
+    local nValue = tbRewardCfg[i].nValue
+    if nValue == 0 then
+      goReward.gameObject:SetActive(false)
+    else
+      nRewardCount = nRewardCount + 1
+      goReward.gameObject:SetActive(true)
+      local txtTitle = goReward:Find("txtIntegralTitle"):GetComponent("TMP_Text")
+      local txtNum = goReward:Find("txtIntegralNum"):GetComponent("TMP_Text")
+      NovaAPI.SetTMPText(txtTitle, ConfigTable.GetUIText(tbRewardCfg[i].sLangId))
+      NovaAPI.SetTMPText(txtNum, tostring(nValue))
+    end
+  end
+  self._mapNode.txtAwardTitle.gameObject:SetActive(0 < nRewardCount)
 end
 
 function SoldierBattleResultCtrl:RefreshScoreDigits(nTotalScore)

@@ -85,6 +85,26 @@ function PlayerGachaData:CheckPoolOpen(nPoolId)
 end
 
 function PlayerGachaData:CacheGachaData(mapData)
+  if self._mapGachaReward == nil then
+    self._mapGachaReward = {}
+    
+    local function foreach_GachaReward(mapCfgData)
+      printLog(mapCfgData.Id)
+      if self._mapGachaReward[mapCfgData.GachaId] == nil then
+        self._mapGachaReward[mapCfgData.GachaId] = {}
+      end
+      table.insert(self._mapGachaReward[mapCfgData.GachaId], {
+        nId = mapCfgData.Id,
+        nIdx = mapCfgData.Index,
+        nNum = mapCfgData.Num,
+        nItemId = mapCfgData.Tid,
+        bRec = false,
+        bCan = false
+      })
+    end
+    
+    ForEachTableLine(DataTable.GachaReward, foreach_GachaReward)
+  end
   for k, v in pairs(mapData) do
     self._mapGachaCount[v.Id] = v.DaysCount
     self._mapAupMissTimes[v.Id] = v.AupMissTimes
@@ -94,7 +114,21 @@ function PlayerGachaData:CacheGachaData(mapData)
     self._mapRecvGuaranteeReward[v.Id] = v.RecvGuaranteeReward
     self._mapGachaTotalTimes[v.Id] = v.GachaTotalTimes
     self._mapAMissTimes[v.Id] = v.AMissTimes
+    if type(self._mapGachaReward[v.Id]) == "table" then
+      local data = UTILS.ParseByteString(v.RewardsRecords)
+      for ii, vv in ipairs(self._mapGachaReward[v.Id]) do
+        vv.bRec = UTILS.IsBitSet(data, vv.nIdx) == true
+        vv.bCan = self._mapGachaTotalTimes[v.Id] >= vv.nNum
+      end
+    else
+      local cfg = ConfigTable.GetData("Gacha", v.Id)
+      local nStorageId = cfg.StorageId
+      if nStorageId == GameEnum.gachaStorageType.CharacterCardRewardPool then
+        printError("角色卡池累抽赠奖数据错误：数据。卡池id" .. tostring(v.Id))
+      end
+    end
   end
+  self:CheckRedDot()
 end
 
 function PlayerGachaData:CacheGachaHistory(nSaveId, mapData)
@@ -275,6 +309,13 @@ end
 
 function PlayerGachaData:GachaTotalTimes(nPoolID, nCount)
   self._mapGachaTotalTimes[nPoolID] = nCount
+  local tbData = self._mapGachaReward[nPoolID]
+  if type(tbData) == "table" then
+    for _, mapData in ipairs(tbData) do
+      mapData.bCan = nCount >= mapData.nNum
+    end
+    self:CheckRedDot()
+  end
 end
 
 function PlayerGachaData:GetGachaInfomation(callback)
@@ -721,6 +762,43 @@ function PlayerGachaData:SendGachaNewbieObtainReq(nId, idx, callback)
   
   local mapMsgData = {Id = nId, Idx = idx}
   HttpNetHandler.SendMsg(NetMsgId.Id.gacha_newbie_obtain_req, mapMsgData, nil, GachaCallback)
+end
+
+function PlayerGachaData:GetGachaReward(nPoolID)
+  return self._mapGachaReward[nPoolID]
+end
+
+function PlayerGachaData:GetReward(nPoolID, nId, nIndex, callback)
+  local function GetRewardCallback(_, mapData)
+    if type(self._mapGachaReward[nPoolID]) == "table" then
+      for k, v in pairs(self._mapGachaReward[nPoolID]) do
+        if v.nId == nId and v.nIdx == nIndex then
+          self._mapGachaReward[nPoolID][k].bRec = true
+        end
+      end
+    else
+      printError("角色卡池累抽赠奖数据错误：数据，领奖消息返回。卡池id" .. tostring(nPoolID))
+    end
+    self:CheckRedDot()
+    if type(callback) == "function" then
+      callback(mapData)
+    end
+  end
+  
+  local mapMsgData = {Value = nId}
+  HttpNetHandler.SendMsg(NetMsgId.Id.gacha_reward_get_req, mapMsgData, nil, GetRewardCallback)
+end
+
+function PlayerGachaData:CheckRedDot()
+  for nPoolId, tbData in pairs(self._mapGachaReward) do
+    for _, mapData in ipairs(tbData) do
+      local bOn = mapData.bRec == false and mapData.bCan == true
+      RedDotManager.SetValid(RedDotDefine.Gacha_Reward, {
+        nPoolId,
+        mapData.nIdx
+      }, bOn)
+    end
+  end
 end
 
 return PlayerGachaData

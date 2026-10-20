@@ -135,6 +135,9 @@ function PlayerData.Init()
   local PlayerTraceHuntData = require("GameCore.Data.DataClass.PlayerTraceHuntData")
   PlayerData.TraceHunt = PlayerTraceHuntData.new()
   PlayerData.TraceHunt:Init()
+  local PlayerReengagementData = require("GameCore.Data.DataClass.PlayerReengagementData")
+  PlayerData.Reengagement = PlayerReengagementData.new()
+  PlayerData.Reengagement:Init()
   local GameAnnouncementData = require("GameCore.Data.DataClass.GameAnnouncementData")
   PlayerData.AnnouncementData = GameAnnouncementData.new()
   PlayerData.AnnouncementData:Init()
@@ -168,15 +171,27 @@ function PlayerData.Init()
   local PotentialPreselection = require("GameCore.Data.DataClass.PlayerPotentialPreselectionData")
   PlayerData.PotentialPreselection = PotentialPreselection.new()
   PlayerData.PotentialPreselection:Init()
+  local StarTowerAutoPlanData = require("GameCore.Data.DataClass.PlayerStarTowerAutoPlanData")
+  PlayerData.StarTowerAutoPlan = StarTowerAutoPlanData.new()
+  PlayerData.StarTowerAutoPlan:Init()
   local SoldierData = require("GameCore.Data.DataClass.Soldier.PlayerSoldierData")
   PlayerData.SoldierData = SoldierData.new()
   PlayerData.SoldierData:Init()
+  PlayerData.PlayerDormData = require("GameCore.Data.DataClass.PlayerDormData")
+  PlayerData.PlayerDormData = PlayerData.PlayerDormData.new()
+  PlayerData.PlayerDormData:Init()
+  local StoryReview = require("GameCore.Data.DataClass.PlayerStoryReviewData")
+  PlayerData.StoryReview = StoryReview.new()
+  PlayerData.StoryReview:Init()
   
   local function foreachEnumDesc(mapData)
     CacheTable.SetField("_EnumDesc", mapData.EnumName, mapData.Value, mapData.Key)
   end
   
   ForEachTableLine(DataTable.EnumDesc, foreachEnumDesc)
+  local GuideMissionData = require("GameCore.Data.DataClass.GuideMissionData")
+  PlayerData.GuideMission = GuideMissionData.new()
+  PlayerData.GuideMission:Init()
   local EventReminderData = require("GameCore.Data.DataClass.EventReminderData")
   PlayerData.EventReminder = EventReminderData.new()
   PlayerData.EventReminder:Init()
@@ -247,8 +262,15 @@ function PlayerData.UnInit()
   PlayerData.Trial = nil
   PlayerData.StorySet = nil
   PlayerData.Story = nil
+  if PlayerData.StarTowerAutoPlan ~= nil then
+    PlayerData.StarTowerAutoPlan:UnInit()
+    PlayerData.StarTowerAutoPlan = nil
+  end
   PlayerData.SoldierData:UnInit()
   PlayerData.SoldierData = nil
+  PlayerData.StoryReview = nil
+  PlayerData.GuideMission:UnInit()
+  PlayerData.GuideMission = nil
 end
 
 return PlayerData

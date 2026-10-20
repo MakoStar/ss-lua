@@ -424,9 +424,17 @@ function MallRecommendCtrl:OnBtnClick_Banner()
   elseif bannerData.nType == GameEnum.MallAdvRecommendItemType.MonthlyCard then
     EventManager.Hit("OpenMallTog", AllEnum.MallToggle.MonthlyCard)
   elseif bannerData.nType == GameEnum.MallAdvRecommendItemType.Package then
+    local nItemId = bannerData.nItemId
+    local mapData = ConfigTable.GetData("MallPackage", nItemId)
+    if mapData == nil then
+      return
+    end
+    self._panel.nDefaultId = mapData.GroupId
     EventManager.Hit("OpenMallTog", AllEnum.MallToggle.Package)
   elseif bannerData.nType == GameEnum.MallAdvRecommendItemType.Skin then
     EventManager.Hit("OpenMallTog", AllEnum.MallToggle.Skin)
+  elseif bannerData.nType == GameEnum.MallAdvRecommendItemType.Furniture then
+    EventManager.Hit("OpenMallTog", AllEnum.MallToggle.Furniture)
   end
 end
 

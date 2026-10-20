@@ -153,7 +153,7 @@ function EquipmentInstanceLevel:PlaySuccessPerform(FirstRewardItems, tbStarRewar
     local sName = ConfigTable.GetData("EndSceneType", nType).EndSceneName
     local tbSkin = {}
     for _, nCharId in ipairs(tbChar) do
-      local nSkinId = PlayerData.Char:GetCharSkinId(nCharId)
+      local nSkinId = PlayerData.Build:GetBattleCharSkinId(nCharId)
       table.insert(tbSkin, nSkinId)
     end
     CS.AdventureModuleHelper.PlaySettlementPerform(sName, "", tbSkin, func_SettlementFinish)
@@ -216,7 +216,7 @@ function EquipmentInstanceLevel:SetDiscInfo()
 end
 
 function EquipmentInstanceLevel:OnEvnet_Pause()
-  EventManager.Hit("OpenEquipmentInstancePause", self.nLevelId, self.tbCharId)
+  EventManager.Hit("OpenEquipmentInstancePause", self.nLevelId, self.tbCharId, self.tbCharTrialId)
 end
 
 return EquipmentInstanceLevel

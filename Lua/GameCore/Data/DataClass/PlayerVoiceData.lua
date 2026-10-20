@@ -35,6 +35,7 @@ function PlayerVoiceData:Init()
   self.nNpcId = 0
   self.nNPCSkinId = 0
   self.bStartBoardClickTimer = false
+  self._bBoardFreeTimerPaused = false
   self.nContinuousClickCount = 0
   self.nBoardClickTime = 0
   self.nBoardFreeTime = 0
@@ -215,12 +216,18 @@ function PlayerVoiceData:StartBoardFreeTimer(nNpcId, nSkinId)
     self.nNPCSkinId = 0
   end
   self.bStartBoardClickTimer = true
+  if self._bBoardFreeTimerPaused then
+    return
+  end
   if nil == self.boardFreeTimer and self.nTriggerFreeVoiceState ~= board_free_trigger_ex_hang then
     self.boardFreeTimer = TimerManager.Add(0, 0.1, self, self.CheckBoardFree, true, true, false)
   end
 end
 
 function PlayerVoiceData:CheckBoardFree()
+  if self._bBoardFreeTimerPaused then
+    return
+  end
   self.nBoardFreeTime = self.nBoardFreeTime + 0.1
   if self.nBoardFreeTime >= getBoardClickFreeTime(self.bNpc) then
     self:ResetBoardFreeTimer()
@@ -234,6 +241,22 @@ function PlayerVoiceData:CheckBoardFree()
   end
 end
 
+function PlayerVoiceData:PauseBoardFreeTimer()
+  self._bBoardFreeTimerPaused = true
+  self:ResetBoardFreeTimer()
+  self:ResetBoardPlayTimer()
+end
+
+function PlayerVoiceData:ResumeBoardFreeTimer()
+  if not self._bBoardFreeTimerPaused then
+    return
+  end
+  self._bBoardFreeTimerPaused = false
+  if self.bStartBoardClickTimer then
+    self:StartBoardFreeTimer()
+  end
+end
+
 function PlayerVoiceData:ResetBoardFreeTimer()
   if nil ~= self.boardFreeTimer then
     TimerManager.Remove(self.boardFreeTimer, false)
@@ -243,6 +266,9 @@ function PlayerVoiceData:ResetBoardFreeTimer()
 end
 
 function PlayerVoiceData:StartBoardPlayTimer()
+  if self._bBoardFreeTimerPaused then
+    return
+  end
   if nil == self.boardPlayTimer then
     self.boardPlayTimer = TimerManager.Add(1, self.nVoiceDuration, nil, function()
       self:StartBoardFreeTimer()
@@ -491,6 +517,9 @@ function PlayerVoiceData:OnEvent_UIOperate()
 end
 
 function PlayerVoiceData:OnEvent_AvgVoiceDuration(nDuration)
+  if self._bBoardFreeTimerPaused then
+    return
+  end
   self:ResetBoardPlayTimer()
   self.nVoiceDuration = nDuration
   if self.bStartBoardClickTimer and self.nTriggerFreeVoiceState ~= board_free_trigger_ex_hang then

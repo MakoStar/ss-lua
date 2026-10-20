@@ -65,7 +65,22 @@ ItemTipsCtrl._mapNodeConfig = {
     callback = "OnBtnClick_Detail"
   },
   txtBtnDetail = {sComponentName = "TMP_Text", sLanguageId = "MoreInfo"},
-  exId = {sComponentName = "TMP_Text"}
+  exId = {sComponentName = "TMP_Text"},
+  TMPFurnitureCollect = {sComponentName = "TMP_Text"},
+  rtFurnitureChar = {},
+  rtActiveRole = {
+    sNodeName = "imgBg_Role_",
+    nCount = 3
+  },
+  TMPFurnitureCharTitle = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Dorm_FurnitureTips_ActionCharTitle"
+  },
+  imgActiveRoleIcon = {
+    sComponentName = "Image",
+    sNodeName = "imgRoleIcon_",
+    nCount = 3
+  }
 }
 ItemTipsCtrl._mapEventConfig = {}
 
@@ -91,6 +106,8 @@ function ItemTipsCtrl:OnEnable()
   self._mapNode.btnCloseWordTip.gameObject:SetActive(false)
   self._mapNode.imgWordTipBg:SetActive(false)
   self._mapNode.goJumptoGrid:SetActive(false)
+  self._mapNode.rtFurnitureChar:SetActive(false)
+  self._mapNode.TMPFurnitureCollect.gameObject:SetActive(false)
   self.sortingOrder = NovaAPI.GetCanvasSortingOrder(self.gameObject:GetComponent("Canvas"))
   local btnComp = self.rtTarget:GetComponent("Button")
   if btnComp ~= nil then
@@ -208,10 +225,37 @@ function ItemTipsCtrl:OnEnable()
     self._mapNode.btnDetail.gameObject:SetActive(true)
     local titleTra = self._mapNode.TMPItemTitle:GetComponent("RectTransform")
     titleTra.sizeDelta = Vector2(textTitleWidthWithDetail, titleTra.sizeDelta.y)
+  elseif mapItemCfgData.Stype == GameEnum.itemStype.DormFurniture then
+    self.sDetailTitle = "ItemStype_" .. mapItemCfgData.Stype
+    local mapFurnitureConfig = ConfigTable.GetData("DormFurniture", self.mapData.nTid)
+    if mapFurnitureConfig ~= nil then
+      self._mapNode.TMPFurnitureCollect.gameObject:SetActive(true)
+      NovaAPI.SetTMPText(self._mapNode.TMPFurnitureCollect, mapFurnitureConfig.CollectionValue)
+      self._mapNode.rtFurnitureChar:SetActive(0 < mapFurnitureConfig.ActorSD_Id)
+      if 0 < mapFurnitureConfig.ActorSD_Id then
+        if mapFurnitureConfig.ActorSD_Id == 1 then
+          local bIsMale = PlayerData.Base:GetPlayerSex() == true
+          local nSkinId = bIsMale and PlayerData.PlayerDormData:GetDormCharSkin(9101) or PlayerData.PlayerDormData:GetDormCharSkin(9100)
+          local mapCharSkin = ConfigTable.GetData("DormRoleSkin", nSkinId)
+          if mapCharSkin ~= nil then
+            self:SetPngSprite(self._mapNode.imgActiveRoleIcon[1], mapCharSkin.Icon .. AllEnum.CharHeadIconSurfix.S)
+          end
+        else
+          local nCharSkinId = PlayerData.PlayerDormData:GetDormCharSkin(mapFurnitureConfig.ActorSD_Id)
+          local mapCharSkin = ConfigTable.GetData("DormRoleSkin", nCharSkinId)
+          if mapCharSkin ~= nil then
+            self:SetPngSprite(self._mapNode.imgActiveRoleIcon[1], mapCharSkin.Icon .. AllEnum.CharHeadIconSurfix.S)
+          end
+        end
+      end
+    end
   else
     self._mapNode.btnDetail.gameObject:SetActive(false)
     local titleTra = self._mapNode.TMPItemTitle:GetComponent("RectTransform")
     titleTra.sizeDelta = Vector2(textTitleWidth, titleTra.sizeDelta.y)
+  end
+  if mapItemCfgData.Stype == GameEnum.itemStype.DormFurniture then
+    self.mapData.bShowDepot = false
   end
   if self.mapData.bShowDepot and not mapItemCfgData.DisHaving then
     local nItemDepotCount = 0
@@ -229,6 +273,8 @@ function ItemTipsCtrl:OnEnable()
   end
   local sLanguage = "ItemStype_" .. mapItemCfgData.Stype
   NovaAPI.SetTMPText(self._mapNode.TMPSubTitle, ConfigTable.GetUIText(sLanguage) or "")
+  local ModuleManager = require("GameCore.Module.ModuleManager")
+  local sCurModule = ModuleManager.GetCurModuleName()
   if self.mapData.bShowJumpto and 0 < #mapItemCfgData.JumpTo then
     self._mapNode.rtJumpTo.gameObject:SetActive(true)
     self:RefreshJumpto(mapItemCfgData.JumpTo)
@@ -261,9 +307,11 @@ function ItemTipsCtrl:OnEnable()
     end
     local itemCountTra = self._mapNode.TMPItemCount:GetComponent("RectTransform")
     itemCountTra.anchoredPosition = Vector2(itemCountTra.anchoredPosition.x, itemCountTra.anchoredPosition.y + MoveUpHeight - nDescOffset)
+    local furnitrueCollectionTra = self._mapNode.TMPFurnitureCollect:GetComponent("RectTransform")
+    furnitrueCollectionTra.anchoredPosition = Vector2(furnitrueCollectionTra.anchoredPosition.x, furnitrueCollectionTra.anchoredPosition.y + MoveUpHeight - nDescOffset)
     local exIdTra = self._mapNode.exId:GetComponent("RectTransform")
     exIdTra.anchoredPosition = Vector2(exIdTra.anchoredPosition.x, exIdTra.anchoredPosition.y + MoveUpHeight)
-    if self.mapData.bShowDepot and not mapItemCfgData.DisHaving then
+    if not (not self.mapData.bShowDepot or mapItemCfgData.DisHaving) or mapItemCfgData.Stype == GameEnum.itemStype.DormFurniture then
       self._mapNode.srDesc.anchoredPosition = Vector2(self._mapNode.srDesc.anchoredPosition.x, self._mapNode.srDesc.anchoredPosition.y + MoveUpHeight - nDescOffset)
       nTitleHeight = nTitleHeight - MoveUpHeight
     else

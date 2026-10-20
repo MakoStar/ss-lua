@@ -169,6 +169,22 @@ function PlayerStorySetData:GetRecentChapterId()
   return self.nRecentChapterId
 end
 
+function PlayerStorySetData:IsChapterUnlock(nChapterId)
+  local mapCfg = ConfigTable.GetData("StorySetChapter", nChapterId)
+  if mapCfg == nil then
+    return false, ""
+  end
+  if not mapCfg.IsShow then
+    return false, ConfigTable.GetUIText("StorySet_Chapter_Empty")
+  end
+  local chapter = self.tbChapter[nChapterId]
+  if chapter == nil or not chapter.bUnlock then
+    local sLockText = mapCfg.LockText ~= "" and mapCfg.LockText or ConfigTable.GetUIText("StorySet_Chapter_Lock")
+    return false, sLockText
+  end
+  return true, ""
+end
+
 function PlayerStorySetData:IsChapterAllRead(nChapterId)
   if self.tbChapter[nChapterId] == nil then
     return false

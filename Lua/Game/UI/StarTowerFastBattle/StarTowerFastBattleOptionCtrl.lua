@@ -1,5 +1,6 @@
 local StarTowerFastBattleOptionCtrl = class("StarTowerFastBattleOptionCtrl", BaseCtrl)
 local GamepadUIManager = require("GameCore.Module.GamepadUIManager")
+local StarTowerSettingGate = require("Game.Adventure.StarTower.StarTowerSettingGate")
 StarTowerFastBattleOptionCtrl._mapNodeConfig = {
   goBlur = {
     sNodeName = "t_fullscreen_blur_blue"
@@ -36,7 +37,11 @@ StarTowerFastBattleOptionCtrl._mapEventConfig = {
   RefreshStrengthMachineCost = "OnEvent_RefreshStrengthMachineCost",
   RefreshStarTowerCoin = "OnEvent_RefreshStarTowerCoin",
   GamepadUIChange = "OnEvent_GamepadUIChange",
-  GamepadUIReopen = "OnEvent_Reopen"
+  GamepadUIReopen = "OnEvent_Reopen",
+  StarTowerAutoPreviewShopOption = "OnEvent_AutoPreviewShopOption",
+  StarTowerAutoExecuteShopOption = "OnEvent_AutoExecuteShopOption",
+  StarTowerAutoDecisionStateChanged = "OnEvent_AutoDecisionStateChanged",
+  StarTowerSweepEnd = "OnEvent_StarTowerSweepEnd"
 }
 
 function StarTowerFastBattleOptionCtrl:Awake()
@@ -56,12 +61,14 @@ function StarTowerFastBattleOptionCtrl:Awake()
 end
 
 function StarTowerFastBattleOptionCtrl:OnEnable()
+  local nSettingSerial = StarTowerSettingGate.Begin()
   self.handler = {}
   for k, v in ipairs(self._mapNode.btnChoose) do
     self.handler[k] = ui_handler(self, self.OnBtnSelect_Select, v, k)
     v.onSelect:AddListener(self.handler[k])
   end
   self.nSelectIdx = 0
+  self.bAutoSelecting = false
   self.closeCallBack = self._panel.closeCallback
   self._mapNode.goBlur:SetActive(true)
   
@@ -69,7 +76,11 @@ function StarTowerFastBattleOptionCtrl:OnEnable()
     coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
     self:Refresh()
     self._mapNode.rtSelectOption:SetActive(true)
+    if self._panel.bAutoDisplay then
+      EventManager.Hit("StarTowerFastBattleOptionReady")
+    end
     EventManager.Hit(EventId.TemporaryBlockInput, 1)
+    StarTowerSettingGate.ReadyAfter(self, nSettingSerial, 1)
   end
   
   cs_coroutine.start(wait)
@@ -79,17 +90,23 @@ function StarTowerFastBattleOptionCtrl:OnEnable()
 end
 
 function StarTowerFastBattleOptionCtrl:OnDisable()
+  StarTowerSettingGate.Clear(self)
   GamepadUIManager.DisableGamepadUI("StarTowerFastBattleOptionCtrl")
-  if self.closeCallBack ~= nil and type(self.closeCallBack) == "function" then
-    self.closeCallBack()
-  end
+  local closeCallback = self.closeCallBack
   self.closeCallBack = nil
+  if type(closeCallback) == "function" then
+    closeCallback()
+  end
   for k, v in ipairs(self._mapNode.btnChoose) do
     v.onSelect:RemoveListener(self.handler[k])
   end
 end
 
 function StarTowerFastBattleOptionCtrl:OnDestroy()
+end
+
+function StarTowerFastBattleOptionCtrl:OnEvent_StarTowerSweepEnd()
+  self.closeCallBack = nil
 end
 
 function StarTowerFastBattleOptionCtrl:Refresh()
@@ -148,17 +165,59 @@ function StarTowerFastBattleOptionCtrl:RefreshMachineCost()
   NovaAPI.SetTMPText(self._mapNode.TMPChoose[2], orderedFormat(ConfigTable.GetUIText("StarTower_Sweep_Option_2"), self._panel.nCoinCount < self.nMachineCost and "#BD3059" or "#264278", sCost))
 end
 
-function StarTowerFastBattleOptionCtrl:OnBtnClick_Select(btn)
+function StarTowerFastBattleOptionCtrl:OnBtnClick_Select(btn, bAuto)
+  if self.bAutoSelecting and bAuto ~= true then
+    return
+  end
   local nIdx = table.indexof(self._mapNode.btnChoose, btn)
+  if nIdx == 1 or nIdx == 2 or nIdx == 3 then
+    StarTowerSettingGate.Begin()
+  end
   if nIdx == 1 then
-    EventManager.Hit("StarTowerFastBattleOpenShop")
+    EventManager.Hit("StarTowerFastBattleOpenShop", bAuto == true)
   elseif nIdx == 2 then
-    EventManager.Hit("StarTowerFastBattleOpenMachine")
+    EventManager.Hit("StarTowerFastBattleOpenMachine", bAuto == true)
   elseif nIdx == 3 then
     EventManager.Hit(EventId.ClosePanel, PanelId.StarTowerFastBattleOption)
   elseif nIdx == 5 then
     EventManager.Hit("TryCloseStarTowerLastShop", self._panel.bMachine, self.nMachineCost)
   end
+end
+
+function StarTowerFastBattleOptionCtrl:OnEvent_AutoPreviewShopOption(nIndex)
+  if not self:IsOptionAvailable(nIndex) then
+    return
+  end
+  self.bAutoSelecting = true
+  for k, selectNode in ipairs(self._mapNode.Select) do
+    selectNode:SetActive(k == nIndex)
+  end
+  self.nSelectIdx = nIndex
+  GamepadUIManager.SetSelectedUI(self._mapNode.btnChoose[nIndex].gameObject)
+end
+
+function StarTowerFastBattleOptionCtrl:OnEvent_AutoExecuteShopOption(nIndex)
+  if not self:IsOptionAvailable(nIndex) then
+    return
+  end
+  self.bAutoSelecting = false
+  self:OnBtnClick_Select(self._mapNode.btnChoose[nIndex], true)
+end
+
+function StarTowerFastBattleOptionCtrl:OnEvent_AutoDecisionStateChanged(mapState)
+  if type(mapState) == "table" and mapState.bPending ~= true then
+    self.bAutoSelecting = false
+  end
+end
+
+function StarTowerFastBattleOptionCtrl:IsOptionAvailable(nIndex)
+  if nIndex == 1 then
+    return self._panel.bShop == true
+  end
+  if nIndex == 2 then
+    return self._panel.bMachine == true
+  end
+  return false
 end
 
 function StarTowerFastBattleOptionCtrl:OnEvent_RefreshStrengthMachineCost(nMachineCount, bFirstFree)
@@ -199,6 +258,7 @@ function StarTowerFastBattleOptionCtrl:OnBtnClick_Back()
 end
 
 function StarTowerFastBattleOptionCtrl:OnBtnClick_Depot()
+  StarTowerSettingGate.Begin()
   EventManager.Hit("StarTowerSetButtonEnable", false, false)
   self._mapNode.trRoot.gameObject:SetActive(false)
   self._mapNode.goBlur.gameObject:SetActive(false)
@@ -228,11 +288,13 @@ function StarTowerFastBattleOptionCtrl:OnEvent_Reopen(sName)
   if sName ~= "StarTowerFastBattleOptionCtrl" then
     return
   end
+  local nSettingSerial = StarTowerSettingGate.Begin()
   self._mapNode.goBlur.gameObject:SetActive(true)
   self._mapNode.trRoot.gameObject:SetActive(true)
   local nSelect = self.nSelectIdx ~= 0 and self.nSelectIdx or 3
   GamepadUIManager.SetSelectedUI(self._mapNode.btnChoose[nSelect].gameObject)
   self:SelectChoose()
+  StarTowerSettingGate.ReadyAfter(self, nSettingSerial, 1)
 end
 
 function StarTowerFastBattleOptionCtrl:SelectChoose()

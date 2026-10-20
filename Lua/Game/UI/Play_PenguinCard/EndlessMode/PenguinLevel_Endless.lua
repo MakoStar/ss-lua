@@ -53,6 +53,7 @@ function PenguinLevel_Endless:ParseModeLevelData(mapLevelCfg)
   self.nAimScore = mapEndlessCfg.AimScore
   self.tbEndlessLevelBuffId = mapEndlessCfg.BuffId
   self.nAidePool = mapEndlessCfg.AidePool
+  self.tbInitialCard = mapEndlessCfg.InitialCard
 end
 
 function PenguinLevel_Endless:GetModeAuraFieldMap()
@@ -415,10 +416,17 @@ function PenguinLevel_Endless:RunState_Prepare()
     end
   end
   local nPrepareInTime = 0.8
+  local nInitialCardInTime = 0.9
   local nAuraInTime = 0.3
   EventManager.Hit(EventId.BlockInput, true)
   local sequence = DOTween.Sequence()
   sequence:AppendInterval(nPrepareInTime)
+  if next(self.tbInitialCard) ~= nil then
+    sequence:AppendCallback(function()
+      self:AddInitialCard()
+    end)
+    sequence:AppendInterval(nInitialCardInTime)
+  end
   sequence:AppendCallback(function()
     self:RefreshAura()
     EventManager.Hit("PenguinCard_AuraTriggered")
@@ -554,6 +562,38 @@ function PenguinLevel_Endless:AddAdditionScore()
   })
   self:AfterUpgrade(nCost)
   EventManager.Hit("PenguinCard_AddAdditionScore")
+end
+
+function PenguinLevel_Endless:AddInitialCard()
+  if next(self.tbInitialCard) == nil then
+    return
+  end
+  
+  local function add(nId)
+    local mapCfg = ConfigTable.GetData("PenguinCard", nId)
+    if not mapCfg then
+      return
+    end
+    local bUpgrade, nAimIndex = self:CheckUpgradePenguinCardByGroup(mapCfg.GroupId)
+    if not bUpgrade and self:GetOwnPenguinCardCount() >= self.nSlotCount then
+      return
+    end
+    if bUpgrade then
+      self.tbPenguinCard[nAimIndex]:Upgrade(mapCfg.Level)
+    else
+      local mapCard = self:CreatePenguinCard(nId)
+      self.tbPenguinCard[nAimIndex] = mapCard
+    end
+    self.tbPenguinCard[nAimIndex]:SetSlotIndex(nAimIndex)
+    self.tbPenguinCard[nAimIndex]:ResetAllTrigger()
+    self.nGetPenguinCardCount = self.nGetPenguinCardCount + 1
+    self:AfterChangePenguinCard()
+    EventManager.Hit("PenguinCard_AddInitialCard", nAimIndex, bUpgrade)
+  end
+  
+  for _, nId in ipairs(self.tbInitialCard) do
+    add(nId)
+  end
 end
 
 function PenguinLevel_Endless:GetPenguinCardWeightLevel()
@@ -719,11 +759,13 @@ function PenguinLevel_Endless:QuitState_Settlement(nNextState)
   if nNextState == PenguinCardUtils.GameState.Start then
     nWaitTime = 0.6
   elseif nNextState == PenguinCardUtils.GameState.Dealing then
-    nWaitTime = 0.57
+    nWaitTime = self.bRestoreSnapshot and 0.57 or 1.22
   elseif nNextState == PenguinCardUtils.GameState.Prepare then
     nWaitTime = 0.57
   elseif nNextState == PenguinCardUtils.GameState.Complete then
     nWaitTime = 0.6
+  elseif nNextState == PenguinCardUtils.GameState.EndlessCheck then
+    nWaitTime = 0.65
   end
   return nWaitTime
 end

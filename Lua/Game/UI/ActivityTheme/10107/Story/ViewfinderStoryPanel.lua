@@ -1,14 +1,22 @@
 local BasePanel = require("GameCore.UI.BasePanel")
 local ViewfinderStoryPanel = class("ViewfinderStoryPanel", BasePanel)
-ViewfinderStoryPanel._sUIResRootPath = "UI_Activity/"
 ViewfinderStoryPanel._tbDefine = {
   {
-    sPrefabPath = "10107/Story/ViewfinderStoryPanel.prefab",
+    sPrefabPath = "ActivityStoryReview/10107/ViewfinderStoryPanel.prefab",
     sCtrlName = "Game.UI.ActivityTheme.10107.Story.ViewfinderStoryCtrl"
+  },
+  {
+    sPrefabPath = "ActivityStoryReview/ActivityStoryReceivePanel.prefab",
+    sCtrlName = "Game.UI.ActivityStoryReview.ActivityStoryReceiveCtrl"
   }
 }
 
 function ViewfinderStoryPanel:Awake()
+  if self._tbParam[2] ~= true then
+    self._tbDefine = {
+      self._tbDefine[1]
+    }
+  end
 end
 
 function ViewfinderStoryPanel:OnEnable()

@@ -1,5 +1,6 @@
 local StarTowerFastBattlePanel = class("StarTowerFastBattlePanel", BasePanel)
 local GamepadUIManager = require("GameCore.Module.GamepadUIManager")
+local StarTowerSettingGate = require("Game.Adventure.StarTower.StarTowerSettingGate")
 StarTowerFastBattlePanel._tbDefine = {
   {
     sPrefabPath = "StarTowerFastBattle/StarTowerFastBattlePanel.prefab",
@@ -28,6 +29,10 @@ StarTowerFastBattlePanel._tbDefine = {
   {
     sPrefabPath = "StarTower/StarTowerDepotPanel.prefab",
     sCtrlName = "Game.UI.StarTower.Depot.StarTowerDepotCtrl"
+  },
+  {
+    sPrefabPath = "StarTowerFastBattle/StarTowerAutoBattlePopup.prefab",
+    sCtrlName = "Game.UI.StarTowerFastBattle.StarTowerAutoDecisionHUDCtrl"
   }
 }
 
@@ -38,6 +43,7 @@ function StarTowerFastBattlePanel:Awake()
   local tbStarTowerInfo = tbParams[1]
   local luaClass = require("Game.Adventure.StarTower.StarTowerSweepData")
   self.LevelData = luaClass.new(tbStarTowerInfo.Meta.Id)
+  StarTowerSettingGate.Start(self.LevelData)
   self.LevelData:Init(tbStarTowerInfo.Meta, tbStarTowerInfo.Room, tbStarTowerInfo.Bag)
   EventManager.Hit("SetStarTowerSweepData", self.LevelData)
   self.tbTeam = self.LevelData.tbTeam
@@ -80,18 +86,13 @@ function StarTowerFastBattlePanel:Awake()
 end
 
 function StarTowerFastBattlePanel:SetTop(goCanvas)
-  local nTopLayer = 0
-  if nil ~= self.trUIRoot then
-    local nChildCount = self.trUIRoot.childCount
-    local trChild
-    for i = 1, nChildCount do
-      trChild = self.trUIRoot:GetChild(i - 1)
-      nTopLayer = math.max(nTopLayer, NovaAPI.GetCanvasSortingOrder(trChild:GetComponent("Canvas")))
-    end
-  end
-  if 0 < nTopLayer then
-    NovaAPI.SetCanvasSortingOrder(goCanvas, nTopLayer + 1)
-  end
+  NovaAPI.SetCanvasSortingOrder(goCanvas, AllEnum.UI_SORTING_ORDER.StarTowerSweepPopup)
+end
+
+function StarTowerFastBattlePanel:OpenDepotDetailPanel(nPanelId, ...)
+  PanelManager.OpenPanelWithContext(nPanelId, {
+    nSortingOrderBase = AllEnum.UI_SORTING_ORDER.StarTowerSweepDetail
+  }, ...)
 end
 
 function StarTowerFastBattlePanel:CheckMainChar(nCharId)
@@ -129,11 +130,14 @@ function StarTowerFastBattlePanel:OnEnable()
 end
 
 function StarTowerFastBattlePanel:OnDisable()
+  StarTowerSettingGate.Stop(self.LevelData)
   PlayerData.State:SetStarTowerSweepState(false)
   GamepadUIManager.QuitAdventure()
 end
 
 function StarTowerFastBattlePanel:OnDestroy()
+  StarTowerSettingGate.Stop(self.LevelData)
+  self.LevelData:EndExploration()
   self.LevelData:UnBindEvent()
   EventManager.Hit("SetStarTowerSweepData")
 end

@@ -26,7 +26,6 @@ SoldierCharSupportCardItemCtrl._mapNodeConfig = {
 }
 SoldierCharSupportCardItemCtrl._mapEventConfig = {
   SoldierCharSupportCardItemClicked = "OnEvent_SoldierCharSupportCardItemClicked",
-  SoldierPartnerNewActive = "OnEvent_SoldierPartnerNewActive",
   SoldierExtraPartnerTagChange = "OnEvent_SoldierExtraPartnerTagChange"
 }
 SoldierCharSupportCardItemCtrl._mapRedDotConfig = {}
@@ -57,7 +56,7 @@ function SoldierCharSupportCardItemCtrl:OnRefresh(nCharId)
   self:SetItemData(nCharId)
 end
 
-function SoldierCharSupportCardItemCtrl:SetItemData(nCharId)
+function SoldierCharSupportCardItemCtrl:SetItemData(nCharId, nUid)
   if self.nCharId ~= nCharId then
     self:_StopPartnerActiveAnim()
   end
@@ -66,11 +65,13 @@ function SoldierCharSupportCardItemCtrl:SetItemData(nCharId)
   self._mapNode.imgSelect:SetActive(false)
   if nCharId == nil then
     self.nCharId = nil
+    self.nUid = nil
     self._mapNode.goChar:SetActive(false)
     self._mapNode.imgEmpty:SetActive(true)
     return
   end
   self.nCharId = nCharId
+  self.nUid = nUid
   self._mapNode.imgEmpty:SetActive(false)
   self._mapNode.goChar:SetActive(true)
   local soldierCharConfig = ConfigTable.GetData("SoldierCharacter", nCharId)
@@ -85,8 +86,8 @@ function SoldierCharSupportCardItemCtrl:SetItemData(nCharId)
   end
   self._mapNode.Fx_warrior.gameObject:SetActive(false)
   local curLevelData = PlayerData.SoldierData:GetCurLevelData()
-  if curLevelData ~= nil then
-    local bWarrior = curLevelData:GetExtraPartnerTags(self.nCharId)
+  if curLevelData ~= nil and self.nUid ~= nil then
+    local bWarrior = curLevelData:GetExtraPartnerTags(self.nUid)
     if bWarrior ~= nil then
       self._mapNode.Fx_warrior.gameObject:SetActive(true)
     end
@@ -206,6 +207,9 @@ function SoldierCharSupportCardItemCtrl:_TryInsertPartnerActiveAnim(tbQueue, nPa
 end
 
 function SoldierCharSupportCardItemCtrl:_GetMyActivePartnerQueue(tbActivePartner)
+  if self.nCharId == nil or self.nCharId == 0 then
+    return
+  end
   local tbPartnerTypes = SoldierAttrData.GetPartnerGroupsByChessId(self.nCharId)
   if tbPartnerTypes == nil or #tbPartnerTypes == 0 then
     return nil
@@ -298,7 +302,11 @@ function SoldierCharSupportCardItemCtrl:OnEvent_SoldierPartnerNewActive(tbActive
 end
 
 function SoldierCharSupportCardItemCtrl:OnEvent_SoldierExtraPartnerTagChange()
-  local bWarrior = PlayerData.SoldierData:GetCurLevelData():GetExtraPartnerTags(self.nCharId)
+  if self.nUid == nil then
+    self._mapNode.Fx_warrior.gameObject:SetActive(false)
+    return
+  end
+  local bWarrior = PlayerData.SoldierData:GetCurLevelData():GetExtraPartnerTags(self.nUid)
   if bWarrior ~= nil then
     self._mapNode.Fx_warrior.gameObject:SetActive(true)
   else

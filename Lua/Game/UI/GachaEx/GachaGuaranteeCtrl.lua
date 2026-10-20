@@ -114,7 +114,7 @@ function GachaGuaranteeCtrl:Refresh(nPoolId)
   end
   local nCount = 0
   local upItemName = ""
-  if nStrogeId == GameEnum.gachaStorageType.DiscCardPool or nStrogeId == GameEnum.gachaStorageType.CharacterCardPool then
+  if nStrogeId == GameEnum.gachaStorageType.DiscCardPool or nStrogeId == GameEnum.gachaStorageType.CharacterCardPool or nStrogeId == GameEnum.gachaStorageType.CharacterCardRewardPool then
     local nAupMissing = PlayerData.Gacha:GetAMissTimesById(nPoolId)
     local nMaxMissing = mapPoolCfgData.ATypeGuaranteeTimes
     local nSum = nMaxMissing - nAupMissing
@@ -147,7 +147,7 @@ function GachaGuaranteeCtrl:Refresh(nPoolId)
     NovaAPI.SetTMPText(TMPName, mapCharCfgData.Title)
     NovaAPI.SetTMPText(TMPName1, mapCharCfgData.Title)
     TMPName.gameObject:SetActive(nStrogeId == GameEnum.gachaStorageType.CharacterUpCardPool or nStrogeId == GameEnum.gachaStorageType.DiscUpCardPool)
-    TMPName1.gameObject:SetActive(nStrogeId == GameEnum.gachaStorageType.DiscCardPool or nStrogeId == GameEnum.gachaStorageType.CharacterCardPool)
+    TMPName1.gameObject:SetActive(nStrogeId == GameEnum.gachaStorageType.CharacterCardRewardPool or nStrogeId == GameEnum.gachaStorageType.DiscCardPool or nStrogeId == GameEnum.gachaStorageType.CharacterCardPool)
     self:SetPngSprite(imgIcon, mapCharSkin.Icon .. AllEnum.CharHeadIconSurfix.XXL)
     self:SetAtlasSprite(imgElement, "12_rare", AllEnum.Star_Element[mapCharCfg.EET].icon)
     self:SetAtlasSprite(imgRare, "12_rare", sFrame)
@@ -182,7 +182,7 @@ function GachaGuaranteeCtrl:Refresh(nPoolId)
   end
   
   delChildren(self._mapNode.rtGuaranteeItems)
-  if nStrogeId == GameEnum.gachaStorageType.DiscCardPool or nStrogeId == GameEnum.gachaStorageType.CharacterCardPool then
+  if nStrogeId == GameEnum.gachaStorageType.DiscCardPool or nStrogeId == GameEnum.gachaStorageType.CharacterCardPool or nStrogeId == GameEnum.gachaStorageType.CharacterCardRewardPool then
     for _, nTid in ipairs(tbSSRChar) do
       local goGrid = instantiate(self._mapNode.GridSmall, self._mapNode.rtGuaranteeItems)
       SetCharGrid(goGrid, nTid)

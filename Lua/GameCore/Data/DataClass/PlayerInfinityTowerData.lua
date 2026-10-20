@@ -202,9 +202,13 @@ function PlayerInfinityTowerData:SendEnterITApplyReq(nLevelId, nBuildId, isAgain
   self._EntryTime = CS.ClientManager.Instance.serverTimeStampWithTimeZone
   self._Build_id = nBuildId
   self._Level_id = nLevelId
-  local msg = {}
-  msg.LevelId = nLevelId
-  msg.BuildId = nBuildId
+  local mapBuildData = PlayerData.Build:GetBuildData(nBuildId)
+  local bTrial = mapBuildData.nBuildSource == AllEnum.BuildSource.Trial or mapBuildData.nBuildSource == AllEnum.BuildSource.LimitedTrial
+  local nBuildType = bTrial and 2 or 1
+  local msg = {
+    LevelId = nLevelId,
+    Build = {Type = nBuildType, BuildId = nBuildId}
+  }
   
   local function msgCallback()
     if isAgainNext then

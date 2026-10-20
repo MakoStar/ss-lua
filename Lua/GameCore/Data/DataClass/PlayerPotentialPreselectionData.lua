@@ -293,7 +293,9 @@ function PlayerPotentialPreselectionData:SendDeletePreselection(tbIds, callback)
         if 0 < table.indexof(tbIds, v.nPreselectionId) then
           local tmpDisc = v.tbTeamDiscId
           local tbTeamMemberId = v.tbTeamMemberId
-          PlayerData.Team:UpdateFormationInfo(nIdx, tbTeamMemberId, tmpDisc, 0)
+          PlayerData.Team:UpdateFormationInfo(nIdx, tbTeamMemberId, tmpDisc, 0, function()
+            EventManager.Hit("UpdateFormationInfoSuc", nIdx)
+          end)
         end
       end
     end

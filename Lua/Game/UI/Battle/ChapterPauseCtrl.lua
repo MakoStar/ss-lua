@@ -115,6 +115,8 @@ function ChapterPauseCtrl:Refresh(sAim)
   for i = 1, 3 do
     self._mapNode.goChar[i].gameObject:SetActive(self.tbChar[i])
     if self.tbChar[i] then
+      local nTrialId = self.tbChar[i].nTrialId
+      self._mapNode.btnChar[i].interactable = not nTrialId or not (0 < nTrialId)
       self._mapNode.goChar[i]:SetChar(self.tbChar[i].nTid, false, false, self.tbChar[i].nTrialId)
     end
   end

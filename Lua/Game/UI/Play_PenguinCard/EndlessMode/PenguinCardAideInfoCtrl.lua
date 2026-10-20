@@ -127,7 +127,7 @@ function PenguinCardInfoCtrl:Refresh()
     NovaAPI.SetTMPColor(self._mapNode.txtLevel, NotMaxLevel)
     NovaAPI.SetTMPText(self._mapNode.txtLevel, orderedFormat(ConfigTable.GetUIText("PenguinCard_AideLevel"), self.mapAide.nLevel))
   end
-  NovaAPI.SetTMPText(self._mapNode.txtDesc[1], orderedFormat(ConfigTable.GetUIText("PenguinCard_AideInfo_PassiveDesc"), self.mapAide:GetScore()))
+  NovaAPI.SetTMPText(self._mapNode.txtDesc[1], PenguinCardUtils.SetAideAddScoreDesc(self.mapAide.tbScore, self.mapAide.nLevel))
   NovaAPI.SetTMPText(self._mapNode.txtDesc[2], self.mapAide:GetDesc())
   NovaAPI.SetTMPText(self._mapNode.txtDesc[3], ConfigTable.GetUIText("PenguinCard_AideInfo_FavoriteDesc"))
   for i = 1, 2 do

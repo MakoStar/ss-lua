@@ -117,12 +117,12 @@ function MonsterSkillHintIndicator:OnEvent_SkillCancel()
 end
 
 function MonsterSkillHintIndicator:OnEvent_HintShow()
-  local indicatorBase = self.gameObject:GetComponent("IndicatorBase")
+  local indicatorBase = self.gameObject:GetComponent(typeof(CS.IndicatorBase))
   indicatorBase:SetLogicHide(false)
 end
 
 function MonsterSkillHintIndicator:OnEvent_HintHide()
-  local indicatorBase = self.gameObject:GetComponent("IndicatorBase")
+  local indicatorBase = self.gameObject:GetComponent(typeof(CS.IndicatorBase))
   indicatorBase:SetLogicHide(true)
 end
 

@@ -321,7 +321,7 @@ function MallSkinPreviewCtrl:LoadCharacter()
       self.nModelDragRot = v.transform.localEulerAngles.y
       self.curShowModel = v
       self:WaitReadyClipFinish()
-      NovaAPI.BindUIParallaxStageCameraControllerModel(self._mapNode.UIParallax3DStage, 0, v.gameObject)
+      NovaAPI.BindUIParallaxStageCameraControllerModel(self._mapNode.UIParallax3DStage, 0, v.gameObject, true)
       GameUIUtils.SetCustomModelMaterialVariant(v.gameObject, CS.CustomModelMaterialVariantComponent.VariantNames.FormationView)
     else
       v.gameObject:SetActive(false)
@@ -336,7 +336,7 @@ function MallSkinPreviewCtrl:LoadCharacter()
       self.tbModelList[self.nSkinId] = go
       self.curShowModel = go
       self:WaitReadyClipFinish()
-      NovaAPI.BindUIParallaxStageCameraControllerModel(self._mapNode.UIParallax3DStage, 0, go)
+      NovaAPI.BindUIParallaxStageCameraControllerModel(self._mapNode.UIParallax3DStage, 0, go, true)
       GameUIUtils.SetCustomModelMaterialVariant(go, CS.CustomModelMaterialVariantComponent.VariantNames.FormationView)
       if self.rtSceneOriginPos ~= nil then
         go.transform.position = self.rtSceneOriginPos.position
@@ -470,7 +470,13 @@ function MallSkinPreviewCtrl:OnEnable()
     self.nSelectIndex = 1
   end
   self._mapNode.sv:Init(#self.tbSkinList, self, self.OnGridRefresh, self.OnGridBtnClick)
-  self._mapNode.sv:SetScrollGridPos(self.nSelectIndex - 1, 0)
+  
+  local function wait()
+    coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
+    self._mapNode.sv:SetScrollGridPos(self.nSelectIndex - 1, 0, 0)
+  end
+  
+  cs_coroutine.start(wait)
   self._mapNode.goPreview.gameObject:SetActive(true)
   self._mapNode.btnSkin.gameObject:SetActive(false)
   self._mapNode.go3D.gameObject:SetActive(self.nShowMode == show_mode_3d)

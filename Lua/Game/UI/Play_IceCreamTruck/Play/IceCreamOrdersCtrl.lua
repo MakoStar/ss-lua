@@ -19,7 +19,7 @@ end
 function IceCreamOrdersCtrl:OnDestroy()
 end
 
-function IceCreamOrdersCtrl:InitNewOrder()
+function IceCreamOrdersCtrl:InitNewOrder(bIsSpecial)
   self.nCharacterId = nil
   self.nOrderState = IceCreamUtils.EnumOrderState.Null
   self.tbSlots = {}
@@ -29,12 +29,17 @@ function IceCreamOrdersCtrl:InitNewOrder()
   self.nScoopCount = 0
   self.nCurrentStep = 0
   self.bHasMistake = false
+  self.bSpecialOrder = bIsSpecial or false
 end
 
-function IceCreamOrdersCtrl:SetNewOrder(nCharacterId, nMaxScoop, nToppingChance)
-  self:InitNewOrder()
+function IceCreamOrdersCtrl:SetNewOrder(nCharacterId, nMaxScoop, tbUnlockSlot, bIsSpecial)
+  self:InitNewOrder(bIsSpecial)
   self.nCharacterId = nCharacterId
-  self:RandomOrder(nMaxScoop, 100)
+  if self.bSpecialOrder then
+    self:HideIceCreamIcon()
+    return true
+  end
+  self:RandomOrder(nMaxScoop, tbUnlockSlot, 100)
   if self.tbSlots[1] == 0 then
     return false
   end
@@ -55,19 +60,35 @@ function IceCreamOrdersCtrl:Clear()
   end
 end
 
-function IceCreamOrdersCtrl:RandomOrder(nMaxScoop, nToppingChance)
+function IceCreamOrdersCtrl:RandomOrder(nMaxScoop, tbUnlockSlot, nToppingChance)
   nMaxScoop = nMaxScoop or 3
   nToppingChance = nToppingChance or 50
+  local tbUnlockSlotSet = {}
+  for _, value in pairs(tbUnlockSlot or {}) do
+    tbUnlockSlotSet[value] = true
+  end
+  local tbUnlockScoopSet = {}
+  local tbUnlockToppingSet = {}
+  for i = 3, 6 do
+    if tbUnlockSlotSet[i] then
+      tbUnlockScoopSet[#tbUnlockScoopSet + 1] = i
+    end
+  end
+  for i = 8, 11 do
+    if tbUnlockSlotSet[i] then
+      tbUnlockToppingSet[#tbUnlockToppingSet + 1] = i
+    end
+  end
   for i = 1, SLOT_COUNT do
     self.tbSlots[i] = 0
   end
   self.tbSlots[SLOT_CONE] = math.random(1, 2)
   self.nScoopCount = math.random(1, nMaxScoop)
   for i = 1, self.nScoopCount do
-    self.tbSlots[SLOT_SCOOP1 + i - 1] = math.random(3, 6)
+    self.tbSlots[SLOT_SCOOP1 + i - 1] = tbUnlockScoopSet[math.random(1, #tbUnlockScoopSet)]
   end
   if nToppingChance >= math.random(1, 100) then
-    self.tbSlots[SLOT_TOPPING] = math.random(8, 11)
+    self.tbSlots[SLOT_TOPPING] = tbUnlockToppingSet[math.random(1, #tbUnlockToppingSet)]
   end
 end
 
@@ -83,6 +104,18 @@ function IceCreamOrdersCtrl:CheckStep(nSlotIndex, nValue)
     self.nCurrentStep = 0
     return false
   end
+end
+
+function IceCreamOrdersCtrl:SetFeedPG(bFeed)
+  if bFeed then
+    self.nOrderState = IceCreamUtils.EnumOrderState.Perfect
+  else
+    self.nOrderState = IceCreamUtils.EnumOrderState.Lose
+  end
+end
+
+function IceCreamOrdersCtrl:IsSpecialOrder()
+  return self.bSpecialOrder
 end
 
 function IceCreamOrdersCtrl:GetOrderState()
@@ -149,10 +182,7 @@ function IceCreamOrdersCtrl:GetNextStepIndex()
 end
 
 function IceCreamOrdersCtrl:CreatIceCreamIcon()
-  for _, txt in ipairs(self._mapNode.imgIcon_) do
-    local canvasGroup = txt:GetComponent("CanvasGroup")
-    NovaAPI.SetCanvasGroupAlpha(canvasGroup, 0)
-  end
+  self:HideIceCreamIcon()
   for step, v in ipairs(self.tbSlots) do
     if v ~= 0 then
       local nDisplay = self:GetDisplayIndex(step)
@@ -162,11 +192,18 @@ function IceCreamOrdersCtrl:CreatIceCreamIcon()
           printError("资源路径是空的")
           NovaAPI.SetCanvasGroupAlpha(self._mapNode.imgIcon_[nDisplay]:GetComponent("CanvasGroup"), 0)
         else
-          self:SetActivityAtlasSprite_New(self._mapNode.imgIcon_[nDisplay], "_400013/SpriteAtlas/Item", IconPath)
+          self:SetActivityAtlasSprite_New(self._mapNode.imgIcon_[nDisplay], "_400020/SpriteAtlas/Item", IconPath)
           NovaAPI.SetCanvasGroupAlpha(self._mapNode.imgIcon_[nDisplay]:GetComponent("CanvasGroup"), 1)
         end
       end
     end
+  end
+end
+
+function IceCreamOrdersCtrl:HideIceCreamIcon()
+  for _, txt in ipairs(self._mapNode.imgIcon_) do
+    local canvasGroup = txt:GetComponent("CanvasGroup")
+    NovaAPI.SetCanvasGroupAlpha(canvasGroup, 0)
   end
 end
 

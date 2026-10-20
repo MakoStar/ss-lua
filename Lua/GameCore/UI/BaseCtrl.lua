@@ -741,7 +741,7 @@ function BaseCtrl:SetPngSprite(imgObj, sPath, sSurfix)
       sPath = sPath .. sSurfix
     end
   end
-  if sPath == nil or string.find(sPath, "Icon/") == nil and string.find(sPath, "Image/") == nil and string.find(sPath, "ImageAvg/") == nil and string.find(sPath, "big_sprites/") == nil and string.find(sPath, "Disc/") == nil and string.find(sPath, "Play_") == nil and string.find(sPath, "UI_Activity") == nil then
+  if sPath == nil or string.find(sPath, "Icon/") == nil and string.find(sPath, "Image/") == nil and string.find(sPath, "ImageAvg/") == nil and string.find(sPath, "big_sprites/") == nil and string.find(sPath, "Disc/") == nil and string.find(sPath, "Play_") == nil and string.find(sPath, "UI_Activity") == nil and string.find(sPath, "Soldier") == nil then
     traceback("配置表中 Icon 资源字段内容填写错误，应填路径，如：Icon/Item/item_1，panel id:" .. self._panel._nPanelId .. "，ctrl name:" .. self.__cname)
     NovaAPI.SetImageSpriteAsset(imgObj, nil)
     return false

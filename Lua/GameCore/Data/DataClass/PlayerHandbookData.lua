@@ -6,6 +6,9 @@ local HandbookSkinData = require("GameCore.Data.DataClass.HandBookData.HandbookS
 local HandbookDiscData = require("GameCore.Data.DataClass.HandBookData.HandbookDiscData")
 local HandbookPlotData = require("GameCore.Data.DataClass.HandBookData.HandbookPlotData")
 local HandbookStorySetData = require("GameCore.Data.DataClass.HandBookData.HandbookStorySetData")
+local HandbookDormFurnitureData = require("GameCore.Data.DataClass.HandBookData.HandbookDormFurnitureData")
+local HandbookDormSkinData = require("GameCore.Data.DataClass.HandBookData.HandbookDormSkinData")
+local HandbookStoryReviewData = require("GameCore.Data.DataClass.HandBookData.HandbookStoryReviewData")
 
 function PlayerHandbookData:ParseBitMapData(bitMap)
   local bitMapData = {}
@@ -48,6 +51,12 @@ function PlayerHandbookData:CreateHandbook(type, id, unlock)
     handbookData = HandbookPlotData.new(id, unlock)
   elseif type == GameEnum.handbookType.StorySet then
     handbookData = HandbookStorySetData.new(id, unlock)
+  elseif type == GameEnum.handbookType.DormFurniture then
+    handbookData = HandbookDormFurnitureData.new(id, unlock)
+  elseif type == GameEnum.handbookType.DormSkin then
+    handbookData = HandbookDormSkinData.new(id, unlock)
+  elseif type == GameEnum.handbookType.StoryReview then
+    handbookData = HandbookStoryReviewData.new(id, unlock)
   end
   return handbookData
 end

@@ -101,7 +101,8 @@ PhoneCtrl._mapEventConfig = {
   OpenEventDetailWindow = "OnEvent_OpenEventDetailWindow",
   ChangePhoneListTopStatus = "OnEvent_ChangePhoneListTopStatus",
   PhoneChatTopLimit = "OnEvent_PhoneChatTopLimit",
-  EnableReceiveChatReward = "OnEvent_EnableReceiveChatReward"
+  EnableReceiveChatReward = "OnEvent_EnableReceiveChatReward",
+  FreeDatingChanged = "OnEvent_FreeDatingChanged"
 }
 PhoneCtrl._mapRedDotConfig = {
   [RedDotDefine.Phone_New] = {sNodeName = "redDotChat"},
@@ -646,6 +647,12 @@ function PhoneCtrl:OnBtnClick_Dating()
   end
   self._panel.nCurTog = tog_Dating
   self:ChangeTog()
+end
+
+function PhoneCtrl:OnEvent_FreeDatingChanged()
+  if self._panel.nCurTog == tog_Dating then
+    self:RefreshDatingCharList()
+  end
 end
 
 function PhoneCtrl:OnBtnClick_Gift()

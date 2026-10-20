@@ -17,12 +17,14 @@ SoldierMainCharItemCtrl._mapNodeConfig = {
     callback = "OnBtnClick_Item"
   },
   imgRarity = {sComponentName = "Image"},
-  imgIcon = {sComponentName = "Image"},
+  imgIconSoldier = {sComponentName = "Image"},
   imgStar = {nCount = 5, sComponentName = "Image"},
   imgDeathMask = {},
   Fx_Charge = {},
   Fx_fish = {},
-  Fx_Death = {}
+  Fx_Death = {},
+  ItemRoot = {},
+  imgEmpty = {}
 }
 SoldierMainCharItemCtrl._mapEventConfig = {
   SoldierCharSpawn = "OnEvent_SoldierCharSpawn"
@@ -57,11 +59,11 @@ function SoldierMainCharItemCtrl:InitChar(mapData, tbChess, tbPartner, parent)
   local mapCfg = ConfigTable.GetData("SoldierCharacter", self.nDataId)
   if mapCfg ~= nil then
     local sIcon = AllEnum.SoldierChessRarityIcon[mapCfg.Rarity]
-    sIcon = iconPath .. sIcon .. AllEnum.SoldierChessIconSurfix.Fight
+    sIcon = iconPath .. sIcon .. AllEnum.SoldierChessIconSurfix.M
     self:SetPngSprite(self._mapNode.imgRarity, sIcon)
     local skinCfg = ConfigTable.GetData("SoldierSkin", mapCfg.Skin)
     if skinCfg then
-      self:SetPngSprite(self._mapNode.imgIcon, skinCfg.Icon .. AllEnum.SoldierChessIconSurfix.M)
+      self:SetPngSprite(self._mapNode.imgIconSoldier, skinCfg.Icon .. AllEnum.SoldierChessIconSurfix.M)
     end
     local _, color = ColorUtility.TryParseHtmlString(ImgChessRarityColor[mapCfg.Rarity])
     NovaAPI.SetImageColor(self._mapNode.imgSkillStart, color)
@@ -70,10 +72,20 @@ function SoldierMainCharItemCtrl:InitChar(mapData, tbChess, tbPartner, parent)
   for k, v in ipairs(self._mapNode.imgStar) do
     v.gameObject:SetActive(k <= mapData.nStar)
   end
+  self._mapNode.ItemRoot:SetActive(false)
+  self._mapNode.AnimRoot.gameObject:SetActive(true)
+  self._mapNode.imgEmpty:SetActive(false)
+end
+
+function SoldierMainCharItemCtrl:SetEmpty()
+  self._mapNode.AnimRoot.gameObject:SetActive(false)
+  self._mapNode.imgEmpty:SetActive(true)
 end
 
 function SoldierMainCharItemCtrl:CloseUI()
-  self:RemoveEntityEvent()
+  if self.nCharId and self.nCharId > 0 then
+    self:RemoveEntityEvent()
+  end
   self.bAddEvent = false
   self.nCharId = 0
 end
@@ -95,6 +107,9 @@ function SoldierMainCharItemCtrl:SetTipsRoot(tr)
 end
 
 function SoldierMainCharItemCtrl:OnBtnClick_Item()
+  if self.nCharId == nil or self.nCharId == 0 then
+    return
+  end
   if self.isDeath == true then
     EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Soldier_Death_Tips"))
     return

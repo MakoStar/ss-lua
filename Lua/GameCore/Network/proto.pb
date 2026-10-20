@@ -6,7 +6,7 @@
 value (Rvalue!
 NextPackageˇ (RNextPackageBv
 com.google.protobufBAnyProtoPZ,google.golang.org/protobuf/types/known/anypb¢GPB™Google.Protobuf.WellKnownTypesbproto3
-∆ª
+∏‘
 public.protoprotogoogle/protobuf/any.proto"(
 Nil!
 NextPackageˇ (RNextPackage">
@@ -18,6 +18,9 @@
 NextPackageˇ (RNextPackage"?
 UI32
 Value (RValue!
+NextPackageˇ (RNextPackage"B
+UI32s
+Values (RValues!
 NextPackageˇ (RNextPackage"?
 UI64
 Value (RValue!
@@ -185,7 +188,18 @@ TemplateId
 CharIds (RCharIds
 EventIds (REventIds
 Bundles (RBundles!
-NextPackageˇ (RNextPackage"
+NextPackageˇ (RNextPackage"Å
+ActivityReturneeState/
+Type (2.proto.ActivityReturneeTypeRType
+State (RState!
+NextPackageˇ (RNextPackage"π
+SoldierState0
+CurGradeChallengeId (RCurGradeChallengeId
+Stage (RStage
+	NodeIndex (R	NodeIndex 
+CurSeasonId (RCurSeasonId!
+NextPackageˇ (RNextPackage"œ
+
 	StateInfo$
 Mail (2.proto.MailStateRMail$
 InfinityTower (RInfinityTower
@@ -200,7 +214,8 @@ BattlePassH
 NpcAffinityReward	 (RNpcAffinityReward9
 MallPackage
  (2.proto.MallPackageStateRMallPackage,
-VampireSurvivorId (RVampireSurvivorId9
+VampireSurvivorId (RVampireSurvivorId-
+Soldier (2.proto.SoldierStateRSoldier9
 Achievement (2.proto.AchievementStateRAchievement?
 TravelerDuelQuest (2.proto.QuestStateRTravelerDuelQuest6
 TravelerDuelIdleReward (RTravelerDuelIdleReward3
@@ -211,7 +226,10 @@ BattlePassH
 Activities (2.proto.ActivityStateR
 Activities
 StorySet (RStorySet3
-	TraceHunt (2.proto.TraceHuntStateR	TraceHunt!
+	TraceHunt (2.proto.TraceHuntStateR	TraceHuntJ
+ActivityReturnees (2.proto.ActivityReturneeStateRActivityReturnees$
+DormStateFlag (RDormStateFlag<
+GuideMission (2.proto.GuideMissionStateRGuideMission!
 NextPackageˇ (RNextPackage"P
 ItemTpl
 Tid (RTid
@@ -297,6 +315,11 @@ CreateTime!
 NextPackageˇ (RNextPackage"?
 HeadIcon
 Tid (RTid!
+NextPackageˇ (RNextPackage"k
+DormItem
+Tid (RTid
+Qty (RQty
+IsFirst (RIsFirst!
 NextPackageˇ (RNextPackage"j
 AcqInfo
 Tid (RTid
@@ -336,11 +359,11 @@ ChangeInfo*
 Idx (RIdx(
 Major (2.proto.StoryChoiceRMajor4
 Personality (2.proto.StoryChoiceRPersonality!
-NextPackageˇ (RNextPackage"é
+NextPackageˇ (RNextPackage"õ
 	StoryInfo
 	Evidences (R	Evidences&
-Stories (2.proto.StoryRStories
-BuildId (RBuildId!
+Stories (2.proto.StoryRStories%
+Build (2.proto.UseBuildRBuild!
 NextPackageˇ (RNextPackage"t
 RoomRestored
 RoomId (RRoomId)
@@ -361,14 +384,14 @@ ChangeInfo*
 Id (RId
 Tid (RTid
 Qty (RQty!
-NextPackageˇ (RNextPackage"¶
+NextPackageˇ (RNextPackage"≥
 RegionBossLevel
 Id (RId
 Star (RStar
 First (RFirst
-	ThreeStar (R	ThreeStar
-BuildId (RBuildId!
-NextPackageˇ (RNextPackage"é
+	ThreeStar (R	ThreeStar%
+Build (2.proto.UseBuildRBuild!
+NextPackageˇ (RNextPackage"Ê
 Friend
 Id (RId
 NickName (	RNickName
@@ -383,7 +406,9 @@ WorldClass
 	Signature	 (	R	Signature-
 	CharShows
  (2.proto.CharShowR	CharShows(
-Honors (2.proto.HonorInfoRHonors!
+Honors (2.proto.HonorInfoRHonors4
+DormOutInfo (2.proto.DormOutInfoRDormOutInfo 
+DormLikeNum (RDormLikeNum!
 NextPackageˇ (RNextPackage"o
 CharShow
 CharId (RCharId
@@ -418,11 +443,11 @@ QuestState$
 NextPackageˇ (RNextPackage"G
 MallPackageState
 New (RNew!
-NextPackageˇ (RNextPackage"p
+NextPackageˇ (RNextPackage"}
 DailyInstance
 Id (RId
-Star (RStar
-BuildId (RBuildId!
+Star (RStar%
+Build (2.proto.UseBuildRBuild!
 NextPackageˇ (RNextPackage"ò
 TravelerDuelBossLevel
 Id (RId
@@ -506,11 +531,11 @@ ActivityId
 
 ActivityCG
 Read (RRead!
-NextPackageˇ (RNextPackage"p
+NextPackageˇ (RNextPackage"}
 ActivityLevel
 Id (RId
-Star (RStar
-BuildId (RBuildId!
+Star (RStar%
+Build (2.proto.UseBuildRBuild!
 NextPackageˇ (RNextPackage"a
 ActivityLevels,
 levels (2.proto.ActivityLevelRlevels!
@@ -666,18 +691,18 @@ SkillScore
 Records (2.proto.VampireSurvivorLevelRRecords3
 Season (2.proto.VampireSurvivorLevelRSeason 
 SeasonScore (RSeasonScore!
-NextPackageˇ (RNextPackage"§
+NextPackageˇ (RNextPackage"±
 SkillInstance
 Id (RId
 Star (RStar
 First (RFirst
-	ThreeStar (R	ThreeStar
-BuildId (RBuildId!
-NextPackageˇ (RNextPackage"Ü
+	ThreeStar (R	ThreeStar%
+Build (2.proto.UseBuildRBuild!
+NextPackageˇ (RNextPackage"ì
 WeekBossLevel
 Id (RId
-Time (RTime
-BuildId (RBuildId
+Time (RTime%
+Build (2.proto.UseBuildRBuild
 First (RFirst!
 NextPackageˇ (RNextPackage"E
 ScoreBossState
@@ -687,13 +712,13 @@ SkillScore
 NPCId (RNPCId
 Affinity (RAffinity
 PlotIds (RPlotIds!
-NextPackageˇ (RNextPackage"∆
+NextPackageˇ (RNextPackage"”
 CharGemInstance
 Id (RId
 Star (RStar
 First (RFirst
-	ThreeStar (R	ThreeStar
-BuildId (RBuildId
+	ThreeStar (R	ThreeStar%
+Build (2.proto.UseBuildRBuild
 
 RewardType (R
 RewardType!
@@ -766,12 +791,12 @@ IdleValues"
 NextPackageˇ (RNextPackage9
 	IdleValue
 TypeId (RTypeId
-Value (RValue"Å
+Value (RValue"é
 ActivityTrekkerVersus
 DayNum (RDayNum
 Level (RLevel
-Exp (RExp
-BuildId (RBuildId,
+Exp (RExp%
+Build (2.proto.UseBuildRBuild,
 Show (2.proto.TrekkerVersusShowRShow,
 HotValueRewardIds (RHotValueRewardIds$
 DuelRewardIds (RDuelRewardIds,
@@ -790,10 +815,10 @@ IdleValues"
 Id (RId0
 Major (2.proto.ActivityStoryChoiceRMajor<
 Personality (2.proto.ActivityStoryChoiceRPersonality!
-NextPackageˇ (RNextPackage"°
+NextPackageˇ (RNextPackage"Æ
 ActivityStoryChapter
-	Evidences (R	Evidences
-BuildId (RBuildId.
+	Evidences (R	Evidences%
+Build (2.proto.UseBuildRBuild.
 Stories (2.proto.ActivityStoryRStories!
 NextPackageˇ (RNextPackage"Ê
 LastRead
@@ -849,10 +874,10 @@ IdleValues"
 Major (2.proto.ActivityStoryChoiceRMajor<
 Personality (2.proto.ActivityStoryChoiceRPersonality
 Receive (RReceive!
-NextPackageˇ (RNextPackage"Õ
+NextPackageˇ (RNextPackage"⁄
 ActivityHistoryStoryChapter
-	ChapterId (R	ChapterId
-BuildId (RBuildId
+	ChapterId (R	ChapterId%
+Build (2.proto.UseBuildRBuild
 	Evidences (R	Evidences5
 Stories (2.proto.ActivityHistoryStoryRStories!
 NextPackageˇ (RNextPackage"H
@@ -914,7 +939,76 @@ ActivityId4
 Stage (RStage
 	NodeIndex (R	NodeIndex,
 Quests (2.proto.ActivityQuestRQuests!
-NextPackageˇ (RNextPackage*ë
+NextPackageˇ (RNextPackage"Å
+ActivityMathParkourLevel
+LevelId (RLevelId
+Score (RScore
+Star (RStar!
+NextPackageˇ (RNextPackage"ø
+ActivityMathParkour
+
+ActivityId (R
+ActivityId7
+Levels (2.proto.ActivityMathParkourLevelRLevels,
+Quests (2.proto.ActivityQuestRQuests!
+NextPackageˇ (RNextPackage"ç
+%ActivityMathParkourLevelSettleSucceed)
+Change (2.proto.ChangeInfoRChange
+Passed (RPassed!
+NextPackageˇ (RNextPackage"m
+UseBuild$
+Type (2.proto.BuildTypeRType
+BuildId (RBuildId!
+NextPackageˇ (RNextPackage"H
+GuideMissionState
+New (RNew!
+NextPackageˇ (RNextPackage"I
+ActivityMailBind
+Bind (RBind!
+NextPackageˇ (RNextPackage"®
+ActivityMallLogin
+
+ActivityId (R
+ActivityId
+active (Ractive
+Received (RReceived
+	LoginDays (R	LoginDays!
+NextPackageˇ (RNextPackage"®
+TowerVitaOption
+Id (RId
+Boolean (H RBoolean
+Integer (H RInteger"
+List (2.proto.UI32sH RList!
+NextPackageˇ (RNextPackageB
+Data"ã
+TowerVitaProject
+Id (RId
+Name (	RName0
+Options (2.proto.TowerVitaOptionROptions!
+NextPackageˇ (RNextPackage"a
+SoldierBattleReportChess
+Id (RId
+Star (RStar!
+NextPackageˇ (RNextPackage"±
+SoldierBattleReport
+ReportId (	RReportId*
+GradeChallengeId (RGradeChallengeId$
+BossAbilityId (RBossAbilityId
+	NodeIndex (R	NodeIndex 
+RemainingHP (RRemainingHP
+	TotalCoin (R	TotalCoin
+CardIds (RCardIds5
+Chess (2.proto.SoldierBattleReportChessRChess
+Result	 (RResult
+Score
+ (RScore
+Version (	RVersion
+Time (RTime!
+NextPackageˇ (RNextPackage"v
+DormOutInfo
+DormName (	RDormName(
+CollectionValue (RCollectionValue!
+NextPackageˇ (RNextPackage*≠
 	QuestType
 UnknownQuest 
 	TourGuide	
@@ -934,13 +1028,76 @@ TowerEvent
 
 Weekly
 
-Assistbproto3
+Assist
+Dorm
+GuideMission*´
+ActivityReturneeType
+ActivityReturneeAllType 
+ActivityReturneeReunionType
+ActivityReturnLoginType
+ActivityReturneeQuestType
+ActivityReturneeDoubleType
+ActivityReturneeMallType
+ActivityReturneeBDType
+ActivityReturneeAvgType"
+ActivityReturneeQuestPointType*/
+	BuildType
+Default 
+
+Formal	
+Trialbproto3
 7
 achievement_info.protoprotopublic.protoP bproto3
 é
  achievement_reward_receive.protoprotopublic.proto"K
 AchievementRewardReq
 Ids (RIds!
+NextPackageˇ (RNextPackageP bproto3
+Ë
+"activity_archive_story_apply.protoprotopublic.proto"¢
+ActivityArchiveStoryApplyReq
+
+ActivityId (R
+ActivityId
+StoryId (RStoryId%
+Build (2.proto.UseBuildRBuild!
+NextPackageˇ (RNextPackageP bproto3
+◊
+activity_story_settle.protoprotopublic.proto"–
+ActivityStorySettleReq
+
+ActivityId (R
+ActivityId.
+List (2.proto.ActivityStorySettleRList%
+Events (2.proto.EventsREvents
+	Evidences (R	Evidences!
+NextPackageˇ (RNextPackage"ƒ
+ActivityStorySettle
+StoryId (RStoryId1
+Major (2.proto.ActivityStoryOptionsRMajor=
+Personality (2.proto.ActivityStoryOptionsRPersonality!
+NextPackageˇ (RNextPackage"
+ActivityStoryOptions
+Group (RGroup
+Choice (RChoice
+Factor (RFactor!
+NextPackageˇ (RNextPackageP bproto3
+Œ
+)activity_archive_story_chapter_pass.protoprotopublic.protoactivity_story_settle.proto"e
+"ActivityArchiveStoryChapterPassReq
+	ChapterId (R	ChapterId!
+NextPackageˇ (RNextPackageP bproto3
+B
+!activity_archive_story_info.protoprotopublic.protoP bproto3
+ª
+#activity_archive_story_settle.protoprotopublic.protoactivity_story_settle.proto"◊
+ActivityArchiveStorySettleReq
+
+ActivityId (R
+ActivityId.
+List (2.proto.ActivityStorySettleRList%
+Events (2.proto.EventsREvents
+	Evidences (R	Evidences!
 NextPackageˇ (RNextPackageP bproto3
 Ê
 !activity_avg_reward_receive.protoprotopublic.proto"°
@@ -1045,9 +1202,8 @@ FightScore
 New (RNew
 Token (	RToken!
 NextPackageˇ (RNextPackageP bproto3
-˜
-activity_detail.protoprotopublic.protopublic_joint_drill.proto"«
-
+®
+activity_detail.protoprotopublic.protopublic_joint_drill.proto"¯
 ActivityMsg
 Id (RId5
 Periodic (2.proto.ActivityPeriodicH RPeriodic,
@@ -1076,7 +1232,10 @@ JointDrill/
 HistoryStoryChapter (2".proto.ActivityHistoryStoryChapterH RHistoryStoryChapter,
 Share (2.proto.ActivityShareH RShare5
 IceCream (2.proto.ActivityIceCreamH RIceCream2
-Soldier (2.proto.ActivitySoldierH RSoldier!
+Soldier (2.proto.ActivitySoldierH RSoldier>
+MathParkour (2.proto.ActivityMathParkourH RMathParkour5
+MailBind (2.proto.ActivityMailBindH RMailBind8
+	MallLogin (2.proto.ActivityMallLoginH R	MallLogin!
 NextPackageˇ (RNextPackageB
 Data"Y
 ActivityResp&
@@ -1111,34 +1270,14 @@ ActivityId
 SkillId (RSkillId
 UseCount (RUseCount!
 NextPackageˇ (RNextPackageP bproto3
-€
-"activity_history_story_apply.protoprotopublic.proto"ï
+Ë
+"activity_history_story_apply.protoprotopublic.proto"¢
 ActivityHistoryStoryApplyReq
 
 ActivityId (R
 ActivityId
-StoryId (RStoryId
-BuildId (RBuildId!
-NextPackageˇ (RNextPackageP bproto3
-◊
-activity_story_settle.protoprotopublic.proto"–
-ActivityStorySettleReq
-
-ActivityId (R
-ActivityId.
-List (2.proto.ActivityStorySettleRList%
-Events (2.proto.EventsREvents
-	Evidences (R	Evidences!
-NextPackageˇ (RNextPackage"ƒ
-ActivityStorySettle
-StoryId (RStoryId1
-Major (2.proto.ActivityStoryOptionsRMajor=
-Personality (2.proto.ActivityStoryOptionsRPersonality!
-NextPackageˇ (RNextPackage"
-ActivityStoryOptions
-Group (RGroup
-Choice (RChoice
-Factor (RFactor!
+StoryId (RStoryId%
+Build (2.proto.UseBuildRBuild!
 NextPackageˇ (RNextPackageP bproto3
 ª
 #activity_history_story_settle.protoprotopublic.protoactivity_story_settle.proto"◊
@@ -1167,14 +1306,14 @@ TotalScore
 StreakCount (RStreakCount
 	PropCount (R	PropCount!
 NextPackageˇ (RNextPackageP bproto3
-Œ
-activity_levels_apply.protoprotopublic.proto"è
+€
+activity_levels_apply.protoprotopublic.proto"ú
 ActivityLevelsApplyReq
 
 ActivityId (R
 ActivityId
-LevelId (RLevelId
-BuildId (RBuildId!
+LevelId (RLevelId%
+Build (2.proto.UseBuildRBuild!
 NextPackageˇ (RNextPackageP bproto3
 ®
 activity_levels_settle.protoprotopublic.proto"ó
@@ -1217,6 +1356,23 @@ ChangeInfo:
 NextPackageˇ (RNextPackageP bproto3
 D
 #activity_login_reward_receive.protoprotopublic.protoP bproto3
+H
+'activity_mail_bind_reward_receive.protoprotopublic.protoP bproto3
+H
+'activity_malllogin_reward_receive.protoprotopublic.protoP bproto3
+†
+(activity_math_parkour_level_settle.protoprotopublic.proto"‘
+!ActivityMathParkourLevelSettleReq
+
+ActivityId (R
+ActivityId
+LevelId (RLevelId
+
+TotalScore (R
+TotalScore
+State (RState
+	PropCount (R	PropCount!
+NextPackageˇ (RNextPackageP bproto3
 Ø	
 public_mining.protoproto"{
 MiningTreasure
@@ -1360,6 +1516,57 @@ ActivityId (R
 ActivityId
 QuestId (RQuestId!
 NextPackageˇ (RNextPackageP bproto3
+@
+activity_returnee_avg_req.protoprotopublic.protoP bproto3
+C
+"activity_returnee_card_order.protoprotopublic.protoP bproto3
+L
++activity_returnee_card_reward_receive.protoprotopublic.protoP bproto3
+˙
+activity_returnee_info.protoprotopublic.proto"ê
+ActivityReturneeInfoResp<
+Reunion (2".proto.ActivityReturneeReunionInfoRReunion6
+Login (2 .proto.ActivityReturneeLoginInfoRLogin0
+Avg (2.proto.ActivityReturneeAvgInfoRAvg%
+Quests (2.proto.QuestsRQuestsE
+
+QuestPoint (2%.proto.ActivityReturneeQuestPointInfoR
+QuestPoint;
+MallInfo (2.proto.ActivityReturneeMallInfoRMallInfo!
+NextPackageˇ (RNextPackage"f
+ActivityReturneeReunionInfo$
+ReunionReward (RReunionReward!
+NextPackageˇ (RNextPackage"p
+ActivityReturneeLoginInfo
+Receive (RReceive
+Actual (RActual!
+NextPackageˇ (RNextPackage"N
+ActivityReturneeAvgInfo
+Avg (RAvg!
+NextPackageˇ (RNextPackage"u
+ActivityReturneeQuestPointInfo
+Point (RPoint
+Received (RReceived!
+NextPackageˇ (RNextPackage"Ä
+ActivityReturneeMallInfo
+Ids (	RIds/
+Card (2.proto.ActivityReturneeCardRCard!
+NextPackageˇ (RNextPackage"É
+ActivityReturneeCard
+Id (	RId
+	Remaining (R	Remaining
+Received (RReceived!
+NextPackageˇ (RNextPackageP bproto3
+M
+,activity_returnee_login_reward_receive.protoprotopublic.protoP bproto3
+C
+"activity_returnee_pack_order.protoprotopublic.protoP bproto3
+S
+2activity_returnee_quest_point_reward_receive.protoprotopublic.protoP bproto3
+M
+,activity_returnee_quest_reward_receive.protoprotopublic.protoP bproto3
+K
+*activity_returnee_reunion_reward_req.protoprotopublic.protoP bproto3
 ø
 #activity_share_reward_receive.protoprotopublic.proto"y
 ActivityShareRewardReq
@@ -1394,14 +1601,14 @@ ActivityId
 GroupId (RGroupId
 QuestId (RQuestId!
 NextPackageˇ (RNextPackageP bproto3
-Ã
-activity_story_apply.protoprotopublic.proto"é
+Ÿ
+activity_story_apply.protoprotopublic.proto"õ
 ActivityStoryApplyReq
 
 ActivityId (R
 ActivityId
-StoryId (RStoryId
-BuildId (RBuildId!
+StoryId (RStoryId%
+Build (2.proto.UseBuildRBuild!
 NextPackageˇ (RNextPackageP bproto3
 I
 (activity_task_group_reward_receive.protoprotopublic.protoP bproto3
@@ -1455,16 +1662,16 @@ ActivityId
 NextPackageˇ (RNextPackageP bproto3
 R
 1activity_tower_defense_story_reward_receive.protoprotopublic.protoP bproto3
-È
-#activity_trekker_versus_apply.protoproto"≤
+Ü
+#activity_trekker_versus_apply.protoprotopublic.proto"ø
 ActivityTrekkerVersusApplyReq
 
 ActivityId (R
 ActivityId
-LevelId (RLevelId
-BuildId (RBuildId
+LevelId (RLevelId%
+Build (2.proto.UseBuildRBuild
 AffixIds (RAffixIds!
-NextPackageˇ (RNextPackagebproto3
+NextPackageˇ (RNextPackageP bproto3
 K
 *activity_trekker_versus_idle_refresh.protoprotopublic.protoP bproto3
 õ
@@ -1697,7 +1904,7 @@ RankChange
 New (RNew
 Token (	RToken!
 NextPackageˇ (RNextPackageP bproto3
-ÍQ
+∫R
 public_star_tower.protoprotopublic.prototraveler_duel_rank_upload.proto"≠
 StarTowerInfo(
 Meta (2.proto.StarTowerMetaRMeta(
@@ -1855,10 +2062,11 @@ SyncHPCase!
 	CanReRoll (R	CanReRoll 
 ReRollPrice (RReRollPrice 
 ReRollTimes	 (RReRollTimes!
-NextPackageˇ (RNextPackage"n
+NextPackageˇ (RNextPackage"Ç
 InteractHawkerReq
 Sid (H RSid
-ReRoll (H RReRoll!
+ReRoll (H RReRoll
+Auto (RAuto!
 NextPackageˇ (RNextPackageB
 Action"b
 InteractStrengthenMachineResp
@@ -1924,10 +2132,11 @@ DefeatData
 FateCardUsage
 Id (RId
 Times (RTimes!
-NextPackageˇ (RNextPackage"r
+NextPackageˇ (RNextPackage"Ü
 InteractSelectReq
 Index (H RIndex
-ReRoll (H RReRoll!
+ReRoll (H RReRoll
+Auto (RAuto!
 NextPackageˇ (RNextPackageB
 Select"Û
 InteractSelectResp7
@@ -2012,13 +2221,14 @@ Preference
 DiscIds (RDiscIds+
 Chars (2.proto.TowerBuildCharRChars 
 StarTowerId (RStarTowerId!
-NextPackageˇ (RNextPackage"÷
+NextPackageˇ (RNextPackage"¸
 StarTowerBuildDetail5
 
 Potentials (2.proto.BuildPotentialR
 Potentials4
 SubNoteSkills (2.proto.ItemTplRSubNoteSkills.
-ActiveSecondaryIds (RActiveSecondaryIds!
+ActiveSecondaryIds (RActiveSecondaryIds$
+ModifierState (RModifierState!
 NextPackageˇ (RNextPackage"r
 StarTowerBookCharPotentialBrief
 CharId (RCharId
@@ -2205,11 +2415,11 @@ LandmarkId!
 ChangeInfo (2.proto.ChangeInfoR
 ChangeInfo!
 NextPackageˇ (RNextPackageP bproto3
-«
-char_gem_instance_apply.protoprotopublic.proto"Ü
+‘
+char_gem_instance_apply.protoprotopublic.proto"ì
 CharGemInstanceApplyReq
-Id (RId
-BuildId (RBuildId
+Id (RId%
+Build (2.proto.UseBuildRBuild
 
 RewardType (R
 RewardType!
@@ -2344,14 +2554,14 @@ ChangeInfo$
 NextPackageˇ (RNextPackageP bproto3
 :
 client_event_report.protoprotopublic.protoP bproto3
-¬
-daily_instance_apply.protoprotopublic.proto"Ñ
+œ
+daily_instance_apply.protoprotopublic.proto"ë
 DailyInstanceApplyReq
 Id (RId
 
 RewardType (R
-RewardType
-BuildId (RBuildId!
+RewardType%
+Build (2.proto.UseBuildRBuild!
 NextPackageˇ (RNextPackageP bproto3
 ¢
 daily_instance_raid.protoprotopublic.proto"¶
@@ -2445,6 +2655,244 @@ RewardType
 Exp (RExp)
 Change (2.proto.ChangeInfoRChange!
 NextPackageˇ (RNextPackageP bproto3
+◊
+public_dorm.protoprotopublic.proto"á
+DormInfo
+SkinList (RSkinList
+
+LayoutList (R
+LayoutList
+	SceneList (R	SceneList!
+NextPackageˇ (RNextPackage"¥
+DormRoomInfo
+
+DormRoomId (R
+DormRoomId:
+FurnitureList (2.proto.FurnitureInfoRFurnitureList/
+RoleList (2.proto.DormRoleInfoRRoleList
+DiscId (RDiscId
+RoomName (	RRoomName
+	RoomScene (R	RoomScene"
+RestNameTime (RRestNameTime!
+NextPackageˇ (RNextPackage"ö
+FurnitureInfo 
+FurnitureId (RFurnitureId
+X (RX
+Y (RY
+Z (RZ
+Rotation (RRotation!
+NextPackageˇ (RNextPackage"è
+DormRoleInfo
+RoleId (RRoleId
+IsVisit (RIsVisit*
+IsInvitationRole (RIsInvitationRole!
+NextPackageˇ (RNextPackage"Ë
+FurniturePresetInfo
+DormType (RDormType:
+FurnitureList (2.proto.FurnitureInfoRFurnitureList
+BuildId (RBuildId
+	BuildName (	R	BuildName
+
+CreateTime (R
+CreateTime!
+NextPackageˇ (RNextPackage"b
+DormBagInfo0
+ItemTplInfo (2.proto.ItemTplRItemTplInfo!
+NextPackageˇ (RNextPackage"O
+InvitationRoleInfo
+RoleId (RRoleId!
+NextPackageˇ (RNextPackage"ﬂ
+DormInfoData
+DormName (	RDormName
+LikeNum (RLikeNum 
+DayVisitNum (RDayVisitNum$
+VisitTotalNum (RVisitTotalNum
+	rewardIds (R	rewardIds*
+	TaskGroup (2.proto.UI32VR	TaskGroup@
+AchievementList (2.proto.AchievementInfoRAchievementList"
+RestNameTime (RRestNameTime!
+NextPackageˇ (RNextPackage"ø
+DormFriendDetail
+uid (Ruid
+LikeNum (RLikeNum
+IsLike (RIsLike
+DormName (	RDormName(
+CollectionValue (RCollectionValue!
+NextPackageˇ (RNextPackage"l
+RoleInteraction
+
+DormRoomId (R
+DormRoomId
+RoleId (RRoleId!
+NextPackageˇ (RNextPackage"ñ
+AffinityData7
+AffinityInfo (2.proto.AffinityInfoRAffinityInfo*
+ItemInfo (2.proto.ItemTplRItemInfo!
+NextPackageˇ (RNextPackage"O
+DormFriendInfo
+DormName (	RDormName!
+NextPackageˇ (RNextPackage"s
+DormAffinityGiftInfo
+RoleId (RRoleId 
+SendGiftCnt (RSendGiftCnt!
+NextPackageˇ (RNextPackage"=
+test
+Test (RTest!
+NextPackageˇ (RNextPackage"l
+DormRoomBGMInfo
+
+DormRoomId (R
+DormRoomId
+DiscId (RDiscId!
+NextPackageˇ (RNextPackage"Ü
+DormRoomUnlock
+
+DormRoomId (R
+DormRoomId1
+
+ChangeInfo (2.proto.ChangeInfoR
+ChangeInfo!
+NextPackageˇ (RNextPackage"µ
+DormChangeDataInfo
+DormName (	RDormName
+LikeNum (RLikeNum 
+DayVisitNum (RDayVisitNum$
+VisitTotalNum (RVisitTotalNum!
+NextPackageˇ (RNextPackage"É
+DormHot(
+CollectionValue (RCollectionValue+
+Newbies (2.proto.NewbieInfoRNewbies!
+NextPackageˇ (RNextPackage"≠
+AchievementComplete1
+
+ChangeInfo (2.proto.ChangeInfoR
+ChangeInfo@
+AchievementList (2.proto.AchievementInfoRAchievementList!
+NextPackageˇ (RNextPackage"~
+AchievementInfo$
+AchievementId (RAchievementId"
+CompleteTime (RCompleteTime!
+NextPackageˇ (RNextPackageP bproto3
+π
+%dorm_achievement_reward_receive.protoprotopublic_dorm.proto"l
+DormAchievementRewardReceiveReq&
+AchievementIds (RAchievementIds!
+NextPackageˇ (RNextPackageP bproto3
+ñ
+dorm_affinity_gift_send.protoprotopublic_dorm.proto"ö
+DormAffinityGiftSendReq
+CharId (RCharId
+
+DormRoomId (R
+DormRoomId$
+Items (2.proto.ItemTplRItems!
+NextPackageˇ (RNextPackage"≥
+DormAffinityGiftSendResp'
+Info (2.proto.AffinityInfoRInfo)
+Change (2.proto.ChangeInfoRChange 
+SendGiftCnt (RSendGiftCnt!
+NextPackageˇ (RNextPackageP bproto3
+:
+dorm_blocks_convert.protoprotopublic.protoP bproto3
+ê
+dorm_friend_like.protoprotopublic_dorm.proto"R
+DormFriendLikeReq
+FriendId (RFriendId!
+NextPackageˇ (RNextPackageP bproto3
+®
+dorm_friend_list.protoprotopublic_dorm.proto"j
+DormFriendListResp1
+Friends (2.proto.DormFriendDetailRFriends!
+NextPackageˇ (RNextPackageP bproto3
+±
+dorm_friend_visit.protoprotopublic_dorm.proto"S
+DormFriendVisitReq
+FriendId (RFriendId!
+NextPackageˇ (RNextPackage"ú
+DormFriendVisitResp/
+DormList (2.proto.DormRoomInfoRDormList1
+DormInfo (2.proto.DormFriendInfoRDormInfo!
+NextPackageˇ (RNextPackageP bproto3
+E
+dorm_furniture_del_preset.protoprotopublic_dorm.protoP bproto3
+´
+dorm_furniture_list.protoprotopublic_dorm.proto"j
+DormBagListResp4
+DormBagList (2.proto.DormBagInfoRDormBagList!
+NextPackageˇ (RNextPackageP bproto3
+“
+dorm_furniture_preset.protoprotopublic_dorm.proto"é
+DormFurniturePresetListResp:
+
+PresetList (2.proto.FurniturePresetInfoR
+PresetList
+Num (RNum!
+NextPackageˇ (RNextPackageP bproto3
+ˇ
+dorm_furniture_save.protoprotopublic_dorm.proto"Ω
+DormFurnitureSaveReq
+
+DormRoomId (R
+DormRoomIdH
+FurniturePosInfoList (2.proto.FurnitureInfoRFurniturePosInfoList
+BuildId (RBuildId!
+NextPackageˇ (RNextPackageP bproto3
+º
+dorm_get_change_data.protoprotopublic_dorm.proto"z
+DormChangeDataRespA
+DormChangeData (2.proto.DormChangeDataInfoRDormChangeData!
+NextPackageˇ (RNextPackageP bproto3
+B
+dorm_get_furniture_num.protoprotopublic_dorm.protoP bproto3
+Ä
+dorm_info.protoprotopublic_dorm.proto"»
+DormInfoListResp/
+DormList (2.proto.DormRoomInfoRDormList/
+DormInfo (2.proto.DormInfoDataRDormInfo,
+ReceivedRewardIds (RReceivedRewardIds.
+InteractionRoleIds (RInteractionRoleIdsQ
+AffinityGiftRoleInfos (2.proto.DormAffinityGiftInfoRAffinityGiftRoleInfos!
+NextPackageˇ (RNextPackageP bproto3
+A
+dorm_info_update_name.protoprotopublic_dorm.protoP bproto3
+Ë
+dorm_invitation_role.protoprotopublic_dorm.proto"•
+DormInvitationRoleReq
+
+DormRoomId (R
+DormRoomIdI
+InvitationRoleList (2.proto.InvitationRoleInfoRInvitationRoleList!
+NextPackageˇ (RNextPackageP bproto3
+•
+ dorm_layout_reward_receive.protoprotopublic_dorm.proto"]
+DormLayoutRewardReceiveReq
+	LayoutIds (R	LayoutIds!
+NextPackageˇ (RNextPackageP bproto3
+1
+dorm_learn.protoprotopublic.protoP bproto3
+ò
+dorm_reward_receive.protoprotopublic_dorm.proto"W
+DormRewardReceiveReq
+	rewardIds (R	rewardIds!
+NextPackageˇ (RNextPackageP bproto3
+›
+dorm_role_interaction.protoprotopublic_dorm.proto"
+DormRoleInteractionReqB
+RoleInteractions (2.proto.RoleInteractionRRoleInteractions!
+NextPackageˇ (RNextPackage"ò
+DormRoleInteractionResp/
+InfoList (2.proto.AffinityDataRInfoList)
+Change (2.proto.ChangeInfoRChange!
+NextPackageˇ (RNextPackageP bproto3
+†
+dorm_room_bgm.protoprotopublic_dorm.proto"e
+DormRoomBGMReq0
+BGMList (2.proto.DormRoomBGMInfoRBGMList!
+NextPackageˇ (RNextPackageP bproto3
+?
+dorm_set_room_scene.protoprotopublic_dorm.protoP bproto3
+C
+dorm_update_preset_name.protoprotopublic_dorm.protoP bproto3
 ¶
 energy_buy.protoprotopublic.proto"s
 EnergyBuyResp
@@ -2573,11 +3021,8 @@ TotalTimes,
 GachaInformationResp2
 Information (2.proto.GachaInfoRInformation!
 NextPackageˇ (RNextPackageP bproto3
-ü
-gacha_newbie_info.protoprotopublic.proto"B
-UI32s
-Values (RValues!
-NextPackageˇ (RNextPackage"∫
+€
+gacha_newbie_info.protoprotopublic.proto"∫
 GachaNewbieInfo
 Id (RId
 Receive (RReceive
@@ -2647,6 +3092,25 @@ TotalTimes,
 Action (	RAction
 Args (	RArgs!
 NextPackageˇ (RNextPackagebproto3
+Œ
+guide_mission_info.protoprotopublic.proto"m
+GuideMissionInfo6
+Chapters (2.proto.GuideMissionChapterRChapters!
+NextPackageˇ (RNextPackage"£
+GuideMissionChapter
+Id (RId
+
+UnlockTime (R
+UnlockTime%
+Quests (2.proto.QuestsRQuests
+Done (RDone!
+NextPackageˇ (RNextPackageP bproto3
+¡
+(guide_mission_quest_reward_receive.protoprotopublic.proto"v
+!GuideMissionQuestRewardReceiveReq
+QuestId (RQuestId
+Group (RGroup!
+NextPackageˇ (RNextPackageP bproto3
 ¡
 	ike.protoprotopublic.proto"É
 IKEReq"
@@ -2660,11 +3124,11 @@ TotalTimes,
 ServerTs (RServerTs
 PubKey (RPubKey!
 NextPackageˇ (RNextPackageP bproto3
-´
-infinity_tower_apply.protoprotopublic.proto"n
+∏
+infinity_tower_apply.protoprotopublic.proto"{
 InfinityTowerApplyReq
-LevelId (RLevelId
-BuildId (RBuildId!
+LevelId (RLevelId%
+Build (2.proto.UseBuildRBuild!
 NextPackageˇ (RNextPackageP bproto3
 ‰
 )infinity_tower_daily_reward_receive.protoprotopublic.proto"ó
@@ -2925,6 +3389,17 @@ y
 MailRemoveResp
 Ids (RIds!
 NextPackageˇ (RNextPackageP bproto3
+Ç
+mall_activity_list.protoprotopublic.proto"c
+MallActivityInfo
+Id (	RId
+	Purchased (R	Purchased!
+NextPackageˇ (RNextPackage"b
+MallActivityList+
+List (2.proto.MallActivityInfoRList!
+NextPackageˇ (RNextPackageP bproto3
+:
+mall_activity_order.protoprotopublic.protoP bproto3
 ‡
 mall_gem_list.protoprotopublic.proto"T
 GemInfo
@@ -3011,13 +3486,15 @@ ActivityId
 DropCollect
  (2.proto.MilkoutCollectRDropCollect!
 NextPackageˇ (RNextPackageP bproto3
-úS
-public_soldier.protoprotopublic.proto"Î
+ñÇ
+public_soldier.protoprotopublic.proto"ª
 SoldierInfo&
 Meta (2.proto.SoldierMetaRMeta&
 Node (2.proto.SoldierNodeRNode#
-Bag (2.proto.SoldierBagRBagD
-ActivatedEffects (2.proto.SoldierEffectInfoRActivatedEffects!
+Bag (2.proto.SoldierBagRBag(
+Cases (2.proto.SoldierCaseRCases2
+Effects (2.proto.SoldierEffectInfoREffects6
+Progress (2.proto.SoldierBuffProgressRProgress!
 NextPackageˇ (RNextPackage"‹
 SoldierMeta
 Id (RId
@@ -3033,34 +3510,30 @@ ClientData
 ShopExp	 (RShopExp,
 TracePartnerTypes
  (RTracePartnerTypes!
-NextPackageˇ (RNextPackage"Ü
+NextPackageˇ (RNextPackage"\
 SoldierNode*
-Data (2.proto.SoldierNodeDataRData(
-Cases (2.proto.SoldierCaseRCases!
+Data (2.proto.SoldierNodeDataRData!
 NextPackageˇ (RNextPackage"z
 SoldierNodeData
 StageId (RStageId
 NodeId (RNodeId
 Type (RType!
-NextPackageˇ (RNextPackage"ä
+NextPackageˇ (RNextPackage"¨
 
 SoldierBag,
 Deploy (2.proto.SoldierDeployRDeploy#
-Res (2.proto.SoldierResRRes)
-Chess (2.proto.SoldierChessRChess(
-Cards (2.proto.SoldierCardRCards1
-Partners (2.proto.SoldierPartnerRPartners!
+Res (2.proto.SoldierResRRes(
+Buffs (2.proto.SoldierBuffRBuffs!
+NextPackageˇ (RNextPackage"w
+SoldierDeploy
+Version (RVersion)
+Chess (2.proto.SoldierChessRChess!
 NextPackageˇ (RNextPackage"S
 
 SoldierRes
 Tid (RTid
 Qty (RQty!
-NextPackageˇ (RNextPackage"ª
-SoldierDeploy+
-Master (2.proto.SoldierChessRMaster+
-Assist (2.proto.SoldierChessRAssist-
-Waiting (2.proto.SoldierChessRWaiting!
-NextPackageˇ (RNextPackage"ó
+NextPackageˇ (RNextPackage"ã
 SoldierCase
 Id (RId7
 
@@ -3072,35 +3545,55 @@ SelectCard1
 BattleCase (2.proto.SoldierBattleCaseDataH R
 BattleCasee
 EventSettlementOfDispute (2'.proto.EventSettlementOfDisputeCaseDataH REventSettlementOfDisputew
-EventSettlementOfDisputeBattle (2-.proto.EventSettlementOfDisputeBattleCaseDataH REventSettlementOfDisputeBattleC
-DeploySyncCase (2.proto.DeploySyncCaseDataH RDeploySyncCaseF
+EventSettlementOfDisputeBattle (2-.proto.EventSettlementOfDisputeBattleCaseDataH REventSettlementOfDisputeBattleX
+SelectBossAbilityCase (2 .proto.SelectBossAbilityCaseDataH RSelectBossAbilityCaseC
+CheckStageCase	 (2.proto.CheckStageCaseDataH RCheckStageCaseq
+StoryEventOfPersonalityCase
+ (2-.proto.SoldierStoryEventOfPersonalityCaseDataH RStoryEventOfPersonalityCaseb
+StoryEventOfCostlyCase (2(.proto.SoldierStoryEventOfCostlyCaseDataH RStoryEventOfCostlyCaseA
+DeployOptCase (2.proto.DeploySyncCaseDataH RDeployOptCaseF
 ClientEventCase (2.proto.ClientEventCaseDataH RClientEventCase!
 NextPackageˇ (RNextPackageB
-Data"g
-SoldierChess
-Id (RId
-Qty (RQty
-Star (RStar!
-NextPackageˇ (RNextPackage"ë
+Data"}
+SoldierChess
+UID (RUID
+Tid (RTid
+Star (RStar
+Slot (RSlot!
+NextPackageˇ (RNextPackage"h
+SoldierChessList1
+	ChessList (2.proto.SoldierChessR	ChessList!
+NextPackageˇ (RNextPackage"æ
 SoldierTransform-
 Consume (2.proto.SoldierChessRConsume+
-Obtain (2.proto.SoldierChessRObtain!
-NextPackageˇ (RNextPackage"ô
-SoldierCard
-Id (RId*
-Type (2.proto.SoldierCardTypeRType+
-BuffIdx (2.proto.SoldierIdxRBuffIdx!
-NextPackageˇ (RNextPackage"•
-SoldierPartner
-Id (RId3
-Action (2.proto.SoldierPartnerActionRAction+
-BuffIdx (2.proto.SoldierIdxRBuffIdx!
-NextPackageˇ (RNextPackage"]
+Obtain (2.proto.SoldierChessRObtain+
+Update (2.proto.SoldierChessRUpdate!
+NextPackageˇ (RNextPackage"¥
+SoldierChessChange7
 
-SoldierIdx
-Buff (RBuff
-Effects (REffects!
-NextPackageˇ (RNextPackage"∂
+Transforms (2.proto.SoldierTransformR
+Transforms 
+BaseVersion (RBaseVersion 
+NextVersion (RNextVersion!
+NextPackageˇ (RNextPackage"‚
+SoldierBuff
+BindId (RBindId 
+EffectGroup (REffectGroup*
+Type (2.proto.SoldierBuffTypeRType0
+Action (2.proto.SoldierBuffActionRAction
+BuffIds (RBuffIds!
+NextPackageˇ (RNextPackage"ï
+SoldierBuffProgress
+BuffId (RBuffId
+Removed (RRemoved;
+Type (2'.proto.SoldierBuffProgress.ProgressTypeRType
+Cur (RCur
+Max (RMax!
+NextPackageˇ (RNextPackage"H
+ProgressType
+UnknownProgress 
+StateProgress
+CondProgress"∂
 SoldierSyncData
 Hp (RHp
 Level (RLevel
@@ -3112,7 +3605,9 @@ SoldierIdx
 Id (RId
 Star (RStar
 Price (RPrice!
-NextPackageˇ (RNextPackage"Ë
+NextPackageˇ (RNextPackage">
+SelectBossAbilityCaseData!
+NextPackageˇ (RNextPackage"Ñ
 ShopCaseData
 Level (RLevel
 Exp (RExp)
@@ -3124,30 +3619,34 @@ SoldierIdx
 DisableRefresh (RDisableRefresh(
 DisablePurchase	 (RDisablePurchase*
 PurchaseExpPrice
- (RPurchaseExpPrice!
-NextPackageˇ (RNextPackage"â
-SelectCardData*
-Type (2.proto.SoldierCardTypeRType
-Ids (RIds
-ReRoll (RReRoll!
+ (RPurchaseExpPrice
+TempFree (RTempFree!
+NextPackageˇ (RNextPackage"]
+SelectCardData
+Ids (RIds
+ReRoll (RReRoll!
 NextPackageˇ (RNextPackage"2
 FightCaseData!
 NextPackageˇ (RNextPackage"T
 SoldierBattleCaseData
 FloorId (RFloorId!
-NextPackageˇ (RNextPackage"è
+NextPackageˇ (RNextPackage"W
  EventSettlementOfDisputeCaseData
-Ids (RIds
-	DicePoint (R	DicePoint
-TwoDice (RTwoDice!
+Ids (RIds!
 NextPackageˇ (RNextPackage"Å
 &EventSettlementOfDisputeBattleCaseData
 BattleId (RBattleId
 FloorId (RFloorId!
+NextPackageˇ (RNextPackage"Q
+CheckStageCaseData
+FloorId (RFloorId!
 NextPackageˇ (RNextPackage"8
 ClientEventCaseData!
 NextPackageˇ (RNextPackage"7
 DeploySyncCaseData!
+NextPackageˇ (RNextPackage"_
+InteractSelectBossAbilityReq
+	AbilityId (R	AbilityId!
 NextPackageˇ (RNextPackage"’
 InteractShopReq
 Purchase (H RPurchase)
@@ -3168,17 +3667,17 @@ SoldierIdx
 Level (RLevel
 Exp (RExp
 RarityUp (RRarityUpB
-Result"c
-InteractFightReq,
-Deploy (2.proto.SoldierDeployRDeploy!
-NextPackageˇ (RNextPackage"◊
+Result"5
+InteractFightReq!
+NextPackageˇ (RNextPackage"˛
 InteractSoldierBattleReq
 DataLen (RDataLen
 
 ClientData (	R
 ClientData 
 DataVersion (RDataVersion,
-ChessSkillAddGold (RChessSkillAddGoldG
+ChessSkillAddGold (RChessSkillAddGold%
+Events (2.proto.EventsREventsG
 Victory (2+.proto.InteractSoldierBattleReq.VictoryDataH RVictory
 Defeat (H RDefeat!
 NextPackageˇ (RNextPackage!
@@ -3192,34 +3691,18 @@ BaseReward$
 WinningStreak (RWinningStreak"
 LosingStreak (RLosingStreak
 Interest (RInterest!
-NextPackageˇ (RNextPackage"ä
-#InteractEventSettlementOfDisputeReq
-	ThrowDice (H R	ThrowDice
-Index (H RIndex!
-NextPackageˇ (RNextPackageB
-Action"Õ
-$InteractEventSettlementOfDisputeRespQ
-Result (27.proto.InteractEventSettlementOfDisputeResp.ThrowResultH RResultR
-Reward (28.proto.InteractEventSettlementOfDisputeResp.ChooseRewardH RReward!
-NextPackageˇ (RNextPackageG
-ThrowResult
-Point (RPoint"
-TwoDicePoint (RTwoDicePointâ
-ChooseReward
-Coin (RCoin)
-Chess (2.proto.SoldierChessRChess
-
-BaseReward (R
-BaseReward
-Interest (RInterestB
-Resp"˘
+NextPackageˇ (RNextPackage"^
+#InteractEventSettlementOfDisputeReq
+Index (RIndex!
+NextPackageˇ (RNextPackage"†
 )InteractEventSettlementOfDisputeBattleReq
 DataLen (RDataLen
 
 ClientData (	R
 ClientData 
 DataVersion (RDataVersion,
-ChessSkillAddGold (RChessSkillAddGoldX
+ChessSkillAddGold (RChessSkillAddGold%
+Events (2.proto.EventsREventsX
 Victory (2<.proto.InteractEventSettlementOfDisputeBattleReq.VictoryDataH RVictory
 Defeat (H RDefeat!
 NextPackageˇ (RNextPackage!
@@ -3238,63 +3721,115 @@ BaseReward
 Index (H RIndex
 ReRoll (H RReRoll!
 NextPackageˇ (RNextPackageB
-Select"Ó
+Select"‹
 InteractSoldierSelectResp>
 Resp (2(.proto.InteractSoldierSelectResp.SuccessH RResp7
 
 SelectCard (2.proto.SelectCardDataH R
 SelectCard!
-NextPackageˇ (RNextPackage+
-Success
-Typ (RTyp
-Id (RIdB
-Result"ó
+NextPackageˇ (RNextPackage
+Success
+Id (RIdB
+Result"n
+InteractCheckStageSettleReq
+DpsId (RDpsId
+TimeId (RTimeId!
+NextPackageˇ (RNextPackage"{
+InteractCheckStageSettleResp
+DpsScore (RDpsScore
+	TimeScore (R	TimeScore!
+NextPackageˇ (RNextPackage"ó
 InteractClientEventReq
 DataLen (RDataLen
 
 ClientData (	R
 ClientData 
 DataVersion (RDataVersion!
-NextPackageˇ (RNextPackage"î
-SoldierSettleDataResp
+NextPackageˇ (RNextPackage"±
+SoldierSettleDataResp
+Result (RResult
 
-TotalScore (R
-TotalScore 
-RewardScore (RRewardScore
-Result (RResult!
-NextPackageˇ (RNextPackage"ô
-InteractDeploySyncReq,
-Deploy (2.proto.SoldierDeployRDeploy/
-DeployEx (2.proto.SoldierChessRDeployEx!
-NextPackageˇ (RNextPackage"˝
+PassedNode (R
+PassedNode 
+RemainingHp (RRemainingHp$
+CheckStageDps (RCheckStageDps&
+CheckStageTime (RCheckStageTime&
+ChessTotalCost (RChessTotalCost 
+GetSchedule (RGetSchedule"
+GetTechPoint (RGetTechPoint 
+GetGradeExp	 (RGetGradeExp0
+CurGradeChallengeId
+ (RCurGradeChallengeId 
+CurGradeExp (RCurGradeExp
+EndingId (REndingId"
+TotalCoinQty (RTotalCoinQty)
+Change (2.proto.ChangeInfoRChange!
+NextPackageˇ (RNextPackage"∆
+InteractDeploySyncReq$
+DeployVersion (RDeployVersion,
+Sync (2.proto.SyncChessActionH RSync,
+Move (2.proto.MoveChessActionH RMove!
+NextPackageˇ (RNextPackageB
+Action"4
+SyncChessAction!
+NextPackageˇ (RNextPackage"Z
+MoveChessAction
+UID (RUID
+Slot (RSlot!
+NextPackageˇ (RNextPackage"õ
+InteractDeploySyncResp&
+Succeed (2
+.proto.NilH RSucceed.
+Deploy (2.proto.SoldierDeployH RDeploy!
+NextPackageˇ (RNextPackageB
+Data"Â
+
 SoldierEffect
 Id (RId
-Tid (RTidX
+Tid (RTid
+BuffId (RBuffIdX
 LeftmostChange (2..proto.SoldierEffectLeftmostWaitingChessChangeH RLeftmostChange\
 BecomeAnother (24.proto.SoldierShopRandomChessBecomeAnotherHigherCostH RBecomeAnotherU
 PartnerAdditional (2%.proto.SoldierEffectPartnerAdditionalH RPartnerAdditionalm
 PartnerActivateAdditional	 (2-.proto.SoldierEffectPartnerActivateAdditionalH RPartnerActivateAdditionalF
 NodeTypeModify
  (2.proto.SoldierNodeTypeModifyH RNodeTypeModify@
-ClientEffect (2.proto.SoldierClientEffectH RClientEffectD
+
+ClientAttr (2.proto.SoldierClientEffectAttrH R
+ClientAttrD
 RefreshState (2.proto.SoldierShopRefreshStateH RRefreshStateG
 PurchaseState (2.proto.SoldierShopPurchaseStateH RPurchaseState;
 	FreeState (2.proto.SoldierShopFreeStateH R	FreeState2
 Rarity (2.proto.SoldierShopRarityH RRarityY
 PurchaseExpDiscount (2%.proto.SoldierShopPurchaseExpDiscountH RPurchaseExpDiscount<
-	ShowChess (2.proto.SoldierEffectAddChessH R	ShowChess!
+	ShowChess (2.proto.SoldierEffectAddChessH R	ShowChessI
+ClientHarvest (2!.proto.SoldierEffectClientHarvestH RClientHarvest:
+Interest (2.proto.SoldierEffectInterestH RInterest@
+
+CardReRoll (2.proto.SoldierEffectCardReRollH R
+CardReRollF
+DiceAddPoint (2 .proto.SoldierEffectDiceAddPointH RDiceAddPoint=
+TempFree (2.proto.SoldierShopTempFreeStateH RTempFree!
 NextPackageˇ (RNextPackageB
-Data"é
+Data"ü
 SoldierEffectInfoU
 PartnerAdditional (2%.proto.SoldierEffectPartnerAdditionalH RPartnerAdditionalm
-PartnerActivateAdditional (2-.proto.SoldierEffectPartnerActivateAdditionalH RPartnerActivateAdditionalF
+PartnerActivateAdditional (2-.proto.SoldierEffectPartnerActivateAdditionalH RPartnerActivateAdditionalI
+ClientHarvest (2!.proto.SoldierEffectClientHarvestH RClientHarvest:
+Interest (2.proto.SoldierEffectInterestH RInterest@
+
+CardReRoll (2.proto.SoldierEffectCardReRollH R
+CardReRollF
 NodeTypeModify
  (2.proto.SoldierNodeTypeModifyH RNodeTypeModify@
-ClientEffect (2.proto.SoldierClientEffectH RClientEffect!
+
+ClientAttr (2.proto.SoldierClientEffectAttrH R
+ClientAttrF
+DiceAddPoint (2 .proto.SoldierEffectDiceAddPointH RDiceAddPoint!
 NextPackageˇ (RNextPackageB
 Data"â
 'SoldierEffectLeftmostWaitingChessChange
-SId (RSId)
+UID (RUID)
 Chess (2.proto.SoldierChessRChess!
 NextPackageˇ (RNextPackage"ô
 -SoldierShopRandomChessBecomeAnotherHigherCost
@@ -3320,11 +3855,16 @@ Additional!
 ToNodeType (R
 ToNodeType 
 EventPoolId (REventPoolId!
-NextPackageˇ (RNextPackage"ö
-SoldierClientEffect2
-Status (2.proto.SoldierEffectStatusRStatus
-Eid (REid
-UseCount (RUseCount!
+NextPackageˇ (RNextPackage"º
+SoldierClientEffectAttr2
+Status (2.proto.SoldierEffectStatusRStatus2
+Source (2.proto.SoldierEffectSourceRSource
+Values (RValues!
+NextPackageˇ (RNextPackage"r
+SoldierEffectSource
+Id (RId
+Tid (RTid
+BuffId (RBuffId!
 NextPackageˇ (RNextPackage"d
 SoldierShopRefreshState&
 DisableRefresh (RDisableRefresh!
@@ -3333,6 +3873,10 @@ ToNodeType
 DisablePurchase (RDisablePurchase!
 NextPackageˇ (RNextPackage"Å
 SoldierShopFreeState2
+Status (2.proto.SoldierEffectStatusRStatus
+Free (RFree!
+NextPackageˇ (RNextPackage"Ö
+SoldierShopTempFreeState2
 Status (2.proto.SoldierEffectStatusRStatus
 Free (RFree!
 NextPackageˇ (RNextPackage"Ç
@@ -3346,12 +3890,117 @@ ToNodeType
 NextPackageˇ (RNextPackage"e
 SoldierEffectAddChess)
 Chess (2.proto.SoldierChessRChess!
-NextPackageˇ (RNextPackage*;
-SoldierCardType
-	Undefined 
-Starter
-Strategy*5
-SoldierPartnerAction
+NextPackageˇ (RNextPackage"â
+SoldierEffectClientHarvest2
+Status (2.proto.SoldierEffectStatusRStatus
+Count (RCount!
+NextPackageˇ (RNextPackage"Ñ
+SoldierEffectInterest2
+Status (2.proto.SoldierEffectStatusRStatus
+Limit (RLimit!
+NextPackageˇ (RNextPackage"Ü
+SoldierEffectCardReRoll2
+Status (2.proto.SoldierEffectStatusRStatus
+Count (RCount!
+NextPackageˇ (RNextPackage"º
+SoldierEffectDiceAddPoint2
+Status (2.proto.SoldierEffectStatusRStatus2
+Source (2.proto.SoldierEffectSourceRSource
+Point (RPoint!
+NextPackageˇ (RNextPackage"Ø
+SoldierSeasonInfo
+SeasonId (RSeasonId
+RewardLv (RRewardLv
+	RewardExp (R	RewardExp0
+CurGradeChallengeId (RCurGradeChallengeId 
+CurGradeExp (RCurGradeExp 
+CurRewardLv (RCurRewardLv+
+Newbies (2.proto.NewbieInfoRNewbies!
+NextPackageˇ (RNextPackage"t
+SoldierEventChessReward
+Tid (RTid
+Star (RStar
+Qty (RQty!
+NextPackageˇ (RNextPackage"n
+SoldierEventResRewards1
+
+ResRewards (2.proto.SoldierResR
+ResRewards!
+NextPackageˇ (RNextPackage"Å
+SoldierEventChessRewardsB
+ChessRewards (2.proto.SoldierEventChessRewardRChessRewards!
+NextPackageˇ (RNextPackage"◊
+SoldierStoryEventRewardShowC
+
+RewardType (2#.proto.SoldierEventEffectRewardTypeR
+RewardType;
+Resource (2.proto.SoldierEventResRewardsH RResource7
+Chess (2.proto.SoldierEventChessRewardsH RChess
+Hp (H RHp 
+Ids (2.proto.UI32sH RIds
+Nil (2
+.proto.NilH RNil!
+NextPackageˇ (RNextPackageB
+Data"ƒ
+SoldierStoryEventOption0
+PersonalityOptionId (RPersonalityOptionId<
+Rewards (2".proto.SoldierStoryEventRewardShowRRewards
+Select (RSelect!
+NextPackageˇ (RNextPackage"w
+SoldierStoryEventOptions8
+Options (2.proto.SoldierStoryEventOptionROptions!
+NextPackageˇ (RNextPackage"¶
+&SoldierStoryEventOfPersonalityCaseData.
+PersonalityStoryId (RPersonalityStoryId9
+Options (2.proto.SoldierStoryEventOptionsROptions
+Index (RIndex
+	DicePoint (R	DicePoint
+TwoDice (RTwoDice 
+PreOptionId (RPreOptionId!
+NextPackageˇ (RNextPackage"”
+!SoldierStoryEventOfCostlyCaseData.
+PersonalityStoryId (RPersonalityStoryId9
+Options (2.proto.SoldierStoryEventOptionsROptions 
+PreOptionId (RPreOptionId!
+NextPackageˇ (RNextPackage"è
+(InteractStoryEventOfPersonalitySelectReq
+Index (H RIndex
+	ThrowDice (H R	ThrowDice!
+NextPackageˇ (RNextPackageB
+Select"¸
+)InteractStoryEventOfPersonalitySelectResp&
+Success (2
+.proto.NilH RSuccessW
+Reward (2=.proto.InteractStoryEventOfPersonalitySelectResp.OptionRewardH RReward!
+NextPackageˇ (RNextPackage†
+OptionReward
+Point (RPoint
+Result (RResult>
+Rewards (2$.proto.SoldierStoryEventEffectRewardRRewards"
+TwoDicePoint (RTwoDicePointB
+Result"â
+$InteractStoryEventOfCostlySelectResp>
+Rewards (2$.proto.SoldierStoryEventEffectRewardRRewards!
+NextPackageˇ (RNextPackage"≤
+SoldierStoryEventEffectRewardC
+
+RewardType (2#.proto.SoldierEventEffectRewardTypeR
+RewardType
+Hp (H RHp1
+Res (2.proto.SoldierEventResRewardsH RRes7
+	ChessList (2.proto.SoldierChessListH R	ChessList(
+CardIds (2.proto.UI32sH RCardIds4
+CardEffectIds (2.proto.UI32sH RCardEffectIdsC
+NextOptions (2.proto.SoldierStoryEventOptionsH RNextOptions!
+NextPackageˇ (RNextPackageB
+Data*d
+SoldierBuffType
+UnknownBuff 
+CardBuff
+PartnerBuff
+TechNodeBuff
+AbilityBuff*2
+SoldierBuffAction
 Sync 
 Add
 
@@ -3359,9 +4008,19 @@ ToNodeType
 SoldierEffectStatus
 InActive 
 
-ActiveP bproto3
-˛
-notify.protoprotopublic.protopublic_mining.protopublic_star_tower.protopublic_soldier.proto"?
+Active*Ç
+SoldierEventEffectRewardType
+Next 
+GainCoin
+LossCoin	
+Chess
+Hp
+Card
+
+CardEffect
+LoseAllCoinP bproto3
+π
+notify.protoprotopublic_mining.protopublic_soldier.protopublic_star_tower.protopublic.protopublic_dorm.proto"?
 NewAgent
 Ids (RIds!
 NextPackageˇ (RNextPackage"ê
@@ -3439,14 +4098,15 @@ SkinChange
 ActivityId (R
 ActivityId
 CharId (RCharId!
-NextPackageˇ (RNextPackage"Ä
+NextPackageˇ (RNextPackage"¶
 ActivityDoubleRewardTimesNotify
 
 ActivityId (R
 ActivityId
-UseTimes (RUseTimes!
-NextPackageˇ (RNextPackageP PPPbproto3
-ƒ
+UseTimes (RUseTimes$
+ReturneeTimes (RReturneeTimes!
+NextPackageˇ (RNextPackageP PPPPbproto3
+æ
 notify_gm.protoprotopublic.protopublic_star_tower.protopublic_soldier.proto"£
 GmWorldClass
 
@@ -3548,6 +4208,12 @@ AgentInfos&
 NextPackageˇ (RNextPackage"Å
 &GmClearAllActivityIceCreamLevelsNotify4
 levels (2.proto.ActivityIceCreamLevelRlevels!
+NextPackageˇ (RNextPackage"á
+)GmClearAllActivityMathParkourLevelsNotify7
+levels (2.proto.ActivityMathParkourLevelRlevels!
+NextPackageˇ (RNextPackage"n
+GmHandbookCompleteNotify/
+Handbook (2.proto.HandbookInfoRHandbook!
 NextPackageˇ (RNextPackageP bproto3
 ª
 npc_affinity_book_get.protoprotopublic.proto"}
@@ -3586,8 +4252,8 @@ AgentInfos&
 PlayerCharsShowReq
 CharIds (RCharIds!
 NextPackageˇ (RNextPackageP bproto3
-®
-player_data.protoprotopublic.proto"œ
+Ï
+player_data.protoprotopublic.protopublic_dorm.proto"º
 
 PlayerInfo 
 Acc (2.proto.AccInfoRAcc
@@ -3637,7 +4303,9 @@ Activities&
 WeeklyActiveIds& (RWeeklyActiveIds+
 Assists' (2.proto.AssistInfoRAssists4
 DailyMallRewardStatus( (RDailyMallRewardStatus<
-ActivityHonors) (2.proto.ActivityHonorRActivityHonors6
+ActivityHonors) (2.proto.ActivityHonorRActivityHonors"
+Dorm* (2.proto.DormHotRDormG
+ActivityReturnees (2.proto.ActivityReturneeInfoRActivityReturnee6
 TowerTicketGrowthBonust (RTowerTicketGrowthBonus+
 LastReadu (2.proto.LastReadRLastRead8
 
@@ -3681,7 +4349,14 @@ EnergyInfo%
 AssistInfo
 	Attribute (R	Attribute
 Group (RGroup!
-NextPackageˇ (RNextPackageP bproto3
+NextPackageˇ (RNextPackage"ø
+ActivityReturneeInfo
+Id (RId
+OpenTime (ROpenTime 
+DoubleCount (RDoubleCount$
+ReunionReward (RReunionReward
+Avg (RAvg!
+NextPackageˇ (RNextPackageP Pbproto3
 á
 player_destroy.protoprotopublic.proto"P
 PlayerDestroy
@@ -3877,6 +4552,13 @@ CheckInIds
 NextPackageˇ (RNextPackageP bproto3
 A
  quest_daily_reward_recevie.protoprotopublic.protoP bproto3
+Ë
+quest_dorm_reward_recevie.protoprotopublic.proto"•
+ QuestDormRewardReceiveSucceedAck2
+change_info (2.proto.ChangeInfoR
+changeInfo*
+	TaskGroup (2.proto.UI32VR	TaskGroup!
+NextPackageˇ (RNextPackageP bproto3
 €
 %quest_tour_guide_reward_receive.protoprotopublic.proto"í
 TourGuideQuestRewardResp(
@@ -3905,11 +4587,11 @@ B
 Items (2.proto.ItemTplRItems)
 Change (2.proto.ChangeInfoRChange!
 NextPackageˇ (RNextPackageP bproto3
-¶
-region_boss_level_apply.protoprotopublic.proto"f
+≥
+region_boss_level_apply.protoprotopublic.proto"s
 RegionBossLevelApplyReq
-Id (RId
-BuildId (RBuildId!
+Id (RId%
+Build (2.proto.UseBuildRBuild!
 NextPackageˇ (RNextPackageP bproto3
 Î
 region_boss_level_settle.protoprotopublic.proto"x
@@ -4059,11 +4741,11 @@ $score_boss_star_reward_receive.protoprotopublic.proto"V
 ScoreBossStarRewardReceiveReq
 Star (RStar!
 NextPackageˇ (RNextPackageP bproto3
-°
-skill_instance_apply.protoprotopublic.proto"d
+Æ
+skill_instance_apply.protoprotopublic.proto"q
 SkillInstanceApplyReq
-Id (RId
-BuildId (RBuildId!
+Id (RId%
+Build (2.proto.UseBuildRBuild!
 NextPackageˇ (RNextPackageP bproto3
 ‰
 skill_instance_settle.protoprotopublic.proto"v
@@ -4104,29 +4786,38 @@ AwardItems
 Exp (RExp0
 DoubleItems (2.proto.ItemTplRDoubleItems!
 NextPackageˇ (RNextPackageP bproto3
-Ô
+ö
 soldier_apply.protoprotopublic.protopublic_soldier.proto"|
 SoldierApplyReq
 SeasonId (RSeasonId*
 GradeChallengeId (RGradeChallengeId!
-NextPackageˇ (RNextPackage"¢
+NextPackageˇ (RNextPackage"Õ
 SoldierApplyResp&
 Info (2.proto.SoldierInfoRInfo)
 Chess (2.proto.SoldierChessRChess
-CoinQty (RCoinQty!
+CoinQty (RCoinQty)
+Change (2.proto.ChangeInfoRChange!
 NextPackageˇ (RNextPackageP Pbproto3
-»
-soldier_give_up.protoprotopublic.protopublic_soldier.proto"x
-SoldierGiveUpResp
-
-TotalScore (R
-TotalScore 
-RewardScore (RRewardScore!
-NextPackageˇ (RNextPackageP Pbproto3
+E
+$soldier_battle_report_favorite.protoprotopublic.protoP bproto3
+∆
+)soldier_battle_report_favorite_list.protoprotopublic.proto"z
+SoldierBattleReportFavoriteList4
+Reports (2.proto.SoldierBattleReportRReports!
+NextPackageˇ (RNextPackageP bproto3
+¬
+'soldier_battle_report_recent_list.protoprotopublic.proto"x
+SoldierBattleReportRecentList4
+Reports (2.proto.SoldierBattleReportRReports!
+NextPackageˇ (RNextPackageP bproto3
+G
+&soldier_battle_report_unfavorite.protoprotopublic.protoP bproto3
+N
+soldier_give_up.protoprotopublic.protopublic_soldier.protoP Pbproto3
 K
 soldier_info.protoprotopublic.protopublic_soldier.protoP Pbproto3
-‰
-soldier_interact.protoprotopublic.protopublic_soldier.proto"¿
+Û
+soldier_interact.protoprotopublic.protopublic_soldier.proto"Ú
 SoldierInteractReq
 Id (RId2
 ShopReq (2.proto.InteractShopReqH RShopReq5
@@ -4134,18 +4825,24 @@ K
 	BattleReq (2.proto.InteractSoldierBattleReqH R	BattleReq?
 	SelectReq (2.proto.InteractSoldierSelectReqH R	SelectReqn
 EventSettlementOfDisputeReq (2*.proto.InteractEventSettlementOfDisputeReqH REventSettlementOfDisputeReqÄ
-!EventSettlementOfDisputeBattleReq (20.proto.InteractEventSettlementOfDisputeBattleReqH R!EventSettlementOfDisputeBattleReqD
+!EventSettlementOfDisputeBattleReq (20.proto.InteractEventSettlementOfDisputeBattleReqH R!EventSettlementOfDisputeBattleReqY
+SelectBossAbilityReq (2#.proto.InteractSelectBossAbilityReqH RSelectBossAbilityReqV
+CheckStageSettleReq	 (2".proto.InteractCheckStageSettleReqH RCheckStageSettleReq}
+ StoryEventOfPersonalitySelectReq
+ (2/.proto.InteractStoryEventOfPersonalitySelectReqH R StoryEventOfPersonalitySelectReqD
 DeploySyncReq (2.proto.InteractDeploySyncReqH RDeploySyncReqG
 ClientEventReq (2.proto.InteractClientEventReqH RClientEventReq!
 NextPackageˇ (RNextPackageB
-Action"œ
+Action"¨	
 SoldierInteractResp
 Id (RId(
 Cases (2.proto.SoldierCaseRCases)
 Change (2.proto.ChangeInfoRChange*
 Node (2.proto.SoldierNodeDataRNode2
 SyncData (2.proto.SoldierSyncDataRSyncData.
-Effects (2.proto.SoldierEffectREffects5
+Effects (2.proto.SoldierEffectREffects4
+Settle (2.proto.SoldierSettleDataRespRSettle6
+Progress (2.proto.SoldierBuffProgressRProgress5
 ShopResp (2.proto.InteractShopRespH RShopRespB
 
 BattleResp	 (2 .proto.InteractSoldierBattleRespH R
@@ -4153,25 +4850,44 @@ BattleRespB
 
 SelectResp
  (2 .proto.InteractSoldierSelectRespH R
-SelectRespq
-EventSettlementOfDisputeResp (2+.proto.InteractEventSettlementOfDisputeRespH REventSettlementOfDisputeRespÉ
-"EventSettlementOfDisputeBattleResp (21.proto.InteractEventSettlementOfDisputeBattleRespH R"EventSettlementOfDisputeBattleResp&
-NilResp (2
-.proto.NilH RNilResp6
-Settle (2.proto.SoldierSettleDataRespH RSettle!
+SelectRespÉ
+"EventSettlementOfDisputeBattleResp (21.proto.InteractEventSettlementOfDisputeBattleRespH R"EventSettlementOfDisputeBattleRespY
+CheckStageSettleResp (2#.proto.InteractCheckStageSettleRespH RCheckStageSettleRespG
+DeploySyncResp (2.proto.InteractDeploySyncRespH RDeploySyncRespÄ
+!StoryEventOfPersonalitySelectResp (20.proto.InteractStoryEventOfPersonalitySelectRespH R!StoryEventOfPersonalitySelectResp&
+NilResp (2
+.proto.NilH RNilRespq
+StoryEventOfCostlySelectResp (2+.proto.InteractStoryEventOfCostlySelectRespH RStoryEventOfCostlySelectResp!
 NextPackageˇ (RNextPackageB
 ActionP Pbproto3
+¥
+soldier_learn.protoprotopublic.proto"~
+SoldierLearnReq
+Season (RSeason
+GroupId (RGroupId
+StepId (RStepId!
+NextPackageˇ (RNextPackageP bproto3
 °
 soldier_partner_trace.protoproto"s
 SoldierPartnerTraceReq 
 PartnerType (RPartnerType
 Trace (RTrace!
 NextPackageˇ (RNextPackagebproto3
-•
-soldier_step_out.protoprotopublic_soldier.proto"d
-SoldierStepOutReq,
-Deploy (2.proto.SoldierDeployRDeploy!
+R
+soldier_season_info.protoprotopublic.protopublic_soldier.protoP Pbproto3
+Å
+#soldier_season_reward_receive.protoprotopublic.proto"∫
+SoldierSeasonRewardReceiveResp(
+Rewards (2.proto.ItemTplRRewards)
+Change (2.proto.ChangeInfoRChange 
+CurRewardLv (RCurRewardLv!
 NextPackageˇ (RNextPackageP bproto3
+?
+soldier_step_out.protoprotopublic_soldier.protoP bproto3
+>
+soldier_technology_info.protoprotopublic.protoP bproto3
+E
+$soldier_technology_node_unlock.protoprotopublic.protoP bproto3
 Ÿ
 star_tower_apply.protoprotopublic.protopublic_star_tower.proto"Ç
 StarTowerApplyReq
@@ -4258,6 +4974,28 @@ Potentials
 BuildId (RBuildId
 Name (	RName!
 NextPackageˇ (RNextPackageP bproto3
+ä
+"star_tower_build_note_modify.protoprotopublic.protopublic_star_tower.proto"ã
+StarTowerBuildNoteModifyReq
+BuildId (RBuildId/
+
+NoteChange (2.proto.ItemTplsR
+NoteChange!
+NextPackageˇ (RNextPackage"õ
+StarTowerBuildNoteModifyResp)
+Change (2.proto.ChangeInfoRChange-
+Info (2.proto.StarTowerBuildInfoRInfo!
+NextPackageˇ (RNextPackageP Pbproto3
+£
+'star_tower_build_potential_modify.protoprotopublic.protopublic_star_tower.proto"ö
+ StarTowerBuildPotentialModifyReq
+BuildId (RBuildId9
+PotentialChange (2.proto.ItemTplsRPotentialChange!
+NextPackageˇ (RNextPackage"†
+!StarTowerBuildPotentialModifyResp)
+Change (2.proto.ChangeInfoRChange-
+Info (2.proto.StarTowerBuildInfoRInfo!
+NextPackageˇ (RNextPackageP Pbproto3
 Ÿ
 %star_tower_build_preference_set.protoprotopublic_star_tower.proto"Ö
 StarTowerBuildPreferenceSetReq
@@ -4323,11 +5061,11 @@ SelectResp\
 .proto.NilH RNilResp!
 NextPackageˇ (RNextPackageB
 ActionP bproto3
-í
-story_apply.protoprotopublic.proto"^
+ü
+story_apply.protoprotopublic.proto"k
 StoryApplyReq
-Idx (RIdx
-BuildId (RBuildId!
+Idx (RIdx%
+Build (2.proto.UseBuildRBuild!
 NextPackageˇ (RNextPackageP bproto3
 ª
 story_set_info.protoprotopublic.proto"i
@@ -4419,12 +5157,40 @@ ChangeInfo!
 NextPackageˇ (RNextPackageP bproto3
 ?
 tower_growth_node_unlock.protoprotopublic.protoP bproto3
-Ü
-trace_hunt_apply.protoprotopublic.proto"Ã
+º
+tower_vita_energy_buy.protoprotopublic.proto"~
+TowerVitaEnergyBuyResp)
+Change (2.proto.ChangeInfoRChange
+Energy (REnergy!
+NextPackageˇ (RNextPackageP bproto3
+…
+tower_vita_project_list.protoprotopublic.proto"à
+TowerVitaProjectListResp3
+Projects (2.proto.TowerVitaProjectRProjects
+UseId (RUseId!
+NextPackageˇ (RNextPackageP bproto3
+≠
+$tower_vita_project_name_update.protoprotopublic.proto"f
+TowerVitaProjectNameUpdateRep
+Id (RId
+Name (	RName!
+NextPackageˇ (RNextPackageP bproto3
+ä
+tower_vita_project_set.protoprotopublic.proto"K
+TowerVitaProjectSetRep
+Id (RId!
+NextPackageˇ (RNextPackageP bproto3
+µ
+tower_vita_project_update.protoprotopublic.proto"s
+TowerVitaProjectUpdateRep3
+Projects (2.proto.TowerVitaProjectRProjects!
+NextPackageˇ (RNextPackageP bproto3
+ì
+trace_hunt_apply.protoprotopublic.proto"Ÿ
 TraceHuntApplyReq
 OwnerUID (ROwnerUID
-BossID (RBossID
-BuildID (RBuildID&
+BossID (RBossID%
+Build (2.proto.UseBuildRBuild&
 BossCreateTime (RBossCreateTime
 
 Difficulty (R
@@ -4439,8 +5205,8 @@ $trace_hunt_boss_reward_receive.protoprotopublic.proto"û
 ChangeInfo (2.proto.ChangeInfoR
 ChangeInfo!
 NextPackageˇ (RNextPackageP bproto3
-Ø
-trace_hunt_info.protoprotopublic.proto"ˆ
+º
+trace_hunt_info.protoprotopublic.proto"É
 TraceHuntInfo
 	ControlID (R	ControlID
 Level (RLevel
@@ -4449,8 +5215,8 @@ ChangeInfo!
 TraceProgress (RTraceProgress"
 HuntProgress (RHuntProgress&
 BossCreateTime (RBossCreateTime$
-SelfHuntTimes (RSelfHuntTimes
-BuildID	 (RBuildIDH
+SelfHuntTimes (RSelfHuntTimes%
+Build	 (2.proto.UseBuildRBuildH
 BossCollections
  (2.proto.TraceHuntBossCollectionRBossCollections4
 TraceLog (2.proto.TraceHuntLogEntryRTraceLog2
@@ -4588,11 +5354,11 @@ D
 #tutorial_level_reward_receive.protoprotopublic.protoP bproto3
 <
 tutorial_level_settle.protoprotopublic.protoP bproto3
-ï
-vampire_survivor_apply.protoprotopublic.proto"h
+¢
+vampire_survivor_apply.protoprotopublic.proto"u
 VampireSurvivorApplyReq
-Id (RId
-BuildIds (RBuildIds!
+Id (RId'
+Builds (2.proto.UseBuildRBuilds!
 NextPackageˇ (RNextPackage"Î
 VampireSurvivorApplyResp3
 Events (2.proto.VampireSurvivorEventREvents<
@@ -4631,7 +5397,7 @@ ExtraCardsB
 ResultP bproto3
 c
 *vampire_survivor_extra_reward_select.protoproto$vampire_survivor_reward_select.protoP bproto3
-™
+∑
 vampire_survivor_info.protoprotopublic.proto"…
 VampireSurvivorInfoResp
 Id (RId3
@@ -4642,10 +5408,10 @@ c
 
 ClientData (2.proto.VampireClientDataR
 ClientData!
-NextPackageˇ (RNextPackage"ü
+NextPackageˇ (RNextPackage"¨
 VampireSceneInfo
-	SceneType (R	SceneType
-BuildId (RBuildId
+	SceneType (R	SceneType%
+Build (2.proto.UseBuildRBuild
 	KillCount (R	KillCount
 Time (RTime!
 NextPackageˇ (RNextPackageP bproto3
@@ -4717,11 +5483,11 @@ FinalScore
 vampire_talent_show.protoprotopublic.protoP bproto3
 <
 vampire_talent_unlock.protoprotopublic.protoP bproto3
-ó
-week_boss_apply.protoprotopublic.proto"_
+§
+week_boss_apply.protoprotopublic.proto"l
 WeekBossApplyReq
-Id (RId
-BuildId (RBuildId!
+Id (RId%
+Build (2.proto.UseBuildRBuild!
 NextPackageˇ (RNextPackageP bproto3
 £
 week_boss_settle.protoprotopublic.proto"â

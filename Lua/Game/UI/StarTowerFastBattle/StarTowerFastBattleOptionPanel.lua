@@ -18,6 +18,7 @@ function StarTowerFastBattleOptionPanel:Awake()
     self.nDiscount = tbParams[6]
     self.bFirstFree = tbParams[7]
     self.bLastFloor = tbParams[8]
+    self.bAutoDisplay = tbParams[9] == true
   end
 end
 

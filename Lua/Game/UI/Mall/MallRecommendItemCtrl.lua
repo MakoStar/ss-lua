@@ -188,9 +188,15 @@ function MallRecommendItemCtrl:OnBtnClick_Package(btn)
   if mapData == nil then
     return
   end
-  EventManager.Hit(EventId.OpenPanel, PanelId.MallPopup, AllEnum.MallToggle.Package, mapData, {
-    AllEnum.CoinItemId.FREESTONE
-  })
+  if mapCfg.Tag == GameEnum.MallItemType.Furniture then
+    EventManager.Hit(EventId.OpenPanel, PanelId.MallPopup, AllEnum.MallToggle.Furniture, mapData, {
+      AllEnum.CoinItemId.Furniture
+    })
+  else
+    EventManager.Hit(EventId.OpenPanel, PanelId.MallPopup, AllEnum.MallToggle.Package, mapData, {
+      AllEnum.CoinItemId.FREESTONE
+    })
+  end
 end
 
 return MallRecommendItemCtrl

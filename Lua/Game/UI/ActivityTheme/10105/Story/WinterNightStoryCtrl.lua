@@ -1,7 +1,6 @@
 local BaseCtrl = require("GameCore.UI.BaseCtrl")
 local LocalData = require("GameCore.Data.LocalData")
 local WinterNightStoryCtrl = class("WinterNightStoryCtrl", BaseCtrl)
-local ActivityAvgData = PlayerData.ActivityAvg
 WinterNightStoryCtrl._mapNodeConfig = {
   svStory = {
     sComponentName = "LoopScrollView"
@@ -49,7 +48,9 @@ function WinterNightStoryCtrl:Awake()
   local param = self:GetPanelParam()
   if type(param) == "table" then
     self.nActId = param[1]
+    self.bReview = param[2] == true
   end
+  self.storyData = self.bReview and PlayerData.StoryReview or PlayerData.ActivityAvg
   self.storyNodePos = {0, -66.1}
   self.tbGridTimer = {}
   self.nScrollTime = 0.5
@@ -68,11 +69,11 @@ function WinterNightStoryCtrl:RefreshPanel()
 end
 
 function WinterNightStoryCtrl:RefreshStoryList()
-  self.tbAllStory, self.nChapterId = ActivityAvgData:GetStoryIdListByActivityId(self.nActId)
+  self.tbAllStory, self.nChapterId = self.storyData:GetStoryIdListByActivityId(self.nActId)
   if self.tbAllStory == nil or #self.tbAllStory <= 0 then
     return
   end
-  local recentStoryId = PlayerData.ActivityAvg:GetRecentStoryId(self.nChapterId)
+  local recentStoryId = self.storyData:GetRecentStoryId(self.nChapterId)
   local recentIndex = 1
   for i = 1, #self.tbAllStory do
     if self.tbAllStory[i] == recentStoryId then
@@ -120,9 +121,9 @@ function WinterNightStoryCtrl:OnRefreshGrid(grid, index)
     local child = grpRock:GetChild(i - 1)
     child.gameObject:SetActive(i == rocketIndex)
   end
-  local isUnlock, tbResult = PlayerData.ActivityAvg:IsUnlock(avgcfg.ConditionId)
-  local isReaded = PlayerData.ActivityAvg:IsStoryReaded(storyId)
-  local bOpen, nOpenTime = PlayerData.ActivityAvg:IsOpen(avgcfg.StoryId)
+  local isUnlock, tbResult = self.storyData:IsUnlock(avgcfg.ConditionId)
+  local isReaded = self.storyData:IsStoryReaded(storyId)
+  local bOpen, nOpenTime = self.storyData:IsOpen(avgcfg.StoryId)
   local nIndex = 0
   if isUnlock then
     nIndex = avgcfg.IsBattle and 2 or 1
@@ -162,12 +163,16 @@ function WinterNightStoryCtrl:OnRefreshGrid(grid, index)
     end, true, true, true)
     NovaAPI.SetTMPText(txtTime, strTime)
   end
-  local bInActGroup, nActGroupId = PlayerData.Activity:IsActivityInActivityGroup(self.nActId)
-  RedDotManager.RegisterNode(RedDotDefine.Activity_GroupNew_Avg_Group, {
-    nActGroupId,
-    self.nActId,
-    avgcfg.Id
-  }, RedDot, nil, nil, true)
+  if self.bReview then
+    RedDot:SetActive(false)
+  else
+    local bInActGroup, nActGroupId = PlayerData.Activity:IsActivityInActivityGroup(self.nActId)
+    RedDotManager.RegisterNode(RedDotDefine.Activity_GroupNew_Avg_Group, {
+      nActGroupId,
+      self.nActId,
+      avgcfg.Id
+    }, RedDot, nil, nil, true)
+  end
   
   local function clickFuc()
     if not bOpen or self.bCantClick then
@@ -177,10 +182,10 @@ function WinterNightStoryCtrl:OnRefreshGrid(grid, index)
       local bNew = not isReaded
       self.avgId = avgcfg.StoryId
       self._mapNode.ctlAvgRoot.gameObject:SetActive(true)
-      self._mapNode.ctlAvgRoot:OpenLevelInfo(avgcfg.StoryId, self.nActId, bNew)
+      self._mapNode.ctlAvgRoot:OpenLevelInfo(avgcfg.StoryId, self.nActId, bNew, self.bReview)
       self.curIndex = gridIndex
-      LocalData.SetPlayerLocalData("Act_Story_New" .. self.nActId .. avgcfg.Id, true)
-      PlayerData.ActivityAvg:RefreshAvgRedDot()
+      LocalData.SetPlayerLocalData(self.storyData:_GetLocalReadKey(self.nActId, avgcfg.Id), true)
+      self.storyData:RefreshAvgRedDot()
     elseif tbResult ~= nil then
       local lockTxt = ""
       for i = 1, #tbResult do
@@ -205,7 +210,7 @@ function WinterNightStoryCtrl:OnRefreshGrid(grid, index)
               for k, v in pairs(tbStoryIds) do
                 if v == false then
                   local storyData = ConfigTable.GetData("ActivityStory", k)
-                  if ActivityAvgData:IsUnlock(storyData.ConditionId) then
+                  if self.storyData:IsUnlock(storyData.ConditionId) then
                     lockTxt = orderedFormat(ConfigTable.GetUIText("Story_UnlockPreId") or "", storyData.Title)
                     break
                   end
@@ -300,6 +305,7 @@ function WinterNightStoryCtrl:OnBtn_ClickCloseLevelInfoPanel()
   self._mapNode.t_fullscreen_blur_black:SetActive(false)
   self._mapNode.ctlAvgRoot.gameObject:SetActive(false)
   self._mapNode.goChapterComplete:SetActive(false)
+  EventManager.Hit("ActivityStoryReceive_SetVisible", true)
 end
 
 function WinterNightStoryCtrl:OnEvent_Story_Done(bHasReward)
@@ -311,7 +317,7 @@ end
 
 function WinterNightStoryCtrl:OnEvent_SelectMainlineBattle(bConfirm)
   local function OpenPanel()
-    EventManager.Hit(EventId.OpenPanel, PanelId.RegionBossFormation, AllEnum.RegionBossFormationType.ActivityStory, 0, self.avgId, self.nActId)
+    EventManager.Hit(EventId.OpenPanel, PanelId.RegionBossFormation, AllEnum.RegionBossFormationType.ActivityStory, 0, self.avgId, self.nActId, self.bReview)
   end
   
   if bConfirm then
@@ -323,11 +329,13 @@ function WinterNightStoryCtrl:OnEvent_Activity_Story_RewardClosed()
   self.bCantClick = false
   if self.curIndex == #self.tbAllStory then
     self._mapNode.goChapterComplete:SetActive(true)
+    EventManager.Hit("ActivityStoryReceive_SetVisible", false)
   end
 end
 
 function WinterNightStoryCtrl:OnBtn_ClickCloseCompete()
   self._mapNode.goChapterComplete:SetActive(false)
+  EventManager.Hit("ActivityStoryReceive_SetVisible", true)
 end
 
 return WinterNightStoryCtrl

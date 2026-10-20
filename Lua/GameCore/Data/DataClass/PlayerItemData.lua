@@ -939,6 +939,14 @@ function PlayerItemData:ProcessRewardChangeInfo(mapChangeInfo)
         end
       end
     end
+    if type(mapDecodeInfo["proto.DormItem"]) == "table" then
+      for _, mapData in ipairs(mapDecodeInfo["proto.DormItem"]) do
+        local itemInfo = ConfigTable.GetData_Item(mapData.Tid)
+        if itemInfo then
+          add_reward(mapData.Tid, mapData.Qty)
+        end
+      end
+    end
     for nId, nCount in pairs(tbRewardById) do
       if nCount <= 0 then
         tbRewardById[nId] = nil

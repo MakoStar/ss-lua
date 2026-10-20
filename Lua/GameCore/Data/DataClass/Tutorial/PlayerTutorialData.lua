@@ -9,10 +9,12 @@ function PlayerTutorialData:Init()
 end
 
 function PlayerTutorialData:CacheTutorialData(levelsData)
+  self.tbLevelData = {}
+  self.LevelIdList = {}
+  
   local function forEachTableFunc(config)
     self:UpdateLevel({
       nlevelId = config.Id,
-      
       LevelStatus = AllEnum.ActQuestStatus.UnComplete
     })
     table.insert(self.LevelIdList, config.Id)

@@ -113,9 +113,13 @@ function PlayerDailyInstanceData:CacheDailyInstanceLevel(tbData)
     local t2 = mapData.Star & b2 > 0
     local t3 = mapData.Star & b3 > 0
     local nStar = self.CalStar(mapData.Star)
+    local nBuildId = 0
+    if mapData.Build ~= nil then
+      nBuildId = mapData.Build.BuildId or 0
+    end
     self.mapAllLevel[mapData.Id] = {
       nStar = nStar,
-      nBuildId = mapData.BuildId,
+      nBuildId = nBuildId,
       tbTarget = {
         t1,
         t2,
@@ -187,9 +191,12 @@ function PlayerDailyInstanceData:GetDailyInstanceStar(nLevelId)
 end
 
 function PlayerDailyInstanceData:MsgEnterDailyInstance(nLevelId, nBuildId, callback)
+  local mapBuildData = PlayerData.Build:GetBuildData(nBuildId)
+  local bTrial = mapBuildData.nBuildSource == AllEnum.BuildSource.Trial or mapBuildData.nBuildSource == AllEnum.BuildSource.LimitedTrial
+  local nBuildType = bTrial and 2 or 1
   local msg = {}
   msg.Id = nLevelId
-  msg.BuildId = nBuildId
+  msg.Build = {Type = nBuildType, BuildId = nBuildId}
   msg.RewardType = self.lastRewardType
   self._EntryTime = CS.ClientManager.Instance.serverTimeStampWithTimeZone
   

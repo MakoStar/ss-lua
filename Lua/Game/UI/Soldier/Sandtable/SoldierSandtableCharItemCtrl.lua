@@ -46,7 +46,8 @@ SoldierSandtableCharItemCtrl._mapEventConfig = {
   SoldierSandtableCharItemDragging = "OnSoldierSandtableCharItemDragging",
   SoldierSandtableCharItemDragEnd = "OnSoldierSandtableCharItemDragEnd",
   SoldierExtraPartnerTagChange = "OnSoldierExtraPartnerTagChange",
-  SoldierChessCanPutIn = "OneEvent_SoldierChessCanPutIn"
+  SoldierChessCanPutIn = "OneEvent_SoldierChessCanPutIn",
+  Guide_505_EnableDrag = "OneEvent_Guide_505_EnableDrag"
 }
 SoldierSandtableCharItemCtrl._mapRedDotConfig = {}
 
@@ -54,6 +55,7 @@ function SoldierSandtableCharItemCtrl:Awake()
   self.chessData = nil
   self.itemCtrl = nil
   self.animRoot = self._mapNode.AnimRoot:GetComponent("Animator")
+  self.isDragSuccess = false
 end
 
 function SoldierSandtableCharItemCtrl:OnDisable()
@@ -70,6 +72,9 @@ function SoldierSandtableCharItemCtrl:SetData(chessData)
   self._mapNode.ImgPutLightADD.gameObject:SetActive(false)
   if self.chessData == nil or self.chessData.nId == 0 then
     self._mapNode.HaveStatus.gameObject:SetActive(false)
+    if self.itemCtrl ~= nil and self.itemCtrl.SetItemData ~= nil then
+      self.itemCtrl:SetItemData(nil)
+    end
   else
     if self.itemCtrl == nil then
       if chessData.nPositionType == GameEnum.SoldierPositionType.FightPosition or chessData.nPositionType == GameEnum.SoldierPositionType.SupportPosition then
@@ -80,7 +85,7 @@ function SoldierSandtableCharItemCtrl:SetData(chessData)
     end
     self._mapNode.HaveStatus.gameObject:SetActive(true)
     if chessData.nPositionType == GameEnum.SoldierPositionType.FightPosition or chessData.nPositionType == GameEnum.SoldierPositionType.SupportPosition then
-      self.itemCtrl:SetItemData(self.chessData.nId)
+      self.itemCtrl:SetItemData(self.chessData.nId, self.chessData.nUid)
     else
       self.itemCtrl:SetItemData(self.chessData.nId, true)
     end
@@ -94,8 +99,9 @@ function SoldierSandtableCharItemCtrl:SetData(chessData)
     else
     end
   end
-  self.itemCanvas = self.gameObject:GetComponent("Canvas")
-  NovaAPI.SetCanvasOverrideSorting(self.itemCanvas, false)
+  if self.itemCanvas == nil then
+    self.itemCanvas = self.gameObject:GetComponent("Canvas")
+  end
   self._mapNode.rayDragEvent.gameObject:SetActive(false)
 end
 
@@ -111,6 +117,12 @@ function SoldierSandtableCharItemCtrl:SetPositionIndex(nIndex)
   local cfg = ConfigTable.GetData("SoldierPositionEffect", nCfgId)
   if cfg then
     self:SetPngSprite(img_pos, iconPath2 .. cfg.Icon)
+    local bShowPos = false
+    local nTechNodeId = cfg.TechNodeId
+    if 0 < nTechNodeId then
+      bShowPos = PlayerData.SoldierData:CheckTechNodeActiveById(nTechNodeId)
+    end
+    btn_pos.gameObject:SetActive(bShowPos)
   end
   btn_pos.onClick:RemoveAllListeners()
   btn_pos.onClick:AddListener(function()
@@ -129,6 +141,11 @@ end
 
 function SoldierSandtableCharItemCtrl:InitSortingOrder(nSortOrder)
   self.nInitSortingOrder = nSortOrder
+  if self.itemCanvas == nil then
+    self.itemCanvas = self.gameObject:GetComponent("Canvas")
+  end
+  NovaAPI.SetCanvasSortingOrder(self.itemCanvas, self.nInitSortingOrder)
+  NovaAPI.SetCanvasOverrideSorting(self.itemCanvas, false)
 end
 
 function SoldierSandtableCharItemCtrl:CheckLimitAction()
@@ -147,6 +164,9 @@ function SoldierSandtableCharItemCtrl:SetAnimator(nAnimType)
 end
 
 function SoldierSandtableCharItemCtrl:OnUIDrag_Drag(mDrag)
+  if PlayerData.Guide:CheckInGuideGroup(505) and self.isDragSuccess == false and (self.chessData.nPositionType ~= AllEnum.SoldierPositionType.Waiting or self.chessData.nIndex ~= 1) then
+    return
+  end
   if self:CheckLimitAction() then
     EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Soldier_Sandtable_TemporaryReturn_Tips"))
     return
@@ -184,8 +204,8 @@ function SoldierSandtableCharItemCtrl:OnUIDrag_Drag(mDrag)
     else
       EventManager.Hit("SoldierSandtableCharItemDragEnd", self:GetItemBtnInstanceId(), 0)
     end
-    NovaAPI.SetCanvasOverrideSorting(self.itemCanvas, false)
     NovaAPI.SetCanvasSortingOrder(self.itemCanvas, self.nInitSortingOrder)
+    NovaAPI.SetCanvasOverrideSorting(self.itemCanvas, false)
     self._mapNode.raySortItem.enabled = true
     self._mapNode.rayDragEvent.enabled = true
     self._mapNode.btn_char.gameObject:SetActive(true)
@@ -212,13 +232,14 @@ function SoldierSandtableCharItemCtrl:OnSoldierSandtableCharItemDragging(objInsI
 end
 
 function SoldierSandtableCharItemCtrl:OnSoldierSandtableCharItemDragEnd()
-  NovaAPI.SetCanvasSortingOrder(self.itemCanvas, self.nInitSortingOrder + 1)
+  NovaAPI.SetCanvasSortingOrder(self.itemCanvas, self.nInitSortingOrder)
+  NovaAPI.SetCanvasOverrideSorting(self.itemCanvas, false)
   self._mapNode.rayDragEvent.gameObject:SetActive(false)
 end
 
 function SoldierSandtableCharItemCtrl:OnSoldierExtraPartnerTagChange()
   if self.chessData ~= nil and self.chessData.nId ~= 0 and self.animRoot ~= nil then
-    local tbTags = PlayerData.SoldierData:GetCurLevelData():GetExtraPartnerTags(self.chessData.nId)
+    local tbTags = PlayerData.SoldierData:GetCurLevelData():GetExtraPartnerTags(self.chessData.nUid)
     if tbTags ~= nil then
     end
   end
@@ -244,9 +265,9 @@ function SoldierSandtableCharItemCtrl:OnBtnClick_Char()
     tr = self.gameObject.transform
   end
   if nPositionType == AllEnum.SoldierPositionType.Waiting then
-    EventManager.Hit(EventId.OpenPanel, PanelId.SoldierCharCardTips, tr, chessData)
+    EventManager.Hit(EventId.OpenPanel, PanelId.SoldierCharCardTips, tr, chessData, {}, {}, {}, true)
   else
-    EventManager.Hit(EventId.OpenPanel, PanelId.SoldierCharCardTips, tr, chessData, tbDeploy, tbPartner)
+    EventManager.Hit(EventId.OpenPanel, PanelId.SoldierCharCardTips, tr, chessData, tbDeploy, tbPartner, {}, true)
   end
   EventManager.Hit("OnSetTipsPosition", tr:GetChild(0).position, tr:GetChild(1).position, tr:GetChild(2).position)
 end
@@ -263,6 +284,19 @@ function SoldierSandtableCharItemCtrl:OneEvent_SoldierChessCanPutIn(bCanPutIn)
   else
     img_input.gameObject:SetActive(false)
     ImgPutLight.gameObject:SetActive(false)
+  end
+end
+
+function SoldierSandtableCharItemCtrl:OneEvent_Guide_505_EnableDrag(enable, _type)
+  if enable == false then
+    if self.chessData.nPositionType ~= _type or self.chessData.nIndex ~= 1 then
+      self._mapNode.raySortItem.enabled = false
+      self._mapNode.rayDragEvent.enabled = false
+    end
+  else
+    self._mapNode.raySortItem.enabled = true
+    self._mapNode.rayDragEvent.enabled = true
+    self.isDragSuccess = true
   end
 end
 

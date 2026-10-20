@@ -123,7 +123,10 @@ local mapConfig = {
   [PanelId.GoldenSpyLevelSelectPanel_400012] = {bEvent = true},
   [PanelId.TraceHunt] = {bEvent = true},
   [PanelId.TrialSkinSelectPanel] = {bEvent = true},
-  [PanelId.TrialSkinFormationScenePanel] = {bEvent = true}
+  [PanelId.TrialSkinFormationScenePanel] = {bEvent = true},
+  [PanelId.DormPanel] = {bEvent = true},
+  [PanelId.DormRoomSelectPanel] = {bEvent = true},
+  [PanelId.ActivityLevelsSelectPanel_20104] = {bEvent = true}
 }
 
 function TopBarCtrl:CreateCoin(tbCoin, bHideCoinAdd)

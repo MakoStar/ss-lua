@@ -74,6 +74,7 @@ SoldierPauseCtrl._mapNodeConfig = {
     sLanguageId = "Soldier_Battle_Partner_Title"
   },
   goPartnerList = {sComponentName = "Transform"},
+  goPartnerList = {sComponentName = "Transform"},
   goPartnerItem = {sComponentName = "Transform"},
   txtCardTitle = {
     sComponentName = "TMP_Text",
@@ -93,7 +94,24 @@ SoldierPauseCtrl._mapNodeConfig = {
     callback = "OnBtnClick_Setting"
   },
   charDetialRoot = {sComponentName = "Transform"},
-  parnterDetialRoot = {sComponentName = "Transform"}
+  parnterDetialRoot = {sComponentName = "Transform"},
+  goSkill = {},
+  bossItem = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_SkillDetail"
+  },
+  imgSkill = {sComponentName = "Image"},
+  imgSkillInitiative = {},
+  txtSkillInitiative = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Soldier_BossSkill_Active"
+  },
+  imgSkillPassive = {},
+  txtSkillPassive = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Soldier_BossSkill_Passive"
+  },
+  txtSkillName = {sComponentName = "TMP_Text"}
 }
 SoldierPauseCtrl._mapEventConfig = {
   OpenSoldierPause = "OnEvent_OpenSoldierPause",
@@ -165,7 +183,13 @@ end
 function SoldierPauseCtrl:InitNodeList()
   local nStage, nNodexIndex = PlayerData.SoldierData:GetCurChallengeState()
   NovaAPI.SetTMPText(self._mapNode.TextPos, tostring(nStage) .. "-" .. tostring(nNodexIndex))
-  local curStageNodeList = self.levelData:GetNodeList()
+  local tbAllNodeList = self.levelData:GetNodeList()
+  local curStageNodeList = {}
+  for _, v in ipairs(tbAllNodeList) do
+    if v.nNodeType ~= GameEnum.soldierNodeType.CheckStage then
+      table.insert(curStageNodeList, v)
+    end
+  end
   for i = 1, #self._mapNode.Node do
     local node = self._mapNode.Node[i]
     if i > #curStageNodeList then
@@ -326,21 +350,15 @@ function SoldierPauseCtrl:RefreshPartnerList(tbPartner)
 end
 
 function SoldierPauseCtrl:RefreshCardList()
-  local starterCard, strategyCard = self.levelData:GetCardData()
-  if starterCard ~= nil then
-    if starterCard[1] ~= nil then
-      self.nStarterCardId = starterCard[1].nId
-      local SoldierStarterCardCfg = ConfigTable.GetData("SoldierStarterCard", self.nStarterCardId)
-      self._mapNode.imgCardStarter.gameObject:SetActive(true)
-      self._mapNode.imgCardIconStarter.gameObject:SetActive(true)
-      self._mapNode.imgemptyStarter.gameObject:SetActive(false)
-      local sBgPath = iconCardPath .. SoldierStarterCardCfg.Icon
-      self:SetPngSprite(self._mapNode.imgCardIconStarter, sBgPath)
-    else
-      self._mapNode.imgCardStarter.gameObject:SetActive(false)
-      self._mapNode.imgCardIconStarter.gameObject:SetActive(false)
-      self._mapNode.imgemptyStarter.gameObject:SetActive(true)
-    end
+  local strategyCard = self.levelData:GetCardData()
+  if self._mapNode.imgCardStarter ~= nil then
+    self._mapNode.imgCardStarter.gameObject:SetActive(false)
+  end
+  if self._mapNode.imgCardIconStarter ~= nil then
+    self._mapNode.imgCardIconStarter.gameObject:SetActive(false)
+  end
+  if self._mapNode.imgemptyStarter ~= nil then
+    self._mapNode.imgemptyStarter.gameObject:SetActive(false)
   end
   self._mapNode.btnStrategyCardItem.gameObject:SetActive(false)
   self.tabStrategyCard = {}
@@ -385,7 +403,6 @@ end
 function SoldierPauseCtrl:OnPanelClose(callback)
   self.bShow = false
   PanelManager.InputEnable()
-  GamepadUIManager.DisableGamepadUI("SoldierPauseCtrl")
   EventManager.Hit(EventId.BattleDashboardVisible, true)
   self._mapNode.safeAreaRoot:SetActive(false)
   self._mapNode.goBlur:SetActive(false)
@@ -502,7 +519,6 @@ function SoldierPauseCtrl:OnBtnClick_Leave()
         EventManager.Remove("ADVENTURE_LEVEL_UNLOAD_COMPLETE", self, levelEndCallback)
         
         NovaAPI.EnterModule("MainMenuModuleScene", true, 17)
-        EventManager.Hit(EventId.ClosePanel, PanelId.SoldierBattlePanel)
       end
       
       EventManager.Add("ADVENTURE_LEVEL_UNLOAD_COMPLETE", self, levelEndCallback)
@@ -510,7 +526,7 @@ function SoldierPauseCtrl:OnBtnClick_Leave()
     end)
   end
   
-  PlayerData.SoldierData:SendStepOut(tbMain, tbSup, tabS, callback)
+  PlayerData.SoldierData:SendStepOut(callback)
 end
 
 function SoldierPauseCtrl:OnBtnClick_StarterCard()
@@ -520,7 +536,7 @@ function SoldierPauseCtrl:OnBtnClick_StarterCard()
 end
 
 function SoldierPauseCtrl:OnBtnClick_StrategyCard(StrategyCardId)
-  EventManager.Hit(EventId.OpenPanel, PanelId.SoldierSelectStrategyCardItem, StrategyCardId)
+  EventManager.Hit(EventId.OpenPanel, PanelId.SoldierCardTips, StrategyCardId)
 end
 
 function SoldierPauseCtrl:OnBtnClick_CoinTips()
@@ -539,11 +555,38 @@ function SoldierPauseCtrl:OnEvent_OpenSoldierPause(tabChess, tabCacheSoldierEner
   PanelManager.InputDisable()
   self:OpenUI()
   self:Refresh()
-  GamepadUIManager.EnableGamepadUI("SoldierPauseCtrl", self.tbGamepadUINode, nil, true)
+  self:SetBossTemplateMsg()
 end
 
 function SoldierPauseCtrl:OnEvent_RefreshCoin(nCount)
   NovaAPI.SetTMPText(self._mapNode.txtCoin, nCount)
+end
+
+function SoldierPauseCtrl:SetBossTemplateMsg()
+  if self.levelData then
+    local tId = self.levelData:GetBossTemplateId()
+    local mapCfg = ConfigTable.GetData("SoldierBossTemplate", tId)
+    if mapCfg then
+      if mapCfg == GameEnum.SoldierRoleSkillType.SoldierRoleSkillType_3 or mapCfg == GameEnum.SoldierRoleSkillType.SoldierRoleSkillType_4 then
+        self:SetPngSprite(self._mapNode.imgSkill, mapCfg.SoldierRoleSkillIcon)
+        local nSkillType = mapCfg.SoldierRoleSkillType
+        self._mapNode.imgSkillPassive.gameObject:SetActive(nSkillType == GameEnum.SoldierRoleSkillType.SoldierRoleSkillType_1 or nSkillType == GameEnum.SoldierRoleSkillType.SoldierRoleSkillType_3)
+        self._mapNode.imgSkillInitiative.gameObject:SetActive(nSkillType == GameEnum.SoldierRoleSkillType.SoldierRoleSkillType_2 or nSkillType == GameEnum.SoldierRoleSkillType.SoldierRoleSkillType_4)
+        NovaAPI.SetTMPText(self._mapNode.txtSkillName, mapCfg.Name)
+        self._mapNode.goSkill:SetActive(true)
+      else
+        self._mapNode.goSkill:SetActive(false)
+      end
+    else
+      self._mapNode.goSkill:SetActive(false)
+    end
+  else
+    self._mapNode.goSkill:SetActive(false)
+  end
+end
+
+function SoldierPauseCtrl:OnBtnClick_SkillDetail()
+  EventManager.Hit(EventId.OpenPanel, PanelId.SoldierBossTemplateTips, self.levelData:GetBossTemplateId())
 end
 
 return SoldierPauseCtrl

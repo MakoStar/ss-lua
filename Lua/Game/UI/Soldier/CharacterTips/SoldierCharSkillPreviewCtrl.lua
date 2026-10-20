@@ -128,7 +128,7 @@ function SoldierCharSkillPreviewCtrl:CalGridHeight()
   for _, skill in ipairs(self.tbAllSkillIds) do
     local nSkillId = skill.nId
     local skillCfg = ConfigTable.GetData("Skill", nSkillId)
-    local sDesc = UTILS.ParseDesc(skillCfg, GameEnum.levelTypeData.SoldierLevel, nil, false, nil, self._nCurLevel)
+    local sDesc = UTILS.ParseDesc(skillCfg, GameEnum.levelTypeData.SoldierLevel, nil, false, self._nCurLevel)
     local txtDesc = self._mapNode.grid.transform:Find("ImgdescBg/txt_desc"):GetComponent("TMP_Text")
     NovaAPI.SetTMPText(txtDesc, sDesc)
     CS.UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(self._mapNode.grid)

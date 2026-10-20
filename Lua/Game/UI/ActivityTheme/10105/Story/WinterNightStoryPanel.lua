@@ -1,14 +1,22 @@
 local BasePanel = require("GameCore.UI.BasePanel")
 local WinterNightStoryPanel = class("WinterNightStoryPanel", BasePanel)
-WinterNightStoryPanel._sUIResRootPath = "UI_Activity/"
 WinterNightStoryPanel._tbDefine = {
   {
-    sPrefabPath = "10105/Story/WinterNightStoryPanel.prefab",
+    sPrefabPath = "ActivityStoryReview/10105/WinterNightStoryPanel.prefab",
     sCtrlName = "Game.UI.ActivityTheme.10105.Story.WinterNightStoryCtrl"
+  },
+  {
+    sPrefabPath = "ActivityStoryReview/ActivityStoryReceivePanel.prefab",
+    sCtrlName = "Game.UI.ActivityStoryReview.ActivityStoryReceiveCtrl"
   }
 }
 
 function WinterNightStoryPanel:Awake()
+  if self._tbParam[2] ~= true then
+    self._tbDefine = {
+      self._tbDefine[1]
+    }
+  end
 end
 
 function WinterNightStoryPanel:OnEnable()

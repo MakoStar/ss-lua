@@ -51,10 +51,10 @@ function PotentialListItemCtrl:GetAllPotentialCount(nCharId, bMain)
   return nAllCount
 end
 
-function PotentialListItemCtrl:Init(nCharId, nCount, tbPotential, goPotential, bMain, bRankPreview)
+function PotentialListItemCtrl:Init(nCharId, nCount, tbPotential, goPotential, bMain, bRankPreview, nSkinId)
   self.nCharId = nCharId
   local charCfg = ConfigTable.GetData_Character(nCharId)
-  local nCharSkinId = PlayerData.Char:GetCharSkinId(nCharId)
+  local nCharSkinId = nSkinId or PlayerData.Char:GetCharSkinId(nCharId)
   local charSkinCfg = ConfigTable.GetData_CharacterSkin(nCharSkinId)
   local sFrame = AllEnum.FrameType_New.BoardFrame .. AllEnum.BoardFrameColor[charCfg.Grade]
   self:SetPngSprite(self._mapNode.imgHead, charSkinCfg.Icon, AllEnum.CharHeadIconSurfix.XXL)

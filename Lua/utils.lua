@@ -49,6 +49,11 @@ createdelegate = util.createdelegate
 state = util.state
 print_func_ref_by_csharp = util.print_func_ref_by_csharp
 cs_coroutine = require("xlua.cs_coroutine")
+
+function IsNull(obj)
+  return obj == nil or obj:IsNull()
+end
+
 local serpent = require("serpent")
 
 function printLog(str)
@@ -686,7 +691,7 @@ function AddKrParticle(str, nParticleIdx)
       end
     end
   elseif is_al(codePoint) then
-    local charTag = AllEnum.KrTags[1][nParticleIdx]
+    local charTag = AllEnum.KrTags["1"][nParticleIdx]
     if charTag ~= nil then
       str = str .. charTag
     end
@@ -945,6 +950,22 @@ local function IsBitSet(tbByte, nIndex)
   return 1 << nIndexInGroup8 - 1 & tbByte[nByteTableIndex] > 0
 end
 
+local function SetBit(tbByte, nIndex)
+  assert(1 <= nIndex and nIndex % 1 == 0, "nIndex must be a positive integer")
+  local nGroup64 = math.ceil(nIndex / 64) - 1
+  local nIndexInGroup64 = nIndex - nGroup64 * 64
+  local nGroup8 = math.ceil(nIndexInGroup64 / 8) - 1
+  local nIndexInGroup8 = nIndexInGroup64 - nGroup8 * 8
+  local nByteTableIndex = 8 - nGroup8 + nGroup64 * 8
+  for nByteIndex = 1, (nGroup64 + 1) * 8 do
+    if tbByte[nByteIndex] == nil then
+      tbByte[nByteIndex] = 0
+    end
+  end
+  local nMask = 1 << nIndexInGroup8 - 1
+  tbByte[nByteTableIndex] = tbByte[nByteTableIndex] | nMask
+end
+
 local function GetBuildAttributeId(nGroupId, nLevel)
   return nGroupId * 100000 + nLevel
 end
@@ -1165,35 +1186,55 @@ local function SubDesc(str, nLevel, nCompareLevel, mapLinkParam)
         local subStr = ParseHitDamageDesc(nKey, nLevel)
         if nCompareLevel ~= nil then
           local sCompareStr = ParseHitDamageDesc(nKey, nCompareLevel)
-          subStr = string.format("%s<color=#8cac59>(%s↑)</color>", subStr, sCompareStr)
+          if nLevel < nCompareLevel then
+            subStr = string.format("%s<color=#8cac59>(%s↑)</color>", subStr, sCompareStr)
+          else
+            subStr = string.format("%s<color=#e74470>(%s↓)</color>", subStr, sCompareStr)
+          end
         end
         mapWord[word] = subStr
       elseif sTable == "Effect" then
         local subStr = ParseEffectDesc(nKey, nLevel, nShowType)
         if nCompareLevel ~= nil then
           local sCompareStr = ParseEffectDesc(nKey, nCompareLevel, nShowType)
-          subStr = string.format("%s<color=#8cac59>(%s↑)</color>", subStr, sCompareStr)
+          if nLevel < nCompareLevel then
+            subStr = string.format("%s<color=#8cac59>(%s↑)</color>", subStr, sCompareStr)
+          else
+            subStr = string.format("%s<color=#e74470>(%s↓)</color>", subStr, sCompareStr)
+          end
         end
         mapWord[word] = subStr
       elseif sTable == "Once" then
         local subStr = ParseOnceDesc(nKey, nLevel, nShowType)
         if nCompareLevel ~= nil then
           local sCompareStr = ParseOnceDesc(nKey, nCompareLevel, nShowType)
-          subStr = string.format("%s<color=#8cac59>(%s↑)</color>", subStr, sCompareStr)
+          if nLevel < nCompareLevel then
+            subStr = string.format("%s<color=#8cac59>(%s↑)</color>", subStr, sCompareStr)
+          else
+            subStr = string.format("%s<color=#e74470>(%s↓)</color>", subStr, sCompareStr)
+          end
         end
         mapWord[word] = subStr
       elseif sTable == "Shield" then
         local subStr = ParseShieldDesc(nKey, nLevel, nShowType)
         if nCompareLevel ~= nil then
           local sCompareStr = ParseShieldDesc(nKey, nCompareLevel, nShowType)
-          subStr = string.format("%s<color=#8cac59>(%s↑)</color>", subStr, sCompareStr)
+          if nLevel < nCompareLevel then
+            subStr = string.format("%s<color=#8cac59>(%s↑)</color>", subStr, sCompareStr)
+          else
+            subStr = string.format("%s<color=#e74470>(%s↓)</color>", subStr, sCompareStr)
+          end
         end
         mapWord[word] = subStr
       elseif sTable == "Script" then
         local subStr = ParseSriptDesc(nKey, nLevel, nShowType)
         if nCompareLevel ~= nil then
           local sCompareStr = ParseSriptDesc(nKey, nCompareLevel, nShowType)
-          subStr = string.format("%s<color=#8cac59>(%s↑)</color>", subStr, sCompareStr)
+          if nLevel < nCompareLevel then
+            subStr = string.format("%s<color=#8cac59>(%s↑)</color>", subStr, sCompareStr)
+          else
+            subStr = string.format("%s<color=#e74470>(%s↓)</color>", subStr, sCompareStr)
+          end
         end
         mapWord[word] = subStr
       else
@@ -1480,6 +1521,9 @@ local function ParseDesc(mapDescConfig, nCompareLevelType, nCompareLevel, bSimpl
             if (mapData.levelTypeData == GameEnum.levelTypeData.Exclusive or mapData.levelTypeData == GameEnum.levelTypeData.Note or mapData.levelTypeData == GameEnum.levelTypeData.SoldierLevel) and nOverrideLevel ~= nil then
               nLevel = nOverrideLevel
             end
+            if nCompareLevelType == GameEnum.levelTypeData.SoldierLevel and mapData.levelTypeData == GameEnum.levelTypeData.SkillSlot and nOverrideLevel ~= nil then
+              nLevel = nOverrideLevel
+            end
             if sParseType == "DamageNum" and sTable == "HitDamage" then
               local subStr = ParseHitDamageDesc(nKey, nLevel)
               subStr = LanguagePost(lang, langIdx, subStr)
@@ -1487,7 +1531,11 @@ local function ParseDesc(mapDescConfig, nCompareLevelType, nCompareLevel, bSimpl
                 local sCompareStr = ParseHitDamageDesc(nKey, nCompareLevel)
                 sCompareStr = LanguagePost(lang, langIdx, sCompareStr)
                 if subStr ~= sCompareStr then
-                  subStr = string.format("%s<color=#8cac59>(%s↑)</color>", subStr, sCompareStr)
+                  if nCompareLevel > nLevel then
+                    subStr = string.format("%s<color=#8cac59>(%s↑)</color>", subStr, sCompareStr)
+                  else
+                    subStr = string.format("%s<color=#e74470>(%s↓)</color>", subStr, sCompareStr)
+                  end
                 end
               end
               mapWord[word] = subStr
@@ -1498,7 +1546,11 @@ local function ParseDesc(mapDescConfig, nCompareLevelType, nCompareLevel, bSimpl
                 local sCompareStr = ParseLevelUpDesc(sTable, nKey, nCompareLevel, sParameter, sShowType, sEnumType)
                 sCompareStr = LanguagePost(lang, langIdx, sCompareStr)
                 if subStr ~= sCompareStr then
-                  subStr = string.format("%s<color=#8cac59>(%s↑)</color>", subStr, sCompareStr)
+                  if nCompareLevel > nLevel then
+                    subStr = string.format("%s<color=#8cac59>(%s↑)</color>", subStr, sCompareStr)
+                  else
+                    subStr = string.format("%s<color=#e74470>(%s↓)</color>", subStr, sCompareStr)
+                  end
                 end
               end
               mapWord[word] = subStr
@@ -1891,6 +1943,7 @@ local function GetCharDamageResult(tbCharId)
     local actorInfo = {}
     actorInfo.nCharId = nCharId
     actorInfo.nDamage = nDamage
+    actorInfo.nSkinId = PlayerData.Build:GetBattleCharSkinId(nCharId)
     table.insert(tbResult, actorInfo)
   end
   return tbResult
@@ -1935,7 +1988,8 @@ local function CheckIsTipsPanel(nPanelId)
     PanelId.BtnTips,
     PanelId.MonsterTips,
     PanelId.EquipmentTips,
-    PanelId.DiscSkillTips
+    PanelId.DiscSkillTips,
+    PanelId.DescTips
   }
   return table.indexof(tbAllTipsPanelId, nPanelId) > 0
 end
@@ -2333,6 +2387,7 @@ _G.UTILS = {
   GetParamStrLen = GetParamStrLen,
   ParseByteString = ParseByteString,
   IsBitSet = IsBitSet,
+  SetBit = SetBit,
   GetBuildAttributeId = GetBuildAttributeId,
   GetCharacterAttributeId = GetCharacterAttributeId,
   GetDiscAttributeId = GetDiscAttributeId,

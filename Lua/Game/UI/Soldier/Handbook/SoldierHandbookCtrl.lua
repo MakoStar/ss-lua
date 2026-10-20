@@ -16,18 +16,18 @@ SoldierHandbookCtrl._mapNodeConfig = {
   },
   go_partner_in = {},
   go_partner_off = {},
-  btn_starterCard = {
-    sComponentName = "UIButton",
-    callback = "OnBtnClick_StarterCard"
-  },
-  go_starterCard_in = {},
-  go_starterCard_off = {},
   btn_strategyCard = {
     sComponentName = "UIButton",
     callback = "OnBtnClick_StrategyCard"
   },
   go_strategyCard_in = {},
   go_strategyCard_off = {},
+  btn_boss = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_Boss"
+  },
+  go_boss_in = {},
+  go_boss_off = {},
   txt_char = {
     nCount = 2,
     sComponentName = "TMP_Text",
@@ -38,10 +38,10 @@ SoldierHandbookCtrl._mapNodeConfig = {
     sComponentName = "TMP_Text",
     sLanguageId = "Soldier_Handbook_Partner"
   },
-  txt_starterCard = {
+  txt_boss = {
     nCount = 2,
     sComponentName = "TMP_Text",
-    sLanguageId = "Soldier_Handbook_StarterCard"
+    sLanguageId = "Soldier_Handbook_Boss"
   },
   txt_strategyCard = {
     nCount = 2,
@@ -56,9 +56,9 @@ SoldierHandbookCtrl._mapNodeConfig = {
     sNodeName = "PartnerRoot",
     sCtrlName = "Game.UI.Soldier.Handbook.SoldierHandbookPartnerCtrl"
   },
-  StarterCardCtrl = {
-    sNodeName = "StarterCardRoot",
-    sCtrlName = "Game.UI.Soldier.Handbook.SoldierHandbookStarterCardCtrl"
+  BossCtrl = {
+    sNodeName = "BossRoot",
+    sCtrlName = "Game.UI.Soldier.Handbook.SoldierHandbookBossCtrl"
   },
   StrategyCardCtrl = {
     sNodeName = "StrategyCardRoot",
@@ -91,45 +91,57 @@ end
 function SoldierHandbookCtrl:SwitchToSelectedType(nSelectedType)
   self._mapNode.CharCtrl:Clear()
   self._mapNode.PartnerCtrl:Clear()
-  self._mapNode.StarterCardCtrl:Clear()
+  self._mapNode.BossCtrl:Clear()
   self._mapNode.StrategyCardCtrl:Clear()
   self.nSelectedType = nSelectedType
   self._mapNode.CharCtrl.gameObject:SetActive(self.nSelectedType == AllEnum.SoldierHandbookType.Character)
   self._mapNode.PartnerCtrl.gameObject:SetActive(self.nSelectedType == AllEnum.SoldierHandbookType.Partner)
-  self._mapNode.StarterCardCtrl.gameObject:SetActive(self.nSelectedType == AllEnum.SoldierHandbookType.StarterCard)
+  self._mapNode.BossCtrl.gameObject:SetActive(self.nSelectedType == AllEnum.SoldierHandbookType.Boss)
   self._mapNode.StrategyCardCtrl.gameObject:SetActive(self.nSelectedType == AllEnum.SoldierHandbookType.StrategyCard)
   self._mapNode.go_char_in.gameObject:SetActive(self.nSelectedType == AllEnum.SoldierHandbookType.Character)
   self._mapNode.go_char_off.gameObject:SetActive(self.nSelectedType ~= AllEnum.SoldierHandbookType.Character)
   self._mapNode.go_partner_in.gameObject:SetActive(self.nSelectedType == AllEnum.SoldierHandbookType.Partner)
   self._mapNode.go_partner_off.gameObject:SetActive(self.nSelectedType ~= AllEnum.SoldierHandbookType.Partner)
-  self._mapNode.go_starterCard_in.gameObject:SetActive(self.nSelectedType == AllEnum.SoldierHandbookType.StarterCard)
-  self._mapNode.go_starterCard_off.gameObject:SetActive(self.nSelectedType ~= AllEnum.SoldierHandbookType.StarterCard)
+  self._mapNode.go_boss_in.gameObject:SetActive(self.nSelectedType == AllEnum.SoldierHandbookType.Boss)
+  self._mapNode.go_boss_off.gameObject:SetActive(self.nSelectedType ~= AllEnum.SoldierHandbookType.Boss)
   self._mapNode.go_strategyCard_in.gameObject:SetActive(self.nSelectedType == AllEnum.SoldierHandbookType.StrategyCard)
   self._mapNode.go_strategyCard_off.gameObject:SetActive(self.nSelectedType ~= AllEnum.SoldierHandbookType.StrategyCard)
   if self.nSelectedType == AllEnum.SoldierHandbookType.Character then
     self._mapNode.CharCtrl:Init()
   elseif self.nSelectedType == AllEnum.SoldierHandbookType.Partner then
     self._mapNode.PartnerCtrl:Init()
-  elseif self.nSelectedType == AllEnum.SoldierHandbookType.StarterCard then
-    self._mapNode.StarterCardCtrl:Init()
+  elseif self.nSelectedType == AllEnum.SoldierHandbookType.Boss then
+    self._mapNode.BossCtrl:Init()
   elseif self.nSelectedType == AllEnum.SoldierHandbookType.StrategyCard then
     self._mapNode.StrategyCardCtrl:Init()
   end
 end
 
 function SoldierHandbookCtrl:OnBtnClick_Char()
+  if self.nSelectedType == AllEnum.SoldierHandbookType.Character then
+    return
+  end
   self:SwitchToSelectedType(AllEnum.SoldierHandbookType.Character)
 end
 
 function SoldierHandbookCtrl:OnBtnClick_Partner()
+  if self.nSelectedType == AllEnum.SoldierHandbookType.Partner then
+    return
+  end
   self:SwitchToSelectedType(AllEnum.SoldierHandbookType.Partner)
 end
 
-function SoldierHandbookCtrl:OnBtnClick_StarterCard()
-  self:SwitchToSelectedType(AllEnum.SoldierHandbookType.StarterCard)
+function SoldierHandbookCtrl:OnBtnClick_Boss()
+  if self.nSelectedType == AllEnum.SoldierHandbookType.Boss then
+    return
+  end
+  self:SwitchToSelectedType(AllEnum.SoldierHandbookType.Boss)
 end
 
 function SoldierHandbookCtrl:OnBtnClick_StrategyCard()
+  if self.nSelectedType == AllEnum.SoldierHandbookType.StrategyCard then
+    return
+  end
   self:SwitchToSelectedType(AllEnum.SoldierHandbookType.StrategyCard)
 end
 

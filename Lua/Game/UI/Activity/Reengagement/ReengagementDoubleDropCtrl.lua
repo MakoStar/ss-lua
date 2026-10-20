@@ -1,3 +1,4 @@
+local ClientManager = CS.ClientManager.Instance
 local ReengagementDoubleDropCtrl = class("ReengagementDoubleDropCtrl", BaseCtrl)
 ReengagementDoubleDropCtrl._mapNodeConfig = {
   txtActName = {
@@ -30,8 +31,7 @@ ReengagementDoubleDropCtrl._mapNodeConfig = {
     nCount = 4,
     sComponentName = "TMP_Text",
     sLanguageId = "Double_Drops_Goto_Instance"
-  },
-  redDotQuest = {}
+  }
 }
 ReengagementDoubleDropCtrl._mapEventConfig = {}
 
@@ -42,10 +42,16 @@ function ReengagementDoubleDropCtrl:Refresh(nCurTog)
   self:InitActData()
 end
 
+local tbInstanceToFunc = {
+  [GameEnum.instanceType.DailyInstance] = GameEnum.OpenFuncType.DailyInstance,
+  [GameEnum.instanceType.RegionBoss] = GameEnum.OpenFuncType.RegionBoss,
+  [GameEnum.instanceType.SkillInstance] = GameEnum.OpenFuncType.SkillInstance,
+  [GameEnum.instanceType.CharGemInstance] = GameEnum.OpenFuncType.CharGemInstance
+}
+
 function ReengagementDoubleDropCtrl:InitActData()
-  self.actData = {}
   self.nActId = 0
-  self.tbFuncType = self.actData:GetDoubleFuncType()
+  self.tbFuncType = PlayerData.Reengagement:GetDoubleFuncType()
   if self.tbFuncType == nil then
     return
   end
@@ -53,13 +59,14 @@ function ReengagementDoubleDropCtrl:InitActData()
   for k, v in ipairs(self._mapNode.goInstanceItem) do
     v.gameObject:SetActive(self.tbFuncType[k] ~= nil)
     if self.tbFuncType[k] ~= nil then
-      v:InitItem(self.tbFuncType[k])
-      local bUnlock = PlayerData.Base:CheckFunctionUnlock(self.tbFuncType[k])
+      local nFuncType = tbInstanceToFunc[self.tbFuncType[k]]
+      v:InitItem(nFuncType)
+      local bUnlock = PlayerData.Base:CheckFunctionUnlock(nFuncType)
       self._mapNode.btnGoto[k].gameObject:SetActive(bUnlock)
     end
   end
-  NovaAPI.SetTMPText(self._mapNode.txtDoubleCount, self.actData:GetDropActString())
-  RedDotManager.RegisterNode(RedDotDefine.Activity_DoubleDrop_Quest, self.nActId, self._mapNode.redDotQuest)
+  local sText = ConfigTable.GetUIText("Reengagement_DoubleDrop_Count") .. PlayerData.Reengagement:GetDoubleDropCount() .. "/" .. PlayerData.Reengagement:GetMaxDoubleDropCount()
+  NovaAPI.SetTMPText(self._mapNode.txtDoubleCount, sText)
 end
 
 function ReengagementDoubleDropCtrl:GetTimeStr(nRemainTime)
@@ -100,8 +107,8 @@ function ReengagementDoubleDropCtrl:StartActTimer()
     self.timer:Cancel()
     self.timer = nil
   end
-  local nOpenTime = self.actData:GetActOpenTime()
-  local nCloseTime = self.actData:GetActEndTime()
+  local nOpenTime = PlayerData.Reengagement:GetReengagementOpenTime()
+  local nCloseTime = PlayerData.Reengagement:GetReengagementCloseTime()
   
   local function refreshTime()
     local nCurTime = ClientManager.serverTimeStamp
@@ -115,6 +122,13 @@ function ReengagementDoubleDropCtrl:StartActTimer()
     if nRemainTime <= 0 and self.timer ~= nil then
       self.timer:Cancel()
       self.timer = nil
+      EventManager.Hit(EventId.OpenMessageBox, {
+        nType = AllEnum.MessageBox.Alert,
+        sContent = ConfigTable.GetUIText("Activity_Invalid_Tip_1"),
+        callbackConfirm = function()
+          EventManager.Hit(EventId.ClosePanel, PanelId.ReengagementPanel)
+        end
+      })
     end
     NovaAPI.SetTMPText(self._mapNode.txtTime, sTime)
   end
@@ -141,13 +155,13 @@ function ReengagementDoubleDropCtrl:OnBtnClick_Goto(btn, nIndex)
   if nType == nil then
     return
   end
-  if nType == GameEnum.OpenFuncType.DailyInstance then
+  if nType == GameEnum.instanceType.DailyInstance then
     EventManager.Hit(EventId.OpenPanel, PanelId.DailyInstanceLevelSelect, 0, 0, true)
-  elseif nType == GameEnum.OpenFuncType.RegionBoss then
+  elseif nType == GameEnum.instanceType.RegionBoss then
     EventManager.Hit(EventId.OpenPanel, PanelId.RogueBossLevel, 0, 0, true)
-  elseif nType == GameEnum.OpenFuncType.SkillInstance then
+  elseif nType == GameEnum.instanceType.SkillInstance then
     EventManager.Hit(EventId.OpenPanel, PanelId.SkillInstanceLevelSelect)
-  elseif nType == GameEnum.OpenFuncType.CharGemInstance then
+  elseif nType == GameEnum.instanceType.CharGemInstance then
     EventManager.Hit(EventId.OpenPanel, PanelId.EquipmentInstanceLevelSelect)
   end
 end

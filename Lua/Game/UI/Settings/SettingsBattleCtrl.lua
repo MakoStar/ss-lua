@@ -23,6 +23,10 @@ SettingsBattleCtrl._mapNodeConfig = {
     sComponentName = "TMP_Text",
     sLanguageId = "Settings_BattleHUD_Title"
   },
+  txtAnim4 = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Settings_DamageHUD_Title"
+  },
   Anim1 = {
     sCtrlName = "Game.UI.Settings.OptionChooseCtrl"
   },
@@ -30,6 +34,9 @@ SettingsBattleCtrl._mapNodeConfig = {
     sCtrlName = "Game.UI.Settings.OptionChooseCtrl"
   },
   Anim3 = {
+    sCtrlName = "Game.UI.Settings.OptionChooseCtrl"
+  },
+  Anim4 = {
     sCtrlName = "Game.UI.Settings.OptionChooseCtrl"
   },
   JoyStick = {
@@ -54,6 +61,7 @@ function SettingsBattleCtrl:RefreshText()
   self._mapNode.Anim1:SetText(ConfigTable.GetUIText("Settings_Animation_One"), ConfigTable.GetUIText("Settings_Animation_Open"), ConfigTable.GetUIText("Settings_Animation_Close"))
   self._mapNode.Anim2:SetText(ConfigTable.GetUIText("Settings_Animation_One"), ConfigTable.GetUIText("Settings_Animation_Open"), ConfigTable.GetUIText("Settings_Animation_Close"))
   self._mapNode.Anim3:SetText(ConfigTable.GetUIText("Settings_BattleHUD_Type1"), ConfigTable.GetUIText("Settings_BattleHUD_Type2"), "")
+  self._mapNode.Anim4:SetText(ConfigTable.GetUIText("Settings_DamageHUD_Default"), ConfigTable.GetUIText("Settings_DamageHUD_Merge"), ConfigTable.GetUIText("Settings_DamageHUD_Close"))
   self._mapNode.JoyStick:SetText(ConfigTable.GetUIText("Settings_JoyStick"))
   self._mapNode.Gizmos:SetText(ConfigTable.GetUIText("Settings_Gizmos"))
   self._mapNode.Mouse:SetText(ConfigTable.GetUIText("Settings_Mouse"))
@@ -118,6 +126,10 @@ function SettingsBattleCtrl:LoadSetting()
     self.autoUlt = not self.autoUlt
     UIGameSystemSetup.Instance.EnableAutoUlt = self.autoUlt
   end, self.autoUlt)
+  self.hudDamage = self._panel:LoadLocalData("HudDamageShow")
+  self._mapNode.Anim4:Init(function(index)
+    self.hudDamage = index
+  end, self.hudDamage)
 end
 
 function SettingsBattleCtrl:SaveSetting()
@@ -130,6 +142,7 @@ function SettingsBattleCtrl:SaveSetting()
   self._panel:SaveLocalData("Gizmos", self.gizmos)
   self._panel:SaveLocalData("AutoUlt", self.autoUlt)
   self._panel:SaveLocalData("BattleHUD", self.battleHud)
+  self._panel:SaveLocalData("HudDamageShow", self.hudDamage)
 end
 
 function SettingsBattleCtrl:Awake()

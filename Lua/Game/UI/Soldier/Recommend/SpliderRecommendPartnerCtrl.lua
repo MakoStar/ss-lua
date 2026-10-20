@@ -64,7 +64,7 @@ function SpliderRecommendPartnerCtrl:OnPartnerRefreshGrid(goGrid, gridIndex)
     if i ~= partner.nActiveLevel then
       strLevel = strLevel .. partner.tbNumList[i]
     else
-      strLevel = strLevel .. "<color=#EED9BD>" .. partner.tbNumList[i] .. "</color>"
+      strLevel = strLevel .. "<color=#FAFAFA>" .. partner.tbNumList[i] .. "</color>"
     end
   end
   NovaAPI.SetTMPText(txtPartner, strLevel)

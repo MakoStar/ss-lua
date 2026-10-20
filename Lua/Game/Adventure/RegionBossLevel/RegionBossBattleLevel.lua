@@ -206,7 +206,7 @@ function RegionBossBattleLevel:PlaySuccessPerform(nMapId, buildId, nExp, tbRewar
       print("sceneName:" .. sName)
       local tbSkin = {}
       for _, nCharId in ipairs(tbChar) do
-        local nSkinId = PlayerData.Char:GetCharSkinId(nCharId)
+        local nSkinId = PlayerData.Build:GetBattleCharSkinId(nCharId)
         table.insert(tbSkin, nSkinId)
       end
       CS.AdventureModuleHelper.PlaySettlementPerform(sName, "", tbSkin, func_SettlementFinish)
@@ -216,7 +216,7 @@ function RegionBossBattleLevel:PlaySuccessPerform(nMapId, buildId, nExp, tbRewar
       print("sceneName:" .. sName)
       local tbSkin = {}
       for _, nCharId in ipairs(tbChar) do
-        local nSkinId = PlayerData.Char:GetCharSkinId(nCharId)
+        local nSkinId = PlayerData.Build:GetBattleCharSkinId(nCharId)
         table.insert(tbSkin, nSkinId)
       end
       CS.AdventureModuleHelper.PlaySettlementPerform(sName, "", tbSkin, func_SettlementFinish)
@@ -335,7 +335,7 @@ function RegionBossBattleLevel:SetDiscInfo()
 end
 
 function RegionBossBattleLevel:OnEvnet_Pause()
-  EventManager.Hit("OpenRegionBossPause", self.nLevelId, self.tbCharId)
+  EventManager.Hit("OpenRegionBossPause", self.nLevelId, self.tbCharId, self.tbCharTrialId)
 end
 
 return RegionBossBattleLevel

@@ -180,4 +180,8 @@ end
 function ActivityDataBase:UpdateStatus()
 end
 
+function ActivityDataBase:GetSpecialParam()
+  return self.actCfg.SpecialParam
+end
+
 return ActivityDataBase

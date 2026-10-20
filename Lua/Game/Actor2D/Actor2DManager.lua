@@ -305,11 +305,14 @@ local function Init_RT(tbRenderer)
 end
 
 local function UnInit_RT(tbRenderer)
+  if IsNull(tbRenderer._tr) then
+    return
+  end
   if tbRenderer._targetRawImage ~= nil then
     NovaAPI.SetTexture(tbRenderer._targetRawImage, nil)
     tbRenderer._targetRawImage = nil
   end
-  if tbRenderer._cam ~= nil then
+  if not IsNull(tbRenderer._cam) then
     tbRenderer._cam.targetTexture = nil
   end
   if tbRenderer._RenderTexture ~= nil then
@@ -345,8 +348,12 @@ local function UnSet_RawImg(tbRenderer)
     NovaAPI.SetTexture(tbRenderer._targetRawImage, nil)
     tbRenderer._targetRawImage = nil
   end
-  tbRenderer._tr.localScale = Vector3.zero
-  tbRenderer._cam.gameObject:SetActive(false)
+  if not IsNull(tbRenderer._tr) then
+    tbRenderer._tr.localScale = Vector3.zero
+  end
+  if not IsNull(tbRenderer._cam) then
+    tbRenderer._cam.gameObject:SetActive(false)
+  end
 end
 
 local MAX_L2D_INS_COUNT = 5
@@ -432,29 +439,38 @@ local function SetL2DInsParent(trIns, trParent)
 end
 
 local function ResetRenderer(tbRenderer)
+  if IsNull(tbRenderer._tr) then
+    return
+  end
   UnSet_RawImg(tbRenderer)
   UnInit_RT(tbRenderer)
-  if tbRenderer.trL2DIns ~= nil then
+  if not IsNull(tbRenderer.trL2DIns) then
     SetL2DInsParent(tbRenderer.trL2DIns, trL2DInsRoot)
     local trBg = tbRenderer.trL2DIns:Find("root/----bg----")
-    if trBg ~= nil and trBg:IsNull() == false then
+    if not IsNull(trBg) then
       trBg.localScale = Vector3.one
     end
     local trBgEft = tbRenderer.trL2DIns:Find("root/----bg_effect----")
-    if trBgEft ~= nil and trBgEft:IsNull() == false then
+    if not IsNull(trBgEft) then
       trBgEft.localScale = Vector3.one
     end
     tbRenderer.trL2DIns = nil
   end
   tbRenderer.sL2D = nil
   SetPanelOffset(tbRenderer)
-  tbRenderer.trOffset.localPosition = Vector3.zero
-  tbRenderer.trOffset.localScale = Vector3.one
+  if not IsNull(tbRenderer.trOffset) then
+    tbRenderer.trOffset.localPosition = Vector3.zero
+    tbRenderer.trOffset.localScale = Vector3.one
+  end
   NovaAPI.SetSpriteRendererSprite(tbRenderer.spr_body, nil)
   NovaAPI.SetSpriteRendererSprite(tbRenderer.spr_face, nil)
   NovaAPI.SetSpriteRendererSprite(tbRenderer.spr_bg, nil)
-  tbRenderer.parent_L2D.localScale = Vector3.zero
-  tbRenderer.parent_PNG.localScale = Vector3.zero
+  if not IsNull(tbRenderer.parent_L2D) then
+    tbRenderer.parent_L2D.localScale = Vector3.zero
+  end
+  if not IsNull(tbRenderer.parent_PNG) then
+    tbRenderer.parent_PNG.localScale = Vector3.zero
+  end
   Actor2DManager.ResetActor2DAnim(tbRenderer)
 end
 
@@ -1570,8 +1586,7 @@ function Actor2DManager.SetActor2D_ForActor2DEditor(nPanelId, rawImg, sSkinId, b
     NovaAPI.SetSPSortingOrder(tbRenderer.spr_body, 900)
     NovaAPI.SetSpriteRendererColor(tbRenderer.spr_face, Color(1, 1, 1, 0.5))
     NovaAPI.SetSPSortingOrder(tbRenderer.spr_face, 901)
-    local L2DAnimPlayer = goModel:GetComponent("L2DAnimPlayer")
-    L2DAnimPlayer:PlayAnimInUI("ultra", true, true)
+    NovaAPIHotfix.PlayAnimInUI(goModel, "ultra", true, true)
   else
     NovaAPI.SetSpriteRendererColor(tbRenderer.spr_body, Color.white)
     NovaAPI.SetSPSortingOrder(tbRenderer.spr_body, 0)
@@ -1667,7 +1682,11 @@ function Actor2DManager.SetL2D_InBBVEditor(rawImg, bIsNpc, nSkinId, bIsCG)
   if bIsCG ~= true then
     local objOffsetAsset = LoadAsset(sOffsetPath, Offset)
     local nX, nY = 0, 0
-    local s, x, y = objOffsetAsset:GetOffsetData(PanelId.MainView, indexOfPose("a"), true, nX, nY)
+    local nPanelId = PanelId.MainView
+    if bIsNpc == true then
+      nPanelId = PanelId.ShopPanel
+    end
+    local s, x, y = objOffsetAsset:GetOffsetData(nPanelId, indexOfPose("a"), true, nX, nY)
     tbRenderer.trOffset.localPosition = Vector3(x, y, 0)
     tbRenderer.trOffset.localScale = Vector3(s, s, 1)
   else

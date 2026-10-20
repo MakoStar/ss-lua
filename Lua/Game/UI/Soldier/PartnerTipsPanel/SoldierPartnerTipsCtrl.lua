@@ -82,6 +82,7 @@ local RootPath = "Icon/SoldierOtherIcon/"
 local contentHeight = 882
 SoldierPartnerTipsCtrl.minTipHeight = 59.13
 SoldierPartnerTipsCtrl.maxTipHeight = 896
+local replace_Harvest = "==HARVEST=="
 
 function SoldierPartnerTipsCtrl:Awake()
   local tbParam = self:GetPanelParam()
@@ -92,6 +93,7 @@ function SoldierPartnerTipsCtrl:Awake()
     self.bTrace = tbParam[4]
     self.tbChars = tbParam[5]
     self.bCanCheckCharTips = tbParam[6] or true
+    self.bShowTrace = tbParam[7] or true
   end
   self._tbCharItemCtrl = {}
 end
@@ -99,8 +101,8 @@ end
 function SoldierPartnerTipsCtrl:OnEnable()
   self._mapNode.btnCloseWordTip.gameObject:SetActive(false)
   self._mapNode.imgWordTipBg:SetActive(false)
-  self._mapNode.btnTrace.gameObject:SetActive(not self.bTrace and self.tbChars == nil)
-  self._mapNode.btnCancel.gameObject:SetActive(self.bTrace and self.tbChars == nil)
+  self._mapNode.btnTrace.gameObject:SetActive(not self.bTrace and self.tbChars == nil and self.bShowTrace)
+  self._mapNode.btnCancel.gameObject:SetActive(self.bTrace and self.tbChars == nil and self.bShowTrace)
   self:EnableGamepadUI(self._mapNode.btnShortcutClose, true)
   self:RefreshPanel()
   
@@ -166,7 +168,13 @@ function SoldierPartnerTipsCtrl:RefreshTitle()
   local sPath = self.activityLevel > 0 and RootPath .. AllEnum.SoldierPartnerLevelIcon[mapCfg.PartnerLevelQuality].bg or RootPath .. AllEnum.SoldierPartnerLevelIcon[GameEnum.PartnerLevelQuality.None].bg
   self:SetPngSprite(self._mapNode.imgPartnerBg, sPath)
   NovaAPI.SetTMPText(self._mapNode.txtPartnerName, partnerGroupCfg.Name)
-  NovaAPI.SetTMPText(self._mapNode.txtPartnerDesc, partnerGroupCfg.Desc)
+  local nHarvest = 0
+  if PlayerData.SoldierData:GetCurLevelData() ~= nil then
+    nHarvest = PlayerData.SoldierData:GetCurLevelData():GetClientHarvestCount()
+  end
+  local sDesc = UTILS.ParseDesc(partnerGroupCfg)
+  sDesc = string.gsub(sDesc, replace_Harvest, nHarvest)
+  NovaAPI.SetTMPText(self._mapNode.txtPartnerDesc, sDesc)
 end
 
 function SoldierPartnerTipsCtrl:RefreshLevelItems()

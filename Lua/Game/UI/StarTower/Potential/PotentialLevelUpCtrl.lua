@@ -1,6 +1,7 @@
 local PotentialLevelUpCtrl = class("PotentialLevelUpCtrl", BaseCtrl)
 local WwiseAudioMgr = CS.WwiseAudioManager.Instance
 local GamepadUIManager = require("GameCore.Module.GamepadUIManager")
+local StarTowerSettingGate = require("Game.Adventure.StarTower.StarTowerSettingGate")
 PotentialLevelUpCtrl._mapNodeConfig = {
   blurBg = {},
   menuBg = {},
@@ -62,7 +63,8 @@ PotentialLevelUpCtrl._mapNodeConfig = {
 }
 PotentialLevelUpCtrl._mapEventConfig = {
   ShowPotentialLevelUp = "OnEvent_ShowPotentialLevelUp",
-  GamepadUIReopen = "OnEvent_Reopen"
+  GamepadUIReopen = "OnEvent_Reopen",
+  StarTowerAutoClosePotentialLevelUp = "OnEvent_AutoClose"
 }
 PotentialLevelUpCtrl._mapRedDotConfig = {}
 
@@ -78,6 +80,7 @@ function PotentialLevelUpCtrl:Refresh(tbPotential)
 end
 
 function PotentialLevelUpCtrl:RefreshPotentialList(tbPotential)
+  local nSettingSerial = StarTowerSettingGate.Begin()
   local tbCardObj = {}
   local bSimple = PlayerData.StarTower:GetPotentialDescSimple()
   for k, v in ipairs(self._mapNode.potentialCard) do
@@ -114,13 +117,34 @@ function PotentialLevelUpCtrl:RefreshPotentialList(tbPotential)
         end
       end
       EventManager.Hit(EventId.BlockInput, false)
+      StarTowerSettingGate.ReadyAfter(self, nSettingSerial, math.max(NovaAPI.GetAnimClipLength(self._mapNode.animCtrl, {
+        "PotentialSelectPanel_in"
+      }), NovaAPI.GetAnimClipLength(self._mapNode.potentialCard[1].animCtrl, {
+        "tc_newperk_card_in"
+      })))
+      self:TryAutoClose()
     end
     
     cs_coroutine.start(wait)
+  else
+    self:TryAutoClose()
   end
 end
 
+function PotentialLevelUpCtrl:TryAutoClose()
+  if not self._bAutoClosePending or not self._mapNode.contentRoot.gameObject.activeSelf then
+    return
+  end
+  StarTowerSettingGate.Transition(self, 0.3)
+  self:AddTimer(1, 0.3, function()
+    if self._bAutoClosePending and (self._isAutoEnabledCallback == nil or self._isAutoEnabledCallback()) then
+      self:OnBtnClick_MaskBg()
+    end
+  end, true, true, true)
+end
+
 function PotentialLevelUpCtrl:HidePanel()
+  StarTowerSettingGate.Begin()
   PanelManager.InputEnable()
   EventManager.Hit("StarTowerSetButtonEnable", true, true)
   self._mapNode.blurBg.gameObject:SetActive(false)
@@ -148,13 +172,24 @@ function PotentialLevelUpCtrl:OnEnable()
 end
 
 function PotentialLevelUpCtrl:OnDisable()
+  StarTowerSettingGate.Clear(self)
 end
 
 function PotentialLevelUpCtrl:OnBtnClick_MaskBg()
+  self._bAutoClosePending = false
   self:HidePanel()
 end
 
+function PotentialLevelUpCtrl:OnEvent_AutoClose(callback, isAutoEnabledCallback)
+  if not self._mapNode.blurBg.gameObject.activeSelf or self.callback ~= callback then
+    return
+  end
+  self._bAutoClosePending = true
+  self._isAutoEnabledCallback = isAutoEnabledCallback
+end
+
 function PotentialLevelUpCtrl:OnBtnClick_Depot()
+  StarTowerSettingGate.Begin()
   self.bOpenDepot = true
   EventManager.Hit("StarTowerSetButtonEnable", false, false)
   CS.GameCameraStackManager.Instance:OpenMainCamera()
@@ -166,6 +201,7 @@ end
 
 function PotentialLevelUpCtrl:OnEvent_CloseStarTowerDepot()
   if self.bOpenDepot then
+    local nSettingSerial = StarTowerSettingGate.Begin()
     self.bOpenDepot = false
     EventManager.Hit("StarTowerSetButtonEnable", false, false)
     self._mapNode.blurBg.gameObject:SetActive(true)
@@ -184,11 +220,17 @@ function PotentialLevelUpCtrl:OnEvent_CloseStarTowerDepot()
       end
     end
     
-    cs_coroutine.start(wait)
+    cs_coroutine.start(function()
+      wait()
+      StarTowerSettingGate.ReadyAfter(self, nSettingSerial, NovaAPI.GetAnimClipLength(self._mapNode.potentialCard[1].animCtrl, {
+        "tc_newperk_card_switch_up"
+      }))
+    end)
   end
 end
 
 function PotentialLevelUpCtrl:OnEvent_ShowPotentialLevelUp(tbPotential, callback)
+  StarTowerSettingGate.Begin()
   self._panel:SetTop(self.canvas)
   if self._mapNode.blurBg.gameObject.activeSelf == false then
     PanelManager.InputDisable()

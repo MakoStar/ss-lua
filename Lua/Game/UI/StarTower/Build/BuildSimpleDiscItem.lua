@@ -8,7 +8,16 @@ BuildSimpleDiscItem._mapEventConfig = {}
 BuildSimpleDiscItem._mapRedDotConfig = {}
 
 function BuildSimpleDiscItem:Init(nDiscId)
-  local mapData = ConfigTable.GetData("Disc", nDiscId)
+  local mapData = ConfigTable.GetData("Disc", nDiscId, true)
+  if mapData == nil then
+    mapData = ConfigTable.GetData("TrialDisc", nDiscId)
+    if mapData ~= nil then
+      nDiscId = mapData.DiscId
+      mapData = ConfigTable.GetData("Disc", nDiscId)
+    else
+      return
+    end
+  end
   local mapCfg = ConfigTable.GetData_Item(nDiscId)
   self:SetPngSprite(self._mapNode.imgIcon, mapCfg.Icon .. AllEnum.OutfitIconSurfix.ListGrid)
   local sFrame = AllEnum.FrameType_New.BoardFrame .. AllEnum.BoardFrameColor[mapCfg.Rarity]

@@ -45,7 +45,11 @@ local SoldierAttachAttr = {
     sKey = "InitialEnergy",
     bSoldier = true
   },
-  {sKey = "Recovery", bSoldier = true},
+  {
+    sKey = "Recovery",
+    bSoldier = true,
+    bFloat = true
+  },
   {
     sKey = "ATKSPD_P",
     bSoldier = true,
@@ -69,6 +73,8 @@ local function _InitAttrMapSlots(map)
   for _, v in pairs(SoldierAttachAttr) do
     map[v.sKey] = 0
     map["_" .. v.sKey] = 0
+    map["_" .. v.sKey .. "BasePercentAmend"] = 0
+    map["_" .. v.sKey .. "BaseAmend"] = 0
     map["_" .. v.sKey .. "PercentAmend"] = 0
     map["_" .. v.sKey .. "Amend"] = 0
   end
@@ -112,8 +118,13 @@ end
 
 local function _Finalize(map)
   for _, v in pairs(SoldierAttachAttr) do
-    map[v.sKey] = map["_" .. v.sKey] * (1 + map["_" .. v.sKey .. "PercentAmend"] / 100) + map["_" .. v.sKey .. "Amend"]
-    map[v.sKey] = math.floor(map[v.sKey])
+    local nBase = map["_" .. v.sKey] * (1 + map["_" .. v.sKey .. "BasePercentAmend"] / 100) + map["_" .. v.sKey .. "BaseAmend"]
+    map[v.sKey] = nBase * (1 + map["_" .. v.sKey .. "PercentAmend"] / 100) + map["_" .. v.sKey .. "Amend"]
+    if v.bFloat then
+      map[v.sKey] = map[v.sKey]
+    else
+      map[v.sKey] = math.floor(map[v.sKey])
+    end
   end
 end
 
@@ -181,8 +192,8 @@ local function _BuildBuffCtx(tbDeployed, tbActivePartner)
   }
   ctx.nDeployedCount = #ctx.tbDeployed
   if tbActivePartner then
-    for _, nId in pairs(tbActivePartner) do
-      local mapPartnerCfg = ConfigTable.GetData("SoldierPartner", nId)
+    for _, info in ipairs(tbActivePartner) do
+      local mapPartnerCfg = ConfigTable.GetData("SoldierPartner", info.nId)
       if mapPartnerCfg ~= nil then
         local nType = mapPartnerCfg.PartnerType
         local nLevel = mapPartnerCfg.Level
@@ -191,6 +202,20 @@ local function _BuildBuffCtx(tbDeployed, tbActivePartner)
             nLevel = nLevel or 1
           }
           ctx.nActivePartnerCount = ctx.nActivePartnerCount + 1
+          if info.tbSoldiers then
+            local mapSoldier = {}
+            for _, nChessId in ipairs(info.tbSoldiers) do
+              mapSoldier[nChessId] = true
+            end
+            for _, chess in ipairs(ctx.tbDeployed) do
+              if mapSoldier[chess.nId] then
+                chess.tbPartnerType = chess.tbPartnerType or {}
+                if 0 >= table.indexof(chess.tbPartnerType, nType) then
+                  table.insert(chess.tbPartnerType, nType)
+                end
+              end
+            end
+          end
         end
       end
     end
@@ -397,6 +422,28 @@ local function _ApplyPercentAmendToChess(chess, sKey, nValue)
   chess.mapAttr[sPctKey] = chess.mapAttr[sPctKey] + (nValue or 0)
 end
 
+local function _ApplyBaseAmendToChess(chess, sKey, nValue)
+  if not (chess and chess.mapAttr) or not sKey then
+    return
+  end
+  local sBaseAmendKey = "_" .. sKey .. "BaseAmend"
+  if chess.mapAttr[sBaseAmendKey] == nil then
+    return
+  end
+  chess.mapAttr[sBaseAmendKey] = chess.mapAttr[sBaseAmendKey] + (nValue or 0)
+end
+
+local function _ApplyBasePercentAmendToChess(chess, sKey, nValue)
+  if not (chess and chess.mapAttr) or not sKey then
+    return
+  end
+  local sBasePctKey = "_" .. sKey .. "BasePercentAmend"
+  if chess.mapAttr[sBasePctKey] == nil then
+    return
+  end
+  chess.mapAttr[sBasePctKey] = chess.mapAttr[sBasePctKey] + (nValue or 0)
+end
+
 local function _EffectApply_None()
 end
 
@@ -412,6 +459,20 @@ local function _EffectApply_PercentAmendAttr(ctx, chess, idxChess, tbParam)
     return
   end
   _ApplyPercentAmendToChess(chess, tbParam[1], tonumber(tbParam[2]) or 0)
+end
+
+local function _EffectApply_BaseAmendAttr(ctx, chess, idxChess, tbParam)
+  if not tbParam or #tbParam ~= 2 then
+    return
+  end
+  _ApplyBaseAmendToChess(chess, tbParam[1], tonumber(tbParam[2]) or 0)
+end
+
+local function _EffectApply_BasePercentAmendAttr(ctx, chess, idxChess, tbParam)
+  if not tbParam or #tbParam ~= 2 then
+    return
+  end
+  _ApplyBasePercentAmendToChess(chess, tbParam[1], tonumber(tbParam[2]) or 0)
 end
 
 local function _EffectApply_PartnerTag(ctx, chess, idxChess, tbParam)
@@ -436,6 +497,8 @@ end
 _RegisterEffect(GameEnum.SoldierClientEffect.None, {fnApply = _EffectApply_None})
 _RegisterEffect(GameEnum.SoldierClientEffect.AmendAttr, {fnApply = _EffectApply_AmendAttr})
 _RegisterEffect(GameEnum.SoldierClientEffect.PercentAmendAttr, {fnApply = _EffectApply_PercentAmendAttr})
+_RegisterEffect(GameEnum.SoldierClientEffect.BaseAmendAttr, {fnApply = _EffectApply_BaseAmendAttr})
+_RegisterEffect(GameEnum.SoldierClientEffect.BasePercentAmendAttr, {fnApply = _EffectApply_BasePercentAmendAttr})
 _RegisterEffect(GameEnum.SoldierClientEffect.PartnerTag, {fnApply = _EffectApply_PartnerTag})
 _RegisterEffect(GameEnum.SoldierClientEffect.BattleAttrHalve, {fnApply = _EffectApply_BattleAttrHalve})
 
@@ -549,7 +612,12 @@ local function _AddPositionBuffs(ctx)
       local tbPosEffect = CacheTable.GetData("_SoldierPositionEffect", chess.nPositionType)
       local mapLine = tbPosEffect and tbPosEffect[chess.nIndex]
       local nBuffId = mapLine and mapLine.KeyEffectId or 0
-      if nBuffId ~= 0 then
+      local nTechNodeId = mapLine and mapLine.TechNodeId or 0
+      local bActive = true
+      if nTechNodeId ~= 0 then
+        bActive = PlayerData.SoldierData:CheckTechNodeActiveById(nTechNodeId)
+      end
+      if nBuffId ~= 0 and bActive then
         local buff = _ParseBuffConfig(ConfigTable.GetData("SoldierClientBuff", nBuffId))
         if buff then
           local tbInputSet = {
@@ -595,6 +663,24 @@ local function _AddPartnerBuffs(ctx)
   end
 end
 
+local function _AddTechnologyBuffs(ctx)
+  local tbTechBuff = PlayerData.SoldierData:GetTechActiveClientEffect()
+  if not tbTechBuff or #tbTechBuff == 0 then
+    return
+  end
+  local tbInputSet = {}
+  for i = 1, #ctx.tbDeployed do
+    tbInputSet[i] = true
+  end
+  for _, nBuffId in ipairs(tbTechBuff) do
+    local buff = _ParseBuffConfig(ConfigTable.GetData("SoldierClientBuff", nBuffId))
+    if buff then
+      local tbCandidates = _FilterChessByConditions(ctx, tbInputSet, buff.tbConds)
+      _DispatchBuff(ctx, nBuffId, buff, tbCandidates)
+    end
+  end
+end
+
 local function _ApplyAllBuffEffects(ctx)
   for idx, chess in ipairs(ctx.tbDeployed) do
     if chess.tbClientBuffIds then
@@ -607,6 +693,106 @@ local function _ApplyAllBuffEffects(ctx)
         end
       end
     end
+  end
+end
+
+local _tbOutOfCombatBonusKey = {
+  Hp = "Hp",
+  Atk = "Atk",
+  Def = "Def",
+  CritRate = "CritRate",
+  CritPower = "CritPower",
+  ATKSPD_P = "ATKSPD_P",
+  Recovery = "Recovery"
+}
+local _tbGrowthTierSorted
+
+local function _GetGrowthTierByLevel(nLevel)
+  if _tbGrowthTierSorted == nil then
+    _tbGrowthTierSorted = {}
+    ForEachTableLine(DataTable.SoldierCharGrowthTier, function(mapLineData)
+      table.insert(_tbGrowthTierSorted, mapLineData)
+    end)
+    table.sort(_tbGrowthTierSorted, function(a, b)
+      return a.CharLevel[1] < b.CharLevel[1]
+    end)
+  end
+  for _, row in ipairs(_tbGrowthTierSorted) do
+    local tbRange = row.CharLevel
+    if tbRange and nLevel > tbRange[1] and nLevel <= tbRange[2] then
+      return row
+    end
+  end
+  return nil
+end
+
+local function _CalcFateLevel(nCharId)
+  local nCount = 0
+  local tbFate = PlayerData.Talent:GetFateTalent(nCharId) or {}
+  for _, bActive in ipairs(tbFate) do
+    if bActive then
+      nCount = nCount + 1
+    end
+  end
+  return nCount
+end
+
+local function _CalcGrowthBonusByChessId(nChessId)
+  if not nChessId or nChessId == 0 then
+    return nil
+  end
+  local cfgChess = ConfigTable.GetData("SoldierCharacter", nChessId)
+  if not cfgChess or cfgChess.CharacterType ~= GameEnum.SoldierCharacterType.Actor then
+    return nil
+  end
+  local nCharId = cfgChess.CharacterId or 0
+  if nCharId == 0 then
+    return nil
+  end
+  local mapChar = PlayerData.Char:GetCharDataByTid(nCharId)
+  if not mapChar then
+    return nil
+  end
+  local nLevel = mapChar.nLevel or 0
+  local nFateLevel = _CalcFateLevel(nCharId)
+  local cfgTier = _GetGrowthTierByLevel(nLevel)
+  if not cfgTier then
+    return nil
+  end
+  local nRank = math.floor((nLevel - cfgTier.A) * cfgTier.N + nFateLevel * cfgTier.K)
+  if 0 < nRank then
+    return ConfigTable.GetData("SoldierCharTierAttrBonus", nRank)
+  end
+end
+
+local function _AccumulateGrowthOnMap(mapAttr, cfgBonus)
+  if not mapAttr or not cfgBonus then
+    return
+  end
+  for sKey, sBonusField in pairs(_tbOutOfCombatBonusKey) do
+    local nBonus = cfgBonus[sBonusField] or 0
+    if nBonus ~= 0 then
+      local sBasePctKey = "_" .. sKey .. "BasePercentAmend"
+      if mapAttr[sBasePctKey] ~= nil then
+        mapAttr[sBasePctKey] = mapAttr[sBasePctKey] + nBonus * ConfigData.IntFloatPrecision * 100
+      end
+    end
+  end
+end
+
+local function _ApplyOutOfCombatCharGrowth(ctx)
+  for _, chess in ipairs(ctx.tbDeployed) do
+    local cfgBonus = _CalcGrowthBonusByChessId(chess.nId)
+    if cfgBonus ~= nil then
+      _AccumulateGrowthOnMap(chess.mapAttr, cfgBonus)
+    end
+  end
+end
+
+local function _ApplyOutOfCombatCharGrowthToMap(mapAttr, nChessId)
+  local cfgBonus = _CalcGrowthBonusByChessId(nChessId)
+  if cfgBonus ~= nil then
+    _AccumulateGrowthOnMap(mapAttr, cfgBonus)
   end
 end
 
@@ -671,6 +857,8 @@ local function _CalcAllDeployedAttrs(tbCharacter, tbActivePartner, tbServerBuff,
   _AddPositionBuffs(ctx)
   _AddServerBuffs(ctx, tbServerBuff)
   _AddPartnerBuffs(ctx)
+  _AddTechnologyBuffs(ctx)
+  _ApplyOutOfCombatCharGrowth(ctx)
   _ApplyAllBuffEffects(ctx)
   _FinalizeAll(ctx)
   if bIsForBattle then
@@ -696,9 +884,9 @@ local function _FindChessAttr(tbDeployed, nId, nStar)
   return nil
 end
 
-function SoldierAttrData.CalcCharacterAttr(nId, nStar, tbCharacter, tbPartner, tbServerBuff)
-  if tbCharacter then
-    local _, tbDeployed = _CalcAllDeployedAttrs(clone(tbCharacter), tbPartner, tbServerBuff)
+function SoldierAttrData.CalcCharacterAttr(nId, nStar, tbCharacter, tbPartner, tbServerBuff, bAddCharGrowth)
+  if tbCharacter and 0 < #tbCharacter then
+    local _, tbDeployed = _CalcAllDeployedAttrs(clone(tbCharacter), tbPartner, tbServerBuff, false)
     local map = _FindChessAttr(tbDeployed, nId, nStar)
     if map then
       _Finalize(map)
@@ -709,6 +897,18 @@ function SoldierAttrData.CalcCharacterAttr(nId, nStar, tbCharacter, tbPartner, t
   if not map then
     return nil
   end
+  if bAddCharGrowth then
+    _ApplyOutOfCombatCharGrowthToMap(map, nId)
+  end
+  local chess = {
+    nId = nId,
+    nStar = nStar,
+    mapAttr = map,
+    tbPartnerType = SoldierAttrData.GetPartnerGroupsByChessId(nId)
+  }
+  local ctx = _BuildBuffCtx({chess}, nil)
+  _AddTechnologyBuffs(ctx)
+  _ApplyAllBuffEffects(ctx)
   _Finalize(map)
   return _FillAttrForUI(map)
 end
@@ -752,7 +952,7 @@ end
 function SoldierAttrData.GetPartnerGroupsByChessId(nId)
   local mapCharacter = ConfigTable.GetData("SoldierCharacter", nId)
   if mapCharacter ~= nil then
-    return mapCharacter.PartnerType
+    return clone(mapCharacter.PartnerType)
   end
   return {}
 end
@@ -770,9 +970,11 @@ local function _IsPartnerLevelActivated(nCount, nNum, eNumType)
 end
 
 function SoldierAttrData.CalcActivePartners(tbChess, tbExtraLevel, tbExtraCount)
-  local tbActivePartnerIds = {}
+  local tbActivePartners = {}
   local tbUIData = {}
   local mapTypeCount = {}
+  local nYiyeId = 2501053
+  local nYiyeStar = 0
   if tbChess then
     for _, chess in ipairs(tbChess) do
       if chess.nId and chess.nId ~= 0 then
@@ -780,13 +982,19 @@ function SoldierAttrData.CalcActivePartners(tbChess, tbExtraLevel, tbExtraCount)
         if tbPartnerTypes then
           for _, nType in ipairs(tbPartnerTypes) do
             if nType and 0 < nType then
-              local nCount = 1
-              if mapTypeCount[nType] ~= nil then
-                nCount = mapTypeCount[nType].nCount + 1
+              if mapTypeCount[nType] == nil then
+                mapTypeCount[nType] = {
+                  nCount = 0,
+                  tbSoldiers = {}
+                }
               end
-              mapTypeCount[nType] = {nCount = nCount}
+              mapTypeCount[nType].nCount = mapTypeCount[nType].nCount + 1
+              table.insert(mapTypeCount[nType].tbSoldiers, chess.nId)
             end
           end
+        end
+        if chess.nId == nYiyeId then
+          nYiyeStar = chess.nStar or 0
         end
       end
     end
@@ -802,20 +1010,51 @@ function SoldierAttrData.CalcActivePartners(tbChess, tbExtraLevel, tbExtraCount)
   end
   if tbExtraLevel then
     for nType, nLevel in pairs(tbExtraLevel) do
-      if mapTypeCount[nType] ~= nil then
-        mapTypeCount[nType].nExtraLevel = nLevel
-      else
-        mapTypeCount[nType] = {nCount = 0, nExtraLevel = nLevel}
+      if mapTypeCount[nType] == nil then
+        mapTypeCount[nType] = {
+          nCount = 0,
+          tbSoldiers = {}
+        }
       end
+      mapTypeCount[nType].nExtraLevel = nLevel
     end
   end
   if tbExtraCount then
     for nType, nCount in pairs(tbExtraCount) do
-      if mapTypeCount[nType] ~= nil then
-        mapTypeCount[nType].nExtraCount = nCount
-      else
-        mapTypeCount[nType] = {nCount = 0, nExtraCount = nCount}
+      if mapTypeCount[nType] == nil then
+        mapTypeCount[nType] = {
+          nCount = 0,
+          tbSoldiers = {}
+        }
       end
+      mapTypeCount[nType].nExtraCount = nCount
+    end
+  end
+  if 0 < nYiyeStar then
+    local tbCandidates = {
+      GameEnum.ChessPartnerType.BaiBuChuanYang,
+      GameEnum.ChessPartnerType.HuoLiYaZhi,
+      GameEnum.ChessPartnerType.WangPaiTeGong
+    }
+    local tbSorted = {}
+    for _, nType in ipairs(tbCandidates) do
+      local nCount = mapTypeCount[nType] and mapTypeCount[nType].nCount or 0
+      table.insert(tbSorted, {nType = nType, nCount = nCount})
+    end
+    table.sort(tbSorted, function(a, b)
+      return a.nCount > b.nCount
+    end)
+    local nJoin = math.min(nYiyeStar, #tbSorted)
+    for i = 1, nJoin do
+      local nType = tbSorted[i].nType
+      if mapTypeCount[nType] == nil then
+        mapTypeCount[nType] = {
+          nCount = 0,
+          tbSoldiers = {}
+        }
+      end
+      mapTypeCount[nType].nCount = mapTypeCount[nType].nCount + 1
+      table.insert(mapTypeCount[nType].tbSoldiers, nYiyeId)
     end
   end
   for nType, data in pairs(mapTypeCount) do
@@ -854,7 +1093,10 @@ function SoldierAttrData.CalcActivePartners(tbChess, tbExtraLevel, tbExtraCount)
         local cfg = mapByLevel[nActiveLevel]
         if cfg and cfg.Id then
           nQuality = cfg.PartnerLevelQuality
-          table.insert(tbActivePartnerIds, cfg.Id)
+          table.insert(tbActivePartners, {
+            nId = cfg.Id,
+            tbSoldiers = data.tbSoldiers or {}
+          })
         end
       end
       table.insert(tbUIData, {
@@ -863,7 +1105,8 @@ function SoldierAttrData.CalcActivePartners(tbChess, tbExtraLevel, tbExtraCount)
         nCurNum = nCount,
         tbNumList = tbNumList,
         nActiveNum = nActiveNum,
-        nActiveLevel = nActiveLevel
+        nActiveLevel = nActiveLevel,
+        nMaxLevel = nMaxLevel
       })
     end
   end
@@ -881,7 +1124,7 @@ function SoldierAttrData.CalcActivePartners(tbChess, tbExtraLevel, tbExtraCount)
     end
     return nActA > nActB
   end)
-  return tbActivePartnerIds, tbUIData
+  return tbActivePartners, tbUIData
 end
 
 function SoldierAttrData.GetPartnerLevelsByType(nPartnerType)
@@ -901,6 +1144,14 @@ function SoldierAttrData.GetPartnerLevelsByType(nPartnerType)
     return a.nLevel < b.nLevel
   end)
   return tbPartnerLevel
+end
+
+function SoldierAttrData.GetAttachAttrList()
+  return SoldierAttachAttr
+end
+
+function SoldierAttrData.GetShowAttrKey()
+  return _showAttrKey
 end
 
 return SoldierAttrData

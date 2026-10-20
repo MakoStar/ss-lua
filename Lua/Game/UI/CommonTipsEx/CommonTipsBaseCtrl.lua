@@ -10,7 +10,7 @@ CommonTipsBaseCtrl.maxTipHeight = 770
 function CommonTipsBaseCtrl:EnableGamepadUI(btn, bEnableVirtualMouse)
   if GamepadUIManager.GetInputState() then
     btn.gameObject:SetActive(true)
-    GamepadUIManager.EnableGamepadUI("CommonTipsBaseCtrl", self:GetGamepadUINode(), nil, bEnableVirtualMouse)
+    GamepadUIManager.EnableGamepadUI("CommonTipsBaseCtrl", self:GetGamepadUINode(), nil, bEnableVirtualMouse, nil, AllEnum.UI_SORTING_ORDER.Tips)
   end
 end
 

@@ -290,9 +290,33 @@ end
 function TrialResultCtrl:OnBtnClick_Close(btn)
   if PlayerData.Trial:IsActivityTrialMode() then
     PlayerData.Trial:SetSelectTrialGroup()
+    EventManager.Hit(EventId.ClosePanel, PanelId.TrialLevelSelect)
+    self:Close()
+  elseif PlayerData.Trial:IsSkinTrialMode() then
+    local function transitionOpenCallback()
+      PanelManager.IGNORE_CS_TRANS_EVENT = true
+      
+      local function OnEventAfterEnterMain()
+        EventManager.Remove(EventId.AfterEnterMain, PanelManager, OnEventAfterEnterMain)
+        EventManager.Hit(EventId.ClosePanel, PanelId.TrialSkinSelectPanel)
+        
+        local function wait()
+          coroutine.yield(CS.UnityEngine.WaitForSeconds(2))
+          PanelManager.IGNORE_CS_TRANS_EVENT = false
+          EventManager.Hit(EventId.SetTransition)
+        end
+        
+        cs_coroutine.start(wait)
+      end
+      
+      EventManager.Add(EventId.AfterEnterMain, PanelManager, OnEventAfterEnterMain)
+      self:Close()
+    end
+    
+    EventManager.Hit(EventId.SetTransition, 17, transitionOpenCallback)
+  else
+    self:Close()
   end
-  EventManager.Hit(EventId.ClosePanel, PanelId.TrialLevelSelect)
-  self:Close()
 end
 
 function TrialResultCtrl:OnBtnClick_Retry(btn)

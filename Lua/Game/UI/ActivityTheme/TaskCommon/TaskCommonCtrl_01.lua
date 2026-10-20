@@ -1,6 +1,5 @@
 local TaskCommonCtrl_01 = class("TaskCommonCtrl_01", BaseCtrl)
 local JumpUtil = require("Game.Common.Utils.JumpUtil")
-local PlayerActivityData = PlayerData.Activity
 local TabType = GameEnum.ActivityTaskTabType
 local ItemType = GameEnum.itemType
 local tbImgDbType = {SizeDelta = 1, FillAmount = 2}
@@ -61,13 +60,23 @@ TaskCommonCtrl_01._mapRedDotConfig = {}
 
 function TaskCommonCtrl_01:OnEnable()
   local tbParam = self:GetPanelParam()
-  self.nActivityId = type(tbParam) == "table" and tbParam[1] or nil
-  self.nCurGroupIndex = tbParam[2]
-  self.imgDbType = tbParam[3] or tbImgDbType.SizeDelta
+  if type(tbParam) == "table" then
+    self.nActivityId = tbParam[1]
+    self.nCurGroupIndex = tbParam[2]
+    self.imgDbType = tbParam[3]
+  end
+  self.imgDbType = self.imgDbType or tbImgDbType.SizeDelta
   if type(self.nActivityId) ~= "number" then
     self.nActivityId = nil
   end
   self:BuildData(self.nActivityId)
+  if #self.tbData == 0 then
+    self:refresh_Tab()
+    return
+  end
+  if type(self.nCurGroupIndex) ~= "number" or 1 > self.nCurGroupIndex or self.nCurGroupIndex > #self.tbData then
+    self.nCurGroupIndex = 1
+  end
   self:refresh_Tab()
   self:refresh_Task()
   self:refresh_Group()
@@ -90,7 +99,7 @@ function TaskCommonCtrl_01:BuildData(nActivityId)
   if type(nActivityId) ~= "number" then
     return
   end
-  self.ins_ActivityTaskData = PlayerActivityData:GetActivityDataById(nActivityId)
+  self.ins_ActivityTaskData = PlayerData.Activity:GetActivityDataById(nActivityId)
   if self.ins_ActivityTaskData == nil then
     return
   end
@@ -114,7 +123,7 @@ function TaskCommonCtrl_01:BuildData(nActivityId)
         for i = 1, 6 do
           local nRewardId = mapData["Reward" .. tostring(i)]
           local nRewardNum = mapData["RewardQty" .. tostring(i)]
-          if 0 < nRewardId and 0 < nRewardNum then
+          if 0 < (nRewardId or 0) and 0 < (nRewardNum or 0) then
             table.insert(_mapData.tbGroupRewardId, nRewardId)
             table.insert(_mapData.tbGroupRewardNum, nRewardNum)
           end
@@ -139,6 +148,9 @@ function TaskCommonCtrl_01:BuildData(nActivityId)
       local _tbTaskData = _mapData.tbTaskData
       local _nTaskId = mapData.Id
       local taskData = self.ins_ActivityTaskData.mapActivityTaskDatas[_nTaskId]
+      if taskData == nil then
+        return
+      end
       local nIndex = table.indexof(_tbTaskId, _nTaskId)
       if nIndex <= 0 then
         local _mapTaskData = {
@@ -161,7 +173,7 @@ function TaskCommonCtrl_01:BuildData(nActivityId)
         for i = 1, 2 do
           local nRewardId = mapData["Tid" .. tostring(i)]
           local nRewardNum = mapData["Qty" .. tostring(i)]
-          if 0 < nRewardId and 0 < nRewardNum then
+          if 0 < (nRewardId or 0) and 0 < (nRewardNum or 0) then
             table.insert(_mapTaskData.tbTaskRewardId, nRewardId)
             table.insert(_mapTaskData.tbTaskRewardNum, nRewardNum)
           end
@@ -241,7 +253,9 @@ function TaskCommonCtrl_01:onGridRefresh_Tab(go)
   local nTotal = #mapData.tbTaskData
   local sProgress = string.format("%s/%s", tostring(nDone), tostring(nTotal))
   local tr = go.transform
-  self:RefreshScaleOnClick_State(tr, nIndex, mapCfgData_ActivityTaskGroup, sProgress)
+  if mapCfgData_ActivityTaskGroup ~= nil then
+    self:RefreshScaleOnClick_State(tr, nIndex, mapCfgData_ActivityTaskGroup, sProgress)
+  end
   local goRedDot = tr:Find("scale_on_click/redDotTab")
   local bInActGroup, nActGroupId = PlayerData.Activity:IsActivityInActivityGroup(self.nActivityId)
   if bInActGroup == false then
@@ -316,6 +330,9 @@ function TaskCommonCtrl_01:onGridRefresh_Task(go)
       _tr.localScale = Vector3.one
       local nId = mapTask.tbTaskRewardId[i]
       local mapCfgData_Item = ConfigTable.GetData("Item", nId)
+      if mapCfgData_Item == nil then
+        return
+      end
       self:SetSprite_FrameColor(_tr:Find("Size/scale_on_click/imgRare").gameObject:GetComponent("Image"), mapCfgData_Item.Rarity, AllEnum.FrameType_New.Item, false)
       self:SetPngSprite(_tr:Find("Size/scale_on_click/imgIcon").gameObject:GetComponent("Image"), mapCfgData_Item.Icon)
       _tr:Find("Size/scale_on_click/goReceived").localScale = mapTask.nStatus == AllEnum.ActQuestStatus.Received and Vector3.one or Vector3.zero
@@ -364,7 +381,7 @@ function TaskCommonCtrl_01:onEvent_ClickTaskJump(goBtn)
   local mapData = self.tbData[self.nCurGroupIndex]
   local mapTask = mapData.tbTaskData[nIndex]
   local JumpToData = mapTask.tbJumpTo
-  if JumpToData ~= nil and 0 < #JumpToData then
+  if JumpToData ~= nil and type(JumpToData) == "table" and 0 < #JumpToData then
     JumpUtil.JumpToActivity(JumpToData)
   end
 end
@@ -379,7 +396,9 @@ function TaskCommonCtrl_01:refresh_Group()
   local nTotal = #tbTaskData
   local bDone = nOK == nTotal
   local mapCfgData_ActivityTaskGroup = ConfigTable.GetData("ActivityTaskGroup", nGroupId)
-  NovaAPI.SetTMPText(self._mapNode.tmpGroupName, mapCfgData_ActivityTaskGroup.TabText)
+  if mapCfgData_ActivityTaskGroup ~= nil then
+    NovaAPI.SetTMPText(self._mapNode.tmpGroupName, mapCfgData_ActivityTaskGroup.TabText)
+  end
   NovaAPI.SetTMPText(self._mapNode.tmpGroupProgress, string.format("%s/%s", tostring(nDone), tostring(nTotal)))
   self._mapNode.tmpGroupUndone.transform.localScale = bDone == true and Vector3.zero or Vector3.one
   self._mapNode.btnGroupDone.transform.localScale = bDone == true and self.bGot == false and Vector3.one or Vector3.zero
@@ -392,6 +411,9 @@ end
 function TaskCommonCtrl_01:onGridRefresh_GroupRewardItem(go)
   local nIndex = tonumber(go.name) + 1
   local mapCfgData_Item = ConfigTable.GetData("Item", self.tbCurGroupRewardId[nIndex])
+  if mapCfgData_Item == nil then
+    return
+  end
   local tr = go.transform
   self:SetSprite_FrameColor(tr:Find("scale_on_click/imgRare").gameObject:GetComponent("Image"), mapCfgData_Item.Rarity, AllEnum.FrameType_New.Item, false)
   self:SetPngSprite(tr:Find("scale_on_click/imgIcon").gameObject:GetComponent("Image"), mapCfgData_Item.Icon)

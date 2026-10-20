@@ -191,6 +191,7 @@ function LoginCtrl:OnEnable()
   self.bClickLogin = false
   self.bOnLogin = false
   self.bAutoOpenedAnn = false
+  self.bRequestingPlayerData = false
   self:InitSkip()
   self:InitAccount()
   self:InitServerList()
@@ -460,7 +461,7 @@ function LoginCtrl:RequestLogin()
   end
   msgSend.Account = Account
   msgSend.Language = Settings.sCurrentTxtLanguage
-  msgSend.Channel = NovaAPI.GetClientChannelName()
+  msgSend.Channel = NovaAPI.GetServerLoginName()
   msgSend.Device = NovaAPI.GetDeviceId()
   msgSend.Version = NovaAPI.GetClientVersion()
   print("Device:" .. (msgSend.Device == nil and "" or msgSend.Device))
@@ -512,7 +513,7 @@ function LoginCtrl:RequestLoginSDK()
     }
   end
   msgSend.Language = Settings.sCurrentTxtLanguage
-  msgSend.Channel = NovaAPI.GetClientChannelName()
+  msgSend.Channel = NovaAPI.GetServerLoginName()
   msgSend.Device = self.DeviceTrackingId
   msgSend.Version = NovaAPI.GetClientVersion()
   print("Device:" .. (msgSend.Device == nil and "" or msgSend.Device))
@@ -528,6 +529,13 @@ function LoginCtrl:RequestLoginSDK()
 end
 
 function LoginCtrl:RequestPlayerData()
+  if self.bRequestingPlayerData then
+    return
+  end
+  self.bRequestingPlayerData = true
+  self.bOnLogin = true
+  self._mapNode.btn_RequestPlayerData.gameObject:SetActive(false)
+  self._mapNode.btn_RequestPlayerData_Dev.gameObject:SetActive(false)
   local msgSend = {}
   
   local function func_Callback(sendMsg)
@@ -551,6 +559,7 @@ end
 
 function LoginCtrl:OnServerCallBack(sendMsg)
   self.bOnLogin = false
+  self.bRequestingPlayerData = false
   local goLaunchUI = GameObject.Find("==== Builtin UI ====/LaunchUI")
   if sendMsg.receiveMsgId == NetMsgId.Id.player_data_succeed_ack then
     HttpNetHandler.SetPingPong()
@@ -657,6 +666,7 @@ function LoginCtrl:OnEvent_LoginFailed()
   self.bProcessingLogin = false
   self.bOnLogin = false
   self.bClickLogin = false
+  self.bRequestingPlayerData = false
   self:ShowNode(self._mapNode.ClickLoginRoot)
   self:HideNode(self._mapNode.SelectServerRoot)
   self:HideNode(self._mapNode.ChangeAccountRoot)
@@ -757,11 +767,12 @@ function LoginCtrl:OnBtnClick_Setting()
 end
 
 function LoginCtrl:AutoOpenAnnPanel()
+  self.bRequestingPlayerData = false
+  
   local function callback()
     if PlayerData.AnnouncementData:HasAnnouncement() then
       if PlayerData.AnnouncementData:GetIsNeedAutoOpen() then
         self.bOnLogin = false
-        
         self.bAutoOpenedAnn = true
         EventManager.Hit("AnnInit")
       else

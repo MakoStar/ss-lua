@@ -101,6 +101,7 @@ local function player_data_succeed_ack(mapMsgData)
   PlayerData.VampireSurvivor:CacheLevelData(mapMsgData.VampireSurvivorRecord)
   PlayerData.SkillInstance:CacheSkillInstanceLevel(mapMsgData.SkillInstances)
   PlayerData.TraceHunt:CacheItemInfo(mapMsgData.HuntPermit, mapMsgData.TraceRequest)
+  PlayerData.Reengagement:CacheReturneeInfo(mapMsgData.ActivityReturnee)
   NovaAPI.SetRetryCount()
   PlayerData.Base:SetNextRefreshTime(mapMsgData.ServerTs)
   PlayerData.Dispatch.CacheDispatchData(mapMsgData.Agent)
@@ -109,6 +110,7 @@ local function player_data_succeed_ack(mapMsgData)
   PlayerData.TutorialData:CacheTutorialData(mapMsgData.TutorialLevels)
   PlayerData.Story:CacheLastStory(mapMsgData.LastRead)
   PlayerData.Avg:CachePersonalityData(mapMsgData.PersonalityModels)
+  PlayerData.PlayerDormData:CacheDormHotInfo(mapMsgData.Dorm)
   local bPlayCond = PlayerData.Base:CheckFunctionUnlock(GameEnum.OpenFuncType.ScoreBoss, false)
   if bPlayCond and not PlayerData.ScoreBoss:GetInitInfoState() then
     PlayerData.ScoreBoss:GetScoreBossInstanceData()
@@ -119,6 +121,7 @@ local function player_data_succeed_ack(mapMsgData)
     CS.SDKManager.Instance:RoleInfoUpload(tostring(PlayerData.Base._nPlayerId), PlayerData.Base._sPlayerNickName, mapMsgData.ServerTs)
   end
   PlayerData.Talent:UpdateAllCharTalentRedDot()
+  PlayerData.Quest:RequestGuideMissionInfo()
   PlayerData.Filter:InitSortData()
   EventManager.Hit("Get_Player_Data_Succeed")
 end
@@ -733,6 +736,10 @@ local function activity_login_rewards_notify(mapMsgData)
   PlayerData.Activity:CacheLoginRewardActData(mapMsgData.ActivityId, mapMsgData)
 end
 
+local function activity_malllogin_rewards_notify(mapMsgData)
+  PlayerData.Activity:CacheMallLoginActData(mapMsgData.ActivityId, mapMsgData)
+end
+
 local function star_tower_book_potential_notify(mapMsgData)
   PlayerData.StarTowerBook:CharPotentialBookChange(mapMsgData)
 end
@@ -1104,6 +1111,8 @@ local function BindProcessFunction()
     [NetMsgId.Id.gacha_newbie_obtain_failed_ack] = NOTHING_NEED_TO_BE_DONE,
     [NetMsgId.Id.gacha_newbie_save_succeed_ack] = NOTHING_NEED_TO_BE_DONE,
     [NetMsgId.Id.gacha_newbie_save_failed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.gacha_reward_get_succeed_ack] = HttpNetHandlerPlus.gacha_reward_get_succeed_ack,
+    [NetMsgId.Id.gacha_reward_get_failed_ack] = NOTHING_NEED_TO_BE_DONE,
     [NetMsgId.Id.mail_list_succeed_ack] = mail_list_succeed_ack,
     [NetMsgId.Id.mail_list_failed_ack] = NOTHING_NEED_TO_BE_DONE,
     [NetMsgId.Id.mail_read_succeed_ack] = mail_read_succeed_ack,
@@ -1135,10 +1144,16 @@ local function BindProcessFunction()
     [NetMsgId.Id.star_tower_build_preference_set_failed_ack] = NOTHING_NEED_TO_BE_DONE,
     [NetMsgId.Id.star_tower_build_whether_save_succeed_ack] = star_tower_build_whether_save_succeed_ack,
     [NetMsgId.Id.star_tower_build_whether_save_failed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.star_tower_build_note_modify_succeed_ack] = HttpNetHandlerPlus.star_tower_build_note_modify_succeed_ack,
+    [NetMsgId.Id.star_tower_build_note_modify_failed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.star_tower_build_potential_modify_succeed_ack] = HttpNetHandlerPlus.star_tower_build_potential_modify_succeed_ack,
+    [NetMsgId.Id.star_tower_build_potential_modify_failed_ack] = NOTHING_NEED_TO_BE_DONE,
     [NetMsgId.Id.star_tower_give_up_succeed_ack] = star_tower_give_up_succeed_ack,
     [NetMsgId.Id.star_tower_give_up_failed_ack] = NOTHING_NEED_TO_BE_DONE,
     [NetMsgId.Id.star_tower_interact_succeed_ack] = star_tower_interact_succeed_ack,
-    [NetMsgId.Id.star_tower_interact_failed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.star_tower_interact_failed_ack] = function(mapError)
+      EventManager.Hit("StarTowerSettingRequestFailed", mapError)
+    end,
     [NetMsgId.Id.star_tower_apply_succeed_ack] = NOTHING_NEED_TO_BE_DONE,
     [NetMsgId.Id.star_tower_apply_failed_ack] = star_tower_apply_failed_ack,
     [NetMsgId.Id.tower_growth_detail_succeed_ack] = NOTHING_NEED_TO_BE_DONE,
@@ -1147,6 +1162,12 @@ local function BindProcessFunction()
     [NetMsgId.Id.tower_growth_node_unlock_failed_ack] = NOTHING_NEED_TO_BE_DONE,
     [NetMsgId.Id.tower_growth_group_node_unlock_succeed_ack] = tower_growth_group_node_unlock_succeed_ack,
     [NetMsgId.Id.tower_growth_group_node_unlock_failed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.tower_vita_project_list_succeed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.tower_vita_project_list_failed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.tower_vita_project_update_succeed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.tower_vita_project_update_failed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.tower_vita_project_name_update_succeed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.tower_vita_project_name_update_failed_ack] = NOTHING_NEED_TO_BE_DONE,
     [NetMsgId.Id.quest_tower_reward_receive_succeed_ack] = quest_tower_reward_receive_succeed_ack,
     [NetMsgId.Id.quest_tower_reward_receive_failed_ack] = NOTHING_NEED_TO_BE_DONE,
     [NetMsgId.Id.quest_assist_reward_receive_succeed_ack] = HttpNetHandlerPlus.quest_assist_reward_receive_succeed_ack,
@@ -1211,6 +1232,7 @@ local function BindProcessFunction()
     [NetMsgId.Id.mall_shop_order_failed_ack] = NOTHING_NEED_TO_BE_DONE,
     [NetMsgId.Id.gem_convert_succeed_ack] = gem_convert_succeed_ack,
     [NetMsgId.Id.gem_convert_failed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.dorm_blocks_convert_succeed_ack] = HttpNetHandlerPlus.dorm_blocks_convert_succeed_ack,
     [NetMsgId.Id.daily_instance_settle_succeed_ack] = daily_instance_settle_succeed_ack,
     [NetMsgId.Id.daily_instance_raid_succeed_ack] = daily_instance_raid_succeed_ack,
     [NetMsgId.Id.daily_instance_raid_failed_ack] = NOTHING_NEED_TO_BE_DONE,
@@ -1229,6 +1251,7 @@ local function BindProcessFunction()
     [NetMsgId.Id.activity_periodic_final_reward_receive_failed_ack] = NOTHING_NEED_TO_BE_DONE,
     [NetMsgId.Id.activity_login_reward_receive_succeed_ack] = activity_login_reward_receive_succeed_ack,
     [NetMsgId.Id.activity_login_reward_receive_failed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.activity_malllogin_reward_receive_succeed_ack] = HttpNetHandlerPlus.activity_malllogin_reward_receive_succeed_ack,
     [NetMsgId.Id.activity_trial_reward_receive_succeed_ack] = activity_trial_reward_receive_succeed_ack,
     [NetMsgId.Id.activity_shop_purchase_succeed_ack] = HttpNetHandlerPlus.activity_shop_purchase_succeed_ack,
     [NetMsgId.Id.phone_contacts_info_succeed_ack] = phone_contacts_info_succeed_ack,
@@ -1333,6 +1356,7 @@ local function BindProcessFunction()
     [NetMsgId.Id.story_complete_notify] = story_complete_notify,
     [NetMsgId.Id.clear_all_story_notify] = clear_all_story_notify,
     [NetMsgId.Id.activity_login_rewards_notify] = activity_login_rewards_notify,
+    [NetMsgId.Id.activity_malllogin_rewards_notify] = activity_malllogin_rewards_notify,
     [NetMsgId.Id.star_tower_book_potential_notify] = star_tower_book_potential_notify,
     [NetMsgId.Id.star_tower_book_event_notify] = star_tower_book_event_notify,
     [NetMsgId.Id.star_tower_book_event_reward_receive_succeed_ack] = star_tower_book_event_reward_receive_succeed_ack,
@@ -1378,6 +1402,10 @@ local function BindProcessFunction()
     [NetMsgId.Id.week_boss_refresh_ticket_notify] = week_boss_refresh_ticket_notify,
     [NetMsgId.Id.player_learn_succeed_ack] = NOTHING_NEED_TO_BE_DONE,
     [NetMsgId.Id.player_learn_failed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.dorm_learn_succeed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.dorm_learn_failed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.soldier_learn_succeed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.soldier_learn_failed_ack] = NOTHING_NEED_TO_BE_DONE,
     [NetMsgId.Id.char_affinity_quest_reward_receive_succeed_ack] = char_affinity_quest_reward_receive_succeed_ack,
     [NetMsgId.Id.char_affinity_quest_reward_receive_failed_ack] = NOTHING_NEED_TO_BE_DONE,
     [NetMsgId.Id.char_affinity_gift_send_succeed_ack] = char_affinity_gift_send_succeed_ack,
@@ -1460,6 +1488,7 @@ local function BindProcessFunction()
     [NetMsgId.Id.build_convert_group_reward_receive_failed_ack] = NOTHING_NEED_TO_BE_DONE,
     [NetMsgId.Id.activity_story_settle_succeed_ack] = HttpNetHandlerPlus.activity_story_settle_succeed_ack,
     [NetMsgId.Id.activity_history_story_settle_succeed_ack] = HttpNetHandlerPlus.activity_history_story_settle_succeed_ack,
+    [NetMsgId.Id.activity_archive_story_settle_succeed_ack] = HttpNetHandlerPlus.activity_archive_story_settle_succeed_ack,
     [NetMsgId.Id.milkout_settle_succeed_ack] = HttpNetHandlerPlus.milkout_settle_succeed_ack,
     [NetMsgId.Id.milkout_settle_failed_ack] = NOTHING_NEED_TO_BE_DONE,
     [NetMsgId.Id.milkout_character_unlock_notify] = HttpNetHandlerPlus.milkout_character_unlock_notify,
@@ -1497,10 +1526,46 @@ local function BindProcessFunction()
     [NetMsgId.Id.soldier_interact_succeed_ack] = HttpNetHandlerPlus.soldier_interact_succeed_ack,
     [NetMsgId.Id.soldier_interact_failed_ack] = HttpNetHandlerPlus.soldier_interact_failed_ack,
     [NetMsgId.Id.sd_soldier_info_notify] = HttpNetHandlerPlus.sd_soldier_info_notify,
-    [NetMsgId.Id.sd_buff_card_add_notify] = HttpNetHandlerPlus.sd_buff_card_add_notify,
+    [NetMsgId.Id.sd_buff_notify] = HttpNetHandlerPlus.sd_buff_notify,
     [NetMsgId.Id.sd_soldier_effect_notify] = HttpNetHandlerPlus.sd_soldier_effect_notify,
     [NetMsgId.Id.sd_shop_data_notify] = HttpNetHandlerPlus.sd_shop_data_notify,
-    [NetMsgId.Id.sd_item_change_notify] = HttpNetHandlerPlus.sd_item_change_notify
+    [NetMsgId.Id.sd_item_change_notify] = HttpNetHandlerPlus.sd_item_change_notify,
+    [NetMsgId.Id.soldier_season_reward_receive_succeed_ack] = HttpNetHandlerPlus.soldier_season_reward_receive_succeed_ack,
+    [NetMsgId.Id.soldier_season_reward_receive_failed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.dorm_info_list_succeed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.dorm_info_list_failed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.dorm_info_update_name_succeed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.dorm_info_update_name_failed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.dorm_bag_list_succeed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.dorm_bag_list_failed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.dorm_role_interaction_succeed_ack] = HttpNetHandlerPlus.dorm_role_interaction_succeed_ack,
+    [NetMsgId.Id.dorm_invitation_role_succeed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.dorm_invitation_role_failed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.dorm_layout_reward_receive_succeed_ack] = HttpNetHandlerPlus.dorm_layout_reward_receive_succeed_ack,
+    [NetMsgId.Id.dorm_layout_reward_receive_failed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.dorm_reward_receive_succeed_ack] = HttpNetHandlerPlus.dorm_reward_receive_succeed_ack,
+    [NetMsgId.Id.dorm_reward_receive_failed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.dorm_room_bgm_succeed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.dorm_room_bgm_failed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.dorm_affinity_gift_send_succeed_ack] = HttpNetHandlerPlus.dorm_affinity_gift_send_succeed_ack,
+    [NetMsgId.Id.dorm_affinity_gift_send_failed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.dorm_furniture_preset_delete_succeed_ack] = HttpNetHandlerPlus.dorm_affinity_gift_send_succeed_ack,
+    [NetMsgId.Id.dorm_furniture_preset_delete_failed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.friend_list_get_succeed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.friend_list_get_failed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.dorm_room_unlock_notify] = HttpNetHandlerPlus.dorm_room_unlock_notify,
+    [NetMsgId.Id.quest_dorm_reward_receive_succeed_ack] = HttpNetHandlerPlus.quest_dorm_reward_receive_succeed_ack,
+    [NetMsgId.Id.dorm_get_change_data_succeed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.dorm_achievement_reward_receive_succeed_ack] = HttpNetHandlerPlus.dorm_achievement_reward_receive_succeed_ack,
+    [NetMsgId.Id.dorm_achievement_reward_receive_failed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.activity_returnee_state_notify] = HttpNetHandlerPlus.activity_returnee_state_notify,
+    [NetMsgId.Id.activity_returnee_quest_change_notify] = HttpNetHandlerPlus.activity_returnee_quest_change_notify,
+    [NetMsgId.Id.activity_math_parkour_level_settle_succeed_ack] = HttpNetHandlerPlus.activity_math_parkour_level_settle_succeed_ack,
+    [NetMsgId.Id.activity_math_parkour_level_settle_failed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.clear_all_activity_mathParkour_levels_notify] = HttpNetHandlerPlus.clear_all_activity_mathParkour_levels_notify,
+    [NetMsgId.Id.activity_mail_bind_reward_receive_succeed_ack] = HttpNetHandlerPlus.activity_mail_bind_reward_receive_succeed_ack,
+    [NetMsgId.Id.activity_mail_bind_reward_receive_failed_ack] = NOTHING_NEED_TO_BE_DONE,
+    [NetMsgId.Id.handbook_complete_notify] = HttpNetHandlerPlus.handbook_complete_notify
   }
 end
 
@@ -1707,6 +1772,7 @@ function HttpNetHandler.ProcChangeInfo(mapDecodedChangeInfo)
   PlayerData.Base:ChangeHonorTitle(mapDecodedChangeInfo["proto.Honor"])
   PlayerData.HeadData:ChangePlayerHead(mapDecodedChangeInfo["proto.HeadIcon"])
   PlayerData.TraceHunt:ChangeItem(mapDecodedChangeInfo["proto.TraceHuntItem"])
+  PlayerData.PlayerDormData:CacheFurnitureChange(mapDecodedChangeInfo["proto.DormItem"])
 end
 
 return HttpNetHandler

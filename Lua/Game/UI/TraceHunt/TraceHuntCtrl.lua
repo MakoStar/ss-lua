@@ -273,8 +273,6 @@ function TraceHuntCtrl:RefreshConfig()
   self.npcId = ConfigTable.GetConfigNumber("TraceHuntNPCId")
   self.nNormalTime = ConfigTable.GetConfigNumber("TraceHuntBossTimeLimit")
   self.nHardTime = ConfigTable.GetConfigNumber("TraceHuntHardBossTimeLimit")
-  self.nAtk = ConfigTable.GetConfigNumber("TraceHuntHardBossShowAtk")
-  self.nDef = ConfigTable.GetConfigNumber("TraceHuntHardBossShowDef")
 end
 
 function TraceHuntCtrl:RefreshControl()
@@ -748,8 +746,8 @@ function TraceHuntCtrl:RefreshHuntBoardHard()
   self._mapNode.goHard:SetActive(1 < nHard)
   self._mapNode.rtAffix:SetActive(1 < nHard)
   if 1 < nHard then
-    NovaAPI.SetTMPText(self._mapNode.txtAffix[1], orderedFormat(ConfigTable.GetUIText("TraceHunt_HardSwitch_AffixAtk"), self.nAtk))
-    NovaAPI.SetTMPText(self._mapNode.txtAffix[2], orderedFormat(ConfigTable.GetUIText("TraceHunt_HardSwitch_AffixDef"), self.nDef))
+    NovaAPI.SetTMPText(self._mapNode.txtAffix[1], ConfigTable.GetUIText("TraceHunt_HardSwitch_AffixAtk"))
+    NovaAPI.SetTMPText(self._mapNode.txtAffix[2], ConfigTable.GetUIText("TraceHunt_HardSwitch_AffixDef"))
     NovaAPI.SetTMPText(self._mapNode.txtAffix[3], orderedFormat(ConfigTable.GetUIText("TraceHunt_HardSwitch_AffixTime"), self.nNormalTime - self.nHardTime))
   end
   local bBlock = PlayerData.TraceHunt:GetControlBlockState()

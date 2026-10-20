@@ -552,8 +552,8 @@ function PenguinCardFlipCtrl:OnBtnClick_ShowAll(btn)
 end
 
 function PenguinCardFlipCtrl:OnBtnClick_NextRound(btn)
-  self._panel.mapLevel:NextRound()
   self:QuitScoreAni()
+  self._panel.mapLevel:NextRound()
 end
 
 function PenguinCardFlipCtrl:OnBtnClick_CheckRound(btn)

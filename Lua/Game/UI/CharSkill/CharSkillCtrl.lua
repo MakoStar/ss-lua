@@ -406,6 +406,7 @@ function CharSkillCtrl:RefreshHeight(nType, bMax)
   local nMaxHeight = Settings.CURRENT_CANVAS_FULL_RECT_HEIGHT - nOtherHeight
   
   local function wait()
+    CS.UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(self._mapNode.Content[nType])
     coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
     local nContentH = self._mapNode.Content[nType].rect.height
     local bOver = nContentH > nMaxHeight

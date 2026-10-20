@@ -80,6 +80,9 @@ end
 
 function PlayerDictionaryData:ChangeDictionaryData(mapData)
   local nId = self._tbEntryId[mapData.TabId][mapData.Index]
+  if nId == nil then
+    return
+  end
   if not self._tbEntryStatus[nId] or self._tbEntryStatus[nId] == Status.Uncompleted then
     local mapCfg = ConfigTable.GetData("DictionaryEntry", nId)
     if mapCfg ~= nil and mapCfg.Popup == true then

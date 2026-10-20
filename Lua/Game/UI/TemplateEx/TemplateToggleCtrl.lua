@@ -25,6 +25,16 @@ function TemplateToggleCtrl:SetDefault(bOn)
   NovaAPI.SetTMPColor(self._mapNode.txt_unSelect, Blue_Normal)
 end
 
+function TemplateToggleCtrl:SetDefaultDorm(bOn)
+  if self._mapNode.AnimSwitch.enabled == true then
+    self._mapNode.AnimSwitch.enabled = false
+  end
+  self._mapNode.Select:SetActive(bOn)
+  self._mapNode.unSelect:SetActive(not bOn)
+  self._mapNode.txt_Select.gameObject:SetActive(bOn)
+  self._mapNode.txt_unSelect.gameObject:SetActive(not bOn)
+end
+
 function TemplateToggleCtrl:SetDefaultAct10101(bOn)
   if self._mapNode.AnimSwitch.enabled == true then
     self._mapNode.AnimSwitch.enabled = false

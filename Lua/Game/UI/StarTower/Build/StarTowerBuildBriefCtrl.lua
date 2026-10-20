@@ -156,6 +156,16 @@ local FilterGradeIdx = {
   btn_FilterGradeC = 0
 }
 
+function StarTowerBuildBriefCtrl:GetEditableBuildCount()
+  local nCount = 0
+  for _, mapBuild in ipairs(self._tbAllBuild) do
+    if PlayerData.Build:IsBuildEditable(mapBuild.nBuildId) then
+      nCount = nCount + 1
+    end
+  end
+  return nCount
+end
+
 function StarTowerBuildBriefCtrl:RefreshList()
   local isDirty = PlayerData.Filter:IsDirtyByOption(self._panel.tbOption)
   self._mapNode.imgFilterChoose:SetActive(isDirty)
@@ -178,7 +188,7 @@ function StarTowerBuildBriefCtrl:RefreshList()
     self._mapNode.ListContent:SetActive(true)
   end
   self._mapNode.BuildList:Init(#self.tbCurShow, self, self.RefreshBuildGrid)
-  NovaAPI.SetTMPText(self._mapNode.txt_BuildCount, string.format("%d/%d", #self._tbAllBuild, ConfigTable.GetConfigNumber("StarTowerBuildNumberMax")))
+  NovaAPI.SetTMPText(self._mapNode.txt_BuildCount, string.format("%d/%d", self:GetEditableBuildCount(), ConfigTable.GetConfigNumber("StarTowerBuildNumberMax")))
 end
 
 function StarTowerBuildBriefCtrl:FilterAndSortBuildData()
@@ -281,6 +291,18 @@ function StarTowerBuildBriefCtrl:FilterAndSortBuildData()
     
     table.sort(ret, sortByScore)
   end
+  if self.nSortype == SortType.Score then
+    PlayerData.Build:PrioritizeLimitedTrialBuilds(ret, function(mapBuild)
+      if self.nPanelState == PanelState.Delete then
+        return self.mapDelete[mapBuild.nBuildId] ~= nil and 1 or 0
+      elseif self.nPanelState == PanelState.Preference then
+        local bCheckIn = self.mapPreferenceCheckIn[mapBuild.nBuildId] ~= nil
+        local bCheckOut = self.mapPreferenceCheckOut[mapBuild.nBuildId] ~= nil
+        return (not (not mapBuild.bPreference or bCheckOut) or not mapBuild.bPreference and bCheckIn) and 1 or 0
+      end
+      return 0
+    end)
+  end
   return ret
 end
 
@@ -299,6 +321,9 @@ end
 
 function StarTowerBuildBriefCtrl:OnBuildGridLock(nIdx, itemCtrl)
   local mapBuild = self.tbCurShow[nIdx]
+  if not PlayerData.Build:IsBuildEditable(mapBuild.nBuildId) then
+    return
+  end
   
   local function callback()
     itemCtrl:SetLockState(mapBuild.bLock)
@@ -319,6 +344,9 @@ function StarTowerBuildBriefCtrl:OnBuildGridPreference(nIdx, itemCtrl)
     return
   end
   local mapBuild = self.tbCurShow[nIdx]
+  if not PlayerData.Build:IsBuildEditable(mapBuild.nBuildId) then
+    return
+  end
   local tbPreferenceCheckIn = {}
   local tbPreferenceCheckOut = {}
   
@@ -336,6 +364,9 @@ end
 
 function StarTowerBuildBriefCtrl:OnBtnClickGrid(nIdx, itemCtrl)
   local mapBuild = self.tbCurShow[nIdx]
+  if self.nPanelState ~= PanelState.Normal and not PlayerData.Build:IsBuildEditable(mapBuild.nBuildId) then
+    return
+  end
   if self.nPanelState == PanelState.Delete then
     if mapBuild.bLock then
       EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("BUILD_01"))
@@ -372,7 +403,7 @@ function StarTowerBuildBriefCtrl:OnBtnClickGrid(nIdx, itemCtrl)
       itemCtrl:SetSelectPreferenceState(true)
       self.nPreferenceCount = self.nPreferenceCount + 1
     end
-    NovaAPI.SetTMPText(self._mapNode.txt_PreferenceCount, string.format("%d/%d", self.nPreferenceCount, #self._tbAllBuild))
+    NovaAPI.SetTMPText(self._mapNode.txt_PreferenceCount, string.format("%d/%d", self.nPreferenceCount, self:GetEditableBuildCount()))
   else
     local function callback(mapData)
       EventManager.Hit(EventId.OpenPanel, PanelId.StarTowerBuildDetail, mapData)
@@ -406,13 +437,13 @@ function StarTowerBuildBriefCtrl:SetDeleteResult()
     self._mapNode.rtResultTitle.gameObject:SetActive(true)
     self._mapNode.result1:SetItem(self.nDeleteReturnId, nil, nCoin, nil, nil, nil, nil, true)
   end
-  NovaAPI.SetTMPText(self._mapNode.txt_SelectCount, string.format("%d/%d", self.nSelectedDeleteCount, #self._tbAllBuild))
+  NovaAPI.SetTMPText(self._mapNode.txt_SelectCount, string.format("%d/%d", self.nSelectedDeleteCount, self:GetEditableBuildCount()))
 end
 
 function StarTowerBuildBriefCtrl:CalPreferenceCount()
   local ret = 0
   for _, mapBuild in ipairs(self._tbAllBuild) do
-    if mapBuild.bPreference then
+    if PlayerData.Build:IsBuildEditable(mapBuild.nBuildId) and mapBuild.bPreference then
       ret = ret + 1
     end
   end
@@ -454,7 +485,7 @@ function StarTowerBuildBriefCtrl:OpenConfirmHint()
           end
           
           self:OnBtnClick_CloseDelete()
-          PlayerData.Build:GetAllBuildBriefData(GetDataCallback)
+          PlayerData.Build:GetSelectableBuildBriefData(GetDataCallback, nil, true)
         end
         
         local tbDelete = {}
@@ -541,7 +572,7 @@ function StarTowerBuildBriefCtrl:OnEnable()
     self:RefreshList()
   end
   
-  PlayerData.Build:GetAllBuildBriefData(GetDataCallback)
+  PlayerData.Build:GetSelectableBuildBriefData(GetDataCallback, nil, true)
 end
 
 function StarTowerBuildBriefCtrl:OnDisable()
@@ -626,7 +657,7 @@ function StarTowerBuildBriefCtrl:OnBtnClick_SelectPreference()
   self.mapPreferenceCheckIn = {}
   self.mapPreferenceCheckOut = {}
   self.nPreferenceCount = self:CalPreferenceCount()
-  NovaAPI.SetTMPText(self._mapNode.txt_PreferenceCount, string.format("%d/%d", self.nPreferenceCount, #self._tbAllBuild))
+  NovaAPI.SetTMPText(self._mapNode.txt_PreferenceCount, string.format("%d/%d", self.nPreferenceCount, self:GetEditableBuildCount()))
   self:RefreshList()
   self._mapNode.PreferenceContent:SetActive(true)
 end
@@ -689,7 +720,7 @@ function StarTowerBuildBriefCtrl:OnBtnClick_FastSelectDeleteBuild(btn)
     return
   end
   for _, mapBuild in ipairs(self.tbCurShow) do
-    if mapBuild.mapRank.Rarity >= 4 - filterGrade and not mapBuild.bLock and self.mapDelete[mapBuild.nBuildId] == nil then
+    if PlayerData.Build:IsBuildEditable(mapBuild.nBuildId) and mapBuild.mapRank.Rarity >= 4 - filterGrade and not mapBuild.bLock and self.mapDelete[mapBuild.nBuildId] == nil then
       self.mapDelete[mapBuild.nBuildId] = 0
       self.nSelectedDeleteCount = self.nSelectedDeleteCount + 1
     end

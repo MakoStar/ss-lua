@@ -20,7 +20,9 @@ local QuestType = {
   Demon = 11,
   TowerEvent = 12,
   Weekly = 13,
-  Assist = 14
+  Assist = 14,
+  Dorm = 15,
+  GuideMission = 16
 }
 local QuestRedDotType = {
   TourGuide = RedDotDefine.Task_Guide,
@@ -46,7 +48,10 @@ function PlayerQuestData:Init()
   self.tbTeamFormation = {}
   self.tbTeamFormationGroup = {}
   self.tbTeamFormationAttr = {}
+  self.tbGuideMissionQuestGroup = {}
+  self.tbGuideMissionQuest = {}
   self:InitConfig()
+  self:UpdateQuestRedDot("GuideMission")
   EventManager.Add(EventId.IsNewDay, self, self.HandleExpire)
   EventManager.Add(EventId.UpdateWorldClass, self, self.UpdateDailyQuestRedDot)
   EventManager.Add(EventId.UpdateWorldClass, self, self.UpdateWeeklyQuestRedDot)
@@ -87,6 +92,24 @@ function PlayerQuestData:InitConfig()
   end
   
   ForEachTableLine(DataTable.TourGuideQuest, foreachTourQuest)
+  
+  local function foreachGuideMissionQuestGroup(mapData)
+    if self.tbGuideMissionQuestGroup[mapData.ChapterId] == nil then
+      self.tbGuideMissionQuestGroup[mapData.ChapterId] = {}
+    end
+    table.insert(self.tbGuideMissionQuestGroup[mapData.ChapterId], mapData)
+  end
+  
+  ForEachTableLine(ConfigTable.Get("GuideMissionQuestGroup"), foreachGuideMissionQuestGroup)
+  
+  local function foreachGuideMissionQuest(mapData)
+    if self.tbGuideMissionQuest[mapData.GroupId] == nil then
+      self.tbGuideMissionQuest[mapData.GroupId] = {}
+    end
+    table.insert(self.tbGuideMissionQuest[mapData.GroupId], mapData)
+  end
+  
+  ForEachTableLine(ConfigTable.Get("GuideMissionQuest"), foreachGuideMissionQuest)
   
   local function foreachDemonQuest(line)
     if nil == CacheTable.GetData("_DemonQuest", line.AdvanceGroup) then
@@ -1309,6 +1332,7 @@ function PlayerQuestData:HandleExpire()
   self:UpdateBattlePassRedDot()
   self:UpdateVampireQuestRedDot()
   self:UpdateTeamFormationRedDot()
+  self:UpdateDormQuestRedDot()
 end
 
 function PlayerQuestData:IsQuestHasReceived(nType, nQuestId)
@@ -1377,6 +1401,10 @@ function PlayerQuestData:UpdateQuestRedDot(questType)
     self:UpdateWeeklyQuestRedDot()
   elseif questType == "Assist" then
     self:UpdateTeamFormationRedDot()
+  elseif questType == "GuideMission" then
+    self:UpdateGuideMissionQuestRedDot()
+  elseif questType == "Dorm" then
+    self:UpdateDormQuestRedDot()
   end
 end
 
@@ -1473,6 +1501,42 @@ function PlayerQuestData:UpdateTeamFormationRedDot()
   local nSelectedTeam = LocalData.GetPlayerLocalData("TeamFormationQuestSelected")
   local bTeamSelected = nSelectedTeam ~= nil
   RedDotManager.SetValid(RedDotDefine.TaskNewbie_TeamFormation, nil, bCanReceive or bChapterCanReceive or not bTeamSelected)
+end
+
+function PlayerQuestData:UpdateGuideMissionQuestRedDot()
+  local tbGroupCanReceive = {}
+  local questList = self._mapQuest[QuestType.GuideMission]
+  if nil ~= questList then
+    for _, v in pairs(questList) do
+      local questCfg = ConfigTable.GetData("GuideMissionQuest", v.nTid)
+      local groupCfg = questCfg ~= nil and ConfigTable.GetData("GuideMissionQuestGroup", questCfg.GroupId) or nil
+      if nil ~= groupCfg then
+        local nChapterId = groupCfg.ChapterId
+        local nGroupId = groupCfg.Id
+        if tbGroupCanReceive[nChapterId] == nil then
+          tbGroupCanReceive[nChapterId] = {}
+        end
+        tbGroupCanReceive[nChapterId][nGroupId] = tbGroupCanReceive[nChapterId][nGroupId] or v.nStatus == 1
+      end
+    end
+  end
+  local tbChapterList = PlayerData.GuideMission ~= nil and PlayerData.GuideMission:GetChapterList() or nil
+  if nil == tbChapterList then
+    return
+  end
+  for _, mapChapter in ipairs(tbChapterList) do
+    local tbChapterGroupList = PlayerData.Quest:GetGuideMissionQuestGroupByChapter(mapChapter.Id)
+    if nil ~= tbChapterGroupList then
+      for _, mapGroup in ipairs(tbChapterGroupList) do
+        local bCanReceive = tbGroupCanReceive[mapChapter.Id] ~= nil and tbGroupCanReceive[mapChapter.Id][mapGroup.Id] or false
+        local bUnlock = PlayerData.GuideMission:IsGroupUnlock(mapChapter.Id, mapGroup.Id)
+        RedDotManager.SetValid(RedDotDefine.GuideMission_Group, {
+          mapChapter.Id,
+          mapGroup.Id
+        }, bCanReceive and bUnlock)
+      end
+    end
+  end
 end
 
 function PlayerQuestData:UpdateTourGuideQuestRedDot()
@@ -1714,6 +1778,184 @@ function PlayerQuestData:ClearVampireSeasonQuest(nCurSeason)
       end
     end
   end
+end
+
+function PlayerQuestData:GetDormQuestData()
+  return self._mapQuest[QuestType.Dorm] ~= nil and self._mapQuest[QuestType.Dorm] or {}
+end
+
+function PlayerQuestData:ReceiveDormQuest(nType, nId, callback)
+  local tbQuestId = {}
+  if nId == 0 then
+    if self._mapQuest[QuestType.Dorm] ~= nil then
+      for _, v in pairs(self._mapQuest[QuestType.Dorm]) do
+        if v.nStatus == 1 then
+          table.insert(tbQuestId, v.nTid)
+        end
+      end
+    end
+  elseif nType == 0 then
+    table.insert(tbQuestId, nId)
+  end
+  
+  local function NetCallback(_, msgData)
+    for _, v in pairs(self._mapQuest[QuestType.Dorm]) do
+      if table.indexof(tbQuestId, v.nTid) > 0 then
+        v.nStatus = 2
+      end
+    end
+    UTILS.OpenReceiveByChangeInfo(msgData.change_info, callback)
+    EventManager.Hit(EventId.QuestDataRefresh, "Dorm")
+    PlayerData.PlayerDormData:RefreshRedDotQuest()
+  end
+  
+  local msg = {Value = 0, Version = 0}
+  if nId ~= 0 then
+    msg.Value = nId
+    msg.Version = nType
+  end
+  HttpNetHandler.SendMsg(NetMsgId.Id.quest_dorm_reward_receive_req, msg, nil, NetCallback)
+end
+
+function PlayerQuestData:GetDormQuestDataById(nId)
+  if self._mapQuest[QuestType.Dorm] == nil then
+    return nil
+  end
+  return self._mapQuest[QuestType.Dorm][nId]
+end
+
+function PlayerQuestData:UpdateDormQuestRedDot()
+  local bHasQuest = false
+  if self._mapQuest ~= nil and self._mapQuest[QuestType.Dorm] ~= nil then
+    for _, v in pairs(self._mapQuest[QuestType.Dorm]) do
+      if v.nStatus == 1 then
+        bHasQuest = true
+        break
+      end
+    end
+  end
+  RedDotManager.SetValid(RedDotDefine.DormQuest, nil, bHasQuest)
+end
+
+function PlayerQuestData:GetGuideMissionQuestGroupByChapter(nChapterId)
+  return self.tbGuideMissionQuestGroup[nChapterId]
+end
+
+function PlayerQuestData:GetGuideMissionQuestListByGroup(nGroupId)
+  return self.tbGuideMissionQuest[nGroupId]
+end
+
+function PlayerQuestData:GetGuideMissionQuestData()
+  return self._mapQuest[QuestType.GuideMission] ~= nil and self._mapQuest[QuestType.GuideMission] or {}
+end
+
+function PlayerQuestData:GetGuideMissionQuestDataById(nId)
+  if self._mapQuest[QuestType.GuideMission] == nil then
+    return nil
+  end
+  return self._mapQuest[QuestType.GuideMission][nId]
+end
+
+function PlayerQuestData:FillGuideMissionQuestDefault(nGroupId, bDone)
+  local tbQuestCfgList = self.tbGuideMissionQuest[nGroupId]
+  if tbQuestCfgList == nil then
+    return
+  end
+  if self._mapQuest[QuestType.GuideMission] == nil then
+    self._mapQuest[QuestType.GuideMission] = {}
+  end
+  local tbQuest = self._mapQuest[QuestType.GuideMission]
+  for _, mapQuestCfg in ipairs(tbQuestCfgList) do
+    if bDone then
+      tbQuest[mapQuestCfg.Id] = {
+        nTid = mapQuestCfg.Id,
+        nGoal = mapQuestCfg.ClientCompleteCount or 0,
+        nCurProgress = mapQuestCfg.ClientCompleteCount or 0,
+        nStatus = 2,
+        nExpire = 0
+      }
+    elseif tbQuest[mapQuestCfg.Id] == nil then
+      tbQuest[mapQuestCfg.Id] = {
+        nTid = mapQuestCfg.Id,
+        nGoal = mapQuestCfg.ClientCompleteCount or 0,
+        nCurProgress = 0,
+        nStatus = 0,
+        nExpire = 0
+      }
+    end
+  end
+end
+
+function PlayerQuestData:RequestGuideMissionInfo(callback)
+  local function processCb(_, mapDataCb)
+    local tbDoneChapter = {}
+    
+    if mapDataCb.Chapters ~= nil then
+      for _, mapChapterData in pairs(mapDataCb.Chapters) do
+        PlayerData.GuideMission:CacheServerUnlockTime(mapChapterData.Id, mapChapterData.UnlockTime)
+        if mapChapterData.Quests ~= nil and mapChapterData.Quests.List ~= nil then
+          for _, mapQuestData in pairs(mapChapterData.Quests.List) do
+            self:OnQuestProgressChanged(mapQuestData)
+          end
+        end
+        if mapChapterData.Done then
+          tbDoneChapter[mapChapterData.Id] = true
+        end
+      end
+    end
+    for nGroupId, _ in pairs(self.tbGuideMissionQuest) do
+      self:FillGuideMissionQuestDefault(nGroupId, false)
+    end
+    for nChapterId, _ in pairs(tbDoneChapter) do
+      local tbChapterGroupList = self.tbGuideMissionQuestGroup[nChapterId]
+      if tbChapterGroupList ~= nil then
+        for _, mapGroupCfg in ipairs(tbChapterGroupList) do
+          self:FillGuideMissionQuestDefault(mapGroupCfg.Id, true)
+        end
+      end
+    end
+    self:UpdateQuestRedDot("GuideMission")
+    if callback ~= nil then
+      callback()
+    end
+  end
+  
+  HttpNetHandler.SendMsg(NetMsgId.Id.guide_mission_info_req, {}, nil, processCb)
+end
+
+function PlayerQuestData:ReceiveGuideMissionQuestReward(nTid, bGroup, callback)
+  local msg = {
+    QuestId = nTid,
+    Group = bGroup or false
+  }
+  
+  local function Callback(_, mapMsgData)
+    local tbQuest = self._mapQuest[QuestType.GuideMission]
+    if tbQuest ~= nil then
+      if bGroup then
+        local questCfg = ConfigTable.GetData("GuideMissionQuest", nTid)
+        local tbGroupQuestList = questCfg ~= nil and self.tbGuideMissionQuest[questCfg.GroupId] or nil
+        if tbGroupQuestList ~= nil then
+          for _, mapQuestCfg in ipairs(tbGroupQuestList) do
+            if tbQuest[mapQuestCfg.Id] ~= nil and tbQuest[mapQuestCfg.Id].nStatus == 1 then
+              tbQuest[mapQuestCfg.Id].nStatus = 2
+            end
+          end
+        end
+      elseif tbQuest[nTid] ~= nil then
+        tbQuest[nTid].nStatus = 2
+      end
+    end
+    local mapDecodedChangeInfo = UTILS.DecodeChangeInfo(mapMsgData)
+    HttpNetHandler.ProcChangeInfo(mapDecodedChangeInfo)
+    UTILS.OpenReceiveByChangeInfo(mapMsgData)
+    self:UpdateQuestRedDot("GuideMission")
+    if callback ~= nil and type(callback) == "function" then
+      callback(mapMsgData)
+    end
+  end
+  
+  HttpNetHandler.SendMsg(NetMsgId.Id.guide_mission_quest_reward_receive_req, msg, nil, Callback)
 end
 
 return PlayerQuestData

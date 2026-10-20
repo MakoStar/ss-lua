@@ -1,7 +1,6 @@
 local BaseCtrl = require("GameCore.UI.BaseCtrl")
 local LocalData = require("GameCore.Data.LocalData")
 local ChristmasStoryCtrl = class("ChristmasThemeCtrl", BaseCtrl)
-local actAvgData = PlayerData.ActivityAvg
 local WwiseAudioMgr = CS.WwiseAudioManager.Instance
 ChristmasStoryCtrl._mapNodeConfig = {
   tranContent = {
@@ -71,8 +70,10 @@ local BranchRefreshIndex = {
 function ChristmasStoryCtrl:Awake()
   local tbParam = self:GetPanelParam()
   self.nActId = tbParam[1]
-  self.nChapterId = actAvgData:GetChapterIdByActivityId(self.nActId)
-  self.tbAvgIds = actAvgData:GetChapterStoryNumIds(self.nChapterId)
+  self.bReview = tbParam[2] == true
+  self.storyData = self.bReview and PlayerData.StoryReview or PlayerData.ActivityAvg
+  self.nChapterId = self.storyData:GetChapterIdByActivityId(self.nActId)
+  self.tbAvgIds = self.storyData:GetChapterStoryNumIds(self.nChapterId)
   self.nRefreshIndex = 1
   self.OpenStoryNodeIndex = 1
   self.parallaxSpeed = {
@@ -150,16 +151,16 @@ function ChristmasStoryCtrl:CacheStoryNode()
             refreshIndex = BranchRefreshIndex[j],
             animName = BranchAnimName[j]
           }
-          local cfg = actAvgData:GetStoryCfgData(goSubChild.name)
-          local isRead = actAvgData:IsStoryReaded(cfg.Id)
+          local cfg = self.storyData:GetStoryCfgData(goSubChild.name)
+          local isRead = self.storyData:IsStoryReaded(cfg.Id)
           if isRead then
             self.curReadedId = cfg.Id
           end
         end
       else
         table.insert(self.tbStoryNode, {node = goChild, index = index})
-        local cfg = actAvgData:GetStoryCfgData(goChild.name)
-        local isRead = actAvgData:IsStoryReaded(cfg.Id)
+        local cfg = self.storyData:GetStoryCfgData(goChild.name)
+        local isRead = self.storyData:IsStoryReaded(cfg.Id)
         if isRead then
           self.curReadedId = cfg.Id
         end
@@ -206,13 +207,13 @@ function ChristmasStoryCtrl:RefreshStoryNode(goNode, index, isBranch, callback)
     return
   end
   local avgId = goNode.name
-  local avgCfg = actAvgData:GetStoryCfgData(avgId)
+  local avgCfg = self.storyData:GetStoryCfgData(avgId)
   local btnStoryNode = goNode.transform:Find("btnStoryNode"):GetComponent("UIButton")
   local animRoot = goNode.transform:Find("btnStoryNode/AnimRoot")
   local animator = animRoot:GetComponent("Animator")
   local goOpen = animRoot.transform:Find("goOpen")
   local goUnOpen = isBranch == false and goNode.transform:Find("goUnOpen") or goNode.transform.parent:Find("goUnOpen")
-  local bOpen, nOpenTime = actAvgData:IsOpen(avgId, self.nActId)
+  local bOpen, nOpenTime = self.storyData:IsOpen(avgId, self.nActId)
   btnStoryNode.gameObject:SetActive(true)
   goOpen.gameObject:SetActive(bOpen)
   goUnOpen.gameObject:SetActive(not bOpen)
@@ -232,7 +233,7 @@ function ChristmasStoryCtrl:RefreshStoryNode(goNode, index, isBranch, callback)
   else
     self.OpenStoryNodeIndex = index
   end
-  local isUnlock, tbResult = actAvgData:IsUnlock(avgCfg.ConditionId)
+  local isUnlock, tbResult = self.storyData:IsUnlock(avgCfg.ConditionId)
   local goUnLock = goOpen.transform:Find("goUnlock")
   local goLock = goOpen.transform:Find("goLock")
   local isBattle = avgCfg.IsBattle
@@ -243,7 +244,7 @@ function ChristmasStoryCtrl:RefreshStoryNode(goNode, index, isBranch, callback)
     local txtBattle = goUnLock.transform:Find("imgStoryTitleBg/txtBattle"):GetComponent("TMP_Text")
     NovaAPI.SetTMPText(txtBattle, ConfigTable.GetUIText("SelectTeam_StartBattle"))
   end
-  local isReaded = actAvgData:IsStoryReaded(avgCfg.Id)
+  local isReaded = self.storyData:IsStoryReaded(avgCfg.Id)
   goLock.gameObject:SetActive(not isUnlock)
   goUnLock.gameObject:SetActive(isUnlock)
   local txtTitle = goUnLock.transform:Find("txtTitle"):GetComponent("TMP_Text")
@@ -253,12 +254,16 @@ function ChristmasStoryCtrl:RefreshStoryNode(goNode, index, isBranch, callback)
   NovaAPI.SetTMPText(txtTitle, avgCfg.Title)
   NovaAPI.SetTMPText(txtLocked, ConfigTable.GetUIText("Story_Unkown_Chapter"))
   local goRedDot = goOpen.transform:Find("redDot").gameObject
-  local bInActGroup, nActGroupId = PlayerData.Activity:IsActivityInActivityGroup(self.nActId)
-  RedDotManager.RegisterNode(RedDotDefine.Activity_GroupNew_Avg_Group, {
-    nActGroupId,
-    self.nActId,
-    avgCfg.Id
-  }, goRedDot, nil, nil, true)
+  if self.bReview then
+    goRedDot:SetActive(false)
+  else
+    local bInActGroup, nActGroupId = PlayerData.Activity:IsActivityInActivityGroup(self.nActId)
+    RedDotManager.RegisterNode(RedDotDefine.Activity_GroupNew_Avg_Group, {
+      nActGroupId,
+      self.nActId,
+      avgCfg.Id
+    }, goRedDot, nil, nil, true)
+  end
   btnStoryNode.onClick:RemoveAllListeners()
   btnStoryNode.onClick:AddListener(function()
     if not bOpen then
@@ -268,12 +273,12 @@ function ChristmasStoryCtrl:RefreshStoryNode(goNode, index, isBranch, callback)
       local bNew = not isReaded
       self.avgId = avgId
       self._mapNode.ctlAvgRoot.gameObject:SetActive(true)
-      self._mapNode.ctlAvgRoot:OpenLevelInfo(avgId, self.nActId, bNew)
+      self._mapNode.ctlAvgRoot:OpenLevelInfo(avgId, self.nActId, bNew, self.bReview)
       if bNew then
         self.curIndex = index
       end
-      LocalData.SetPlayerLocalData("Act_Story_New" .. self.nActId .. avgCfg.Id, true)
-      PlayerData.ActivityAvg:RefreshAvgRedDot()
+      LocalData.SetPlayerLocalData(self.storyData:_GetLocalReadKey(self.nActId, avgCfg.Id), true)
+      self.storyData:RefreshAvgRedDot()
     elseif tbResult ~= nil then
       local lockTxt = ""
       for i = 1, #tbResult do
@@ -293,7 +298,7 @@ function ChristmasStoryCtrl:RefreshStoryNode(goNode, index, isBranch, callback)
             for k, v in pairs(tbStoryIds) do
               if v == false then
                 local storyData = ConfigTable.GetData("ActivityStory", k)
-                if actAvgData:IsUnlock(storyData.Id) then
+                if self.storyData:IsUnlock(storyData.Id) then
                   lockTxt = orderedFormat(ConfigTable.GetUIText("Story_UnlockPreId") or "", storyData.Title)
                   break
                 end
@@ -379,9 +384,9 @@ function ChristmasStoryCtrl:RefreshNeedHideNode()
   for i = 1, #self.tbStoryNode do
     local goNode = self.tbStoryNode[i]
     local avgId = goNode.node.name
-    local bOpen = actAvgData:IsOpen(avgId, self.nActId)
-    local avgCfg = actAvgData:GetStoryCfgData(avgId)
-    local isUnlock = actAvgData:IsUnlock(avgCfg.ConditionId)
+    local bOpen = self.storyData:IsOpen(avgId, self.nActId)
+    local avgCfg = self.storyData:GetStoryCfgData(avgId)
+    local isUnlock = self.storyData:IsUnlock(avgCfg.ConditionId)
     local bShowTimelock = false
     if not bOpen and not bSetNotOpenIndex then
       self.NotOpenStoryNodeIndex = goNode.index
@@ -502,7 +507,7 @@ end
 
 function ChristmasStoryCtrl:OnEvent_SelectMainlineBattle(bConfirm)
   local function OpenPanel()
-    EventManager.Hit(EventId.OpenPanel, PanelId.RegionBossFormation, AllEnum.RegionBossFormationType.ActivityStory, 0, self.avgId, self.nActId)
+    EventManager.Hit(EventId.OpenPanel, PanelId.RegionBossFormation, AllEnum.RegionBossFormationType.ActivityStory, 0, self.avgId, self.nActId, self.bReview)
   end
   
   if bConfirm then
@@ -514,11 +519,13 @@ function ChristmasStoryCtrl:OnEvent_Activity_Story_RewardClosed()
   self:RefreshPanel()
   if self.maxIndex == self.curIndex then
     self._mapNode.goChapterComplete:SetActive(true)
+    EventManager.Hit("ActivityStoryReceive_SetVisible", false)
   end
 end
 
 function ChristmasStoryCtrl:OnBtn_ClickCloseCompete()
   self._mapNode.goChapterComplete:SetActive(false)
+  EventManager.Hit("ActivityStoryReceive_SetVisible", true)
 end
 
 function ChristmasStoryCtrl:ScrollToRecentStory()

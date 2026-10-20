@@ -4,6 +4,7 @@ local BubbleVoiceManager = require("Game.Actor2D.BubbleVoiceManager")
 local LocalSettingData = require("GameCore.Data.LocalSettingData")
 local Actor2DManager = require("Game.Actor2D.Actor2DManager")
 local GamepadUIManager = require("GameCore.Module.GamepadUIManager")
+local TimerManager = require("GameCore.Timer.TimerManager")
 local StarTowerShopCtrl = class("StarTowerShopCtrl", BaseCtrl)
 local _, GrayColor = ColorUtility.TryParseHtmlString("#94aac0")
 StarTowerShopCtrl._mapNodeConfig = {
@@ -146,6 +147,9 @@ StarTowerShopCtrl._mapEventConfig = {
   StarTowerShoopSelectGoods = "OnEvent_SelectGoods",
   GamepadUIReopen = "OnEvent_Reopen",
   RefreshStarTowerCoin = "OnEvent_RefreshCoin",
+  StarTowerAutoShopExecute = "OnEvent_AutoShopExecute",
+  StarTowerAutoShopComplete = "OnEvent_AutoShopComplete",
+  StarTowerAutoDecisionStateChanged = "OnEvent_AutoDecisionStateChanged",
   [EventId.ShowBubbleVoiceText] = "OnEvent_ShowBubbleVoiceText"
 }
 
@@ -421,6 +425,8 @@ function StarTowerShopCtrl:OpenPanel()
     self.mapNoteCount = tbParam[7]
     self.nStarTowerId = tbParam[8]
     self.nCurLevel = tbParam[9]
+    self.autoStartCallback = tbParam[10]
+    self.bAutoShop = type(self.autoStartCallback) == "function"
     self:OpenShop(tbGoodsList, self.nCoin)
   end
   CS.GameCameraStackManager.Instance:CloseMainCamera(0.1)
@@ -433,6 +439,11 @@ function StarTowerShopCtrl:OpenPanel()
     Actor2DManager.SetBoardNPC2D_PNG(self._mapNode.trActor2D_PNG, self:GetPanelId(), self.nNPCId)
   end
   self:PlayEnterShopNPCVoice()
+  if self.bAutoShop then
+    local callback = self.autoStartCallback
+    self.autoStartCallback = nil
+    callback()
+  end
 end
 
 function StarTowerShopCtrl:OnEvent_AvgVoiceEnd(nDuration)
@@ -498,6 +509,8 @@ function StarTowerShopCtrl:OnEnable()
 end
 
 function StarTowerShopCtrl:OnDisable()
+  self._timerAutoShopClose = nil
+  self._autoShopCloseCallback = nil
   if self.mapGoodCtrl then
     for nInstanceId, objCtrl in pairs(self.mapGoodCtrl) do
       self:UnbindCtrlByNode(objCtrl)
@@ -652,6 +665,71 @@ end
 
 function StarTowerShopCtrl:OnEvent_SelectGoods(nIndex)
   self.nSelectIdx = nIndex
+end
+
+function StarTowerShopCtrl:OnEvent_AutoShopExecute(nSid, bReRoll)
+  if not self.bAutoShop or self.BuyCallback == nil then
+    return
+  end
+  if bReRoll then
+    local function rerollCallback(nCoin, tbGoodsList, mapRoll)
+      self.nCoin = nCoin
+      
+      self.tbGoods = self:SortGoods(tbGoodsList)
+      self.mapRoll = mapRoll
+      self:Refresh()
+    end
+    
+    self.BuyCallback(self.nCaseId, nil, rerollCallback, true, true)
+    return
+  end
+  
+  local function buyCallback(nCoin)
+    for _, mapGoods in ipairs(self.tbGoods) do
+      if mapGoods.nSid == nSid then
+        mapGoods.bSoldOut = true
+        break
+      end
+    end
+    self.nCoin = nCoin
+    self:Refresh()
+  end
+  
+  self.BuyCallback(self.nCaseId, nSid, buyCallback, false, true)
+end
+
+function StarTowerShopCtrl:OnEvent_AutoShopComplete(completeCallback)
+  if self.bAutoShop then
+    self._autoShopCloseCallback = completeCallback
+    if self._timerAutoShopClose ~= nil then
+      return
+    end
+    self._timerAutoShopClose = self:AddTimer(1, 1, function()
+      self._timerAutoShopClose = nil
+      local callback = self._autoShopCloseCallback
+      self._autoShopCloseCallback = nil
+      if not self.bAutoShop then
+        return
+      end
+      self.bAutoShop = false
+      self:OnBtn_CloseShop()
+      if type(callback) == "function" then
+        callback()
+      end
+    end, true, true, true)
+  end
+end
+
+function StarTowerShopCtrl:OnEvent_AutoDecisionStateChanged(mapState)
+  if type(mapState) ~= "table" then
+    return
+  end
+  self.bAutoShop = mapState.bEnabled == true and mapState.bPaused ~= true
+  if not self.bAutoShop then
+    TimerManager.Remove(self._timerAutoShopClose, false)
+    self._timerAutoShopClose = nil
+    self._autoShopCloseCallback = nil
+  end
 end
 
 function StarTowerShopCtrl:OnEvent_RefreshCoin(nCoin)

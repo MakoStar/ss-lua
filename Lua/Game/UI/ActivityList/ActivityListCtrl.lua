@@ -32,6 +32,7 @@ local sEntranceFolder = "UI_Activity/%s.prefab"
 local sActTypePath = {
   [GameEnum.activityType.PeriodicQuest] = "PeriodicQuest",
   [GameEnum.activityType.LoginReward] = "LoginReward",
+  [GameEnum.activityType.SignIn] = "LoginReward",
   [GameEnum.activityType.Mining] = "Mining",
   [GameEnum.activityType.Trial] = "Trial",
   [GameEnum.activityType.Cookie] = "Cookie",
@@ -42,8 +43,23 @@ local sActTypePath = {
   [GameEnum.activityType.PenguinCard] = "PenguinCard",
   [GameEnum.activityType.Double] = "DoubleDrop",
   [GameEnum.activityType.FollowSocialMedia] = "FollowSocialMedia",
-  [GameEnum.activityType.Soldier] = "Soldier"
+  [GameEnum.activityType.Soldier] = "Soldier",
+  [GameEnum.activityType.MailBind] = "MailBind"
 }
+
+function ActivityListCtrl:GetEntranceId()
+  if self.nInitActId ~= nil and self.nInitActId ~= 0 then
+    local actCfg = ConfigTable.GetData("Activity", self.nInitActId)
+    if actCfg ~= nil then
+      return actCfg.EntranceId or 0
+    end
+    local actGroupCfg = ConfigTable.GetData("ActivityGroup", self.nInitActId)
+    if actGroupCfg ~= nil then
+      return actGroupCfg.EntranceId or 0
+    end
+  end
+  return self.nEntranceId or 0
+end
 
 function ActivityListCtrl:InitActivityList(nCurActId)
   local tbActList = PlayerData.Activity:GetSortedActList()
@@ -53,8 +69,9 @@ function ActivityListCtrl:InitActivityList(nCurActId)
     self:UnbindCtrlByNode(objCtrl)
     self.tbGridCtrl[nInstanceId] = nil
   end
+  local nCurEntranceId = self:GetEntranceId()
   for k, v in ipairs(tbActList) do
-    if not v.actCfg.HideFromActivityList then
+    if not v.actCfg.HideFromActivityList and (v.actCfg.EntranceId or 0) == nCurEntranceId then
       table.insert(self.tbActList, {
         nType = AllEnum.ActivityMainType.Activity,
         actData = v
@@ -62,10 +79,12 @@ function ActivityListCtrl:InitActivityList(nCurActId)
     end
   end
   for k, v in ipairs(tbActGroupList) do
-    table.insert(self.tbActList, {
-      nType = AllEnum.ActivityMainType.ActivityGroup,
-      actData = v
-    })
+    if (v.actGroupCfg.EntranceId or 0) == nCurEntranceId then
+      table.insert(self.tbActList, {
+        nType = AllEnum.ActivityMainType.ActivityGroup,
+        actData = v
+      })
+    end
   end
   if nil ~= self.tbActList then
     if nil ~= self._panel.nSelectActId and nil ~= self.nSelectActMainType then
@@ -192,7 +211,7 @@ function ActivityListCtrl:AddLoginRewardActivityCtrl(actData)
   local actCtrl = self.tbActCtrlObj[actData:GetActId()]
   if nil == actCtrl then
     local mapActCfg = actData:GetLoginRewardControlCfg()
-    local sCtrlFolder = sActTypePath[GameEnum.activityType.LoginReward]
+    local sCtrlFolder = sActTypePath[GameEnum.activityType.LoginReward] or sActTypePath[GameEnum.activityType.SignIn]
     if sCtrlFolder == nil then
       return
     end
@@ -463,6 +482,27 @@ function ActivityListCtrl:AddSoldierActivityCtrl(actData)
   actCtrl:InitActData(actData)
 end
 
+function ActivityListCtrl:AddMailBindActivityCtrl(actData)
+  local actCtrl = self.tbActCtrlObj[actData:GetActId()]
+  if nil == actCtrl then
+    local sFolder = sActTypePath[GameEnum.activityType.MailBind]
+    if sFolder == nil then
+      return
+    end
+    local mapActCfg = ConfigTable.GetData("ActivityMailBindControl", actData:GetActId())
+    if not mapActCfg then
+      return
+    end
+    local sPrefabPath = string.format(sEntranceFolder, mapActCfg.UIAssets)
+    local goObj = self:CreatePrefabInstance(sPrefabPath, self._mapNode.rtContent)
+    local sCtrlPath = string.format("Game.UI.Activity.%s.%s", sFolder, mapActCfg.CtrlName)
+    actCtrl = self:BindCtrlByNode(goObj, sCtrlPath)
+    self.tbActCtrlObj[actData:GetActId()] = actCtrl
+  end
+  actCtrl.gameObject:SetActive(true)
+  actCtrl:InitActData(actData)
+end
+
 function ActivityListCtrl:RefreshSelectActivity(bResetDay)
   for _, v in pairs(self.tbActCtrlObj) do
     v.gameObject:SetActive(false)
@@ -477,7 +517,7 @@ function ActivityListCtrl:RefreshSelectActivity(bResetDay)
     local actType = actData.actData:GetActType()
     if actType == GameEnum.activityType.PeriodicQuest then
       self:AddPeriodicActivityCtrl(actData.actData, bResetDay)
-    elseif actType == GameEnum.activityType.LoginReward then
+    elseif actType == GameEnum.activityType.LoginReward or actType == GameEnum.activityType.SignIn then
       self:AddLoginRewardActivityCtrl(actData.actData)
     elseif actType == GameEnum.activityType.Mining then
       self:AddMiningActivityCtrl(actData.actData)
@@ -503,6 +543,8 @@ function ActivityListCtrl:RefreshSelectActivity(bResetDay)
       self:AddFollowSocialMediaActivityCtrl(actData.actData)
     elseif actType == GameEnum.activityType.Soldier then
       self:AddSoldierActivityCtrl(actData.actData)
+    elseif actType == GameEnum.activityType.MailBind then
+      self:AddMailBindActivityCtrl(actData.actData)
     end
   elseif actData.nType == AllEnum.ActivityMainType.ActivityGroup then
     self._panel.nSelectActId = actData.actData:GetActGroupId()
@@ -522,11 +564,13 @@ end
 function ActivityListCtrl:Awake()
   self.nSelectIndex = nil
   self.nInitActId = nil
+  self.nEntranceId = nil
   self.bPlayAnim = true
   self.tbInitActIds = {}
   local tbParams = self:GetPanelParam()
   if type(tbParams) == "table" then
     self.nInitActId = tbParams[1]
+    self.nEntranceId = tbParams[2]
   end
   self._mapNode.goRewardList.gameObject:SetActive(false)
 end

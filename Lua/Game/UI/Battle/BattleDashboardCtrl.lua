@@ -707,7 +707,7 @@ function BattleDashboardCtrl:Refresh(nCurPlayerId)
         self.tbDefine_SupportUltraBtn[i].skillBtnCtrl:SetEmptySkillBtn()
         self.tbDefine_SupportUltraBtn[i].skillBtnCtrl:SetBtnEnable(false)
       end
-      local nSkinId = PlayerCharData:GetCharSkinId(nSupportCharId)
+      local nSkinId = PlayerData.Build:GetBattleCharSkinId(nSupportCharId)
       local mapCfgData_Skin = ConfigTable.GetData_CharacterSkin(nSkinId)
       local img
       if i == 1 then

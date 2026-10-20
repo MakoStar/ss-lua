@@ -135,16 +135,27 @@ LevelMenuCtrl._mapNodeConfig = {
     sComponentName = "UIButton",
     callback = "OnBtnClick_TraceHunt"
   },
-  txtTraceHunt = {
+  UnlockTraceHunt = {},
+  TMPTraceHunttowerTitle = {
     sComponentName = "TMP_Text",
     sLanguageId = "LevelMenu_TraceHunt"
   },
-  txtHuntCount = {sComponentName = "TMP_Text"},
-  txtTraceTime = {sComponentName = "TMP_Text"},
+  LockTraceHunt = {},
+  TraceHuntCountBg = {},
+  TMPCondTraceHunt = {sComponentName = "TMP_Text"},
+  txtHuntCountNum = {sComponentName = "TMP_Text"},
+  imgLastTime = {},
   iconHunt = {sComponentName = "Image"},
-  imgTraceHuntTime = {},
   redDotTraceHuntGift = {},
-  redDotTraceHuntMax = {},
+  btnSoldier = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_Soldier"
+  },
+  UnlockSoldier = {},
+  TMPSoldiertowerTitle = {sComponentName = "TMP_Text"},
+  LockSoldier = {},
+  TMPCondSoldier = {sComponentName = "TMP_Text"},
+  redDotSoldier = {},
   imgCover = {nCount = 2, sComponentName = "Image"},
   imgGoodsRoot = {nCount = 2, sComponentName = "Animator"},
   imgGoods = {nCount = 2, sComponentName = "Image"},
@@ -189,8 +200,6 @@ LevelMenuCtrl._mapNodeConfig = {
     sNodeName = "TransitionRoot",
     sComponentName = "Animator"
   },
-  ts_StarTower = {},
-  ts_Resource = {},
   activityList = {
     sNodeName = "---Activity---"
   },
@@ -223,11 +232,11 @@ LevelMenuCtrl._mapRedDotConfig = {
   [RedDotDefine.VampireQuest] = {
     sNodeName = "redDotVampire"
   },
-  [RedDotDefine.TraceHunt_Item] = {
-    sNodeName = "redDotTraceHuntMax"
-  },
   [RedDotDefine.TraceHunt_Reward] = {
     sNodeName = "redDotTraceHuntGift"
+  },
+  [RedDotDefine.Soldier] = {
+    sNodeName = "redDotSoldier"
   }
 }
 local sumHeight = 563
@@ -474,17 +483,22 @@ function LevelMenuCtrl:RefreshActivityList()
   end
 end
 
-function LevelMenuCtrl:RefreshTraceHunt()
-  local bFuncUnlock = PlayerData.Base:CheckFunctionUnlock(GameEnum.OpenFuncType.TraceHunt, false)
-  self._mapNode.btnTraceHunt.gameObject:SetActive(bFuncUnlock)
-  if not bFuncUnlock then
+function LevelMenuCtrl:RefreshTraceHunt(bUnLock)
+  self._mapNode.TraceHuntCountBg:SetActive(bUnLock)
+  self._mapNode.imgLastTime:SetActive(bUnLock)
+  if not bUnLock then
     return
   end
   local nTraceItemId = ConfigTable.GetConfigNumber("TraceHuntRequestItemTid")
   self:SetSprite_Coin(self._mapNode.iconHunt, nTraceItemId)
   local tbMax = ConfigTable.GetConfigArray("TraceHuntRequestItem")
   local nHasCoin = PlayerData.TraceHunt:GetTraceTokenCount()
-  NovaAPI.SetTMPText(self._mapNode.txtHuntCount, self:ThousandsNumber(nHasCoin) .. "/" .. tbMax[3])
+  local bMax = nHasCoin > tbMax[3]
+  if bMax then
+    NovaAPI.SetTMPText(self._mapNode.txtHuntCountNum, ConfigTable.GetUIText("TraceHunt_HuntCountNumMax"))
+  else
+    NovaAPI.SetTMPText(self._mapNode.txtHuntCountNum, self:ThousandsNumber(nHasCoin) .. "/" .. tbMax[3])
+  end
   self:RefreshTraceHuntTime()
 end
 
@@ -493,28 +507,7 @@ function LevelMenuCtrl:RefreshTraceHuntTime()
   local nShowDay = ConfigTable.GetConfigNumber("TraceHuntControlEmergencyTime")
   local nRemainTime = PlayerData.TraceHunt:GetControlLeftTime()
   local bCountDown = 0 < nControlId and nRemainTime <= nShowDay * 86400
-  self._mapNode.imgTraceHuntTime:SetActive(bCountDown)
-  if bCountDown then
-    self:StartTraceHuntTimer()
-  end
-end
-
-function LevelMenuCtrl:StartTraceHuntTimer()
-  if self.traceHuntTimer ~= nil then
-    self.traceHuntTimer:Cancel()
-    self.traceHuntTimer = nil
-  end
-  
-  local function refreshTime()
-    local nRemainTime = PlayerData.TraceHunt:GetControlLeftTime()
-    local sTime = self:RefreshTimeout(nRemainTime)
-    NovaAPI.SetTMPText(self._mapNode.txtTraceTime, sTime)
-  end
-  
-  refreshTime()
-  self.traceHuntTimer = self:AddTimer(0, 1, function()
-    refreshTime()
-  end, true, true, true)
+  self._mapNode.imgLastTime:SetActive(bCountDown)
 end
 
 function LevelMenuCtrl:RefreshTimeout(remainTime)
@@ -643,6 +636,28 @@ function LevelMenuCtrl:RefreshFuncOpen()
     self._mapNode.LockWeeklyCopies:SetActive(false)
     self._mapNode.UnlockWeeklyCopies:SetActive(true)
   end
+  if not PlayerData.Base:CheckFunctionUnlock(GameEnum.OpenFuncType.TraceHunt) then
+    local mapLockCfgData = ConfigTable.GetData("OpenFunc", GameEnum.OpenFuncType.TraceHunt)
+    NovaAPI.SetTMPText(self._mapNode.TMPCondTraceHunt, UTILS.ParseParamDesc(mapLockCfgData.Tips, mapLockCfgData))
+    self._mapNode.LockTraceHunt:SetActive(true)
+    self._mapNode.UnlockTraceHunt:SetActive(false)
+    self:RefreshTraceHunt(false)
+  else
+    self._mapNode.LockTraceHunt:SetActive(false)
+    self._mapNode.UnlockTraceHunt:SetActive(true)
+    self:RefreshTraceHunt(true)
+  end
+  if not PlayerData.Base:CheckFunctionUnlock(GameEnum.OpenFuncType.Soldier) then
+    local mapLockCfgData = ConfigTable.GetData("OpenFunc", GameEnum.OpenFuncType.Soldier)
+    NovaAPI.SetTMPText(self._mapNode.TMPCondSoldier, UTILS.ParseParamDesc(mapLockCfgData.Tips, mapLockCfgData))
+    self._mapNode.LockSoldier:SetActive(true)
+    self._mapNode.UnlockSoldier:SetActive(false)
+  else
+    local mapLockCfgData = ConfigTable.GetData("OpenFunc", GameEnum.OpenFuncType.Soldier)
+    self._mapNode.LockSoldier:SetActive(false)
+    self._mapNode.UnlockSoldier:SetActive(true)
+    NovaAPI.SetTMPText(self._mapNode.TMPSoldiertowerTitle, UTILS.ParseParamDesc(mapLockCfgData.Name, mapLockCfgData))
+  end
   self._mapNode.goResource:RefreshFuncOpen()
 end
 
@@ -652,10 +667,6 @@ function LevelMenuCtrl:SetHintLayout(bEnabled)
 end
 
 function LevelMenuCtrl:ClearTimer()
-  if self.traceHuntTimer ~= nil then
-    self.traceHuntTimer:Cancel()
-    self.traceHuntTimer = nil
-  end
   if self.phoneTimer ~= nil then
     self.phoneTimer:Cancel()
     self.phoneTimer = nil
@@ -759,7 +770,10 @@ function LevelMenuCtrl:OnEnable()
   self._mapNode.panelAnimator.gameObject:SetActive(false)
   
   local function callback()
-    EventManager.Hit(EventId.SetTransition)
+    if self._panel.bFirstInit == true then
+      self._panel.bFirstInit = false
+      EventManager.Hit(EventId.SetTransition)
+    end
     self:RefreshEnergy()
     self:InitBoardActor()
     if self._panel.panelType == nil and self.nType ~= nil then
@@ -774,7 +788,6 @@ function LevelMenuCtrl:OnEnable()
     self:StartPhoneTimer()
     self:RefreshFuncOpen()
     self:RefreshActivityList()
-    self:RefreshTraceHunt()
     self.nCurResIconIndex = 1
     self:RefreshResourceIcon()
     for k, v in ipairs(self._mapNode.imgResourceIcon1_) do
@@ -805,7 +818,8 @@ function LevelMenuCtrl:OnEnable()
     if actData ~= nil and actData:CheckActShow() then
       self.doubleActData = actData
     end
-    self._mapNode.imgDoubleDrop.gameObject:SetActive(self.doubleActData ~= nil)
+    local nReengagementDouble = PlayerData.Reengagement:GetDoubleDropCount() or 0
+    self._mapNode.imgDoubleDrop.gameObject:SetActive(self.doubleActData ~= nil or 0 < nReengagementDouble)
     self._mapNode.goResource:RefreshDropUp(self.doubleActData)
     if self._panel.panelType == nil then
       self._panel.panelType = phone_page_main
@@ -842,6 +856,8 @@ function LevelMenuCtrl:OnEnable()
     EventManager.Hit(EventId.TemporaryBlockInput, 0.1)
   end
   
+  NovaAPI.SetTMPText(self._mapNode.txtStarTowerName[1], "")
+  NovaAPI.SetTMPText(self._mapNode.txtStarTowerName[2], "")
   PlayerData.StarTower:SendTowerGrowthDetailReq(callback)
 end
 
@@ -1002,23 +1018,52 @@ function LevelMenuCtrl:OnBtnClick_ActivityEntrance(btn, nIndex)
   end
 end
 
-function LevelMenuCtrl:OnBtnClick_TraceHunt(btn)
-  local function callback()
-    if PlayerData.TraceHunt:GetControlLeftTime() <= 0 then
-      self:RefreshTraceHuntTime()
-      
-      EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("TraceHunt_Tips_ControlInterrupt"))
-      return
-    end
-    
-    local function func()
-      EventManager.Hit(EventId.OpenPanel, PanelId.TraceHunt)
-    end
-    
-    EventManager.Hit(EventId.SetTransition, 49, func)
+function LevelMenuCtrl:OnBtnClick_Soldier(btn)
+  local function openSoldierPanel()
+    local animLen = NovaAPI.GetAnimClipLength(self._mapNode.animTransition, {
+      "TransitionRoot_btnSoldier"
+    })
+    self._mapNode.animTransition:Play("TransitionRoot_btnSoldier", 0, 0)
+    CS.WwiseAudioManager.Instance:PlaySound("ui_level_select")
+    self.nTransType = 53
+    self:AddTimer(1, animLen, function()
+      EventManager.Hit(EventId.SetTransition, 53)
+    end, true, true, true)
+    EventManager.Hit(EventId.TemporaryBlockInput, animLen)
   end
   
-  PlayerData.TraceHunt:SendTraceHuntInfoReq(callback)
+  PlayerData.Base:CheckFunctionBtn(GameEnum.OpenFuncType.Soldier, openSoldierPanel, "ui_systerm_locked")
+end
+
+function LevelMenuCtrl:OnBtnClick_TraceHunt(btn)
+  local function openTraceHuntPanel()
+    local animLen = NovaAPI.GetAnimClipLength(self._mapNode.animTransition, {
+      "TransitionRoot_btnTraceHunt"
+    })
+    self._mapNode.animTransition:Play("TransitionRoot_btnTraceHunt", 0, 0)
+    self.nTransType = 49
+    CS.WwiseAudioManager.Instance:PlaySound("ui_level_select")
+    self:AddTimer(1, animLen, function()
+      EventManager.Hit(EventId.SetTransition, 49)
+    end, true, true, true)
+    EventManager.Hit(EventId.TemporaryBlockInput, animLen)
+  end
+  
+  local function callbackCheck()
+    local function afterReq()
+      if PlayerData.TraceHunt:GetControlLeftTime() <= 0 then
+        self:RefreshTraceHuntTime()
+        
+        EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("TraceHunt_Tips_ControlInterrupt"))
+        return
+      end
+      openTraceHuntPanel()
+    end
+    
+    PlayerData.TraceHunt:SendTraceHuntInfoReq(afterReq)
+  end
+  
+  PlayerData.Base:CheckFunctionBtn(GameEnum.OpenFuncType.TraceHunt, callbackCheck, "ui_systerm_locked")
 end
 
 function LevelMenuCtrl:OnBtnClick_ScoreBoss(btn)
@@ -1168,6 +1213,13 @@ function LevelMenuCtrl:OnEvent_TransAnimInClear()
   elseif self.nTransType == 23 then
     self.nTransType = 0
     EventManager.Hit(EventId.OpenPanel, PanelId.WeeklyCopiesPanel)
+  elseif self.nTransType == 49 then
+    self.nTransType = 0
+    EventManager.Hit(EventId.OpenPanel, PanelId.TraceHunt)
+  elseif self.nTransType == 53 then
+    self.nTransType = 0
+    PlayerData.SoldierData:SetCurSelectSeasonId(1)
+    EventManager.Hit(EventId.OpenPanel, PanelId.SoldierMainViewPanel)
   end
 end
 

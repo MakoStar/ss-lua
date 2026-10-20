@@ -150,7 +150,7 @@ function TrialSkinFormationCtrl:LoadCharacter(nCharId, bOpen)
       end
       local go = instantiate(obj, self.rtSceneOriginPos)
       self.mapCurModel[idx] = {nCharId = nCharId, model = go}
-      NovaAPI.BindUIParallaxStageCameraControllerModel(self._mapNode.UIParallax3DStage, idx - 1, go)
+      NovaAPI.BindUIParallaxStageCameraControllerModel(self._mapNode.UIParallax3DStage, idx - 1, go, true)
       if self.rtSceneOriginPos ~= nil then
         go.transform.position = self.rtSceneOriginPos.position
         go.transform.localEulerAngles = Vector3(0, 180, 0)

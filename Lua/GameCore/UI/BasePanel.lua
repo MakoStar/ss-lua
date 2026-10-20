@@ -189,6 +189,8 @@ function BasePanel:_Enter(bPlayFadeIn)
         end
       elseif self._nPanelId == PanelId.ProVideoGUI then
         nSortingOrder = AllEnum.UI_SORTING_ORDER.ProVideo
+      elseif self._nSortingOrderBase ~= nil then
+        nSortingOrder = self._nSortingOrderBase + i
       else
         nSortingOrder = self._nIndex * 100 + i
       end

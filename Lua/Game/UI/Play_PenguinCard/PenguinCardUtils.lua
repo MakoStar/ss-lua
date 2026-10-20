@@ -29,6 +29,7 @@ PenguinCardUtils.SingleValueEffect = {
   [GameEnum.PenguinCardEffectType.ChangeHp] = true,
   [GameEnum.PenguinCardEffectType.AideScoreAura] = true
 }
+PenguinCardUtils.GrayColor = "#888888"
 
 function PenguinCardUtils.CheckTriggerLimit(nTriggerLimit, tbTriggerLimitParam, nTriggerCount, nRoundTriggerCount)
   tbTriggerLimitParam = tbTriggerLimitParam or {0, 0}
@@ -144,6 +145,28 @@ function PenguinCardUtils.CheckGrowthLayer(nGrowthTriggerType, tbGrowthTriggerPa
     end
   end
   return nAdd
+end
+
+function PenguinCardUtils.JoinAllLevelValue(tbValue, nCurLevel, sSuffix)
+  nCurLevel = math.max(1, math.min(nCurLevel, #tbValue))
+  sSuffix = sSuffix or ""
+  local sPre, sCur, sSuf = "", "", ""
+  for i, value in ipairs(tbValue) do
+    if i < nCurLevel then
+      sPre = sPre .. tostring(value) .. sSuffix .. "/"
+    elseif i == nCurLevel then
+      sCur = tostring(value) .. sSuffix
+    else
+      sSuf = sSuf .. "/" .. tostring(value) .. sSuffix
+    end
+  end
+  if sPre ~= "" then
+    sPre = string.format("<color=%s>%s</color>", PenguinCardUtils.GrayColor, sPre)
+  end
+  if sSuf ~= "" then
+    sSuf = string.format("<color=%s>%s</color>", PenguinCardUtils.GrayColor, sSuf)
+  end
+  return sPre .. sCur .. sSuf
 end
 
 function PenguinCardUtils.SetEffectDesc(mapCfg, nGrowthLayer)
@@ -270,6 +293,57 @@ function PenguinCardUtils.SetEffectDesc(mapCfg, nGrowthLayer)
     end
   end
   
+  local function GetAllLevelValue(fnGetValue)
+    if mapCfg.GroupId == nil or mapCfg.Level == nil or mapCfg.MaxLevel == nil or mapCfg.MaxLevel <= 1 then
+      return nil
+    end
+    local tbValue = {}
+    for nLevel = 1, mapCfg.MaxLevel do
+      local mapLevelCfg = ConfigTable.GetData("PenguinCard", mapCfg.GroupId * 100 + nLevel)
+      if mapLevelCfg == nil then
+        return nil
+      end
+      local value = fnGetValue(mapLevelCfg)
+      if value == nil or value == sError then
+        return nil
+      end
+      tbValue[nLevel] = value
+    end
+    return tbValue
+  end
+  
+  local function ParseAllToken(sToken, sName)
+    local sBody = string.match(sToken, "^{" .. sName .. "_All(.*)}$")
+    if sBody == nil then
+      return false, nil, nil
+    end
+    local sSuffix
+    local sHead, sTail = string.match(sBody, "^(.-)%((.*)%)$")
+    if sHead == nil then
+      sHead, sTail = string.match(sBody, "^(.-)（(.*)）$")
+    end
+    if sHead ~= nil then
+      sBody = sHead
+      sSuffix = sTail
+    end
+    local nIdx
+    if sBody ~= "" then
+      local sIdx = string.match(sBody, "^_(%d+)$")
+      if sIdx == nil then
+        return false, nil, nil
+      end
+      nIdx = tonumber(sIdx)
+    end
+    return true, nIdx, sSuffix
+  end
+  
+  local function AppendSuffix(str, sSuffix)
+    if sSuffix == nil or sSuffix == "" or str == nil or str == "" or str == sError then
+      return str
+    end
+    return tostring(str) .. sSuffix
+  end
+  
   local result = string.gsub(mapCfg.Desc, "%b{}", function(token)
     local content = string.match(token, "^{(.-)}$")
     local sParameterKey, lang, langIdx = ParseLanguageParam(content)
@@ -288,10 +362,39 @@ function PenguinCardUtils.SetEffectDesc(mapCfg, nGrowthLayer)
     elseif token == "{GrowthLayer}" then
       return nGrowthLayer
     end
+    local bProbAll, probAllIdx, sProbSuffix = ParseAllToken(token, "TriggerProbability")
+    if bProbAll and probAllIdx == nil then
+      local tbValue = GetAllLevelValue(function(mapLevelCfg)
+        return mapLevelCfg.TriggerProbability
+      end)
+      if tbValue == nil then
+        return AppendSuffix(mapCfg.TriggerProbability, sProbSuffix)
+      end
+      return PenguinCardUtils.JoinAllLevelValue(tbValue, mapCfg.Level, sProbSuffix)
+    end
     local limitIdx = string.match(token, "^{TriggerLimitParam_(%d+)}$")
     if limitIdx then
       local tbLimitParam = mapCfg.TriggerLimitParam
       local str = tbLimitParam[tonumber(limitIdx)] or sError
+      str = LanguagePost(lang, langIdx, str)
+      return str
+    end
+    local bLimitAll, limitAllIdx, sLimitSuffix = ParseAllToken(token, "TriggerLimitParam")
+    if bLimitAll and limitAllIdx ~= nil then
+      local tbValue = GetAllLevelValue(function(mapLevelCfg)
+        local tbLevelLimitParam = mapLevelCfg.TriggerLimitParam
+        if tbLevelLimitParam == nil then
+          return nil
+        end
+        return tbLevelLimitParam[limitAllIdx]
+      end)
+      local str
+      if tbValue == nil then
+        local tbLimitParam = mapCfg.TriggerLimitParam
+        str = AppendSuffix(tbLimitParam[limitAllIdx] or sError, sLimitSuffix)
+      else
+        str = PenguinCardUtils.JoinAllLevelValue(tbValue, mapCfg.Level, sLimitSuffix)
+      end
       str = LanguagePost(lang, langIdx, str)
       return str
     end
@@ -306,6 +409,20 @@ function PenguinCardUtils.SetEffectDesc(mapCfg, nGrowthLayer)
     if effectIdx then
       local idx = tonumber(effectIdx)
       local str = ParseEffectParam(decodeJson(mapCfg.EffectParam), idx)
+      str = LanguagePost(lang, langIdx, str)
+      return str
+    end
+    local bEffectAll, effectAllIdx, sEffectSuffix = ParseAllToken(token, "EffectParam")
+    if bEffectAll and effectAllIdx ~= nil then
+      local tbValue = GetAllLevelValue(function(mapLevelCfg)
+        return ParseEffectParam(decodeJson(mapLevelCfg.EffectParam), effectAllIdx)
+      end)
+      local str
+      if tbValue == nil then
+        str = AppendSuffix(ParseEffectParam(decodeJson(mapCfg.EffectParam), effectAllIdx), sEffectSuffix)
+      else
+        str = PenguinCardUtils.JoinAllLevelValue(tbValue, mapCfg.Level, sEffectSuffix)
+      end
       str = LanguagePost(lang, langIdx, str)
       return str
     end
@@ -333,6 +450,12 @@ function PenguinCardUtils.SetEffectDesc(mapCfg, nGrowthLayer)
     return token
   end)
   return result
+end
+
+function PenguinCardUtils.SetAideAddScoreDesc(tbScore, nLevel)
+  local sLevelValue = PenguinCardUtils.JoinAllLevelValue(tbScore, nLevel)
+  local sScoreDesc = orderedFormat(ConfigTable.GetUIText("PenguinCard_AideInfo_PassiveDesc"), sLevelValue)
+  return sScoreDesc
 end
 
 function PenguinCardUtils.WeightedRandom(tbId, tbWeight, n, tbExcludeGroupId, bDuplicate, bAide)

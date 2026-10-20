@@ -25,6 +25,8 @@ ReengagementBDPreviewCtrl._mapNodeConfig = {
     sComponentName = "TMP_Text",
     sLanguageId = "Quest_WorldClass_Level"
   },
+  txtLevel = {sComponentName = "TMP_Text"},
+  imgExpBar = {sComponentName = "Image"},
   svAll = {
     sComponentName = "LoopScrollView"
   }
@@ -43,6 +45,8 @@ function ReengagementBDPreviewCtrl:OpenPanel()
     self:InitPanel()
     self._mapNode.animRoot:Play("t_window_04_t_in")
   end
+  
+  cs_coroutine.start(wait)
 end
 
 function ReengagementBDPreviewCtrl:InitPanel()
@@ -52,9 +56,19 @@ function ReengagementBDPreviewCtrl:InitPanel()
     table.insert(self.tbLevelInterval, mapData)
   end
   
-  ForEachTableLine(ConfigTable.GetData("ReengagementBDTrial"), foreachData)
+  ForEachTableLine(ConfigTable.Get("ActivityReturneeTrialBuildGroup"), foreachData)
+  table.sort(self.tbLevelInterval, function(a, b)
+    return a.LevelMin < b.LevelMin
+  end)
   self.nWorldLevel = PlayerData.Base:GetWorldClass()
   NovaAPI.SetTMPText(self._mapNode.txtLevel, self.nWorldLevel)
+  local nCurExp = PlayerData.Base:GetWorldExp()
+  local mapCfg = ConfigTable.GetData("WorldClass", self.nWorldLevel + 1, true)
+  local nFullExp = 0
+  if mapCfg ~= nil then
+    nFullExp = mapCfg.Exp
+    NovaAPI.SetImageFillAmount(self._mapNode.imgExpBar, nCurExp / nFullExp)
+  end
   self._mapNode.svAll:Init(#self.tbLevelInterval, self, self.OnGridRefresh)
 end
 
@@ -64,7 +78,7 @@ function ReengagementBDPreviewCtrl:OnGridRefresh(goGrid, nGridIndex)
   local imgOnBg = goGrid.transform:Find("imgOnBg").gameObject
   local imgOffBg = goGrid.transform:Find("imgOffBg").gameObject
   local imgSelect = goGrid.transform:Find("imgSelect").gameObject
-  if self.nWorldLevel >= mapData.MinLevel and self.nWorldLevel <= mapData.MaxLevel then
+  if self.nWorldLevel >= mapData.LevelMin and (mapData.LevelMax == -1 or self.nWorldLevel <= mapData.LevelMax) then
     imgOnBg:SetActive(true)
     imgOffBg:SetActive(false)
     imgSelect:SetActive(true)
@@ -75,13 +89,20 @@ function ReengagementBDPreviewCtrl:OnGridRefresh(goGrid, nGridIndex)
   end
   local txtDesc = goGrid.transform:Find("txtDesc"):GetComponent("TMP_Text")
   if txtDesc ~= nil then
+    local nLevelMin = math.max(1, mapData.LevelMin)
+    local nLevelMax = PlayerData.Base:GetMaxWorldClass()
+    if mapData.LevelMax ~= -1 then
+      nLevelMax = math.min(nLevelMax, mapData.LevelMax)
+    end
     local sText = ConfigTable.GetUIText("Reengagement_BDTrialPreview_WorldClass")
-    sText = sText .. mapData.MinLevel .. "~" .. mapData.MaxLevel
+    sText = sText .. nLevelMin .. "~" .. nLevelMax
     NovaAPI.SetTMPText(txtDesc, sText)
   end
   local imgIcon = goGrid.transform:Find("imgIcon"):GetComponent("Image")
   if imgIcon ~= nil then
-    self:SetPngSprite(imgIcon, mapData.Icon)
+    local rank = PlayerData.Build:CalBuildRank(mapData.Score)
+    local sScore = "Icon/BuildRank/BuildRank_" .. rank.Id
+    self:SetPngSprite(imgIcon, sScore)
   end
 end
 

@@ -226,43 +226,45 @@ function PlayerStarTowerData:EnterTowerPrologue()
 end
 
 function PlayerStarTowerData:EnterTowerFastBattle(nTowerId, nTeamIdx)
-  local tbTeam = PlayerData.Team:GetTeamCharId(nTeamIdx)
-  local tbCharSkinId = {}
-  for _, nCharId in ipairs(tbTeam) do
-    table.insert(tbCharSkinId, PlayerData.Char:GetCharSkinId(nCharId))
-  end
-  
-  local function applyCallback(_, mapMsgData)
-    local mapStartowerCfg = ConfigTable.GetData("StarTower", nTowerId)
-    if mapStartowerCfg ~= nil then
-      self.mapGroupFormation[mapStartowerCfg.GroupId] = nTeamIdx
+  PlayerData.StarTowerAutoPlan:EnsureInited(function()
+    local tbTeam = PlayerData.Team:GetTeamCharId(nTeamIdx)
+    local tbCharSkinId = {}
+    for _, nCharId in ipairs(tbTeam) do
+      table.insert(tbCharSkinId, PlayerData.Char:GetCharSkinId(nCharId))
     end
-    local mapStateInfo = {
+    
+    local function applyCallback(_, mapMsgData)
+      local mapStartowerCfg = ConfigTable.GetData("StarTower", nTowerId)
+      if mapStartowerCfg ~= nil then
+        self.mapGroupFormation[mapStartowerCfg.GroupId] = nTeamIdx
+      end
+      local mapStateInfo = {
+        Id = nTowerId,
+        ReConnection = 0,
+        BuildId = 0,
+        CharIds = tbTeam,
+        Floor = 0,
+        Sweep = true
+      }
+      PlayerData.State:CacheStarTowerStateData(mapStateInfo)
+      local starTowerInfo = mapMsgData.Info
+      local mapDecodedChangeInfo = UTILS.DecodeChangeInfo(mapMsgData.Change)
+      HttpNetHandler.ProcChangeInfo(mapDecodedChangeInfo)
+      EventManager.Hit(EventId.OpenPanel, PanelId.StarTowerFastBattle, starTowerInfo)
+    end
+    
+    local mapMsg = {
       Id = nTowerId,
-      ReConnection = 0,
-      BuildId = 0,
-      CharIds = tbTeam,
-      Floor = 0,
+      FormationId = nTeamIdx,
+      CharHp = -1,
+      MapId = -1,
+      ParamId = -1,
+      MapParam = "",
+      MapTableId = -1,
       Sweep = true
     }
-    PlayerData.State:CacheStarTowerStateData(mapStateInfo)
-    local starTowerInfo = mapMsgData.Info
-    local mapDecodedChangeInfo = UTILS.DecodeChangeInfo(mapMsgData.Change)
-    HttpNetHandler.ProcChangeInfo(mapDecodedChangeInfo)
-    EventManager.Hit(EventId.OpenPanel, PanelId.StarTowerFastBattle, starTowerInfo)
-  end
-  
-  local mapMsg = {
-    Id = nTowerId,
-    FormationId = nTeamIdx,
-    CharHp = -1,
-    MapId = -1,
-    ParamId = -1,
-    MapParam = "",
-    MapTableId = -1,
-    Sweep = true
-  }
-  HttpNetHandler.SendMsg(NetMsgId.Id.star_tower_apply_req, mapMsg, nil, applyCallback)
+    HttpNetHandler.SendMsg(NetMsgId.Id.star_tower_apply_req, mapMsg, nil, applyCallback)
+  end)
 end
 
 function PlayerStarTowerData:ReenterTower(nTowerId)
@@ -292,17 +294,19 @@ function PlayerStarTowerData:ReenterTower(nTowerId)
 end
 
 function PlayerStarTowerData:ReenterTowerFastBattle()
-  local function callback(_, msgData)
-    local starTowerInfo = {
-      Meta = msgData.Meta,
-      
-      Room = msgData.Room,
-      Bag = msgData.Bag
-    }
-    EventManager.Hit(EventId.OpenPanel, PanelId.StarTowerFastBattle, starTowerInfo)
-  end
-  
-  HttpNetHandler.SendMsg(NetMsgId.Id.star_tower_info_req, {}, nil, callback)
+  PlayerData.StarTowerAutoPlan:EnsureInited(function()
+    local function callback(_, msgData)
+      local starTowerInfo = {
+        Meta = msgData.Meta,
+        
+        Room = msgData.Room,
+        Bag = msgData.Bag
+      }
+      EventManager.Hit(EventId.OpenPanel, PanelId.StarTowerFastBattle, starTowerInfo)
+    end
+    
+    HttpNetHandler.SendMsg(NetMsgId.Id.star_tower_info_req, {}, nil, callback)
+  end)
 end
 
 function PlayerStarTowerData:StarTowerEnd()

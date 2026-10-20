@@ -331,7 +331,10 @@ function PlayerRogueBossData:CacheRogueBossData(tbData)
       tab.Star = v.Star
       tab.First = v.First
       tab.ThreeStar = v.ThreeStar
-      tab.BuildId = v.BuildId
+      tab.BuildId = 0
+      if v.Build ~= nil then
+        tab.BuildId = v.Build.BuildId or 0
+      end
       tab.maxStar = v.ThreeStar and 3 or v.Star
       self.CacheBossLevelMsg[v.Id] = tab
     end

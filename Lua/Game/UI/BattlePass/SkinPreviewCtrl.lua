@@ -271,7 +271,7 @@ function SkinPreviewCtrl:LoadCharacter()
       self.nModelDragRot = v.transform.localEulerAngles.y
       self.curShowModel = v
       self:WaitReadyClipFinish()
-      NovaAPI.BindUIParallaxStageCameraControllerModel(self._mapNode.UIParallax3DStage, 0, v.gameObject)
+      NovaAPI.BindUIParallaxStageCameraControllerModel(self._mapNode.UIParallax3DStage, 0, v.gameObject, true)
       GameUIUtils.SetCustomModelMaterialVariant(v.gameObject, CS.CustomModelMaterialVariantComponent.VariantNames.FormationView)
     else
       v.gameObject:SetActive(false)
@@ -286,7 +286,7 @@ function SkinPreviewCtrl:LoadCharacter()
       self.tbModelList[self.nSkinId] = go
       self.curShowModel = go
       self:WaitReadyClipFinish()
-      NovaAPI.BindUIParallaxStageCameraControllerModel(self._mapNode.UIParallax3DStage, 0, go)
+      NovaAPI.BindUIParallaxStageCameraControllerModel(self._mapNode.UIParallax3DStage, 0, go, true)
       GameUIUtils.SetCustomModelMaterialVariant(go, CS.CustomModelMaterialVariantComponent.VariantNames.FormationView)
       if self.rtSceneOriginPos ~= nil then
         go.transform.position = self.rtSceneOriginPos.position

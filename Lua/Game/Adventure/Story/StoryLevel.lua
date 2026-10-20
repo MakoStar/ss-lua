@@ -58,12 +58,6 @@ end
 
 function StoryLevel:RefreshCharDamageData()
   self.tbCharDamage = UTILS.GetCharDamageResult(self.tbCharId)
-  for k, v in pairs(self.tbCharDamage) do
-    local mapSkin = ConfigTable.GetData_CharacterSkin(PlayerData.Char:GetCharSkinId(v.nCharId))
-    if mapSkin ~= nil then
-      v.nSkinId = mapSkin.Id
-    end
-  end
 end
 
 function StoryLevel:OnEvent_LoadLevelRefresh()
@@ -103,7 +97,7 @@ function StoryLevel:OnEvent_SendMsgFinishBattle(LevelResult, FadeTime, sVideoNam
     List = PlayerData.Achievement:GetBattleAchievement(GameEnum.levelType.Mainline, LevelResult ~= AllEnum.LevelResult.Failed)
   }
   if self.bActivityStory then
-    PlayerData.ActivityAvg:SendMsg_STORY_DONE(func_cbFinishSucc, events)
+    self.parent:SendMsg_STORY_DONE(func_cbFinishSucc, events)
   else
     PlayerData.Avg:SendMsg_STORY_DONE(func_cbFinishSucc, events)
   end
@@ -201,7 +195,7 @@ function StoryLevel:PlaySuccessPerform(FadeTime, mapChangeInfo, sVideoName)
       EventManager.Add("SettlementPerformLoadFinish", self, openBattleResultPanel)
       local tbSkin = {}
       for _, nCharId in ipairs(tbChar) do
-        local nSkinId = PlayerData.Char:GetCharSkinId(nCharId)
+        local nSkinId = PlayerData.Build:GetBattleCharSkinId(nCharId)
         table.insert(tbSkin, nSkinId)
       end
       CS.AdventureModuleHelper.PlaySettlementPerform(sName, "", tbSkin, func_SettlementFinish)

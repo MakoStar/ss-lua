@@ -12,6 +12,7 @@ local _bInterruptPopUp = false
 local _tbSpecifyPopUp = {}
 local _tempPopUpMapData = {}
 local _interruptPopUpIndex = 0
+local _bPauseAfterCurrent = false
 
 function PopUpManager.Init()
   local function foreachPopupSeq(mapData)
@@ -62,7 +63,7 @@ function PopUpManager.StartShowPopUp(callback)
   PopUpManager.PopUpDeQueue()
 end
 
-function PopUpManager.PopUpEnQueue(nType, mapData)
+function PopUpManager.PopUpEnQueue(nType, mapData, bSilent)
   if EditorSettings and EditorSettings.bSkipPopup then
     return
   end
@@ -78,14 +79,18 @@ function PopUpManager.PopUpEnQueue(nType, mapData)
     table.insert(_tbPopUpQueue, {nType = nType, mapData = mapData})
   end
   table.sort(_tbPopUpQueue, function(a, b)
-    local nSortA = popUpPanelConfig[a.nType].nSortId or 999
-    local nSortB = popUpPanelConfig[b.nType].nSortId or 999
+    local cfgA = popUpPanelConfig[a.nType]
+    local cfgB = popUpPanelConfig[b.nType]
+    local nSortA = cfgA and cfgA.nSortId or 999
+    local nSortB = cfgB and cfgB.nSortId or 999
     return nSortA < nSortB
   end)
   if nType == GameEnum.PopUpSeqType.MonthlyCard and PlayerData.Mall:CheckOrderProcess() then
     return
   end
-  EventManager.Hit("MainViewCheckOpenPanel")
+  if not bSilent then
+    EventManager.Hit("MainViewCheckOpenPanel")
+  end
 end
 
 function PopUpManager.PopUpDeQueue()
@@ -97,17 +102,31 @@ function PopUpManager.PopUpDeQueue()
     _bInPopUpQueue = false
     _bInterruptPopUp = false
     _interruptPopUpIndex = 0
+    _bPauseAfterCurrent = false
     EventManager.Hit("Event_MainViewPopUpEnd")
   end
   
-  if #_tbPopUpQueue == 0 and not _bInterruptPopUp and _interruptPopUpIndex == 0 then
-    exitPopUpQueue()
-    return
-  end
-  if not _bInterruptPopUp and _interruptPopUpIndex == 0 then
+  if _bPauseAfterCurrent then
+    _bPauseAfterCurrent = false
+    _bInterruptPopUp = false
+    _interruptPopUpIndex = 0
+    _tempPopUpMapData = table.remove(_tbPopUpQueue, 1)
+    if _tempPopUpMapData == nil then
+      exitPopUpQueue()
+      return
+    end
+  elseif not _bInterruptPopUp and _interruptPopUpIndex == 0 then
+    if #_tbPopUpQueue == 0 then
+      exitPopUpQueue()
+      return
+    end
     _tempPopUpMapData = table.remove(_tbPopUpQueue, 1)
   else
-    local mapData = _tempPopUpMapData.mapData
+    local mapData = _tempPopUpMapData and _tempPopUpMapData.mapData
+    if type(mapData) ~= "table" then
+      exitPopUpQueue()
+      return
+    end
     for i = 1, _interruptPopUpIndex do
       table.remove(mapData, 1)
     end
@@ -131,28 +150,40 @@ function PopUpManager.PopUpDeQueue()
   end
   
   local mapConfig = popUpPanelConfig[mapNext.nType]
-  if mapConfig ~= nil then
-    if mapNext.nType == GameEnum.PopUpSeqType.MessageBox then
-      local msg = {
-        nType = AllEnum.MessageBox.Alert,
-        sContent = mapNext.mapData,
-        callbackConfirm = callback
-      }
-      EventManager.Hit(EventId.OpenMessageBox, msg)
-    else
-      local mapData = {}
-      if mapNext.nType == GameEnum.PopUpSeqType.ActivityFaceAnnounce then
-        for k, v in pairs(mapNext.mapData) do
-          table.insert(mapData, v)
-        end
-      else
-        mapData = mapNext.mapData
+  if mapConfig == nil then
+    printError("PopUpSequence 缺少类型配置:" .. tostring(mapNext.nType))
+    callback()
+    return
+  end
+  if mapNext.nType == GameEnum.PopUpSeqType.MessageBox then
+    local msg = {
+      nType = AllEnum.MessageBox.Alert,
+      sContent = mapNext.mapData,
+      callbackConfirm = callback
+    }
+    EventManager.Hit(EventId.OpenMessageBox, msg)
+  elseif mapNext.nType == GameEnum.PopUpSeqType.ReengagementAvg then
+    PlayerData.Reengagement:PlayReturnAvg(callback)
+  elseif mapNext.nType == GameEnum.PopUpSeqType.StarTowerBuildSave then
+    PlayerData.State:OpenStarTowerBuildSave(callback)
+  elseif mapNext.nType == GameEnum.PopUpSeqType.MainViewGuide then
+    EventManager.Hit("UnlockMainViewInput")
+    PlayerData.Guide:RunLoginGuide(callback)
+  elseif mapNext.nType == GameEnum.PopUpSeqType.NewChat then
+    EventManager.Hit(EventId.OpenPanel, mapConfig.nPanelId, mapNext.mapData, false, callback)
+  else
+    local mapData = {}
+    if mapNext.nType == GameEnum.PopUpSeqType.ActivityFaceAnnounce then
+      for k, v in pairs(mapNext.mapData) do
+        table.insert(mapData, v)
       end
-      EventManager.Hit(EventId.OpenPanel, mapConfig.nPanelId, mapData, callback)
+    else
+      mapData = mapNext.mapData
     end
-    if mapConfig.bLocalSave then
-      PopUpManager.SaveLocalData()
-    end
+    EventManager.Hit(EventId.OpenPanel, mapConfig.nPanelId, mapData, callback)
+  end
+  if mapConfig.bLocalSave then
+    PopUpManager.SaveLocalData()
   end
 end
 
@@ -161,9 +192,21 @@ function PopUpManager.InterruptPopUp(index)
   _interruptPopUpIndex = index
 end
 
+function PopUpManager.PauseAfterCurrent()
+  _bInterruptPopUp = true
+  _interruptPopUpIndex = 0
+  _bPauseAfterCurrent = true
+  _tempPopUpMapData = nil
+end
+
+function PopUpManager.IsQueueOccupied()
+  return _bInPopUpQueue
+end
+
 function PopUpManager.ResetInterruptPopUp()
   _bInterruptPopUp = false
   _interruptPopUpIndex = 0
+  _bPauseAfterCurrent = false
   _tbPopUpCache = {}
   _bInPopUpQueue = false
 end

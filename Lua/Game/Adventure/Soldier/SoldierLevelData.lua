@@ -3,11 +3,51 @@ local SoldierAttrData = require("GameCore.Data.DataClass.Soldier.SoldierAttrData
 local FightPos = GameEnum.SoldierPositionType.FightPosition
 local SupPos = GameEnum.SoldierPositionType.SupportPosition
 local SPT = AllEnum.SoldierPositionType
+
+local function SlotToPosIndex(nSlot)
+  if nSlot == nil or nSlot == 0 then
+    return SPT.Other, 0
+  end
+  if 1 <= nSlot and nSlot <= 3 then
+    return SPT.Fight, nSlot
+  end
+  if 4 <= nSlot and nSlot <= 9 then
+    return SPT.Support, nSlot - 3
+  end
+  if 10 <= nSlot and nSlot <= 18 then
+    return SPT.Waiting, nSlot - 9
+  end
+  return SPT.Other, 0
+end
+
+local function PosIndexToSlot(nPosType, nIndex)
+  if nPosType == SPT.Fight then
+    return nIndex
+  elseif nPosType == SPT.Support then
+    return nIndex + 3
+  elseif nPosType == SPT.Waiting then
+    return nIndex + 9
+  end
+  return 0
+end
+
 local SoldierEffectStatus = {InActive = "InActive", Active = "Active"}
-local SoldierPartnerAction = {
+local SoldierBuffAction = {
   Sync = "Sync",
   Add = "Add",
   Remove = "Remove"
+}
+local SoldierBuffType = {
+  UnknownBuff = "UnknownBuff",
+  CardBuff = "CardBuff",
+  PartnerBuff = "PartnerBuff",
+  TechNodeBuff = "TechNodeBuff",
+  AbilityBuff = "AbilityBuff"
+}
+local SoldierBuffProgressType = {
+  UnknownProgress = "UnknownProgress",
+  StateProgress = "StateProgress",
+  CondProgress = "CondProgress"
 }
 local PRINT_CHESS_LOG = true
 local CaseEnum = {
@@ -15,20 +55,44 @@ local CaseEnum = {
   Shop = 2,
   Fight = 3,
   Battle = 4,
-  DeploySync = 5,
   EventSettlementOfDispute = 6,
   EventSettlementOfDisputeBattle = 7,
-  ClientEvent = 8
+  SelectBossAbility = 8,
+  CheckStage = 9,
+  StoryEventOfPersonality = 10,
+  StoryEventOfCostly = 11,
+  DeployOpt = 14,
+  ClientEvent = 15
 }
-local ClientCase = {BattleResult = 1, Settle = 2}
-local OtherCaseType = {
+local ClientCase = {
+  BattleResult = 1,
+  Settle = 2,
+  StageChange = 3,
+  CheckStagePanel = 4,
+  Ending = 5,
+  DiceResult = 6
+}
+local OpenSandTableServerCase = {
   CaseEnum.SelectCard,
   CaseEnum.Battle,
   CaseEnum.EventSettlementOfDispute,
-  CaseEnum.EventSettlementOfDisputeBattle
+  CaseEnum.EventSettlementOfDisputeBattle,
+  CaseEnum.SelectBossAbility,
+  CaseEnum.StoryEventOfCostly,
+  CaseEnum.StoryEventOfPersonality
+}
+local OpenSandTableClientCase = {
+  ClientCase.DiceResult
+}
+local mapEventConfig = {}
+local SANDTABLE_SCENES = {
+  [1] = "Soldier_Sandtable_UI_01",
+  [2] = "Soldier_Sandtable_UI_02",
+  [3] = "Soldier_Sandtable_UI_03"
 }
 
 function SoldierLevelData:ctor()
+  self:BindEvent()
   self:Clear()
 end
 
@@ -36,10 +100,10 @@ function SoldierLevelData:Clear()
   self.parent = nil
   self.mapCases = {}
   self.mapClientCases = {}
-  self.nLastNodeId = 0
   self.tbPendingRewards = {}
   self.nLevelId = 0
   self.nHp = 0
+  self.nBossTemplateId = 0
   self.nGradeChallengeId = 0
   self.nStageId = 0
   self.nNodeId = 0
@@ -48,10 +112,15 @@ function SoldierLevelData:Clear()
   self.tbDeployChess = {}
   self.tbWaitingChess = {}
   self.tbOtherChess = {}
+  self.nDeployVersion = 0
+  self.mapChessByUid = {}
+  self.mapSlotToUid = {}
+  self.tbOtherUids = {}
   self.mapItems = {}
   self.mapAllChess = {}
-  self.tbStartedCards = {}
-  self.tbStrategyCards = {}
+  self.mapBuffs = {}
+  self.mapBuffProgress = {}
+  self.tbStrategyCards = nil
   self.nLevel = 0
   self.nMaxLevel = 0
   self.nExp = 0
@@ -62,12 +131,183 @@ function SoldierLevelData:Clear()
   self.tbServerPartner = {}
   self.tbActivePartner = {}
   self.mapExtraPartnerTag = {}
-  self.tbAllEffects = {}
+  self.mapEffects = {}
   self.tbClientEffects = {}
+  self.mapExtraEffectState = {
+    nHarvest = 0,
+    nInterestLimit = 0,
+    nCardReRoll = 0
+  }
+  self.tbDiscAddEffect = {}
   self.bOpenSandTable = true
+  self.sSandtableSceneName = nil
+  self.bSuppressEnterAnim = false
+  self.bReconnectInBattle = false
+  self.fnPanelReadyOnce = nil
+  self.sLastTimelineScene = nil
 end
 
-function SoldierLevelData:Init(parent, mapSoldierInfo, tbInitChess, nInitCoin)
+function SoldierLevelData:BindEvent()
+  if type(mapEventConfig) ~= "table" then
+    return
+  end
+  for nEventId, sCallbackName in pairs(mapEventConfig) do
+    local callback = self[sCallbackName]
+    if type(callback) == "function" then
+      EventManager.Add(nEventId, self, callback)
+    end
+  end
+end
+
+function SoldierLevelData:UnBindEvent()
+  if type(mapEventConfig) ~= "table" then
+    return
+  end
+  for nEventId, sCallbackName in pairs(mapEventConfig) do
+    local callback = self[sCallbackName]
+    if type(callback) == "function" then
+      EventManager.Remove(nEventId, self, callback)
+    end
+  end
+end
+
+function SoldierLevelData:_RebuildFromNewDeploy(deploy)
+  self.mapChessByUid = {}
+  self.mapSlotToUid = {}
+  self.tbOtherUids = {}
+  if deploy == nil then
+    self.nDeployVersion = 0
+    return
+  end
+  self.nDeployVersion = deploy.Version or 0
+  if deploy.Chess == nil then
+    return
+  end
+  for _, chess in ipairs(deploy.Chess) do
+    local nUid = chess.UID
+    local nSlot = chess.Slot or 0
+    self.mapChessByUid[nUid] = {
+      nTid = chess.Tid,
+      nStar = chess.Star,
+      nSlot = nSlot
+    }
+    if nSlot == 0 then
+      table.insert(self.tbOtherUids, nUid)
+    else
+      self.mapSlotToUid[nSlot] = nUid
+    end
+  end
+end
+
+function SoldierLevelData:_DeriveDeployView()
+  local tbView = {}
+  for nSlot = 1, 9 do
+    local nPosType, nIndex = SlotToPosIndex(nSlot)
+    local nUid = self.mapSlotToUid[nSlot]
+    local entry = {
+      nPositionType = nPosType,
+      nIndex = nIndex,
+      nUid = 0,
+      nId = 0,
+      nStar = 0
+    }
+    if nUid ~= nil then
+      local chess = self.mapChessByUid[nUid]
+      if chess ~= nil then
+        entry.nUid = nUid
+        entry.nId = chess.nTid
+        entry.nStar = chess.nStar
+      end
+    end
+    table.insert(tbView, entry)
+  end
+  return tbView
+end
+
+function SoldierLevelData:_DeriveWaitingView()
+  local tbView = {}
+  for nSlot = 10, 18 do
+    local _, nIndex = SlotToPosIndex(nSlot)
+    local nUid = self.mapSlotToUid[nSlot]
+    local entry = {
+      nIndex = nIndex,
+      nUid = 0,
+      nId = 0,
+      nStar = 0
+    }
+    if nUid ~= nil then
+      local chess = self.mapChessByUid[nUid]
+      if chess ~= nil then
+        entry.nUid = nUid
+        entry.nId = chess.nTid
+        entry.nStar = chess.nStar
+      end
+    end
+    table.insert(tbView, entry)
+  end
+  return tbView
+end
+
+function SoldierLevelData:_DeriveOtherView()
+  local tbView = {}
+  local mapAgg = {}
+  for _, nUid in ipairs(self.tbOtherUids) do
+    local chess = self.mapChessByUid[nUid]
+    if chess ~= nil then
+      local sKey = tostring(chess.nTid) .. "_" .. tostring(chess.nStar)
+      local agg = mapAgg[sKey]
+      if agg == nil then
+        agg = {
+          nId = chess.nTid,
+          nStar = chess.nStar,
+          nCount = 0
+        }
+        mapAgg[sKey] = agg
+        table.insert(tbView, agg)
+      end
+      agg.nCount = agg.nCount + 1
+    end
+  end
+  return tbView
+end
+
+function SoldierLevelData:_DeriveAllChessView()
+  local tbView = {}
+  local mapAgg = {}
+  for _, chess in pairs(self.mapChessByUid) do
+    local sKey = tostring(chess.nTid) .. "_" .. tostring(chess.nStar)
+    local agg = mapAgg[sKey]
+    if agg == nil then
+      agg = {
+        nId = chess.nTid,
+        nStar = chess.nStar,
+        nCount = 0
+      }
+      mapAgg[sKey] = agg
+      table.insert(tbView, agg)
+    end
+    agg.nCount = agg.nCount + 1
+  end
+  return tbView
+end
+
+function SoldierLevelData:_BuildHarvestEvent(nHarvest)
+  local tbEvents = {}
+  if 0 < nHarvest then
+    tbEvents = {
+      List = {
+        {
+          Id = GameEnum.soldierBuffEffect.ClientEffectHarvest,
+          Data = {nHarvest}
+        }
+      }
+    }
+  end
+  return tbEvents
+end
+
+function SoldierLevelData:Init(parent, mapSoldierInfo, mapChange, bFreshStart)
+  self:Clear()
   self.parent = parent
   if mapSoldierInfo == nil or mapSoldierInfo.Meta == nil then
     printError("[Soldier] 服务器下发的SoldierInfo为空！！！")
@@ -80,6 +320,7 @@ function SoldierLevelData:Init(parent, mapSoldierInfo, tbInitChess, nInitCoin)
   self.nLevel = mapSoldierInfo.Meta.ShopLevel
   self.nExp = mapSoldierInfo.Meta.ShopExp
   self.tbPartnerTrace = mapSoldierInfo.Meta.TracePartnerTypes
+  self.nBossTemplateId = 0
   if mapSoldierInfo.Node == nil then
     printError("[Soldier] 服务器下发的 SoldierNode 为空！！！")
     return
@@ -97,59 +338,74 @@ function SoldierLevelData:Init(parent, mapSoldierInfo, tbInitChess, nInitCoin)
     
     ForEachTableLine(ConfigTable.Get("SoldierShopLevel"), foreachShopLevel)
   end
-  self:UpdateNodeInfo(mapSoldierInfo.Node.Data)
+  self:UpdateNodeInfo(mapSoldierInfo.Node.Data, nil, not bFreshStart)
   self:ClearServerCase()
-  if mapSoldierInfo.Node.Cases ~= nil then
-    for _, v in ipairs(mapSoldierInfo.Node.Cases) do
+  if mapSoldierInfo.Cases ~= nil then
+    for _, v in ipairs(mapSoldierInfo.Cases) do
       self:DispatchServerCase(v)
     end
   end
-  self.tbDeployChess = {}
-  self.tbWaitingChess = {}
-  self.tbOtherChess = {}
-  self.mapAllChess = {}
-  if mapSoldierInfo.Bag.Chess ~= nil then
-    for k, v in ipairs(mapSoldierInfo.Bag.Chess) do
-      table.insert(self.mapAllChess, {
-        nId = v.Id,
-        nCount = v.Qty,
-        nStar = v.Star
-      })
+  local tbChange = {}
+  if mapChange ~= nil then
+    self:UpdateChangeInfo(mapChange, tbChange, nil)
+  end
+  local tbSteps = tbChange.tbChessChangeStep
+  local nCoin = tbChange.itemChange and tbChange.itemChange[AllEnum.CoinItemId.SoldierCurrency] or nil
+  local bHasSteps = tbSteps ~= nil and 0 < #tbSteps
+  local bHasCoin = nCoin ~= nil and nCoin ~= 0
+  if mapChange == nil and mapSoldierInfo.Node.Data.NodeId == 0 then
+    local tbObtain = {}
+    local mapBag = mapSoldierInfo.Bag
+    if mapBag ~= nil and mapBag.Deploy ~= nil and mapBag.Deploy.Chess ~= nil then
+      for _, ch in ipairs(mapBag.Deploy.Chess) do
+        local nSlot = ch.Slot or 0
+        local nPos, nIndex = SlotToPosIndex(nSlot)
+        table.insert(tbObtain, {
+          nUid = ch.UID,
+          nSlot = nSlot,
+          nTid = ch.Tid,
+          nStar = ch.Star,
+          nId = ch.Tid,
+          nTargetType = nPos,
+          nIndex = nIndex
+        })
+      end
+    end
+    if 0 < #tbObtain then
+      tbSteps = {
+        {
+          tbConsume = {},
+          tbObtain = tbObtain,
+          tbUpdate = {}
+        }
+      }
+      bHasSteps = true
+    end
+    if mapBag ~= nil and mapBag.Res ~= nil then
+      for _, v in ipairs(mapBag.Res) do
+        if v.Tid == AllEnum.CoinItemId.SoldierCurrency and v.Qty ~= nil and v.Qty ~= 0 then
+          nCoin = v.Qty
+          bHasCoin = true
+          break
+        end
+      end
     end
   end
-  if mapSoldierInfo.Bag.Deploy ~= nil then
-    if mapSoldierInfo.Bag.Deploy.Master ~= nil then
-      for k, v in ipairs(mapSoldierInfo.Bag.Deploy.Master) do
-        table.insert(self.tbDeployChess, {
-          nPositionType = FightPos,
-          nIndex = k,
-          nId = v.Id,
-          nStar = v.Star
-        })
-      end
+  if (bHasSteps or bHasCoin) and self.mapCases[CaseEnum.Fight] == nil then
+    if bHasSteps then
+      tbSteps = self:_MergeApplyObtainSteps(tbSteps)
     end
-    if mapSoldierInfo.Bag.Deploy.Assist ~= nil then
-      for k, v in ipairs(mapSoldierInfo.Bag.Deploy.Assist) do
-        table.insert(self.tbDeployChess, {
-          nPositionType = SupPos,
-          nIndex = k,
-          nId = v.Id,
-          nStar = v.Star
-        })
-      end
-    end
-    if mapSoldierInfo.Bag.Deploy.Waiting ~= nil then
-      for k, v in ipairs(mapSoldierInfo.Bag.Deploy.Waiting) do
-        table.insert(self.tbWaitingChess, {
-          nIndex = k,
-          nId = v.Id,
-          nStar = v.Star
-        })
-      end
-    end
+    table.insert(self.tbPendingRewards, {
+      nType = AllEnum.SoldierRewardSource.Apply,
+      data = bHasCoin and {nCoin = nCoin} or {},
+      tbSteps = bHasSteps and tbSteps or {}
+    })
   end
-  self:FillOtherChess()
-  self:DisposalChessDeploy()
+  self:_RebuildFromNewDeploy(mapSoldierInfo.Bag.Deploy)
+  self.tbDeployChess = self:_DeriveDeployView()
+  self.tbWaitingChess = self:_DeriveWaitingView()
+  self.tbOtherChess = self:_DeriveOtherView()
+  self.mapAllChess = self:_DeriveAllChessView()
   self:UpdatePartner(true)
   self.mapItems = {}
   if mapSoldierInfo.Bag.Res ~= nil then
@@ -157,147 +413,23 @@ function SoldierLevelData:Init(parent, mapSoldierInfo, tbInitChess, nInitCoin)
       self.mapItems[v.Tid] = v.Qty
     end
   end
-  self.tbStartedCards = {}
-  self.tbStrategyCards = {}
-  if mapSoldierInfo.Bag.Cards ~= nil then
-    for k, v in ipairs(mapSoldierInfo.Bag.Cards) do
-      self:UpdateCardList(v)
-    end
-  end
-  if mapSoldierInfo.Bag.Partners ~= nil then
-    for k, v in ipairs(mapSoldierInfo.Bag.Partners) do
-      self:UpdateServerPartner(v)
-    end
-  end
-  if tbInitChess == nil and nInitCoin == nil and self.nStageId == 0 and self.nNodeId == 0 then
-    local bHasApplyPending = false
-    for _, v in ipairs(self.tbPendingRewards) do
-      if v.nType == AllEnum.SoldierRewardSource.Apply then
-        bHasApplyPending = true
-        break
-      end
-    end
-    if not bHasApplyPending then
-      local tbFallbackChess = {}
-      for _, v in ipairs(self.mapAllChess) do
-        for _ = 1, v.nCount do
-          table.insert(tbFallbackChess, {
-            Id = v.nId,
-            Star = v.nStar,
-            Qty = 1
-          })
-        end
-      end
-      if 0 < #tbFallbackChess then
-        tbInitChess = tbFallbackChess
-      end
-      nInitCoin = self.mapItems[AllEnum.CoinItemId.SoldierCurrency]
-    end
-  end
-  local nInitIndex
-  if tbInitChess ~= nil or nInitCoin ~= nil then
-    nInitIndex = self:CacheReward(AllEnum.SoldierRewardSource.Apply, {tbChess = tbInitChess, nCoin = nInitCoin})
-    if tbInitChess ~= nil and nInitIndex ~= nil then
-      local tbSteps = {}
-      local mapSkip = {}
-      local tbGroups = {}
-      local mapGroupIdx = {}
-      for _, chess in ipairs(tbInitChess) do
-        local nId = chess.Id
-        local nStar = chess.Star or 1
-        if nId ~= nil then
-          local sKey = tostring(nId) .. "-" .. tostring(nStar)
-          local idx = mapGroupIdx[sKey]
-          if idx == nil then
-            table.insert(tbGroups, {
-              nId = nId,
-              nStar = nStar,
-              nCount = 0
-            })
-            idx = #tbGroups
-            mapGroupIdx[sKey] = idx
-          end
-          tbGroups[idx].nCount = tbGroups[idx].nCount + 1
-        end
-      end
-      local obtainStep = {
-        tbConsume = {},
-        tbObtain = {}
-      }
-      for _, group in ipairs(tbGroups) do
-        local nId, nStar, nCount = group.nId, group.nStar, group.nCount
-        local nMerges = math.floor(nCount / 3)
-        local nRemain = nCount - nMerges * 3
-        for _ = 1, nMerges do
-          local nType, nIndex = self:_LocateChessInBag(nId, nStar + 1, mapSkip)
-          if nType == nil then
-            nRemain = nRemain + 3
-          else
-            mapSkip[nType] = mapSkip[nType] or {}
-            mapSkip[nType][nIndex] = true
-            local getStep = {
-              tbConsume = {},
-              tbObtain = {}
-            }
-            for i = 1, 3 do
-              table.insert(getStep.tbObtain, {
-                nTargetType = nType,
-                nIndex = i,
-                nId = nId,
-                nStar = nStar
-              })
-            end
-            table.insert(tbSteps, getStep)
-            local mergeStep = {
-              tbConsume = {},
-              tbObtain = {}
-            }
-            for i = 1, 3 do
-              table.insert(mergeStep.tbConsume, {
-                nSourceType = nType,
-                nIndex = i,
-                nId = nId,
-                nStar = nStar
-              })
-            end
-            table.insert(mergeStep.tbObtain, {
-              nTargetType = nType,
-              nIndex = nIndex,
-              nId = nId,
-              nStar = nStar + 1
-            })
-            table.insert(tbSteps, mergeStep)
-          end
-        end
-        for _ = 1, nRemain do
-          local nType, nIndex = self:_LocateChessInBag(nId, nStar, mapSkip)
-          if nType ~= nil then
-            mapSkip[nType] = mapSkip[nType] or {}
-            mapSkip[nType][nIndex] = true
-            table.insert(obtainStep.tbObtain, {
-              nTargetType = nType,
-              nIndex = nIndex,
-              nId = nId,
-              nStar = nStar
-            })
-          end
-        end
-      end
-      if 0 < #obtainStep.tbObtain then
-        table.insert(tbSteps, 1, obtainStep)
-      end
-      if 0 < #tbSteps then
-        self.tbPendingRewards[#self.tbPendingRewards].tbSteps = tbSteps
-      end
+  if mapSoldierInfo.Bag.Buffs ~= nil then
+    for _, v in ipairs(mapSoldierInfo.Bag.Buffs) do
+      self:UpdateBuff(v)
     end
   end
   local bInitNodeList = false
-  if mapSoldierInfo.ActivatedEffects ~= nil then
-    for _, v in ipairs(mapSoldierInfo.ActivatedEffects) do
+  if mapSoldierInfo.Effects ~= nil then
+    for _, v in ipairs(mapSoldierInfo.Effects) do
       self:EffectPartnerAdditional(v.PartnerAdditional)
       self:EffectPartnerActivateAdditional(v.PartnerActivateAdditional)
       self:EffectNodeTypeModify(v.NodeTypeModify)
-      self:EffectClientEffect(v.ClientEffect)
+      self:EffectClientAttr(v.ClientAttr)
+      self:EffectClientHarvest(v.ClientHarvest)
+      self:EffectInterest(v.Interest)
+      self:EffectCardReRoll(v.CardReRoll)
+      self:EffectDiceAddPoint(v.DiceAddPoint)
+      self:EffectTempFree(v.TempFree)
       if v.NodeTypeModify ~= nil then
         bInitNodeList = true
       end
@@ -306,35 +438,116 @@ function SoldierLevelData:Init(parent, mapSoldierInfo, tbInitChess, nInitCoin)
   if not bInitNodeList then
     self:UpdateNodeList()
   end
+  if mapSoldierInfo.Progress ~= nil then
+    self:UpdateBuffProgress(mapSoldierInfo.Progress)
+  end
   self.mapClientData = {
-    nLen = mapSoldierInfo.Meta.DateLen,
+    nLen = mapSoldierInfo.Meta.DataLen,
     sData = mapSoldierInfo.Meta.ClientData,
     nVersion = mapSoldierInfo.Meta.DataVersion
   }
   self:EnterSoldier()
+  return tbChange
+end
+
+function SoldierLevelData:GetSandtableSceneName()
+  return self.sSandtableSceneName
+end
+
+function SoldierLevelData:PreloadSandtableScene(callback)
+  local nStage = PlayerData.SoldierData:GetCurChallengeState()
+  local sScene = SANDTABLE_SCENES[nStage]
+  if sScene == nil then
+    printError("自走棋沙盘场景找不到！！！stage = " .. tostring(nStage))
+    self.sSandtableSceneName = nil
+    self.bSandtableSceneLoaded = false
+    if callback ~= nil then
+      callback()
+    end
+    return
+  end
+  if self.sSandtableSceneName == sScene and self.bSandtableSceneLoaded then
+    if callback ~= nil then
+      callback(true)
+    end
+    return
+  end
+  if self.sSandtableSceneName == sScene and not self.bSandtableSceneLoaded then
+    if callback ~= nil then
+      self.tbSandtableLoadCallbacks = self.tbSandtableLoadCallbacks or {}
+      table.insert(self.tbSandtableLoadCallbacks, callback)
+    end
+    return
+  end
+  self.sSandtableSceneName = sScene
+  self.bSandtableSceneLoaded = false
+  self.tbSandtableLoadCallbacks = {}
+  if callback ~= nil then
+    table.insert(self.tbSandtableLoadCallbacks, callback)
+  end
+  EventManager.Hit(EventId.BlockInput, true)
+  CS.MainMenuModuleHelper.GetActiveScene(sScene, function(bSuccess)
+    EventManager.Hit(EventId.BlockInput, false)
+    if self.sSandtableSceneName ~= sScene then
+      return
+    end
+    self.bSandtableSceneLoaded = true
+    local tbCbs = self.tbSandtableLoadCallbacks or {}
+    self.tbSandtableLoadCallbacks = {}
+    for _, cb in ipairs(tbCbs) do
+      cb(bSuccess)
+    end
+  end)
+end
+
+function SoldierLevelData:IsSandtableSceneLoaded()
+  return self.bSandtableSceneLoaded == true
+end
+
+function SoldierLevelData:UnloadSandtableScene()
+  if self.sSandtableSceneName == nil then
+    return
+  end
+  local sScene = self.sSandtableSceneName
+  self.sSandtableSceneName = nil
+  self.bSandtableSceneLoaded = false
+  self.tbSandtableLoadCallbacks = {}
+  CS.MainMenuModuleHelper.DeActiveScene(sScene, function()
+  end)
 end
 
 function SoldierLevelData:EnterSoldier()
-  if self.mapCases[CaseEnum.Battle] == nil and self.mapCases[CaseEnum.EventSettlementOfDisputeBattle] == nil then
-    local nStyle = 54
-    if self.mapCases[CaseEnum.SelectCard] ~= nil and self.mapCases[CaseEnum.SelectCard].nType == AllEnum.SoldierCardType.StartedCard then
-      nStyle = 53
-    end
-    
+  local bFirstIn = self.nNodeId == 0
+  local bEnterBattle = self.mapCases[CaseEnum.Battle] ~= nil or self.mapCases[CaseEnum.EventSettlementOfDisputeBattle] ~= nil
+  if not bEnterBattle then
     local function func()
-      self:StartSoldierLevel()
+      self:PreloadSandtableScene(function()
+        function self.fnPanelReadyOnce()
+          self:StartSoldierLevel()
+        end
+        
+        EventManager.Hit(EventId.OpenPanel, PanelId.SoldierSandtable, bFirstIn)
+      end)
     end
     
-    EventManager.Hit(EventId.SetTransition, nStyle, func, self.nGradeChallengeId)
+    EventManager.Hit(EventId.SetTransition, 54, func, self.nGradeChallengeId)
   else
-    self:StartSoldierLevel()
+    self:PreloadSandtableScene(function()
+      function self.fnPanelReadyOnce()
+        self:StartSoldierLevel()
+      end
+      
+      EventManager.Hit(EventId.OpenPanel, PanelId.SoldierSandtable, bFirstIn)
+    end)
   end
 end
 
 function SoldierLevelData:Exit()
+  self:UnBindEvent()
   if self.curBattle then
     self.curBattle:Exit()
   end
+  self:UnloadSandtableScene()
   self:Clear()
 end
 
@@ -349,7 +562,6 @@ function SoldierLevelData:DispatchServerCase(case)
   if case.SelectCard then
     self.mapCases[CaseEnum.SelectCard] = {}
     self.mapCases[CaseEnum.SelectCard].nId = case.Id
-    self.mapCases[CaseEnum.SelectCard].nType = case.SelectCard.Type
     self.mapCases[CaseEnum.SelectCard].tbCards = case.SelectCard.Ids
     self.mapCases[CaseEnum.SelectCard].nRoll = case.SelectCard.ReRoll
   elseif case.ShopCase then
@@ -363,20 +575,47 @@ function SoldierLevelData:DispatchServerCase(case)
     self.mapCases[CaseEnum.Battle] = {}
     self.mapCases[CaseEnum.Battle].nId = case.Id
     self.mapCases[CaseEnum.Battle].nFloorId = case.BattleCase.FloorId
-  elseif case.DeploySyncCase then
-    self.mapCases[CaseEnum.DeploySync] = {}
-    self.mapCases[CaseEnum.DeploySync].nId = case.Id
   elseif case.EventSettlementOfDispute then
     self.mapCases[CaseEnum.EventSettlementOfDispute] = {}
     self.mapCases[CaseEnum.EventSettlementOfDispute].nId = case.Id
     self.mapCases[CaseEnum.EventSettlementOfDispute].tbIds = case.EventSettlementOfDispute.Ids
-    self.mapCases[CaseEnum.EventSettlementOfDispute].nPoint = case.EventSettlementOfDispute.DicePoint
-    self.mapCases[CaseEnum.EventSettlementOfDispute].bTwoDice = case.EventSettlementOfDispute.TwoDice
   elseif case.EventSettlementOfDisputeBattle then
     self.mapCases[CaseEnum.EventSettlementOfDisputeBattle] = {}
     self.mapCases[CaseEnum.EventSettlementOfDisputeBattle].nId = case.Id
     self.mapCases[CaseEnum.EventSettlementOfDisputeBattle].nFloorId = case.EventSettlementOfDisputeBattle.FloorId
     self.mapCases[CaseEnum.EventSettlementOfDisputeBattle].nEventId = case.EventSettlementOfDisputeBattle.BattleId
+  elseif case.SelectBossAbilityCase then
+    self.mapCases[CaseEnum.SelectBossAbility] = {}
+    self.mapCases[CaseEnum.SelectBossAbility].nId = case.Id
+  elseif case.CheckStageCase then
+    self.mapCases[CaseEnum.CheckStage] = {}
+    self.mapCases[CaseEnum.CheckStage].nId = case.Id
+    self.mapCases[CaseEnum.CheckStage].nFloorId = case.CheckStageCase.FloorId
+    self.mapClientCases[ClientCase.CheckStagePanel] = {}
+  elseif case.StoryEventOfPersonalityCase then
+    local mapCase = case.StoryEventOfPersonalityCase
+    local tbOptions = mapCase.Options and mapCase.Options.Options or {}
+    self.mapCases[CaseEnum.StoryEventOfPersonality] = {
+      nId = case.Id,
+      nPersonalityStoryId = mapCase.PersonalityStoryId,
+      tbOptions = tbOptions,
+      nIndex = mapCase.Index or 0,
+      nDicePoint = mapCase.DicePoint or 0,
+      bTwoDice = mapCase.TwoDice or false,
+      nPreOptionId = mapCase.PreOptionId or 0
+    }
+  elseif case.StoryEventOfCostlyCase then
+    local mapCase = case.StoryEventOfCostlyCase
+    local tbOptions = mapCase.Options and mapCase.Options.Options or {}
+    self.mapCases[CaseEnum.StoryEventOfCostly] = {
+      nId = case.Id,
+      nPersonalityStoryId = mapCase.PersonalityStoryId,
+      tbOptions = tbOptions,
+      nPreOptionId = mapCase.PreOptionId or 0
+    }
+  elseif case.DeployOptCase then
+    self.mapCases[CaseEnum.DeployOpt] = {}
+    self.mapCases[CaseEnum.DeployOpt].nId = case.Id
   elseif case.ClientEventCase then
     self.mapCases[CaseEnum.ClientEvent] = {}
     self.mapCases[CaseEnum.ClientEvent].nId = case.Id
@@ -427,71 +666,64 @@ function SoldierLevelData:UpdateNodeList(nFromNodeType, nToNodeType)
   end
 end
 
-function SoldierLevelData:UpdateCardList(mapCard)
-  local nCardEffectId = 0
-  if mapCard.Type == AllEnum.SoldierCardType.StartedCard then
-    table.insert(self.tbStartedCards, {
-      nId = mapCard.Id
-    })
-    local mapCfg = ConfigTable.GetData("SoldierStarterCard", mapCard.Id)
-    if mapCfg ~= nil then
-      nCardEffectId = mapCfg.CardEffectId
-    end
-  elseif mapCard.Type == AllEnum.SoldierCardType.StrategyCard then
-    table.insert(self.tbStrategyCards, {
-      nId = mapCard.Id
-    })
-    local mapCfg = ConfigTable.GetData("SoldierStrategyCard", mapCard.Id)
-    if mapCfg ~= nil then
-      nCardEffectId = mapCfg.CardEffectId
-    end
+function SoldierLevelData:UpdateBuff(mapBuff)
+  if mapBuff == nil then
+    return
   end
-  local mapCfg = ConfigTable.GetData("SoldierCardEffect", nCardEffectId)
-  if mapCfg ~= nil then
-    for nIdx, mapBuff in ipairs(mapCard.BuffIdx) do
-      local nBuffId = mapCfg.BuffIds[nIdx]
-      if nBuffId == nil then
-        printError(string.format("服务器下发的卡buffId表里找不到！！！cardType = %s, cardId = %s, nIndex = %s", mapCard.Type, mapCard.Id, nIdx))
-      else
-        for nIndex, nEffectId in ipairs(mapBuff.Effects) do
-          self.tbAllEffects[nEffectId] = {
-            nBuffId = nBuffId,
-            nIndex = nIndex,
-            nCardId = mapCard.Id,
-            nCardType = mapCard.Type
-          }
+  local nAction = mapBuff.Action
+  local nType = mapBuff.Type
+  local nBindId = mapBuff.BindId or 0
+  local nEffectGroup = mapBuff.EffectGroup or 0
+  local tbBuffUids = mapBuff.BuffIds or {}
+  if nAction == SoldierBuffAction.Add or nAction == SoldierBuffAction.Sync then
+    for nIdx, nBuffUid in ipairs(tbBuffUids) do
+      self.mapBuffs[nBuffUid] = {
+        nType = nType,
+        nBindId = nBindId,
+        nEffectGroup = nEffectGroup
+      }
+    end
+    if nType == SoldierBuffType.AbilityBuff then
+      self.nBossTemplateId = nBindId
+    end
+  elseif nAction == SoldierBuffAction.Remove then
+    for _, nBuffUid in ipairs(tbBuffUids) do
+      self.mapBuffs[nBuffUid] = nil
+      self.mapBuffProgress[nBuffUid] = nil
+      for nEid, info in pairs(self.mapEffects) do
+        if info.nBuffUid == nBuffUid then
+          self.mapEffects[nEid] = nil
+          self.tbClientEffects[nEid] = nil
         end
       end
     end
+    if nType == SoldierBuffType.AbilityBuff then
+      self.nBossTemplateId = 0
+    end
+  end
+  if nType == SoldierBuffType.CardBuff then
+    self.tbStrategyCards = nil
+    EventManager.Hit("SoldierBuffCardChange")
   end
 end
 
-function SoldierLevelData:UpdateServerPartner(mapPartner)
-  local mapCfg = ConfigTable.GetData("SoldierPartner", mapPartner.Id)
-  if mapCfg ~= nil then
-    local tbBuff = mapCfg.ServerEffect
-    for nIdx, mapBuff in ipairs(mapPartner.BuffIdx) do
-      local nBuffId = tbBuff[nIdx]
-      if nBuffId == nil then
-        printError(string.format("服务器下发的羁绊buffId表里找不到！！！partnerId = %s, nIndex = %s", mapPartner.Id, nIdx))
-      else
-        local nAction = mapPartner.Action
-        if nAction == SoldierPartnerAction.Add or nAction == SoldierPartnerAction.Sync then
-          for nIndex, nEffectId in ipairs(mapBuff.Effects) do
-            self.tbAllEffects[nEffectId] = {
-              nBuffId = nBuffId,
-              nIndex = nIndex,
-              nPartnerId = mapPartner.Id
-            }
-          end
-        elseif nAction == SoldierPartnerAction.Remove then
-          for _, nEffectId in ipairs(mapBuff.Effects) do
-            self.tbAllEffects[nEffectId] = nil
-          end
-        end
-      end
+function SoldierLevelData:UpdateBuffProgress(tbProgress)
+  if tbProgress == nil or #tbProgress == 0 then
+    return
+  end
+  for _, v in ipairs(tbProgress) do
+    local nBuffUid = v.BuffId
+    if v.Removed then
+      self.mapBuffProgress[nBuffUid] = nil
+    else
+      self.mapBuffProgress[nBuffUid] = {
+        nType = v.Type,
+        nCur = v.Cur or 0,
+        nMax = v.Max or 0
+      }
     end
   end
+  EventManager.Hit("SoldierBuffProgressUpdate")
 end
 
 function SoldierLevelData:GetShopWeight(tbRarityUp)
@@ -522,7 +754,7 @@ function SoldierLevelData:_UpdateShopCaseData(mapShopData)
     mapShop.tbGoods = mapShopData.Goods
     mapShop.tbWeightList = self:GetShopWeight(mapShopData.RarityUp)
     mapShop.bLock = mapShopData.Lock
-    mapShop.nFreeCount = mapShopData.Free
+    mapShop.nFreeCount = mapShopData.Free + mapShopData.TempFree
     mapShop.nReRollPrice = mapShopData.ReRollPrice
     mapShop.bDisableRefresh = mapShopData.DisableRefresh
     mapShop.bDisablePurchase = mapShopData.DisablePurchase
@@ -560,8 +792,8 @@ function SoldierLevelData:EffectPartnerActivateAdditional(mapMsgData)
     return
   end
   local tbAllPartner = SoldierAttrData.CalcActivePartners(self.tbDeployChess)
-  for _, nId in ipairs(tbAllPartner) do
-    local mapCfg = ConfigTable.GetData("SoldierPartner", nId)
+  for _, info in ipairs(tbAllPartner) do
+    local mapCfg = ConfigTable.GetData("SoldierPartner", info.nId)
     if mapCfg ~= nil then
       local nPartnerType = mapCfg.PartnerType
       self:_UpdateServerPartnerLevel(mapMsgData.Status, nPartnerType, mapMsgData.Additional)
@@ -578,14 +810,82 @@ function SoldierLevelData:EffectNodeTypeModify(mapMsgData)
   self:UpdateNodeList(nFromNodeType, nToNodeType)
 end
 
-function SoldierLevelData:EffectClientEffect(mapMsgData)
+function SoldierLevelData:EffectClientAttr(mapMsgData)
   if mapMsgData == nil then
     return
   end
   if mapMsgData.Status == SoldierEffectStatus.Active then
-    self.tbClientEffects[mapMsgData.Eid] = true
+    self.tbClientEffects[mapMsgData.Source.Id] = {
+      nTid = mapMsgData.Source.Tid,
+      nBuffUId = mapMsgData.Source.BuffId,
+      tbValues = mapMsgData.Values
+    }
   elseif mapMsgData.Status == SoldierEffectStatus.InActive then
-    self.tbClientEffects[mapMsgData.Eid] = nil
+    self.tbClientEffects[mapMsgData.Source.Id] = nil
+  end
+end
+
+function SoldierLevelData:EffectClientHarvest(mapMsgData)
+  if mapMsgData == nil then
+    return
+  end
+  local nDelta = mapMsgData.Count or 0
+  if mapMsgData.Status == SoldierEffectStatus.Active then
+    self.mapExtraEffectState.nHarvest = self.mapExtraEffectState.nHarvest + nDelta
+  elseif mapMsgData.Status == SoldierEffectStatus.InActive then
+    self.mapExtraEffectState.nHarvest = self.mapExtraEffectState.nHarvest - nDelta
+  end
+end
+
+function SoldierLevelData:EffectInterest(mapMsgData)
+  if mapMsgData == nil then
+    return
+  end
+  local nDelta = mapMsgData.Limit or 0
+  if mapMsgData.Status == SoldierEffectStatus.Active then
+    self.mapExtraEffectState.nInterestLimit = self.mapExtraEffectState.nInterestLimit + nDelta
+  elseif mapMsgData.Status == SoldierEffectStatus.InActive then
+    self.mapExtraEffectState.nInterestLimit = self.mapExtraEffectState.nInterestLimit - nDelta
+  end
+end
+
+function SoldierLevelData:EffectCardReRoll(mapMsgData)
+  if mapMsgData == nil then
+    return
+  end
+  local nDelta = mapMsgData.Count or 0
+  if mapMsgData.Status == SoldierEffectStatus.Active then
+    self.mapExtraEffectState.nCardReRoll = self.mapExtraEffectState.nCardReRoll + nDelta
+  elseif mapMsgData.Status == SoldierEffectStatus.InActive then
+    self.mapExtraEffectState.nCardReRoll = self.mapExtraEffectState.nCardReRoll - nDelta
+  end
+end
+
+function SoldierLevelData:EffectDiceAddPoint(mapMsgData)
+  if mapMsgData == nil then
+    return
+  end
+  if mapMsgData.Status == SoldierEffectStatus.Active then
+    self.tbDiscAddEffect[mapMsgData.Source.Id] = {
+      nTid = mapMsgData.Source.Tid,
+      nBuffUId = mapMsgData.Source.BuffId,
+      nPoint = mapMsgData.Point
+    }
+  elseif mapMsgData.Status == SoldierEffectStatus.InActive then
+    self.tbDiscAddEffect[mapMsgData.Source.Id] = nil
+  end
+end
+
+function SoldierLevelData:EffectTempFree(mapMsgData)
+  if mapMsgData == nil then
+    return
+  end
+  if self.mapCases[CaseEnum.Shop] ~= nil then
+    if mapMsgData.Status == SoldierEffectStatus.InActive then
+      self.mapCases[CaseEnum.Shop].mapShop.nFreeCount = self.mapCases[CaseEnum.Shop].mapShop.nFreeCount - mapMsgData.Free
+    elseif mapMsgData.Status == SoldierEffectStatus.Active then
+      self.mapCases[CaseEnum.Shop].mapShop.nFreeCount = self.mapCases[CaseEnum.Shop].mapShop.nFreeCount + mapMsgData.Free
+    end
   end
 end
 
@@ -670,13 +970,10 @@ function SoldierLevelData:EffectLeftmostChange(mapMsgData, tbChange)
   if mapMsgData == nil then
     return
   end
-  local nPosType = 0
-  if mapMsgData.SId <= 3 then
-    nPosType = AllEnum.SoldierPositionType.Fight
-  elseif mapMsgData.SId <= 9 then
-    nPosType = AllEnum.SoldierPositionType.Support
-  elseif mapMsgData.SId <= 18 then
-    nPosType = AllEnum.SoldierPositionType.Waiting
+  local cached = self.mapChessByUid[mapMsgData.UID]
+  local nPosType = SPT.Other
+  if cached ~= nil then
+    nPosType = SlotToPosIndex(cached.nSlot)
   end
   local tbChess = {}
   table.insert(tbChess, mapMsgData.Chess)
@@ -695,464 +992,133 @@ function SoldierLevelData:EffectBecomeAnother(mapMsgData, tbChange)
   end
 end
 
-function SoldierLevelData:FillOtherChess()
-  self.tbOtherChess = {}
-  local mapUsed = {}
-  for _, v in ipairs(self.tbDeployChess) do
-    local sKey = tostring(v.nId) .. "_" .. tostring(v.nStar)
-    mapUsed[sKey] = (mapUsed[sKey] or 0) + 1
-  end
-  for _, v in ipairs(self.tbWaitingChess) do
-    local sKey = tostring(v.nId) .. "_" .. tostring(v.nStar)
-    mapUsed[sKey] = (mapUsed[sKey] or 0) + 1
-  end
-  for _, v in ipairs(self.mapAllChess) do
-    local sKey = tostring(v.nId) .. "_" .. tostring(v.nStar)
-    local nRemain = v.nCount - (mapUsed[sKey] or 0)
-    if 0 < nRemain then
-      table.insert(self.tbOtherChess, {
-        nId = v.nId,
-        nStar = v.nStar,
-        nCount = nRemain
-      })
-    end
-  end
-end
-
 function SoldierLevelData:DisposalChessDeploy(mapTrans, param)
-  local tbSteps = {}
-  
-  local function _clearEmptyOther()
-    for i = #self.tbOtherChess, 1, -1 do
-      if self.tbOtherChess[i].nCount <= 0 then
-        table.remove(self.tbOtherChess, i)
-      end
-    end
+  if mapTrans == nil then
+    return {}
   end
-  
-  local function _consumeOne(nId, nStar)
-    for _, v in ipairs(self.tbDeployChess) do
-      if v.nId == nId and v.nStar == nStar and v.nPositionType == FightPos then
-        local rec = {
-          nSourceType = SPT.Fight,
-          nIndex = v.nIndex,
-          nId = nId,
-          nStar = nStar
-        }
-        v.nId = 0
-        v.nStar = 0
-        return rec
-      end
-    end
-    for _, v in ipairs(self.tbDeployChess) do
-      if v.nId == nId and v.nStar == nStar and v.nPositionType == SupPos then
-        local rec = {
-          nSourceType = SPT.Support,
-          nIndex = v.nIndex,
-          nId = nId,
-          nStar = nStar
-        }
-        v.nId = 0
-        v.nStar = 0
-        return rec
-      end
-    end
-    local minSlot, minIdx
-    for _, v in ipairs(self.tbWaitingChess) do
-      if v.nId == nId and v.nStar == nStar and (minIdx == nil or minIdx > v.nIndex) then
-        minSlot, minIdx = v, v.nIndex
-      end
-    end
-    if minSlot ~= nil then
-      local rec = {
-        nSourceType = SPT.Waiting,
-        nIndex = minSlot.nIndex,
-        nId = nId,
-        nStar = nStar
-      }
-      minSlot.nId = 0
-      minSlot.nStar = 0
-      return rec
-    end
-    for _, v in ipairs(self.tbOtherChess) do
-      if v.nId == nId and v.nStar == nStar and 0 < v.nCount then
-        v.nCount = v.nCount - 1
-        return {
-          nSourceType = SPT.Other,
-          nIndex = 0,
-          nId = nId,
-          nStar = nStar
-        }
-      end
-    end
-    return nil
-  end
-  
-  local function _consumeAtHint(hint)
-    if hint == nil then
-      return nil
-    end
-    local nPos, nIdx, nId, nStar = hint.nPositionType, hint.nIndex, hint.nId, hint.nStar
-    if nId == nil or nStar == nil or nPos == nil then
-      return nil
-    end
-    if nPos == SPT.Fight or nPos == SPT.Support then
-      for _, v in ipairs(self.tbDeployChess) do
-        if v.nPositionType == nPos and v.nIndex == nIdx and v.nId == nId and v.nStar == nStar then
-          local rec = {
-            nSourceType = nPos,
-            nIndex = v.nIndex,
-            nId = nId,
-            nStar = nStar
-          }
-          v.nId = 0
-          v.nStar = 0
-          return rec
-        end
-      end
-    elseif nPos == SPT.Waiting then
-      for _, v in ipairs(self.tbWaitingChess) do
-        if v.nIndex == nIdx and v.nId == nId and v.nStar == nStar then
-          local rec = {
-            nSourceType = SPT.Waiting,
-            nIndex = v.nIndex,
-            nId = nId,
-            nStar = nStar
-          }
-          v.nId = 0
-          v.nStar = 0
-          return rec
-        end
-      end
-    elseif nPos == SPT.Other then
-      for _, v in ipairs(self.tbOtherChess) do
-        if v.nId == nId and v.nStar == nStar and 0 < v.nCount then
-          v.nCount = v.nCount - 1
-          return {
-            nSourceType = SPT.Other,
-            nIndex = 0,
-            nId = nId,
-            nStar = nStar
-          }
-        end
-      end
-    end
-    return nil
-  end
-  
-  local function _consumePriority(rec)
-    if rec.nSourceType == SPT.Fight then
-      return 1
-    end
-    if rec.nSourceType == SPT.Support then
-      return 2
-    end
-    if rec.nSourceType == SPT.Waiting then
-      return 3
-    end
-    if rec.nSourceType == SPT.Other then
-      return 4
-    end
-    return 99
-  end
-  
-  local function _pickInheritSlot(tbConsume)
-    local best, bestPrio
-    for _, c in ipairs(tbConsume) do
-      local p = _consumePriority(c)
-      if best == nil or bestPrio > p then
-        best, bestPrio = c, p
-      end
-    end
-    return best
-  end
-  
-  local function _findEmptyWaitingSlot()
-    local minSlot, minIdx
-    for _, v in ipairs(self.tbWaitingChess) do
-      if v.nId == 0 and (minIdx == nil or minIdx > v.nIndex) then
-        minSlot, minIdx = v, v.nIndex
-      end
-    end
-    return minSlot
-  end
-  
-  local function _placeInOther(nId, nStar)
-    for _, v in ipairs(self.tbOtherChess) do
-      if v.nId == nId and v.nStar == nStar then
-        v.nCount = v.nCount + 1
-        return
-      end
-    end
-    table.insert(self.tbOtherChess, {
-      nId = nId,
-      nStar = nStar,
-      nCount = 1
-    })
-  end
-  
-  local function _findDeploySlot(nPosType, nIndex)
-    for _, v in ipairs(self.tbDeployChess) do
-      if v.nPositionType == nPosType and v.nIndex == nIndex then
-        return v
-      end
-    end
-    return nil
-  end
-  
-  local function _findWaitingSlot(nIndex)
-    for _, v in ipairs(self.tbWaitingChess) do
-      if v.nIndex == nIndex then
-        return v
-      end
-    end
-    return nil
-  end
-  
-  local function _placeObtain(nId, nStar, inheritSlot)
-    if inheritSlot ~= nil then
-      if inheritSlot.nSourceType == SPT.Fight then
-        local slot = _findDeploySlot(FightPos, inheritSlot.nIndex)
-        if slot ~= nil then
-          slot.nId = nId
-          slot.nStar = nStar
-        end
-        return {
-          nTargetType = SPT.Fight,
-          nIndex = inheritSlot.nIndex,
-          nId = nId,
-          nStar = nStar
-        }
-      elseif inheritSlot.nSourceType == SPT.Support then
-        local slot = _findDeploySlot(SupPos, inheritSlot.nIndex)
-        if slot ~= nil then
-          slot.nId = nId
-          slot.nStar = nStar
-        end
-        return {
-          nTargetType = SPT.Support,
-          nIndex = inheritSlot.nIndex,
-          nId = nId,
-          nStar = nStar
-        }
-      elseif inheritSlot.nSourceType == SPT.Waiting then
-        local slot = _findWaitingSlot(inheritSlot.nIndex)
-        if slot ~= nil then
-          slot.nId = nId
-          slot.nStar = nStar
-        end
-        return {
-          nTargetType = SPT.Waiting,
-          nIndex = inheritSlot.nIndex,
-          nId = nId,
-          nStar = nStar
-        }
-      elseif inheritSlot.nSourceType == SPT.Other then
-        _placeInOther(nId, nStar)
-        return {
-          nTargetType = SPT.Other,
-          nIndex = 0,
-          nId = nId,
-          nStar = nStar
-        }
-      end
-    end
-    local slot = _findEmptyWaitingSlot()
-    if slot ~= nil then
-      slot.nId = nId
-      slot.nStar = nStar
-      return {
-        nTargetType = SPT.Waiting,
-        nIndex = slot.nIndex,
-        nId = nId,
-        nStar = nStar
-      }
-    end
-    _placeInOther(nId, nStar)
-    return {
-      nTargetType = SPT.Other,
-      nIndex = 0,
-      nId = nId,
-      nStar = nStar
-    }
-  end
-  
-  local function _applyTransform(mt)
-    local step = {
-      tbConsume = {},
-      tbObtain = {}
-    }
-    local sourceParam, tbLeftmostHints
-    if type(param) == "table" then
-      if param.tbLeftmostHints ~= nil then
-        sourceParam = param.sourceParam
-        tbLeftmostHints = param.tbLeftmostHints
-      else
-        sourceParam = param
-      end
-    end
-    
-    local function _pickLeftmostHint(nId, nStar)
-      if tbLeftmostHints == nil then
-        return nil
-      end
-      for i, h in ipairs(tbLeftmostHints) do
-        if h.nId == nId and h.nStar == nStar then
-          table.remove(tbLeftmostHints, i)
-          return h
-        end
-      end
-      return nil
-    end
-    
-    if mt.Consume ~= nil then
-      for _, mapData in ipairs(mt.Consume) do
-        local nQty = math.abs(mapData.Qty or 0)
-        for _ = 1, nQty do
-          local rec
-          local lh = _pickLeftmostHint(mapData.Id, mapData.Star)
-          if lh ~= nil then
-            rec = _consumeAtHint(lh)
-          end
-          if rec == nil and sourceParam ~= nil and sourceParam.nId == mapData.Id and sourceParam.nStar == mapData.Star then
-            rec = _consumeAtHint(sourceParam)
-            sourceParam = nil
-          end
-          if rec == nil then
-            rec = _consumeOne(mapData.Id, mapData.Star)
-          end
-          if rec ~= nil then
-            table.insert(step.tbConsume, rec)
-          end
-        end
-      end
-    end
-    local inheritSlot = #step.tbConsume > 0 and _pickInheritSlot(step.tbConsume) or nil
-    if mt.Obtain ~= nil then
-      for _, mapData in ipairs(mt.Obtain) do
-        for _ = 1, mapData.Qty or 0 do
-          local rec = _placeObtain(mapData.Id, mapData.Star, inheritSlot)
-          table.insert(step.tbObtain, rec)
-          inheritSlot = nil
-        end
-      end
-    end
-    return step
-  end
-  
-  if mapTrans ~= nil then
-    local step = _applyTransform(mapTrans)
-    table.insert(tbSteps, step)
-    _clearEmptyOther()
-    return tbSteps
-  end
-  local refillStep = {
+  local step = {
     tbConsume = {},
-    tbObtain = {}
+    tbObtain = {},
+    tbUpdate = {}
   }
-  local nOtherIdx = 1
-  for _, v in ipairs(self.tbWaitingChess) do
-    if v.nId == 0 then
-      while nOtherIdx <= #self.tbOtherChess and 0 >= self.tbOtherChess[nOtherIdx].nCount do
-        nOtherIdx = nOtherIdx + 1
+  if mapTrans.Consume ~= nil then
+    for _, ch in ipairs(mapTrans.Consume) do
+      local nUid = ch.UID
+      local cached = self.mapChessByUid[nUid]
+      if cached ~= nil then
+        local nSlot = cached.nSlot
+        self.mapChessByUid[nUid] = nil
+        if nSlot == 0 then
+          for i, uid in ipairs(self.tbOtherUids) do
+            if uid == nUid then
+              table.remove(self.tbOtherUids, i)
+              break
+            end
+          end
+        else
+          self.mapSlotToUid[nSlot] = nil
+        end
+        local nPos, nIndex = SlotToPosIndex(nSlot)
+        table.insert(step.tbConsume, {
+          nUid = nUid,
+          nSlot = nSlot,
+          nTid = ch.Tid,
+          nStar = ch.Star,
+          nId = ch.Tid,
+          nSourceType = nPos,
+          nIndex = nIndex
+        })
+      else
+        self:PrintSoldier(string.format("[Soldier][Warn] Consume UID=%s 本地无记录", tostring(nUid)))
       end
-      if nOtherIdx > #self.tbOtherChess then
-        break
+    end
+  end
+  if mapTrans.Obtain ~= nil then
+    for _, ch in ipairs(mapTrans.Obtain) do
+      local nUid = ch.UID
+      local nSlot = ch.Slot or 0
+      self.mapChessByUid[nUid] = {
+        nTid = ch.Tid,
+        nStar = ch.Star,
+        nSlot = nSlot
+      }
+      if nSlot == 0 then
+        table.insert(self.tbOtherUids, nUid)
+      else
+        self.mapSlotToUid[nSlot] = nUid
       end
-      local otherChess = self.tbOtherChess[nOtherIdx]
-      table.insert(refillStep.tbConsume, {
-        nSourceType = SPT.Other,
-        nIndex = 0,
-        nId = otherChess.nId,
-        nStar = otherChess.nStar
+      local nPos, nIndex = SlotToPosIndex(nSlot)
+      table.insert(step.tbObtain, {
+        nUid = nUid,
+        nSlot = nSlot,
+        nTid = ch.Tid,
+        nStar = ch.Star,
+        nId = ch.Tid,
+        nTargetType = nPos,
+        nIndex = nIndex
       })
-      table.insert(refillStep.tbObtain, {
-        nTargetType = SPT.Waiting,
-        nIndex = v.nIndex,
-        nId = otherChess.nId,
-        nStar = otherChess.nStar
-      })
-      v.nId = otherChess.nId
-      v.nStar = otherChess.nStar
-      otherChess.nCount = otherChess.nCount - 1
     end
   end
-  _clearEmptyOther()
-  local nMaxDeployCount = 0
-  local mapCfg = ConfigTable.GetData("SoldierShopLevel", self.nLevel)
-  if mapCfg ~= nil then
-    nMaxDeployCount = mapCfg.Count
-  end
-  local mapDeployedIds = {}
-  local nCurDeployCount = 0
-  for _, v in ipairs(self.tbDeployChess) do
-    if v.nId ~= 0 then
-      mapDeployedIds[v.nId] = true
-      nCurDeployCount = nCurDeployCount + 1
-    end
-  end
-  
-  local function _findEmptyDeploySlot()
-    for _, v in ipairs(self.tbDeployChess) do
-      if v.nId == 0 and v.nPositionType == FightPos then
-        return v
+  if mapTrans.Update ~= nil then
+    for _, ch in ipairs(mapTrans.Update) do
+      local nUid = ch.UID
+      local nToSlot = ch.Slot or 0
+      local cached = self.mapChessByUid[nUid]
+      if cached ~= nil then
+        local nFromSlot = cached.nSlot
+        if nFromSlot == 0 then
+          for i, uid in ipairs(self.tbOtherUids) do
+            if uid == nUid then
+              table.remove(self.tbOtherUids, i)
+              break
+            end
+          end
+        elseif self.mapSlotToUid[nFromSlot] == nUid then
+          self.mapSlotToUid[nFromSlot] = nil
+        end
+        cached.nSlot = nToSlot
+        cached.nStar = ch.Star or cached.nStar
+        cached.nTid = ch.Tid or cached.nTid
+        if nToSlot == 0 then
+          table.insert(self.tbOtherUids, nUid)
+        else
+          self.mapSlotToUid[nToSlot] = nUid
+        end
+        local nFromPos, nFromIdx = SlotToPosIndex(nFromSlot)
+        local nToPos, nToIdx = SlotToPosIndex(nToSlot)
+        table.insert(step.tbUpdate, {
+          nUid = nUid,
+          nFromSlot = nFromSlot,
+          nToSlot = nToSlot,
+          nTid = cached.nTid,
+          nStar = cached.nStar,
+          nId = cached.nTid,
+          nSourceType = nFromPos,
+          nSourceIndex = nFromIdx,
+          nTargetType = nToPos,
+          nTargetIndex = nToIdx
+        })
+      else
+        self:PrintSoldier(string.format("[Soldier][Warn] Update UID=%s 本地无记录", tostring(nUid)))
       end
     end
-    for _, v in ipairs(self.tbDeployChess) do
-      if v.nId == 0 and v.nPositionType == SupPos then
-        return v
-      end
-    end
-    return nil
   end
-  
-  for _, otherChess in ipairs(self.tbOtherChess) do
-    if nMaxDeployCount <= nCurDeployCount then
-      break
-    end
-    if otherChess.nCount > 0 and not mapDeployedIds[otherChess.nId] then
-      local slot = _findEmptyDeploySlot()
-      if slot == nil then
-        break
-      end
-      table.insert(refillStep.tbConsume, {
-        nSourceType = SPT.Other,
-        nIndex = 0,
-        nId = otherChess.nId,
-        nStar = otherChess.nStar
-      })
-      table.insert(refillStep.tbObtain, {
-        nTargetType = slot.nPositionType,
-        nIndex = slot.nIndex,
-        nId = otherChess.nId,
-        nStar = otherChess.nStar
-      })
-      slot.nId = otherChess.nId
-      slot.nStar = otherChess.nStar
-      otherChess.nCount = otherChess.nCount - 1
-      mapDeployedIds[otherChess.nId] = true
-      nCurDeployCount = nCurDeployCount + 1
-    end
-  end
-  _clearEmptyOther()
-  if #refillStep.tbConsume > 0 or #refillStep.tbObtain > 0 then
-    table.insert(tbSteps, refillStep)
-  end
-  self:PrintChess()
-  return tbSteps
+  return {step}
 end
 
 function SoldierLevelData:UpdatePartner(bInit)
   local tbChangePartnerType = {}
   local tbActivePartner = {}
   local tbAllPartner = SoldierAttrData.CalcActivePartners(self.tbDeployChess, nil, self.tbServerPartner)
-  for _, nId in ipairs(tbAllPartner) do
+  for _, info in ipairs(tbAllPartner) do
+    local nId = info.nId
     local mapCfg = ConfigTable.GetData("SoldierPartner", nId)
     if mapCfg ~= nil then
       local nType = mapCfg.PartnerType
       tbActivePartner[nType] = {
         nId = nId,
-        nLevel = mapCfg.Level
+        nLevel = mapCfg.Level,
+        tbSoldiers = info.tbSoldiers or {}
       }
       if not bInit and (self.tbActivePartner[nType] == nil or self.tbActivePartner[nType] ~= nil and self.tbActivePartner[nType].nLevel < mapCfg.Level) then
         tbChangePartnerType[nType] = {
@@ -1162,11 +1128,41 @@ function SoldierLevelData:UpdatePartner(bInit)
       end
     end
   end
+  local bSetChanged = next(tbChangePartnerType) ~= nil
+  if not bInit and not bSetChanged and self.tbActivePartner ~= nil then
+    for nType, prevInfo in pairs(self.tbActivePartner) do
+      local curInfo = tbActivePartner[nType]
+      if curInfo == nil or curInfo.nId ~= prevInfo.nId or curInfo.nLevel ~= prevInfo.nLevel then
+        bSetChanged = true
+        break
+      end
+    end
+  end
   self.tbActivePartner = tbActivePartner
   if next(tbChangePartnerType) ~= nil then
+    self._tbPendingNewPartner = tbChangePartnerType
     EventManager.Hit("SoldierPartnerNewActive", tbChangePartnerType)
   end
+  if bSetChanged then
+    self._bPartnerSetChanged = true
+  end
   self:UpdateExtraPartnerTag(tbAllPartner)
+end
+
+function SoldierLevelData:GetPendingNewPartner()
+  return self._tbPendingNewPartner
+end
+
+function SoldierLevelData:ClearPendingNewPartner()
+  self._tbPendingNewPartner = nil
+end
+
+function SoldierLevelData:HasPartnerSetChanged()
+  return self._bPartnerSetChanged == true
+end
+
+function SoldierLevelData:ClearPartnerSetChangedFlag()
+  self._bPartnerSetChanged = nil
 end
 
 function SoldierLevelData:UpdateExtraPartnerTag(tbAllPartner)
@@ -1174,15 +1170,27 @@ function SoldierLevelData:UpdateExtraPartnerTag(tbAllPartner)
     tbAllPartner = {}
     for _, info in pairs(self.tbActivePartner or {}) do
       if info and info.nId then
-        table.insert(tbAllPartner, info.nId)
+        table.insert(tbAllPartner, {
+          nId = info.nId,
+          tbSoldiers = info.tbSoldiers or {}
+        })
       end
     end
   end
-  local mapNew = SoldierAttrData.CalcExtraPartnerTags(self.tbDeployChess, tbAllPartner) or {}
+  local mapByTid = SoldierAttrData.CalcExtraPartnerTags(self.tbDeployChess, tbAllPartner) or {}
+  local mapNew = {}
+  for _, entry in ipairs(self.tbDeployChess) do
+    if entry.nUid ~= 0 then
+      local tagInfo = mapByTid[entry.nId]
+      if tagInfo ~= nil and tagInfo.nPositionType == entry.nPositionType and tagInfo.nIndex == entry.nIndex then
+        mapNew[entry.nUid] = tagInfo
+      end
+    end
+  end
   local bChanged = false
   local mapOld = self.mapExtraPartnerTag or {}
-  for nChessId, tbNew in pairs(mapNew) do
-    local tbOld = mapOld[nChessId]
+  for nUid, tbNew in pairs(mapNew) do
+    local tbOld = mapOld[nUid]
     local tbNewTypes = tbNew.tbTypes or {}
     if tbOld == nil or tbOld.nPositionType ~= tbNew.nPositionType or tbOld.nIndex ~= tbNew.nIndex or #(tbOld.tbTypes or {}) ~= #tbNewTypes then
       bChanged = true
@@ -1199,8 +1207,8 @@ function SoldierLevelData:UpdateExtraPartnerTag(tbAllPartner)
     end
   end
   if not bChanged then
-    for nChessId in pairs(mapOld) do
-      if mapNew[nChessId] == nil then
+    for nUid in pairs(mapOld) do
+      if mapNew[nUid] == nil then
         bChanged = true
         break
       end
@@ -1212,11 +1220,11 @@ function SoldierLevelData:UpdateExtraPartnerTag(tbAllPartner)
   end
 end
 
-function SoldierLevelData:GetExtraPartnerTags(nChessId)
+function SoldierLevelData:GetExtraPartnerTags(nUid)
   if self.mapExtraPartnerTag == nil then
     return nil
   end
-  local info = self.mapExtraPartnerTag[nChessId]
+  local info = self.mapExtraPartnerTag[nUid]
   if info == nil then
     return nil
   end
@@ -1316,27 +1324,53 @@ function SoldierLevelData:PrintChess(sTag)
 end
 
 function SoldierLevelData:HandleCase()
-  for _, v in ipairs(OtherCaseType) do
+  for _, v in ipairs(OpenSandTableServerCase) do
     if self.mapCases[v] ~= nil then
       self.bOpenSandTable = true
       break
     end
+  end
+  for _, v in ipairs(OpenSandTableClientCase) do
+    if self.mapClientCases[v] ~= nil then
+      self.bOpenSandTable = true
+      break
+    end
+  end
+  if self.mapClientCases[ClientCase.DiceResult] ~= nil then
+    self:OpenDiceResult()
+    return
   end
   if self.mapClientCases[ClientCase.BattleResult] ~= nil then
     self:BattleResult()
     self.mapClientCases[ClientCase.BattleResult] = nil
     return
   end
+  if self.mapClientCases[ClientCase.Ending] ~= nil then
+    self:OpenSoldierEnding()
+    return
+  end
   if self.mapClientCases[ClientCase.Settle] ~= nil then
     self:SoldierSettle()
     return
   end
+  if self.mapClientCases[ClientCase.StageChange] ~= nil then
+    self:OpenStageChange()
+    return
+  end
+  if self.mapClientCases[ClientCase.CheckStagePanel] ~= nil then
+    self:OpenCheckStage()
+    return
+  end
+  if self.mapCases[CaseEnum.CheckStage] ~= nil then
+    self:EnterCheckStageCase()
+    return
+  end
+  if self.mapCases[CaseEnum.SelectBossAbility] ~= nil then
+    self:OpenBossAbilitySelect()
+    return
+  end
   if self.mapCases[CaseEnum.SelectCard] ~= nil then
-    if self.mapCases[CaseEnum.SelectCard].nType == AllEnum.SoldierCardType.StartedCard then
-      self:OpenStarterCardSelect()
-    elseif self.mapCases[CaseEnum.SelectCard].nType == AllEnum.SoldierCardType.StrategyCard then
-      self:OpenStrategyCardSelect()
-    end
+    self:OpenStrategyCardSelect()
     return
   end
   if self.mapCases[CaseEnum.Fight] ~= nil then
@@ -1355,21 +1389,25 @@ function SoldierLevelData:HandleCase()
     self:EventSettlementOfDispute()
     return
   end
+  if self.mapCases[CaseEnum.StoryEventOfPersonality] ~= nil then
+    self:OpenStoryEventOfPersonality()
+    return
+  end
+  if self.mapCases[CaseEnum.StoryEventOfCostly] ~= nil then
+    self:OpenStoryEventOfCostly()
+    return
+  end
   if self.mapCases[CaseEnum.ClientEvent] ~= nil then
     return
   end
 end
 
 function SoldierLevelData:StartSoldierLevel()
+  EventManager.Hit(EventId.SetTransition)
   EventManager.Hit(EventId.BlockInput, true)
   
   local function wait()
     coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
-    local bFirstIn = self.nNodeId == 0
-    EventManager.Hit(EventId.OpenPanel, PanelId.SoldierSandtable, bFirstIn)
-    coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
-    EventManager.Hit(EventId.ClosePanel, PanelId.SoldierLevelSelectPanel)
-    EventManager.Hit(EventId.SetTransition)
     EventManager.Hit(EventId.BlockInput, false)
     self:HandleCase()
   end
@@ -1377,16 +1415,12 @@ function SoldierLevelData:StartSoldierLevel()
   cs_coroutine.start(wait)
 end
 
-function SoldierLevelData:OpenStarterCardSelect()
-  local mapCase = self:_GetCaseDataByType(CaseEnum.SelectCard)
-  if mapCase ~= nil and mapCase.nType == AllEnum.SoldierCardType.StartedCard then
-    EventManager.Hit(EventId.OpenPanel, PanelId.SoldierSelectPolicy)
-  end
-end
-
 function SoldierLevelData:OpenStrategyCardSelect()
+  self:PreloadSandtableScene(function()
+    EventManager.Hit("SoldierSandtableSceneReady")
+  end)
   local mapCase = self:_GetCaseDataByType(CaseEnum.SelectCard)
-  if mapCase ~= nil and mapCase.nType == AllEnum.SoldierCardType.StrategyCard then
+  if mapCase ~= nil then
     if not PanelManager.CheckPanelOpen(PanelId.SoldierBattleEventPanel) then
       EventManager.Hit(EventId.OpenPanel, PanelId.SoldierBattleEventPanel, true)
     end
@@ -1395,6 +1429,9 @@ function SoldierLevelData:OpenStrategyCardSelect()
 end
 
 function SoldierLevelData:OpenEventSelect()
+  self:PreloadSandtableScene(function()
+    EventManager.Hit("SoldierSandtableSceneReady")
+  end)
   local mapCase = self:_GetCaseDataByType(CaseEnum.EventSettlementOfDispute)
   if mapCase ~= nil then
     if not PanelManager.CheckPanelOpen(PanelId.SoldierBattleEventPanel) then
@@ -1404,10 +1441,65 @@ function SoldierLevelData:OpenEventSelect()
   end
 end
 
+function SoldierLevelData:_OpenSoldierStagePanel(bIsChallenge, data)
+  self:PreloadSandtableScene(function()
+    EventManager.Hit("SoldierSandtableSceneReady")
+  end)
+  
+  local function callback()
+    self:HandleCase()
+  end
+  
+  EventManager.Hit(EventId.OpenPanel, PanelId.SoldierStagePanel, bIsChallenge, data.nStageId, data.nCurNodeId, callback)
+end
+
+function SoldierLevelData:OpenStageChange()
+  local data = self.mapClientCases[ClientCase.StageChange]
+  self.mapClientCases[ClientCase.StageChange] = nil
+  self:_OpenSoldierStagePanel(false, data)
+end
+
+function SoldierLevelData:OpenDiceResult()
+  local data = self.mapClientCases[ClientCase.DiceResult]
+  self.mapClientCases[ClientCase.DiceResult] = nil
+  
+  local function fnOnClose()
+    self:HandleCase()
+  end
+  
+  EventManager.Hit("SoldierPlayDiceResult", data, fnOnClose)
+end
+
+function SoldierLevelData:OpenCheckStage()
+  self.mapClientCases[ClientCase.CheckStagePanel] = nil
+  local data = {
+    nStageId = self.nStageId,
+    nCurNodeId = self.nNodeId
+  }
+  self:_OpenSoldierStagePanel(true, data)
+end
+
+function SoldierLevelData:EnterCheckStageCase()
+  local mapCase = self:_GetCaseDataByType(CaseEnum.CheckStage)
+  if mapCase == nil then
+    return
+  end
+  self:_EnterBattle(mapCase.nFloorId)
+end
+
+function SoldierLevelData:OpenBossAbilitySelect()
+  local function fnConfirm(nAbilityId)
+    self:SendSelectBossAbility(nAbilityId)
+  end
+  
+  EventManager.Hit(EventId.OpenPanel, PanelId.SoldierBossTemplateSelect, fnConfirm)
+end
+
 function SoldierLevelData:OpenSandTable()
   if self.bOpenSandTable then
-    EventManager.Hit("EnterStandTable")
-    self:SendDeploySync()
+    self:PreloadSandtableScene(function()
+      EventManager.Hit("EnterStandTable")
+    end)
   end
   self.bOpenSandTable = false
 end
@@ -1448,23 +1540,57 @@ function SoldierLevelData:BattleResult()
   end
 end
 
+function SoldierLevelData:OpenSoldierEnding()
+  local endingData = self.mapClientCases[ClientCase.Ending].data
+  self.mapClientCases[ClientCase.Ending] = nil
+  
+  local function callback()
+    EventManager.Hit(EventId.BlockInput, true)
+    
+    local function wait()
+      coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
+      EventManager.Hit(EventId.BlockInput, false)
+      self:HandleCase()
+    end
+    
+    cs_coroutine.start(wait)
+  end
+  
+  EventManager.Hit(EventId.OpenPanel, PanelId.SoldierBattleEnding, endingData, callback)
+end
+
 function SoldierLevelData:SoldierSettle()
   EventManager.Hit(EventId.ClosePanel, PanelId.SoldierPartnerTips)
   EventManager.Hit(EventId.ClosePanel, PanelId.SoldierCharCardTips)
   EventManager.Hit(EventId.ClosePanel, PanelId.SoldierCharSkillDetail)
   EventManager.Hit(EventId.ClosePanel, PanelId.SoldierCharPontentialDetailPanel)
-  local nType = self.mapClientCases[ClientCase.Settle].nType
+  local settleData = self.mapClientCases[ClientCase.Settle]
+  local nType = settleData.nType
   local mapData = {
-    nTotalScore = self.mapClientCases[ClientCase.Settle].nTotalScore,
-    nRewardScore = self.mapClientCases[ClientCase.Settle].nRewardScore
+    tbSettle = settleData.tbSettle,
+    tbChess = settleData.tbChess,
+    tbDamage = settleData.tbDamage,
+    nBossTemplateId = settleData.nBossTemplateId,
+    nHp = settleData.nHp,
+    nCoin = settleData.nCoin,
+    tbCard = settleData.tbCard,
+    nGradeChallengeId = settleData.nGradeChallengeId
   }
-  EventManager.Hit(EventId.ClosePanel, PanelId.SoldierSandtable)
-  EventManager.Hit(EventId.ClosePanel, PanelId.SoldierBattleEventPanel)
   if PanelManager.CheckPanelOpen(PanelId.SoldierBattleResult) then
     EventManager.Hit("SoldierChallengeEnd", nType, mapData)
   else
     EventManager.Hit(EventId.OpenPanel, PanelId.SoldierBattleResult, nType, mapData)
   end
+  EventManager.Hit(EventId.BlockInput, true)
+  
+  local function wait()
+    coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
+    EventManager.Hit(EventId.ClosePanel, PanelId.SoldierSandtable)
+    EventManager.Hit(EventId.ClosePanel, PanelId.SoldierBattleEventPanel)
+    EventManager.Hit(EventId.BlockInput, false)
+  end
+  
+  cs_coroutine.start(wait)
   if self.curBattle ~= nil then
     self.curBattle:Exit()
     self.curBattle = nil
@@ -1476,11 +1602,30 @@ function SoldierLevelData:SoldierSettle()
 end
 
 function SoldierLevelData:GiveUp(netMsgData)
-  self.mapClientCases[ClientCase.Settle] = {}
-  local nType = AllEnum.SoldierResultType.ChallengeFail
-  self.mapClientCases[ClientCase.Settle].nType = nType
-  self.mapClientCases[ClientCase.Settle].nTotalScore = netMsgData.TotalScore
-  self.mapClientCases[ClientCase.Settle].nRewardScore = netMsgData.RewardScore
+  self.mapClientCases[ClientCase.Settle] = {
+    nType = AllEnum.SoldierResultType.ChallengeFail,
+    tbSettle = {
+      nPassedNode = netMsgData.PassedNode,
+      nRemainingHp = netMsgData.RemainingHp,
+      nCheckStageDps = netMsgData.CheckStageDps,
+      nCheckStageTime = netMsgData.CheckStageTime,
+      nChessTotalCost = netMsgData.ChessTotalCost,
+      nGetSchedule = netMsgData.GetSchedule,
+      nGetTechPoint = netMsgData.GetTechPoint,
+      nGetGradeExp = netMsgData.GetGradeExp,
+      nCurGradeChallengeId = netMsgData.CurGradeChallengeId,
+      nCurGradeExp = netMsgData.CurGradeExp,
+      nEndingId = netMsgData.EndingId,
+      nTotalCoinQty = netMsgData.TotalCoinQty
+    },
+    tbChess = self.tbDeployChess or {},
+    tbDamage = self.tbLastBattleDamage or {},
+    nBossTemplateId = self.nBossTemplateId or 0,
+    nHp = self:GetHp() or 0,
+    nCoin = self:GetItem(AllEnum.CoinItemId.SoldierCurrency) or 0,
+    tbCard = self:GetCardData() or {},
+    nGradeChallengeId = self.nGradeChallengeId or 0
+  }
   self:HandleCase()
 end
 
@@ -1494,13 +1639,31 @@ function SoldierLevelData:StepOut()
 end
 
 function SoldierLevelData:_EnterBattle(nFloorId, nEventId)
+  self:UnloadSandtableScene()
   if self.curBattle == nil then
     self.curBattle = require("Game.Adventure.Soldier.SoldierBattle").new()
   end
   local nTemplateId = 0
+  local nAdjustmentGrade = 0
   local mapChallengeCfg = ConfigTable.GetData("SoldierGradeChallenge", self.nGradeChallengeId)
   if mapChallengeCfg ~= nil then
     nTemplateId = nTemplateId + mapChallengeCfg.DiffcultyTemplateLv
+    nAdjustmentGrade = mapChallengeCfg.AdjustmentGrade
+  end
+  local tbCards = self:GetCardData()
+  local tbAddition = {}
+  local sConfig = ConfigTable.GetConfigValue("SoldierCardQualityAdjustGradeAdd")
+  if sConfig ~= nil then
+    local tbConfig = decodeJson(sConfig)
+    for k, v in pairs(tbConfig) do
+      tbAddition[tonumber(k)] = tonumber(v)
+    end
+  end
+  for _, v in ipairs(tbCards) do
+    local cfg = ConfigTable.GetData("SoldierStrategyCard", v.nId)
+    if cfg ~= nil and tbAddition[cfg.Rarity] ~= nil then
+      nAdjustmentGrade = nAdjustmentGrade + tbAddition[cfg.Rarity]
+    end
   end
   local mapNodeCfg = ConfigTable.GetData("SoldierNodePlan", self.nNodeId)
   if mapNodeCfg ~= nil then
@@ -1512,7 +1675,7 @@ function SoldierLevelData:_EnterBattle(nFloorId, nEventId)
       nTemplateId = nTemplateId + mapEventPoolCfg.AddDifficult
     end
   end
-  self.curBattle:Init(self, self.tbDeployChess, nFloorId, nTemplateId)
+  self.curBattle:Init(self, self.tbDeployChess, nFloorId, self.nStageId, nTemplateId, nAdjustmentGrade, self.nBossTemplateId)
 end
 
 function SoldierLevelData:EnterBattleCase()
@@ -1531,8 +1694,63 @@ function SoldierLevelData:EventSettlementOfDispute()
   self:_EnterBattle(mapBattleCase.nFloorId, mapBattleCase.nEventId)
 end
 
+function SoldierLevelData:OpenStoryEventOfPersonality()
+  local mapCase = self:_GetCaseDataByType(CaseEnum.StoryEventOfPersonality)
+  if mapCase == nil then
+    return
+  end
+  self:PreloadSandtableScene(function()
+    EventManager.Hit("SoldierSandtableSceneReady")
+  end)
+  if mapCase.nIndex == 0 then
+    EventManager.Hit(EventId.OpenPanel, PanelId.SoldierEventPanel)
+  else
+    local nIndex = mapCase.nIndex
+    local tbOptions = mapCase.tbOptions
+    local nSelectOptionId = tbOptions[nIndex].PersonalityOptionId
+    local mapPersonalityOption = ConfigTable.GetData("SoldierStoryPersonalityOption", nSelectOptionId)
+    if mapPersonalityOption ~= nil and mapPersonalityOption.CheckDimension ~= nil and 0 < mapPersonalityOption.CheckDimension and mapPersonalityOption.CheckDifficulty ~= nil and 0 < mapPersonalityOption.CheckDifficulty then
+      local nCheckDimension = mapPersonalityOption.CheckDimension
+      local nCheckDifficulty = mapPersonalityOption.CheckDifficulty
+      local mapBossCfg = ConfigTable.GetData("SoldierBossTemplate", self.nBossTemplateId or 0)
+      local tbPersonalityGrade = {}
+      if mapBossCfg ~= nil then
+        tbPersonalityGrade[GameEnum.SoldierRolePersonality.Personality_Intuition] = mapBossCfg.Personality_Intuition
+        tbPersonalityGrade[GameEnum.SoldierRolePersonality.Personality_Analysis] = mapBossCfg.Personality_Analysis
+        tbPersonalityGrade[GameEnum.SoldierRolePersonality.Personality_Chaos] = mapBossCfg.Personality_Chaos
+      end
+      local sPersonalityGrade = tbPersonalityGrade[nCheckDimension]
+      local nDimensionDifficulty = mapPersonalityOption.CheckDifficulty
+      local pram = {
+        nPersonalityType = nCheckDimension,
+        nDimensionLevel = nCheckDifficulty,
+        sPersonalityGrade = sPersonalityGrade,
+        nDimensionDifficulty = nDimensionDifficulty
+      }
+      EventManager.Hit(EventId.OpenPanel, PanelId.SoldierResolveadisputePanel, pram)
+    end
+  end
+  EventManager.Hit("EnterEventSelect")
+end
+
+function SoldierLevelData:OpenStoryEventOfCostly()
+  local mapCase = self:_GetCaseDataByType(CaseEnum.StoryEventOfCostly)
+  if mapCase == nil then
+    return
+  end
+  self:PreloadSandtableScene(function()
+    EventManager.Hit("SoldierSandtableSceneReady")
+  end)
+  if PanelManager.CheckPanelOpen(PanelId.SoldierEventPanel) then
+    EventManager.Hit("RefreshStoryEventOfCostly")
+  else
+    EventManager.Hit(EventId.OpenPanel, PanelId.SoldierEventPanel)
+  end
+  EventManager.Hit("EnterEventSelect")
+end
+
 function SoldierLevelData:BattleEnd(bResult, tbParam)
-  if self.mapCases[CaseEnum.Battle] == nil and self.mapCases[CaseEnum.EventSettlementOfDisputeBattle] == nil then
+  if self.mapCases[CaseEnum.Battle] == nil and self.mapCases[CaseEnum.EventSettlementOfDisputeBattle] == nil and self.mapCases[CaseEnum.CheckStage] == nil then
     local nType = bResult and AllEnum.SoldierResultType.NodeSuccess or AllEnum.SoldierResultType.NodeFail
     EventManager.Hit(EventId.OpenPanel, PanelId.SoldierBattleResult, nType, {
       tbChange = {nHpChange = 0, nLevelChange = 0},
@@ -1545,19 +1763,62 @@ function SoldierLevelData:BattleEnd(bResult, tbParam)
   local nBattleTime = tbParam.nTime or 0
   local tbDamage = tbParam.tbDamage or {}
   local nCoin = tbParam.nCoin or 0
+  local nHarvest = tbParam.nHarvest or 0
+  local nAllDamage = tbParam.nAllDamage or 0
+  self.tbLastBattleDamage = tbDamage
   if self.mapCases[CaseEnum.Battle] ~= nil then
     if bResult then
-      self:SendBattleVictory(nBattleTime, tbDamage, nCoin)
+      self:SendBattleVictory(nBattleTime, tbDamage, nCoin, nHarvest)
     else
-      self:SendBattleDefeat(tbDamage, nCoin)
+      self:SendBattleDefeat(tbDamage, nCoin, nHarvest)
     end
   elseif self.mapCases[CaseEnum.EventSettlementOfDisputeBattle] ~= nil then
     if bResult then
-      self:SendEventSettlementOfDisputeBattleVictory(nBattleTime, tbDamage, nCoin)
+      self:SendEventSettlementOfDisputeBattleVictory(nBattleTime, tbDamage, nCoin, nHarvest)
     else
-      self:SendEventSettlementOfDisputeBattleDefeat(tbDamage, nCoin)
+      self:SendEventSettlementOfDisputeBattleDefeat(tbDamage, nCoin, nHarvest)
+    end
+  elseif self.mapCases[CaseEnum.CheckStage] ~= nil then
+    local nDpsId, nTimeId = self.parent:GetCheckStageAddScoreId(nAllDamage, nBattleTime)
+    self:SendCheckStageSettle(nDpsId, nTimeId)
+  end
+end
+
+function SoldierLevelData:_MergeApplyObtainSteps(tbSteps)
+  if tbSteps == nil or #tbSteps <= 1 then
+    return tbSteps
+  end
+  local tbMerged = {}
+  local curMerge
+  
+  local function isPureObtain(step)
+    return (step.tbConsume == nil or #step.tbConsume == 0) and (step.tbUpdate == nil or #step.tbUpdate == 0) and step.tbObtain ~= nil and 0 < #step.tbObtain
+  end
+  
+  for _, step in ipairs(tbSteps) do
+    if isPureObtain(step) then
+      if curMerge == nil then
+        curMerge = {
+          tbConsume = {},
+          tbObtain = {},
+          tbUpdate = {}
+        }
+      end
+      for _, ch in ipairs(step.tbObtain) do
+        table.insert(curMerge.tbObtain, ch)
+      end
+    else
+      if curMerge ~= nil then
+        table.insert(tbMerged, curMerge)
+        curMerge = nil
+      end
+      table.insert(tbMerged, step)
     end
   end
+  if curMerge ~= nil then
+    table.insert(tbMerged, curMerge)
+  end
+  return tbMerged
 end
 
 function SoldierLevelData:CacheReward(nType, data)
@@ -1622,6 +1883,11 @@ end
 function SoldierLevelData:GetPendingReward()
   local cache = clone(self.tbPendingRewards)
   self.tbPendingRewards = {}
+  for _, entry in ipairs(cache) do
+    if entry.tbSteps ~= nil and #entry.tbSteps > 1 then
+      entry.tbSteps = self:_MergeApplyObtainSteps(entry.tbSteps)
+    end
+  end
   return cache
 end
 
@@ -1629,11 +1895,7 @@ function SoldierLevelData:_CheckBatchWipeContext(param, tbTransforms)
   if tbTransforms == nil or #tbTransforms == 0 then
     return false
   end
-  local sourceParam = param
-  if type(param) == "table" and param.tbLeftmostHints ~= nil then
-    sourceParam = param.sourceParam
-  end
-  if type(sourceParam) ~= "table" or not sourceParam.bFromCardSelect then
+  if type(param) ~= "table" or not param.bFromCardSelect then
     return false
   end
   for _, mapTrans in ipairs(tbTransforms) do
@@ -1649,13 +1911,13 @@ function SoldierLevelData:_NetOutPendingRewards(tbBatchConsume)
     return
   end
   for _, c in ipairs(tbBatchConsume) do
-    local nId, nStar = c.nId, c.nStar
+    local nUid = c.nUid
     for i = #self.tbPendingRewards, 1, -1 do
       local entry = self.tbPendingRewards[i]
       local bRemoved = false
       if entry.data ~= nil and entry.data.tbChess ~= nil then
         for j, ch in ipairs(entry.data.tbChess) do
-          if ch.Id == nId and (ch.Star or 1) == nStar then
+          if ch.UID == nUid then
             table.remove(entry.data.tbChess, j)
             bRemoved = true
             break
@@ -1668,14 +1930,14 @@ function SoldierLevelData:_NetOutPendingRewards(tbBatchConsume)
           local bStepHit = false
           if step.tbObtain ~= nil then
             for k, o in ipairs(step.tbObtain) do
-              if o.nId == nId and o.nStar == nStar then
+              if o.nUid == nUid then
                 table.remove(step.tbObtain, k)
                 bStepHit = true
                 break
               end
             end
           end
-          if bStepHit and (step.tbConsume == nil or #step.tbConsume == 0) and (step.tbObtain == nil or #step.tbObtain == 0) then
+          if bStepHit and (step.tbConsume == nil or #step.tbConsume == 0) and (step.tbObtain == nil or #step.tbObtain == 0) and (step.tbUpdate == nil or #step.tbUpdate == 0) then
             table.remove(entry.tbSteps, stepIdx)
           end
           if bStepHit then
@@ -1698,34 +1960,6 @@ function SoldierLevelData:_NetOutPendingRewards(tbBatchConsume)
   end
 end
 
-function SoldierLevelData:_LocateChessInBag(nId, nStar, mapSkip)
-  local function _isSkipped(nType, nIndex)
-    return mapSkip[nType] ~= nil and mapSkip[nType][nIndex] == true
-  end
-  
-  for _, v in ipairs(self.tbDeployChess) do
-    if v.nId == nId and v.nStar == nStar and v.nPositionType == FightPos and not _isSkipped(SPT.Fight, v.nIndex) then
-      return SPT.Fight, v.nIndex
-    end
-  end
-  for _, v in ipairs(self.tbDeployChess) do
-    if v.nId == nId and v.nStar == nStar and v.nPositionType == SupPos and not _isSkipped(SPT.Support, v.nIndex) then
-      return SPT.Support, v.nIndex
-    end
-  end
-  for _, v in ipairs(self.tbWaitingChess) do
-    if v.nId == nId and v.nStar == nStar and not _isSkipped(SPT.Waiting, v.nIndex) then
-      return SPT.Waiting, v.nIndex
-    end
-  end
-  for _, v in ipairs(self.tbOtherChess) do
-    if v.nId == nId and v.nStar == nStar and v.nCount > 0 and not _isSkipped(SPT.Other, 0) then
-      return SPT.Other, 0
-    end
-  end
-  return nil
-end
-
 function SoldierLevelData:_GetCaseIdByType(nCaseType)
   local mapCase = self:_GetCaseDataByType(nCaseType)
   if mapCase ~= nil then
@@ -1743,8 +1977,12 @@ function SoldierLevelData:_GetCaseDataByType(nCaseType)
 end
 
 function SoldierLevelData:_SendInteract(mapMsgData, param, callback)
-  if mapMsgData == nil or mapMsgData.Id == nil or mapMsgData.Id == 0 then
-    printError("[[Soldier] _SendInteract 缺少有效 Case Id")
+  if mapMsgData == nil then
+    printError("[Soldier] _SendInteract 缺少 mapMsgData")
+    return
+  end
+  if mapMsgData.Id == nil or mapMsgData.Id == 0 then
+    printError("[Soldier] _SendInteract 缺少有效 Case Id")
     return
   end
   
@@ -1753,6 +1991,22 @@ function SoldierLevelData:_SendInteract(mapMsgData, param, callback)
   end
   
   HttpNetHandler.SendMsg(NetMsgId.Id.soldier_interact_req, mapMsgData, nil, netCallback)
+end
+
+function SoldierLevelData:SendMove(nUid, nSlot, callback)
+  if nUid == nil or self.mapChessByUid[nUid] == nil then
+    printError("[Soldier] SendMove 无效 UID: " .. tostring(nUid))
+    return
+  end
+  self:PrintSoldier(string.format("[Soldier]移动棋子 UID=%s -> Slot=%s", nUid, nSlot))
+  local nCaseId = self:_GetCaseIdByType(CaseEnum.DeployOpt)
+  self:_SendInteract({
+    Id = nCaseId,
+    DeploySyncReq = {
+      DeployVersion = self.nDeployVersion,
+      Move = {UID = nUid, Slot = nSlot}
+    }
+  }, nil, callback)
 end
 
 function SoldierLevelData:SendShopPurchase(nGoodsIndex, callback)
@@ -1765,21 +2019,40 @@ function SoldierLevelData:SendShopPurchase(nGoodsIndex, callback)
 end
 
 function SoldierLevelData:SendShopSell(chessData, callback)
-  if chessData.nPositionType == nil then
-    chessData.nPositionType = AllEnum.SoldierPositionType.Other
-    chessData.nIndex = 0
+  if chessData == nil then
+    return
   end
-  self:PrintSoldier(string.format("[Soldier]出售棋子 -- %s -%s", chessData.nId, chessData.nStar))
+  local nUid = chessData.nUid
+  if (nUid == nil or nUid == 0) and chessData.nId ~= nil then
+    for _, nOtherUid in ipairs(self.tbOtherUids) do
+      local chess = self.mapChessByUid[nOtherUid]
+      if chess ~= nil and chess.nTid == chessData.nId and chess.nStar == chessData.nStar then
+        nUid = nOtherUid
+        break
+      end
+    end
+  end
+  if nUid == nil or nUid == 0 then
+    printError("[Soldier] SendShopSell 找不到棋子 UID")
+    return
+  end
+  local chess = self.mapChessByUid[nUid]
+  if chess == nil then
+    printError("[Soldier] SendShopSell UID 无对应棋子: " .. tostring(nUid))
+    return
+  end
+  self:PrintSoldier(string.format("[Soldier]出售棋子 -- UID=%s Tid=%s Star=%s Slot=%s", nUid, chess.nTid, chess.nStar, chess.nSlot))
   local nCaseId = self:_GetCaseIdByType(CaseEnum.Shop)
   local mapChess = {
-    Id = chessData.nId,
-    Qty = 1,
-    Star = chessData.nStar
+    UID = nUid,
+    Tid = chess.nTid,
+    Star = chess.nStar,
+    Slot = chess.nSlot
   }
   self:_SendInteract({
     Id = nCaseId,
     ShopReq = {Sell = mapChess}
-  }, chessData, callback)
+  }, {nUid = nUid}, callback)
 end
 
 function SoldierLevelData:SendShopRefresh(callback)
@@ -1794,32 +2067,10 @@ end
 function SoldierLevelData:SendShopBuyExp(callback)
   self:PrintSoldier("[Soldier]购买经验")
   local nCaseId = self:_GetCaseIdByType(CaseEnum.Shop)
-  
-  local function serverCallback(tbChange)
-    self:FillOtherChess()
-    local coverStep = self:DisposalChessDeploy()
-    if coverStep ~= nil and 0 < #coverStep then
-      if tbChange == nil then
-        tbChange = {}
-      end
-      if tbChange.tbChessChangeStep == nil then
-        tbChange.tbChessChangeStep = {}
-      end
-      for _, s in ipairs(coverStep) do
-        table.insert(tbChange.tbChessChangeStep, s)
-      end
-      self:UpdatePartner()
-      self:SendDeploySync()
-    end
-    if callback ~= nil then
-      callback(tbChange)
-    end
-  end
-  
   self:_SendInteract({
     Id = nCaseId,
     ShopReq = {Upgrade = true}
-  }, nil, serverCallback)
+  }, nil, callback)
 end
 
 function SoldierLevelData:SendShopLock(bLock, callback)
@@ -1834,46 +2085,22 @@ end
 function SoldierLevelData:SendFight(callback)
   self:PrintSoldier("[Soldier]备战界面点出发")
   local nCaseId = self:_GetCaseIdByType(CaseEnum.Fight)
-  local tbDeploy = {}
-  tbDeploy.Master = {}
-  tbDeploy.Assist = {}
-  tbDeploy.Waiting = {}
-  for _, v in ipairs(self.tbDeployChess) do
-    if v.nPositionType == FightPos then
-      table.insert(tbDeploy.Master, {
-        Id = v.nId,
-        Qty = 1,
-        Star = v.nStar
-      })
-    elseif v.nPositionType == SupPos then
-      table.insert(tbDeploy.Assist, {
-        Id = v.nId,
-        Qty = 1,
-        Star = v.nStar
-      })
-    end
-  end
-  for _, v in ipairs(self.tbWaitingChess) do
-    table.insert(tbDeploy.Waiting, {
-      Id = v.nId,
-      Qty = 1,
-      Star = v.nStar
-    })
-  end
   self:_SendInteract({
     Id = nCaseId,
-    FightReq = {Deploy = tbDeploy}
+    FightReq = {}
   }, nil, callback)
 end
 
-function SoldierLevelData:SendBattleVictory(nBattleTime, tbDamage, nCoin, callback)
+function SoldierLevelData:SendBattleVictory(nBattleTime, tbDamage, nCoin, nHarvest, callback)
   self:PrintSoldier("[Soldier]节点胜利结算, 本场战斗获得金币数：" .. nCoin)
   local nCaseId = self:_GetCaseIdByType(CaseEnum.Battle)
+  local tbEvents = self:_BuildHarvestEvent(nHarvest)
   local tbVictoryData = {
     DataLen = 1,
     ClientData = "",
     DataVersion = 1,
     ChessSkillAddGold = nCoin,
+    Events = tbEvents,
     Victory = {Time = nBattleTime}
   }
   local tbParam = {
@@ -1883,14 +2110,16 @@ function SoldierLevelData:SendBattleVictory(nBattleTime, tbDamage, nCoin, callba
   self:_SendInteract({Id = nCaseId, BattleReq = tbVictoryData}, tbParam, callback)
 end
 
-function SoldierLevelData:SendBattleDefeat(tbDamage, nCoin, callback)
+function SoldierLevelData:SendBattleDefeat(tbDamage, nCoin, nHarvest, callback)
   self:PrintSoldier("[Soldier]节点失败结算, 本场战斗获得金币数：" .. nCoin)
   local nCaseId = self:_GetCaseIdByType(CaseEnum.Battle)
+  local tbEvents = self:_BuildHarvestEvent(nHarvest)
   local tbDefeatData = {
     DataLen = 1,
     ClientData = "",
     DataVersion = 1,
     ChessSkillAddGold = nCoin,
+    Events = tbEvents,
     Defeat = true
   }
   local tbParam = {
@@ -1898,15 +2127,6 @@ function SoldierLevelData:SendBattleDefeat(tbDamage, nCoin, callback)
     tbDamage = tbDamage
   }
   self:_SendInteract({Id = nCaseId, BattleReq = tbDefeatData}, tbParam, callback)
-end
-
-function SoldierLevelData:SendEventBattleThrowDice(callback)
-  self:PrintSoldier("[Soldier]事件争端摇骰子")
-  local nCaseId = self:_GetCaseIdByType(CaseEnum.EventSettlementOfDispute)
-  self:_SendInteract({
-    Id = nCaseId,
-    EventSettlementOfDisputeReq = {ThrowDice = true}
-  }, nil, callback)
 end
 
 function SoldierLevelData:SendEventBattleChoose(nIndex, callback)
@@ -1918,14 +2138,16 @@ function SoldierLevelData:SendEventBattleChoose(nIndex, callback)
   }, nil, callback)
 end
 
-function SoldierLevelData:SendEventSettlementOfDisputeBattleVictory(nBattleTime, tbDamage, nCoin, callback)
+function SoldierLevelData:SendEventSettlementOfDisputeBattleVictory(nBattleTime, tbDamage, nCoin, nHarvest, callback)
   self:PrintSoldier("[Soldier]事件争端战斗胜利, 本场战斗获得金币数：" .. nCoin)
   local nCaseId = self:_GetCaseIdByType(CaseEnum.EventSettlementOfDisputeBattle)
+  local tbEvents = self:_BuildHarvestEvent(nHarvest)
   local tbVictoryData = {
     DataLen = 1,
     ClientData = "",
     DataVersion = 1,
     ChessSkillAddGold = nCoin,
+    Events = tbEvents,
     Victory = {Time = nBattleTime}
   }
   local tbParam = {
@@ -1935,14 +2157,16 @@ function SoldierLevelData:SendEventSettlementOfDisputeBattleVictory(nBattleTime,
   self:_SendInteract({Id = nCaseId, EventSettlementOfDisputeBattleReq = tbVictoryData}, tbParam, callback)
 end
 
-function SoldierLevelData:SendEventSettlementOfDisputeBattleDefeat(tbDamage, nCoin, callback)
+function SoldierLevelData:SendEventSettlementOfDisputeBattleDefeat(tbDamage, nCoin, nHarvest, callback)
   self:PrintSoldier("[Soldier]事件争端战斗失败, 本场战斗获得金币数：" .. nCoin)
   local nCaseId = self:_GetCaseIdByType(CaseEnum.EventSettlementOfDisputeBattle)
+  local tbEvents = self:_BuildHarvestEvent(nHarvest)
   local tbDefeatData = {
     DataLen = 1,
     ClientData = "",
     DataVersion = 1,
     ChessSkillAddGold = nCoin,
+    Events = tbEvents,
     Defeat = true
   }
   local tbParam = {
@@ -1953,12 +2177,25 @@ function SoldierLevelData:SendEventSettlementOfDisputeBattleDefeat(tbDamage, nCo
 end
 
 function SoldierLevelData:SendCardSelect(nIndex, callback)
-  self:PrintSoldier("[Soldier]buff卡三选一  -- " .. nIndex)
-  local nCaseId = self:_GetCaseIdByType(CaseEnum.SelectCard)
-  self:_SendInteract({
-    Id = nCaseId,
-    SelectReq = {Index = nIndex}
-  }, {bFromCardSelect = true}, callback)
+  local mapCase = self.mapCases[CaseEnum.SelectCard]
+  if mapCase ~= nil then
+    local nCaseId = mapCase.nId
+    self:PrintSoldier("[Soldier]buff卡三选一  -- " .. nIndex)
+    self:_SendInteract({
+      Id = nCaseId,
+      SelectReq = {Index = nIndex}
+    }, {bFromCardSelect = true}, callback)
+    return
+  end
+  mapCase = self.mapCases[CaseEnum.StoryEventOfCostly]
+  if mapCase ~= nil then
+    local nCaseId = mapCase.nId
+    self:PrintSoldier("[Soldier]代价剧情三选一  -- " .. nIndex)
+    self:_SendInteract({
+      Id = nCaseId,
+      SelectReq = {Index = nIndex}
+    }, nil, callback)
+  end
 end
 
 function SoldierLevelData:SendCardSelectReRoll(callback)
@@ -1970,63 +2207,39 @@ function SoldierLevelData:SendCardSelectReRoll(callback)
   }, nil, callback)
 end
 
-function SoldierLevelData:SendDeploySync(callback)
-  if self.mapCases[CaseEnum.DeploySync] == nil then
-    return
-  end
-  self:PrintSoldier("[Soldier]同步棋子阵容")
-  local tbDeploy = {
-    Master = {},
-    Assist = {},
-    Waiting = {}
-  }
-  local tbDeployEx = {}
-  for _, v in ipairs(self.tbDeployChess) do
-    if v.nPositionType == FightPos then
-      table.insert(tbDeploy.Master, {
-        Id = v.nId,
-        Qty = 1,
-        Star = v.nStar
-      })
-    elseif v.nPositionType == SupPos then
-      table.insert(tbDeploy.Assist, {
-        Id = v.nId,
-        Qty = 1,
-        Star = v.nStar
-      })
-    end
-  end
-  for _, v in ipairs(self.tbWaitingChess) do
-    table.insert(tbDeploy.Waiting, {
-      Id = v.nId,
-      Qty = 1,
-      Star = v.nStar
-    })
-  end
-  for _, v in ipairs(self.tbOtherChess) do
-    table.insert(tbDeployEx, {
-      Id = v.nId,
-      Qty = v.nCount,
-      Star = v.nStar
-    })
-  end
-  local nCaseId = self:_GetCaseIdByType(CaseEnum.DeploySync)
-  self:_SendInteract({
-    Id = nCaseId,
-    DeploySyncReq = {Deploy = tbDeploy, DeployEx = tbDeployEx}
-  }, nil, callback)
-end
-
 function SoldierLevelData:SendClientEvent(sClientData, nDataVersion)
   local nCaseId = self:_GetCaseIdByType(CaseEnum.ClientEvent)
   self:_SendInteract({
     Id = nCaseId,
     ClientEventReq = {
-      DateLen = #sClientData,
+      DataLen = #sClientData,
       ClientData = sClientData,
       DataVersion = nDataVersion
     }
   })
+end
+
+function SoldierLevelData:SendSelectBossAbility(nAbilityId, callback)
+  self:PrintSoldier("[Soldier]选择魔王能力  --  " .. tostring(nAbilityId))
+  local nCaseId = self:_GetCaseIdByType(CaseEnum.SelectBossAbility)
+  self:_SendInteract({
+    Id = nCaseId,
+    SelectBossAbilityReq = {AbilityId = nAbilityId}
+  }, nil, function(tbChange)
+    self.nBossTemplateId = nAbilityId
+    if callback then
+      callback(tbChange)
+    end
+  end)
+end
+
+function SoldierLevelData:SendCheckStageSettle(nDpsId, nTimeId, callback)
+  self:PrintSoldier(string.format("[Soldier]木桩关结算 DpsId=%s TimeId=%s", tostring(nDpsId), tostring(nTimeId)))
+  local nCaseId = self:_GetCaseIdByType(CaseEnum.CheckStage)
+  self:_SendInteract({
+    Id = nCaseId,
+    CheckStageSettleReq = {DpsId = nDpsId, TimeId = nTimeId}
+  }, nil, callback)
 end
 
 function SoldierLevelData:SendPartnerTrace(nPartnerType, bTrace, callback)
@@ -2042,7 +2255,36 @@ function SoldierLevelData:SendPartnerTrace(nPartnerType, bTrace, callback)
   HttpNetHandler.SendMsg(NetMsgId.Id.soldier_partner_trace_req, mapMsgData, nil, netCallback)
 end
 
-function SoldierLevelData:UpdateNodeInfo(nodeData, tbChange)
+function SoldierLevelData:SendStoryEventSelect(nIndex, callback)
+  if self.mapCases[CaseEnum.StoryEventOfPersonality] ~= nil then
+    self:SendStoryEventOfPersonalityIndex(nIndex, callback)
+    return
+  end
+  if self.mapCases[CaseEnum.StoryEventOfCostly] ~= nil then
+    self:SendCardSelect(nIndex, callback)
+    return
+  end
+end
+
+function SoldierLevelData:SendStoryEventOfPersonalityIndex(nIndex, callback)
+  self:PrintSoldier("[Soldier]性格剧情选择选项 -- " .. tostring(nIndex))
+  local nCaseId = self:_GetCaseIdByType(CaseEnum.StoryEventOfPersonality)
+  self:_SendInteract({
+    Id = nCaseId,
+    StoryEventOfPersonalitySelectReq = {Index = nIndex}
+  }, nil, callback)
+end
+
+function SoldierLevelData:SendStoryEventOfPersonalityThrowDice(callback)
+  self:PrintSoldier("[Soldier]性格剧情掷骰子")
+  local nCaseId = self:_GetCaseIdByType(CaseEnum.StoryEventOfPersonality)
+  self:_SendInteract({
+    Id = nCaseId,
+    StoryEventOfPersonalitySelectReq = {ThrowDice = true}
+  }, nil, callback)
+end
+
+function SoldierLevelData:UpdateNodeInfo(nodeData, tbChange, bSuppressStageChangeCase)
   if nodeData == nil then
     return
   end
@@ -2058,6 +2300,7 @@ function SoldierLevelData:UpdateNodeInfo(nodeData, tbChange)
   tbNodeChange.bNodeChange = bNodeChange
   tbNodeChange.nLastStageId = self.nStageId
   tbNodeChange.nLastNodeId = self.nNodeId
+  tbNodeChange.nLastNodeType = self.nNodeType
   self.nStageId = nodeData.StageId
   self.nNodeType = nodeData.Type
   self.nNodeId = nodeData.NodeId
@@ -2072,6 +2315,12 @@ function SoldierLevelData:UpdateNodeInfo(nodeData, tbChange)
   end
   if bStageChange then
     self:UpdateNodeList()
+    if not bSuppressStageChangeCase then
+      self.mapClientCases[ClientCase.StageChange] = {
+        nStageId = self.nStageId,
+        nCurNodeId = self.nNodeId
+      }
+    end
   end
 end
 
@@ -2088,7 +2337,6 @@ function SoldierLevelData:UpdateBaseInfo(baseData, tbChange)
   self.nExp = baseData.Exp
   self.nWiningStreak = baseData.WinningStreak
   self.nLosingStreak = baseData.LosingStreak
-  EventManager.Hit("SoldierShopLevelChange")
   EventManager.Hit("SoldierHpChange")
 end
 
@@ -2117,128 +2365,102 @@ function SoldierLevelData:UpdateChangeInfo(mapChangeInfo, tbChange, param)
     end
     EventManager.Hit("SoldierItemChange", itemChange)
   end
-  if mapDecodeInfo["proto.SoldierTransform"] ~= nil then
-    local function addAllChess(mapChessTrans)
-      for _, mapData in ipairs(mapChessTrans) do
-        local bAdd = false
-        
-        for i, v in ipairs(self.mapAllChess) do
-          if v.nId == mapData.Id and v.nStar == mapData.Star then
-            bAdd = true
-            v.nCount = v.nCount + mapData.Qty
-            if v.nCount <= 0 then
-              table.remove(self.mapAllChess, i)
+  if mapDecodeInfo["proto.SoldierChessChange"] ~= nil then
+    for _, change in ipairs(mapDecodeInfo["proto.SoldierChessChange"]) do
+      if change.BaseVersion ~= self.nDeployVersion then
+        printError(string.format("[Soldier] SoldierChessChange 版本号不匹配 base=%s local=%s next=%s, 丢弃; 等 DeploySyncResp.Deploy 兜底", tostring(change.BaseVersion), tostring(self.nDeployVersion), tostring(change.NextVersion)))
+      else
+        local tbTransforms = change.Transforms or {}
+        local bBatchWipeContext = self:_CheckBatchWipeContext(param, tbTransforms)
+        local tbBatchConsume = bBatchWipeContext and {} or nil
+        for _, mapTrans in ipairs(tbTransforms) do
+          if PRINT_CHESS_LOG then
+            if mapTrans.Consume ~= nil and 0 < #mapTrans.Consume then
+              for _, consume in ipairs(mapTrans.Consume) do
+                local sName = ""
+                local mapCfg = ConfigTable.GetData("SoldierCharacter", consume.Tid)
+                if mapCfg ~= nil then
+                  sName = mapCfg.Name
+                end
+                self:PrintSoldier(string.format("<color='#CF584E'>[[Soldier]失去棋子 UID=%s %s-%s星[%s]</color>", consume.UID, consume.Tid, consume.Star, sName))
+              end
             end
-            break
-          end
-        end
-        if not bAdd then
-          table.insert(self.mapAllChess, {
-            nId = mapData.Id,
-            nStar = mapData.Star,
-            nCount = mapData.Qty
-          })
-        end
-      end
-    end
-    
-    local tbTransforms = mapDecodeInfo["proto.SoldierTransform"]
-    local bBatchWipeContext = self:_CheckBatchWipeContext(param, tbTransforms)
-    local tbBatchConsume = bBatchWipeContext and {} or nil
-    for _, mapTrans in ipairs(tbTransforms) do
-      if PRINT_CHESS_LOG then
-        if mapTrans.Consume ~= nil and #mapTrans.Consume > 0 then
-          for _, consume in ipairs(mapTrans.Consume) do
-            local sName = ""
-            local mapCfg = ConfigTable.GetData("SoldierCharacter", consume.Id)
-            if mapCfg ~= nil then
-              sName = mapCfg.Name
+            if mapTrans.Obtain ~= nil and 0 < #mapTrans.Obtain then
+              for _, obtain in ipairs(mapTrans.Obtain) do
+                local sName = ""
+                local mapCfg = ConfigTable.GetData("SoldierCharacter", obtain.Tid)
+                if mapCfg ~= nil then
+                  sName = mapCfg.Name
+                end
+                self:PrintSoldier(string.format("<color='#4DC382'>[[Soldier]获得棋子 UID=%s %s-%s星[%s] Slot=%s</color>", obtain.UID, obtain.Tid, obtain.Star, sName, obtain.Slot or 0))
+              end
             end
-            self:PrintSoldier(string.format("<color='#CF584E'>[[Soldier]失去棋子 %s-%s星[%s]-%s</color>", consume.Id, consume.Star, sName, consume.Qty))
-          end
-        end
-        if mapTrans.Obtain ~= nil and 0 < #mapTrans.Obtain then
-          for _, obtain in ipairs(mapTrans.Obtain) do
-            local sName = ""
-            local mapCfg = ConfigTable.GetData("SoldierCharacter", obtain.Id)
-            if mapCfg ~= nil then
-              sName = mapCfg.Name
-            end
-            self:PrintSoldier(string.format("<color='#4DC382'>[[Soldier]获得棋子 %s-%s星[%s]-%s</color>", obtain.Id, obtain.Star, sName, obtain.Qty))
-          end
-        end
-      end
-      local steps = self:DisposalChessDeploy(mapTrans, param)
-      if steps ~= nil then
-        if tbBatchConsume ~= nil then
-          for _, s in ipairs(steps) do
-            if s.tbConsume ~= nil then
-              for _, c in ipairs(s.tbConsume) do
-                table.insert(tbBatchConsume, c)
+            if mapTrans.Update ~= nil and 0 < #mapTrans.Update then
+              for _, upd in ipairs(mapTrans.Update) do
+                self:PrintSoldier(string.format("[Soldier]移动棋子 UID=%s -> Slot=%s", upd.UID, upd.Slot or 0))
               end
             end
           end
-        else
-          for _, s in ipairs(steps) do
-            table.insert(tbSteps, s)
+          local steps = self:DisposalChessDeploy(mapTrans, param)
+          if steps ~= nil then
+            if tbBatchConsume ~= nil then
+              for _, s in ipairs(steps) do
+                if s.tbConsume ~= nil then
+                  for _, c in ipairs(s.tbConsume) do
+                    table.insert(tbBatchConsume, c)
+                  end
+                end
+              end
+            else
+              for _, s in ipairs(steps) do
+                table.insert(tbSteps, s)
+              end
+            end
           end
         end
+        self.nDeployVersion = change.NextVersion or self.nDeployVersion
+        self.tbDeployChess = self:_DeriveDeployView()
+        self.tbWaitingChess = self:_DeriveWaitingView()
+        self.tbOtherChess = self:_DeriveOtherView()
+        self.mapAllChess = self:_DeriveAllChessView()
+        self:UpdatePartner()
+        if tbBatchConsume ~= nil and 0 < #tbBatchConsume then
+          self:_NetOutPendingRewards(tbBatchConsume)
+          local atomicStep = {
+            tbConsume = tbBatchConsume,
+            tbObtain = {},
+            tbUpdate = {},
+            sSpecial = "CardWipeAll"
+          }
+          local wipeSteps = {atomicStep}
+          for _, s in ipairs(tbSteps) do
+            table.insert(wipeSteps, s)
+          end
+          local wipeEntry = {
+            nType = AllEnum.SoldierRewardSource.CardWipe,
+            data = {},
+            tbSteps = wipeSteps
+          }
+          table.insert(self.tbPendingRewards, wipeEntry)
+        elseif tbChange ~= nil and 0 < #tbSteps then
+          tbChange.tbChessChangeStep = tbSteps
+        end
       end
-      addAllChess(mapTrans.Consume)
-      addAllChess(mapTrans.Obtain)
-    end
-    self:FillOtherChess()
-    local coverStep = self:DisposalChessDeploy()
-    if coverStep ~= nil then
-      for _, s in ipairs(coverStep) do
-        table.insert(tbSteps, s)
-      end
-    end
-    self:UpdatePartner()
-    self:SendDeploySync()
-    if tbBatchConsume ~= nil and 0 < #tbBatchConsume then
-      self:_NetOutPendingRewards(tbBatchConsume)
-      local atomicStep = {
-        tbConsume = tbBatchConsume,
-        tbObtain = {},
-        sSpecial = "CardWipeAll"
-      }
-      local wipeSteps = {atomicStep}
-      for _, s in ipairs(tbSteps) do
-        table.insert(wipeSteps, s)
-      end
-      local wipeEntry = {
-        nType = AllEnum.SoldierRewardSource.CardWipe,
-        data = {},
-        tbSteps = wipeSteps
-      }
-      table.insert(self.tbPendingRewards, wipeEntry)
-    elseif tbChange ~= nil and 0 < #tbSteps then
-      tbChange.tbChessChangeStep = tbSteps
     end
   end
-  if mapDecodeInfo["proto.SoldierCard"] ~= nil then
-    for _, mapCardInfo in ipairs(mapDecodeInfo["proto.SoldierCard"]) do
-      self:UpdateCardList(mapCardInfo)
-    end
-    EventManager.Hit("SoldierBuffCardChange")
-  end
-  if mapDecodeInfo["proto.SoldierPartner"] ~= nil then
-    for _, mapInfo in ipairs(mapDecodeInfo["proto.SoldierPartner"]) do
-      self:UpdateServerPartner(mapInfo)
+  if mapDecodeInfo["proto.SoldierBuff"] ~= nil then
+    for _, mapBuff in ipairs(mapDecodeInfo["proto.SoldierBuff"]) do
+      self:UpdateBuff(mapBuff)
     end
   end
+  EventManager.Hit("RefreshSoldierRes")
 end
 
 function SoldierLevelData:UpdateSoldierEffectNotify(mapMsgData)
-  if mapMsgData == nil or mapMsgData.Effect == nil then
+  if mapMsgData == nil or mapMsgData.Effects == nil then
     return
   end
-  local effect = mapMsgData.Effect
-  if effect[1] == nil then
-    effect = {effect}
-  end
-  self:UpdateEffect(effect)
+  self:UpdateEffect(mapMsgData.Effects)
   EventManager.Hit("SoldierEffectChange")
 end
 
@@ -2255,18 +2477,29 @@ function SoldierLevelData:UpdateEffect(mapEffect, tbChange)
     return
   end
   for _, v in ipairs(mapEffect) do
+    local nBuffUid = v.BuffId or 0
+    if v.Id ~= nil and v.Id ~= 0 and nBuffUid ~= 0 and self.mapBuffs[nBuffUid] ~= nil then
+      self.mapEffects[v.Id] = {
+        nBuffUid = nBuffUid,
+        nTid = v.Tid
+      }
+    end
     self:EffectLeftmostChange(v.LeftmostChange, tbChange)
     self:EffectBecomeAnother(v.BecomeAnother, tbChange)
     self:EffectPartnerAdditional(v.PartnerAdditional)
     self:EffectPartnerActivateAdditional(v.PartnerActivateAdditional)
     self:EffectNodeTypeModify(v.NodeTypeModify)
-    self:EffectClientEffect(v.ClientEffect)
+    self:EffectClientAttr(v.ClientAttr)
     self:EffectShopRefreshState(v.RefreshState)
     self:EffectShopPurchaseState(v.PurchaseState)
     self:EffectShopFreeState(v.FreeState)
     self:EffectShopRarity(v.Rarity)
     self:EffectShopPurchaseExpDiscount(v.PurchaseExpDiscount)
     self:EffectShowChess(v.ShowChess)
+    self:EffectClientHarvest(v.ClientHarvest)
+    self:EffectInterest(v.Interest)
+    self:EffectCardReRoll(v.CardReRoll)
+    self:EffectDiceAddPoint(v.DiceAddPoint)
   end
 end
 
@@ -2300,9 +2533,6 @@ function SoldierLevelData:InteractBattle(battleMsg, param, tbChange)
   if battleMsg == nil then
     return
   end
-  self:CacheReward(AllEnum.SoldierRewardSource.EventBattle, {
-    tbChess = battleMsg.Chess
-  })
   local nAllCoinChange = 0
   local tbItemChange = tbChange.itemChange
   if tbItemChange ~= nil then
@@ -2327,30 +2557,10 @@ function SoldierLevelData:InteractBattle(battleMsg, param, tbChange)
   end
 end
 
-function SoldierLevelData:InteractEventSettlementOfDispute(eventBattleMsg)
-  if eventBattleMsg == nil then
-    return
-  end
-  if eventBattleMsg.Result ~= nil then
-    if self.mapCases[CaseEnum.EventSettlementOfDispute] ~= nil then
-      self.mapCases[CaseEnum.EventSettlementOfDispute].nPoint = eventBattleMsg.Result.Point
-      self.mapCases[CaseEnum.EventSettlementOfDispute].tbTwoDicePoint = eventBattleMsg.Result.TwoDicePoint
-    end
-  elseif eventBattleMsg.Reward ~= nil then
-    self:CacheReward(AllEnum.SoldierRewardSource.EventBattle, {
-      tbChess = eventBattleMsg.Reward.Chess,
-      nCoin = eventBattleMsg.Reward.Coin
-    })
-  end
-end
-
 function SoldierLevelData:InteractEventSettlementOfDisputeBattle(battleMsg, param, tbChange)
   if battleMsg == nil then
     return
   end
-  self:CacheReward(AllEnum.SoldierRewardSource.EventBattle, {
-    tbChess = battleMsg.Chess
-  })
   local nAllCoinChange = 0
   local tbItemChange = tbChange.itemChange
   if tbItemChange ~= nil then
@@ -2373,6 +2583,20 @@ function SoldierLevelData:InteractEventSettlementOfDisputeBattle(battleMsg, para
     self.mapClientCases[ClientCase.BattleResult].tbCoinReward = tbCoinReward
     self.mapClientCases[ClientCase.BattleResult].bEventBattle = true
   end
+  self:CacheReward(AllEnum.SoldierRewardSource.EventBattle, {
+    tbChess = battleMsg.Chess,
+    nCoin = battleMsg.Coin
+  })
+end
+
+function SoldierLevelData:InteractCheckStageSettle(settleMsg)
+  if settleMsg == nil then
+    return
+  end
+  self:CacheReward(AllEnum.SoldierRewardSource.Battle, {
+    nCheckStageDps = settleMsg.DpsScore,
+    nCheckStageTime = settleMsg.TimeScore
+  })
 end
 
 function SoldierLevelData:InteractSelect(selectMsg)
@@ -2381,9 +2605,81 @@ function SoldierLevelData:InteractSelect(selectMsg)
   end
   if selectMsg.Resp ~= nil then
   elseif selectMsg.SelectCard ~= nil and self.mapCases[CaseEnum.SelectCard] ~= nil then
-    self.mapCases[CaseEnum.SelectCard].nType = selectMsg.SelectCard.Type
     self.mapCases[CaseEnum.SelectCard].tbCards = selectMsg.SelectCard.Ids
     self.mapCases[CaseEnum.SelectCard].nRoll = selectMsg.SelectCard.ReRoll
+  end
+end
+
+function SoldierLevelData:_ParseStoryEventRewards(tbRewards)
+  if tbRewards == nil or #tbRewards == 0 then
+    return nil
+  end
+  local RT = AllEnum.SoldierEventEffectRewardType
+  local data = {}
+  for _, r in ipairs(tbRewards) do
+    local eType = r.RewardType
+    if eType == RT.Chess then
+      if r.ChessList ~= nil and r.ChessList.ChessList ~= nil then
+        data.tbChess = data.tbChess or {}
+        for _, ch in ipairs(r.ChessList.ChessList) do
+          table.insert(data.tbChess, ch)
+        end
+      end
+    elseif (eType == RT.GainCoin or eType == RT.LossCoin) and r.Res ~= nil and r.Res.ResRewards ~= nil then
+      for _, res in ipairs(r.Res.ResRewards) do
+        if res.Tid == AllEnum.CoinItemId.SoldierCurrency then
+          data.nCoin = (data.nCoin or 0) + (res.Qty or 0)
+        end
+      end
+    end
+  end
+  if next(data) == nil then
+    return nil
+  end
+  return data
+end
+
+function SoldierLevelData:InteractStoryEventOfPersonalitySelect(respMsg)
+  if respMsg == nil then
+    return
+  end
+  EventManager.Hit(EventId.ClosePanel, PanelId.SoldierEventPanel)
+  if respMsg.Success ~= nil then
+    return
+  end
+  if respMsg.Reward == nil then
+    return
+  end
+  local data = self:_ParseStoryEventRewards(respMsg.Reward.Rewards)
+  if data ~= nil then
+    self:CacheReward(AllEnum.SoldierRewardSource.EventBattle, data)
+  end
+  if respMsg.Reward.Point > 0 then
+    self.mapClientCases[ClientCase.DiceResult] = {
+      bSuccess = respMsg.Reward.Result,
+      nPoint = respMsg.Reward.Point,
+      tbTwoDicePoint = respMsg.Reward.TwoDicePoint
+    }
+  end
+end
+
+function SoldierLevelData:InteractStoryEventOfCostlySelect(respMsg)
+  if respMsg == nil then
+    return
+  end
+  local data = self:_ParseStoryEventRewards(respMsg.Rewards)
+  if data ~= nil then
+    self:CacheReward(AllEnum.SoldierRewardSource.EventBattle, data)
+  end
+  local bHaveNext = false
+  for _, v in ipairs(respMsg.Rewards) do
+    if v.RewardType == AllEnum.SoldierEventEffectRewardType.Next then
+      bHaveNext = true
+      break
+    end
+  end
+  if not bHaveNext then
+    EventManager.Hit(EventId.ClosePanel, PanelId.SoldierEventPanel)
   end
 end
 
@@ -2391,66 +2687,59 @@ function SoldierLevelData:InteractSettle(settleMsg)
   if settleMsg == nil then
     return
   end
-  self.mapClientCases[ClientCase.Settle] = {}
-  local nType = 0
+  local nType = AllEnum.SoldierResultType.ChallengeFail
   if settleMsg.Result == 1 then
     nType = AllEnum.SoldierResultType.ChallengeSuccess
-  else
-    nType = AllEnum.SoldierResultType.ChallengeFail
   end
-  self.mapClientCases[ClientCase.Settle].nType = nType
-  self.mapClientCases[ClientCase.Settle].nTotalScore = settleMsg.TotalScore
-  self.mapClientCases[ClientCase.Settle].nRewardScore = settleMsg.RewardScore
+  if settleMsg.EndingId ~= nil and settleMsg.EndingId ~= 0 then
+    self.mapClientCases[ClientCase.Ending] = {
+      data = settleMsg.EndingId
+    }
+  end
+  self.mapClientCases[ClientCase.Settle] = {
+    nType = nType,
+    tbSettle = {
+      nPassedNode = settleMsg.PassedNode,
+      nRemainingHp = settleMsg.RemainingHp,
+      nCheckStageDps = settleMsg.CheckStageDps,
+      nCheckStageTime = settleMsg.CheckStageTime,
+      nChessTotalCost = settleMsg.ChessTotalCost,
+      nGetSchedule = settleMsg.GetSchedule,
+      nGetTechPoint = settleMsg.GetTechPoint,
+      nGetGradeExp = settleMsg.GetGradeExp,
+      nCurGradeChallengeId = settleMsg.CurGradeChallengeId,
+      nCurGradeExp = settleMsg.CurGradeExp,
+      nEndingId = settleMsg.EndingId,
+      nTotalCoinQty = settleMsg.TotalCoinQty
+    },
+    tbChess = self.tbDeployChess or {},
+    tbDamage = self.tbLastBattleDamage or {},
+    nBossTemplateId = self.nBossTemplateId or 0,
+    nHp = self:GetHp() or 0,
+    nCoin = self:GetItem(AllEnum.CoinItemId.SoldierCurrency) or 0,
+    tbCard = self:GetCardData() or {},
+    nGradeChallengeId = self.nGradeChallengeId or 0
+  }
+  if settleMsg.Change ~= nil then
+    local mapDecodedChangeInfo = UTILS.DecodeChangeInfo(settleMsg.Change)
+    HttpNetHandler.ProcChangeInfo(mapDecodedChangeInfo)
+  end
+  self.parent:RefreshRedDot()
 end
 
-function SoldierLevelData:_ExtractLeftmostHintsFromEffects(tbEffects)
-  if tbEffects == nil then
-    return nil
+function SoldierLevelData:InteractDeploySync(deploySyncResp)
+  if deploySyncResp == nil then
+    return
   end
-  local tbHints = {}
-  for _, v in ipairs(tbEffects) do
-    local mapLeftmostChange = v.LeftmostChange
-    if mapLeftmostChange ~= nil and mapLeftmostChange.SId ~= nil then
-      local nPos, nIdx
-      if mapLeftmostChange.SId <= 3 then
-        nPos, nIdx = SPT.Fight, mapLeftmostChange.SId
-      elseif mapLeftmostChange.SId <= 9 then
-        nPos, nIdx = SPT.Support, mapLeftmostChange.SId - 3
-      elseif mapLeftmostChange.SId <= 18 then
-        nPos, nIdx = SPT.Waiting, mapLeftmostChange.SId - 9
-      end
-      if nPos ~= nil then
-        local nOldId, nOldStar
-        if nPos == SPT.Fight or nPos == SPT.Support then
-          for _, chess in ipairs(self.tbDeployChess or {}) do
-            if chess.nPositionType == nPos and chess.nIndex == nIdx then
-              nOldId, nOldStar = chess.nId, chess.nStar
-              break
-            end
-          end
-        elseif nPos == SPT.Waiting then
-          for _, chess in ipairs(self.tbWaitingChess or {}) do
-            if chess.nIndex == nIdx then
-              nOldId, nOldStar = chess.nId, chess.nStar
-              break
-            end
-          end
-        end
-        if nOldId ~= nil and nOldId ~= 0 then
-          table.insert(tbHints, {
-            nId = nOldId,
-            nStar = nOldStar,
-            nPositionType = nPos,
-            nIndex = nIdx
-          })
-        end
-      end
-    end
+  if deploySyncResp.Deploy ~= nil then
+    self:_RebuildFromNewDeploy(deploySyncResp.Deploy)
+    self.tbDeployChess = self:_DeriveDeployView()
+    self.tbWaitingChess = self:_DeriveWaitingView()
+    self.tbOtherChess = self:_DeriveOtherView()
+    self.mapAllChess = self:_DeriveAllChessView()
+    self:UpdatePartner()
+    EventManager.Hit("SoldierDeployFullRebuild")
   end
-  if #tbHints == 0 then
-    return nil
-  end
-  return tbHints
 end
 
 function SoldierLevelData:_OnInteract(netMsgData, param, callback)
@@ -2458,22 +2747,23 @@ function SoldierLevelData:_OnInteract(netMsgData, param, callback)
     return
   end
   self._tbTouchedRewardIdxes = {}
+  self._tbPendingNewPartner = nil
+  self._bPartnerSetChanged = nil
   local tbChange = {}
   self:UpdateNodeInfo(netMsgData.Node, tbChange)
   self:UpdateBaseInfo(netMsgData.SyncData, tbChange)
-  local tbLeftmostHints = self:_ExtractLeftmostHintsFromEffects(netMsgData.Effects)
-  local paramForChange = param
-  if tbLeftmostHints ~= nil then
-    paramForChange = {sourceParam = param, tbLeftmostHints = tbLeftmostHints}
-  end
-  self:UpdateChangeInfo(netMsgData.Change, tbChange, paramForChange)
+  self:UpdateChangeInfo(netMsgData.Change, tbChange, param)
   self:UpdateEffect(netMsgData.Effects, tbChange)
+  self:UpdateBuffProgress(netMsgData.Progress)
   self:InteractShop(netMsgData.ShopResp)
   self:InteractBattle(netMsgData.BattleResp, param, tbChange)
-  self:InteractEventSettlementOfDispute(netMsgData.EventSettlementOfDisputeResp)
   self:InteractEventSettlementOfDisputeBattle(netMsgData.EventSettlementOfDisputeBattleResp, param, tbChange)
   self:InteractSelect(netMsgData.SelectResp)
+  self:InteractStoryEventOfPersonalitySelect(netMsgData.StoryEventOfPersonalitySelectResp)
+  self:InteractStoryEventOfCostlySelect(netMsgData.StoryEventOfCostlySelectResp)
+  self:InteractCheckStageSettle(netMsgData.CheckStageSettleResp)
   self:InteractSettle(netMsgData.Settle)
+  self:InteractDeploySync(netMsgData.DeploySyncResp)
   self:ClearServerCase()
   for _, v in ipairs(netMsgData.Cases) do
     self:DispatchServerCase(v)
@@ -2503,12 +2793,35 @@ function SoldierLevelData:_OnInteract(netMsgData, param, callback)
   cs_coroutine.start(wait)
 end
 
+function SoldierLevelData:GetBossTemplateId()
+  return self.nBossTemplateId
+end
+
 function SoldierLevelData:GetNodeId()
   return self.nNodeId
 end
 
 function SoldierLevelData:GetNodeList()
   return self.tbNodeList
+end
+
+function SoldierLevelData:GetNodeIndex()
+  for _, v in ipairs(self.tbNodeList) do
+    if v.nNodeId == self.nNodeId then
+      return v.nIndex
+    end
+  end
+  return 0
+end
+
+function SoldierLevelData:IsFirstStageFirstNode()
+  if self.nStageId ~= 1 then
+    return false
+  end
+  if self.tbNodeList == nil or self.tbNodeList[1] == nil then
+    return false
+  end
+  return self.tbNodeList[1].nNodeId == self.nNodeId
 end
 
 function SoldierLevelData:GetHp()
@@ -2535,6 +2848,14 @@ function SoldierLevelData:GetDeploy()
   return self.tbDeployChess, self.tbWaitingChess, self.tbOtherChess
 end
 
+function SoldierLevelData:GetAllChess()
+  return self.mapAllChess
+end
+
+function SoldierLevelData:PosIndexToSlot(nPosType, nIndex)
+  return PosIndexToSlot(nPosType, nIndex)
+end
+
 function SoldierLevelData:GetShopData()
   local mapShopCase = self.mapCases[CaseEnum.Shop]
   if mapShopCase ~= nil then
@@ -2553,93 +2874,27 @@ end
 function SoldierLevelData:GetSelectCardData()
   local mapCase = self:_GetCaseDataByType(CaseEnum.SelectCard)
   if mapCase ~= nil then
-    if mapCase.nType == AllEnum.SoldierCardType.StartedCard then
-      return mapCase.tbCards, mapCase.nRoll
-    elseif mapCase.nType == AllEnum.SoldierCardType.StrategyCard then
-      return mapCase.tbCards
-    end
+    return mapCase.tbCards, mapCase.nRoll
   end
 end
 
 function SoldierLevelData:GetCardData()
-  return self.tbStartedCards, self.tbStrategyCards
-end
-
-function SoldierLevelData:SwapSoldier(mapSource, mapTarget)
-  if mapSource == nil or mapTarget == nil then
-    return false
-  end
-  self:PrintSoldier(string.format("[Soldier]交换棋子 [%s-%s-%s-%s]-->[%s-%s-%s-%s]", mapSource.nId, mapSource.nStar, mapSource.nPositionType, mapSource.nIndex, mapTarget.nId, mapTarget.nStar, mapTarget.nPositionType, mapTarget.nIndex))
-  
-  local function _findSlot(mapInfo)
-    local nPos = mapInfo.nPositionType
-    if nPos == SPT.Fight or nPos == SPT.Support then
-      for _, v in ipairs(self.tbDeployChess) do
-        if v.nPositionType == nPos and v.nIndex == mapInfo.nIndex then
-          return v
-        end
-      end
-    elseif nPos == SPT.Waiting then
-      for _, v in ipairs(self.tbWaitingChess) do
-        if v.nIndex == mapInfo.nIndex then
-          return v
-        end
+  if self.tbStrategyCards == nil then
+    local tb = {}
+    for k, buffInfo in pairs(self.mapBuffs) do
+      if buffInfo.nType == SoldierBuffType.CardBuff and tb[buffInfo.nBindId] == nil then
+        tb[buffInfo.nBindId] = k
       end
     end
-    return nil
-  end
-  
-  local sourceSlot = _findSlot(mapSource)
-  local targetSlot = _findSlot(mapTarget)
-  if sourceSlot == nil or targetSlot == nil then
-    self:PrintSoldier("[Soldier]交换棋子 找不到交换棋子或目标棋子")
-    return false
-  end
-  if sourceSlot == targetSlot then
-    self:PrintSoldier("[Soldier]交换棋子 交换棋子和目标棋子相同")
-    return false
-  end
-  if sourceSlot.nId ~= mapSource.nId or sourceSlot.nStar ~= mapSource.nStar then
-    self:PrintSoldier("[Soldier]交换棋子 交换棋子和背包数据有差异")
-    return false
-  end
-  if targetSlot.nId ~= mapTarget.nId or targetSlot.nStar ~= mapTarget.nStar then
-    self:PrintSoldier("[Soldier]交换棋子 目标棋子和背包数据有差异")
-    return false
-  end
-  if mapSource.nPositionType ~= mapTarget.nPositionType then
-    local mapIds = {}
-    for _, v in ipairs(self.tbDeployChess) do
-      local nId
-      if v == sourceSlot then
-        nId = targetSlot.nId
-      elseif v == targetSlot then
-        nId = sourceSlot.nId
-      else
-        nId = v.nId
-      end
-      if nId ~= 0 then
-        if mapIds[nId] then
-          return false
-        end
-        mapIds[nId] = true
-      end
+    self.tbStrategyCards = {}
+    for nId, nIndex in pairs(tb) do
+      table.insert(self.tbStrategyCards, {nId = nId, nIndex = nIndex})
     end
+    table.sort(self.tbStrategyCards, function(a, b)
+      return a.nIndex < b.nIndex
+    end)
   end
-  local nTmpId, nTmpStar = sourceSlot.nId, sourceSlot.nStar
-  sourceSlot.nId, sourceSlot.nStar = targetSlot.nId, targetSlot.nStar
-  targetSlot.nId, targetSlot.nStar = nTmpId, nTmpStar
-  self:PrintSoldier("[Soldier]交换棋子 交换成功")
-  return true
-end
-
-function SoldierLevelData:SyncSoldierDeploy(callback)
-  self:FillOtherChess()
-  local tbStep = self:DisposalChessDeploy()
-  self:UpdatePartner()
-  if callback ~= nil then
-    callback(tbStep)
-  end
+  return self.tbStrategyCards
 end
 
 function SoldierLevelData:CheckSandTableDisable()
@@ -2647,6 +2902,10 @@ function SoldierLevelData:CheckSandTableDisable()
   if self.mapCases[CaseEnum.SelectCard] ~= nil then
     bDisable = true
   elseif self.mapCases[CaseEnum.EventSettlementOfDispute] ~= nil then
+    bDisable = true
+  elseif self.mapCases[CaseEnum.StoryEventOfPersonality] ~= nil then
+    bDisable = true
+  elseif self.mapCases[CaseEnum.StoryEventOfCostly] ~= nil then
     bDisable = true
   end
   return bDisable
@@ -2728,31 +2987,78 @@ end
 function SoldierLevelData:GetClientBuffList()
   local tbBuffList = {}
   for nEffectId, v in pairs(self.tbClientEffects) do
-    local mapEffect = self.tbAllEffects[nEffectId]
-    if mapEffect ~= nil then
-      local nBuffId = mapEffect.nBuffId
-      local mapBuffCfg = ConfigTable.GetData("SoldierBuff", nBuffId)
-      if mapBuffCfg ~= nil then
-        local nEffectType = mapBuffCfg["Effect" .. mapEffect.nIndex]
-        if nEffectType ~= nil and nEffectType == GameEnum.soldierBuffEffect.ClientEffect then
-          local buffList = mapBuffCfg["EffectParams" .. mapEffect.nIndex]
-          if buffList ~= nil then
-            for _, buffId in ipairs(buffList) do
-              table.insert(tbBuffList, tonumber(buffId))
-            end
-          end
-        end
+    local buffList = v.tbValues
+    if buffList ~= nil then
+      for _, buffId in ipairs(buffList) do
+        table.insert(tbBuffList, tonumber(buffId))
       end
     end
   end
   return tbBuffList
 end
 
+function SoldierLevelData:GetCheckStage()
+  local mapCase = self:_GetCaseDataByType(CaseEnum.CheckStage)
+  if mapCase ~= nil then
+    return true
+  end
+  return false
+end
+
+function SoldierLevelData:GetClientHarvestCount()
+  if self.mapExtraEffectState ~= nil then
+    return self.mapExtraEffectState.nHarvest or 0
+  end
+end
+
+function SoldierLevelData:GetStoryEventData()
+  local mapCaseData = self.mapCases[CaseEnum.StoryEventOfPersonality]
+  if mapCaseData ~= nil then
+    return mapCaseData
+  end
+  mapCaseData = self.mapCases[CaseEnum.StoryEventOfCostly]
+  if mapCaseData ~= nil then
+    return mapCaseData
+  end
+end
+
+function SoldierLevelData:CheckInSandtable()
+  return self.mapCases[CaseEnum.Fight] ~= nil
+end
+
+function SoldierLevelData:GetDiceAddPointList()
+  local tbDiscAdd = {}
+  for nEUId, v in pairs(self.tbDiscAddEffect) do
+    local buff = self.mapBuffs[v.nBuffUId]
+    if buff ~= nil then
+      local nType = 0
+      if buff.nType == SoldierBuffType.CardBuff then
+        nType = AllEnum.SoldierDiscAddType.BuffCard
+      elseif buff.nType == SoldierBuffType.TechNodeBuff then
+        nType = AllEnum.SoldierDiscAddType.TechNode
+      end
+      table.insert(tbDiscAdd, {
+        nType = nType,
+        nId = buff.nBindId,
+        nPoint = v.nPoint
+      })
+    end
+  end
+  return tbDiscAdd
+end
+
+function SoldierLevelData:GetInterestLimit()
+  if self.mapExtraEffectState ~= nil then
+    return self.mapExtraEffectState.nInterestLimit
+  end
+  return 0
+end
+
 function SoldierLevelData:GMEnterBattle(tbDeployChess)
   if self.curBattle == nil then
     self.curBattle = require("Game.Adventure.Soldier.SoldierBattle").new()
   end
-  self.curBattle:Init(self, tbDeployChess, 1, 1)
+  self.curBattle:Init(self, tbDeployChess, 1, 1, 1, 1, 101)
 end
 
 return SoldierLevelData

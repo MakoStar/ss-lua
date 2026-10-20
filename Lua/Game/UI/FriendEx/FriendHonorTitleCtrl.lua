@@ -158,6 +158,8 @@ function FriendHonorTitleCtrl:RefreshHonorTitle()
             break
           end
         end
+      elseif honorData.Type == GameEnum.honorType.Dorm then
+        level = PlayerData.PlayerDormData:GetHonorTitleLevel()
       end
       self._mapNode.goCurHonorTitle[i]:SetHonotTitle(honorData.Id, i == 1, level)
     end
@@ -270,6 +272,8 @@ function FriendHonorTitleCtrl:OnGridRefresh(goGrid, gridIndex)
         break
       end
     end
+  elseif honorData.Type == GameEnum.honorType.Dorm then
+    level = PlayerData.PlayerDormData:GetHonorTitleLevel()
   end
   local bgPath = ctrl:SetHonotTitle(honorData.Id, true, level)
   self:SetPngSprite(imgHonorTitleEquipBg, bgPath ~= "" and bgPath or honorData.MainRes)

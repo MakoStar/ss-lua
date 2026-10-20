@@ -54,7 +54,8 @@ function MallSkinCtrl:RefreshData(tbList)
   table.insert(self.tbPackagePage, tbAllList)
   self.tbPages[1] = {
     Id = 0,
-    Name = ConfigTable.GetUIText("Mall_Package_TabAll")
+    Name = ConfigTable.GetUIText("Mall_Package_TabAll"),
+    Sort = 0
   }
   for _, v in pairs(tbPage) do
     if tbPackageToPage[v.Id] then
@@ -63,18 +64,25 @@ function MallSkinCtrl:RefreshData(tbList)
     end
   end
   self.nPageCount = #self.tbPages
+  local nTab
   if self._panel.nDefaultId then
     for k, v in ipairs(self.tbPages) do
       if v.Id == self._panel.nDefaultId then
-        self.nCurTab = k
+        nTab = k
         self._panel.nDefaultId = nil
         break
       end
     end
   end
-  if not self.tbPages[self.nCurTab] or self.nSelectPage and self.tbPages[self.nCurTab].Id ~= self.nSelectPage then
-    self.nCurTab = 1
+  if nTab == nil and self.nSelectPage then
+    for k, v in ipairs(self.tbPages) do
+      if v.Id == self.nSelectPage then
+        nTab = k
+        break
+      end
+    end
   end
+  self.nCurTab = nTab or 1
   self.nSelectPage = self.tbPages[self.nCurTab].Id
 end
 
@@ -195,14 +203,14 @@ function MallSkinCtrl:ResetTab()
   end
   self.nCurTab = 1
   self.ctrlTab[self.nCurTab]:SetSelect(true, 1)
+  self.nSelectPage = self.tbPages[self.nCurTab] and self.tbPages[self.nCurTab].Id or nil
 end
 
-function MallSkinCtrl:GetCurTab()
-  if self.tbPages[self.nCurTab].Sort == nil then
-    return nil
-  else
-    return self.tbPages[self.nCurTab].Sort
+function MallSkinCtrl:GetCurSort()
+  if not self.tbPages or not self.tbPages[self.nCurTab] then
+    return 0
   end
+  return self.tbPages[self.nCurTab].Sort
 end
 
 function MallSkinCtrl:Awake()
@@ -237,8 +245,8 @@ function MallSkinCtrl:OnBtnClick_ChangeSheet(btn, nIndex)
   if nIndex == self.nCurTab then
     return
   end
-  local nTab = self:GetCurTab()
-  PlayerData.Mall:RemovePackageNew(GameEnum.MallItemType.Skin, nTab)
+  local nSort = self:GetCurSort()
+  PlayerData.Mall:RemovePackageNew(GameEnum.MallItemType.Skin, nSort)
   local nState = self:GetTabState(self.nCurTab)
   self.ctrlTab[self.nCurTab]:SetSelect(false, nState)
   if self.nCurTab > 1 then

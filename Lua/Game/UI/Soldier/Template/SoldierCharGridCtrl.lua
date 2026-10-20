@@ -13,9 +13,7 @@ SoldierCharGridCtrl._mapNodeConfig = {
   StarRoot = {},
   Star = {nCount = 5}
 }
-SoldierCharGridCtrl._mapEventConfig = {
-  SoldierHandbookStrategyCard_Selected = "OnEvent_SoldierHandbookStrategyCard_Selected"
-}
+SoldierCharGridCtrl._mapEventConfig = {}
 SoldierCharGridCtrl._mapRedDotConfig = {}
 
 function SoldierCharGridCtrl:SetItem(nRarity, nCount, sIcon, nStar, bMask, bInBattle)

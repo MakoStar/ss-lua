@@ -67,7 +67,7 @@ function TransitionCtrl:_MarkCallback(cb, bIn)
   table.insert(tbCallback, {cb, false})
 end
 
-function TransitionCtrl:_In(sEventFrom, nType, callback, nParam)
+function TransitionCtrl:_In(sEventFrom, nType, callback, nParam, bIgnoreCSEvent)
   local sFrameCount = tostring(CS.UnityEngine.Time.frameCount)
   if self._panel:GetTransitionStatus() == AllEnum.TransitionStatus.IsPlayingInAnim then
     printLog("[转场]重复落幕(" .. sEventFrom .. ")，落幕 anim playing，frameCount: " .. sFrameCount)
@@ -78,34 +78,44 @@ function TransitionCtrl:_In(sEventFrom, nType, callback, nParam)
     self:_DoCallback(true)
   elseif self._panel:GetTransitionStatus() == AllEnum.TransitionStatus.IsPlayingOutAnim then
     printLog("[转场]错误落幕(" .. sEventFrom .. ")，开幕 anim playing，frameCount: " .. sFrameCount)
-    if self.timerAnim ~= nil then
-      self.timerAnim:Cancel(true)
-      self.timerAnim = nil
-    end
     self:_MarkCallback(callback, true)
-    self:OpenTransition(nType, nParam)
+    if bIgnoreCSEvent ~= true then
+      if self.timerAnim ~= nil then
+        self.timerAnim:Cancel(true)
+        self.timerAnim = nil
+      end
+      self:OpenTransition(nType, nParam)
+    end
   elseif self._panel:GetTransitionStatus() == AllEnum.TransitionStatus.OutAnimDone then
     printLog("[转场]正常落幕(" .. sEventFrom .. ")，开幕 anim done，frameCount: " .. sFrameCount)
     self:_MarkCallback(callback, true)
-    self:OpenTransition(nType, nParam)
+    if bIgnoreCSEvent ~= true then
+      self:OpenTransition(nType, nParam)
+    end
   end
 end
 
-function TransitionCtrl:_Out(sEventFrom, callback)
+function TransitionCtrl:_Out(sEventFrom, callback, bIgnoreCSEvent)
   local sFrameCount = tostring(CS.UnityEngine.Time.frameCount)
   if self._panel:GetTransitionStatus() == AllEnum.TransitionStatus.IsPlayingInAnim then
     printLog("[转场]错误开幕(" .. sEventFrom .. ")，落幕 anim playing，frameCount: " .. sFrameCount)
-    if self.timerAnim ~= nil then
-      self.timerAnim:Cancel(true)
-      self.timerAnim = nil
-    end
     self:_MarkCallback(callback, false)
-    self:CloseTransition()
+    if bIgnoreCSEvent ~= true then
+      if self.timerAnim ~= nil then
+        self.timerAnim:Cancel(true)
+        self.timerAnim = nil
+      end
+      self:CloseTransition()
+    end
   elseif self._panel:GetTransitionStatus() == AllEnum.TransitionStatus.InAnimDone then
     printLog("[转场]正常开幕(" .. sEventFrom .. ")，落幕 anim done，frameCount: " .. sFrameCount)
     self:_MarkCallback(callback, false)
-    self:CloseTransition()
-    EventManager.Hit("InputEnable", false, true)
+    if bIgnoreCSEvent ~= true then
+      self:CloseTransition()
+      EventManager.Hit("InputEnable", false, true)
+    else
+      self:_DoCallback(false)
+    end
   elseif self._panel:GetTransitionStatus() == AllEnum.TransitionStatus.IsPlayingOutAnim then
     printLog("[转场]重复开幕(" .. sEventFrom .. ")，开幕 anim playing，frameCount: " .. sFrameCount)
     self:_MarkCallback(callback, false)
@@ -125,14 +135,17 @@ function TransitionCtrl:OnEvent_SetTrans(nType, callback, nParam)
 end
 
 function TransitionCtrl:OnEvent_OpenLoadingView(callback, delayTime, fadeTime, tag, nType)
-  self:_In("C#", nType, callback)
+  self:_In("C#", nType, callback, nil, PanelManager.IGNORE_CS_TRANS_EVENT)
 end
 
 function TransitionCtrl:OnEvent_CloseLoadingView(callback, delayTime, fadeTime)
-  self:_Out("C#", callback)
+  self:_Out("C#", callback, PanelManager.IGNORE_CS_TRANS_EVENT)
 end
 
 function TransitionCtrl:OnEvent_UpdateLoadingView(nProgress, sMsg)
+  if PanelManager.IGNORE_CS_TRANS_EVENT == true then
+    return
+  end
   if self.cs_loading_img ~= nil and self.cs_loading_img:IsNull() == false then
     NovaAPI.SetImageFillAmount(self.cs_loading_img, nProgress)
   end
@@ -219,9 +232,9 @@ function TransitionCtrl:OnTimer_AnimDone(timer, bIn)
     self.nType = nil
     self._mapNode.TransitionRoot.localScale = Vector3.zero
     EventManager.Hit("InputEnable", true, true)
+    EventManager.Hit(EventId.BlockInput, false)
     self:_DoCallback(bIn)
     EventManager.Hit(EventId.TransAnimOutClear)
-    EventManager.Hit(EventId.BlockInput, false)
   end
 end
 
@@ -308,7 +321,7 @@ end
 
 function TransitionCtrl:Set_6(goStyle, nParam)
   local tr = goStyle.transform
-  for i = AllEnum.MainViewCorner.Role, AllEnum.MainViewCorner.Mainline do
+  for i = AllEnum.MainViewCorner.Role, AllEnum.MainViewCorner.Dorm do
     tr:GetChild(i).gameObject:SetActive(i == nParam)
   end
 end

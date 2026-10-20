@@ -81,7 +81,7 @@ function ShopGoodsDetailCtrl:RefreshInfo(mapData)
     local nStar = 6 - mapCfg.Rarity
     self._mapNode.goDiscStar:SetStar(nStar, nStar)
   end
-  if mapCfg.Type == GameEnum.itemType.Disc or mapCfg.Type == GameEnum.itemType.Char or mapCfg.Type == GameEnum.itemType.CharacterSkin then
+  if mapCfg.Type == GameEnum.itemType.Disc or mapCfg.Type == GameEnum.itemType.Char or mapCfg.Type == GameEnum.itemType.CharacterSkin or mapCfg.Stype == GameEnum.itemStype.DormFurniture then
     self._mapNode.txtHas.gameObject:SetActive(false)
   else
     self._mapNode.txtHas.gameObject:SetActive(true)
@@ -124,7 +124,7 @@ end
 function ShopGoodsDetailCtrl:RefreshBuyCount()
   local nCost = self.nBuyCount * self.mapData.nPrice
   NovaAPI.SetTMPText(self._mapNode.txtCoinCount, nCost)
-  local nHasCoin = PlayerData.Coin:GetCoinCount(self.mapData.nCurrencyItemId)
+  local nHasCoin = PlayerData.Item:GetItemCountByID(self.mapData.nCurrencyItemId)
   NovaAPI.SetTMPColor(self._mapNode.txtCoinCount, nCost > nHasCoin and Red_Unable or Blue_Normal)
 end
 
@@ -153,7 +153,7 @@ function ShopGoodsDetailCtrl:RefreshBuyState()
 end
 
 function ShopGoodsDetailCtrl:CountMaxBuy()
-  local nHasCoin = PlayerData.Coin:GetCoinCount(self.mapData.nCurrencyItemId)
+  local nHasCoin = PlayerData.Item:GetItemCountByID(self.mapData.nCurrencyItemId)
   local nMax = math.floor(nHasCoin / self.mapData.nPrice)
   if nMax == 0 then
     return 1
@@ -196,7 +196,7 @@ end
 
 function ShopGoodsDetailCtrl:OnBtnClick_Buy()
   local nCost = self.nBuyCount * self.mapData.nPrice
-  local nHasCoin = PlayerData.Coin:GetCoinCount(self.mapData.nCurrencyItemId)
+  local nHasCoin = PlayerData.Item:GetItemCountByID(self.mapData.nCurrencyItemId)
   local sName = ConfigTable.GetData_Item(self.mapData.nCurrencyItemId).Title
   if nCost > nHasCoin then
     EventManager.Hit(EventId.OpenMessageBox, orderedFormat(ConfigTable.GetUIText("Shop_NotEnough"), sName))

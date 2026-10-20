@@ -4,6 +4,15 @@ SoldierHandbookSelectCtrl._mapNodeConfig = {
     sNodeName = "TopBarPanel",
     sCtrlName = "Game.UI.TopBarEx.TopBarCtrl"
   },
+  btn_Boss = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_Boss"
+  },
+  txt_Boss = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Soldier_Handbook_Boss"
+  },
+  txt_BossCount = {sComponentName = "TMP_Text"},
   btn_Char = {
     sComponentName = "UIButton",
     callback = "OnBtnClick_Character"
@@ -22,15 +31,6 @@ SoldierHandbookSelectCtrl._mapNodeConfig = {
     sLanguageId = "Soldier_Handbook_Partner"
   },
   txt_PartnerCount = {sComponentName = "TMP_Text"},
-  btn_StarterCard = {
-    sComponentName = "UIButton",
-    callback = "OnBtnClick_StarterCard"
-  },
-  txt_StarterCard = {
-    sComponentName = "TMP_Text",
-    sLanguageId = "Soldier_Handbook_StarterCard"
-  },
-  txt_StarterCardCount = {sComponentName = "TMP_Text"},
   btn_StrategyCard = {
     sComponentName = "UIButton",
     callback = "OnBtnClick_StrategyCard"
@@ -48,20 +48,38 @@ function SoldierHandbookSelectCtrl:Awake()
 end
 
 function SoldierHandbookSelectCtrl:OnEnable()
+  self:RefreshBossCount()
   self:RefreshCharCount()
   self:RefreshPartnerCount()
-  self:RefreshStarterCardCount()
   self:RefreshStrategyCardCount()
+end
+
+function SoldierHandbookSelectCtrl:RefreshEndCount()
+  local nCount = 0
+  
+  local function func_ForEach_End(mapEndData)
+    nCount = nCount + 1
+  end
+  
+  ForEachTableLine(DataTable.SoldierEndingPlan, func_ForEach_End)
+  NovaAPI.SetTMPText(self._mapNode.txt_EndCount, nCount)
+end
+
+function SoldierHandbookSelectCtrl:RefreshBossCount()
+  local nCount = 0
+  
+  local function func_ForEach_Boss(mapBossData)
+    nCount = nCount + 1
+  end
+  
+  ForEachTableLine(DataTable.SoldierBossTemplate, func_ForEach_Boss)
+  NovaAPI.SetTMPText(self._mapNode.txt_BossCount, nCount)
 end
 
 function SoldierHandbookSelectCtrl:RefreshCharCount()
   local nCount = 0
-  local actData = PlayerData.Activity:GetActivityDataByType(GameEnum.activityType.Soldier)
-  if actData == nil then
-    return
-  end
-  local nActId = actData:GetActId()
-  local seasonConfig = ConfigTable.GetData("SoldierSeason", nActId)
+  local nSeasonId = PlayerData.SoldierData:GetCurSelectSeasonId()
+  local seasonConfig = ConfigTable.GetData("SoldierSeason", nSeasonId)
   if seasonConfig == nil then
     return
   end
@@ -87,17 +105,6 @@ function SoldierHandbookSelectCtrl:RefreshPartnerCount()
   NovaAPI.SetTMPText(self._mapNode.txt_PartnerCount, nCount)
 end
 
-function SoldierHandbookSelectCtrl:RefreshStarterCardCount()
-  local nCount = 0
-  
-  local function func_ForEach_StarterCard(mapStarterCardData)
-    nCount = nCount + 1
-  end
-  
-  ForEachTableLine(DataTable.SoldierStarterCard, func_ForEach_StarterCard)
-  NovaAPI.SetTMPText(self._mapNode.txt_StarterCardCount, nCount)
-end
-
 function SoldierHandbookSelectCtrl:RefreshStrategyCardCount()
   local nCount = 0
   
@@ -109,16 +116,16 @@ function SoldierHandbookSelectCtrl:RefreshStrategyCardCount()
   NovaAPI.SetTMPText(self._mapNode.txt_StrategyCardCount, nCount)
 end
 
+function SoldierHandbookSelectCtrl:OnBtnClick_Boss()
+  EventManager.Hit(EventId.OpenPanel, PanelId.SoldierHandbookPanel, AllEnum.SoldierHandbookType.Boss)
+end
+
 function SoldierHandbookSelectCtrl:OnBtnClick_Character()
   EventManager.Hit(EventId.OpenPanel, PanelId.SoldierHandbookPanel, AllEnum.SoldierHandbookType.Character)
 end
 
 function SoldierHandbookSelectCtrl:OnBtnClick_Partner()
   EventManager.Hit(EventId.OpenPanel, PanelId.SoldierHandbookPanel, AllEnum.SoldierHandbookType.Partner)
-end
-
-function SoldierHandbookSelectCtrl:OnBtnClick_StarterCard()
-  EventManager.Hit(EventId.OpenPanel, PanelId.SoldierHandbookPanel, AllEnum.SoldierHandbookType.StarterCard)
 end
 
 function SoldierHandbookSelectCtrl:OnBtnClick_StrategyCard()

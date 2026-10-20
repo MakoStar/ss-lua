@@ -16,7 +16,8 @@ PenguinCardSlotCtrl._mapEventConfig = {
   PenguinCard_AddSlot = "OnEvent_AddSlot",
   PenguinCard_SelectPenguinCard = "OnEvent_SelectPenguinCard",
   PenguinCard_SalePenguinCard = "OnEvent_SalePenguinCard",
-  PenguinCard_ChangeCardLevel = "OnEvent_ChangeCardLevel"
+  PenguinCard_ChangeCardLevel = "OnEvent_ChangeCardLevel",
+  PenguinCard_AddInitialCard = "OnEvent_SelectPenguinCard"
 }
 
 function PenguinCardSlotCtrl:Refresh()

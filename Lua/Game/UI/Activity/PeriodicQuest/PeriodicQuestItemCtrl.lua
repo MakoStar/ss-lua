@@ -14,7 +14,14 @@ PeriodicQuestItemCtrl._mapNodeConfig = {
     sComponentName = "UIButton",
     callback = "OnBtnClick_Reward"
   },
+  btnReward2 = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_Reward2"
+  },
   rtReward = {
+    sCtrlName = "Game.UI.TemplateEx.TemplateItemCtrl"
+  },
+  rtReward2 = {
     sCtrlName = "Game.UI.TemplateEx.TemplateItemCtrl"
   },
   btnReceive = {
@@ -57,6 +64,9 @@ function PeriodicQuestItemCtrl:SetData(nActId, mapData)
     self.nJumpTo = questCfg.JumpTo
     self.rewardId = questCfg.Reward
     self._mapNode.rtReward:SetItem(questCfg.Reward, nil, questCfg.RewardQty, nil, nil, nil, nil, true)
+    self.rewardId2 = questCfg.Reward2
+    self._mapNode.rtReward2:SetItem(questCfg.Reward2, nil, questCfg.RewardQty2, nil, nil, nil, nil, true)
+    self._mapNode.btnReward2.gameObject:SetActive(self.rewardId2 ~= 0)
     self._mapNode.txtUnComplete.gameObject:SetActive(nStatus == AllEnum.ActQuestStatus.UnComplete and questCfg.JumpTo == 0)
     self._mapNode.btnJump.gameObject:SetActive(nStatus == AllEnum.ActQuestStatus.UnComplete and questCfg.JumpTo ~= 0)
     self._mapNode.btnReceive.gameObject:SetActive(nStatus == AllEnum.ActQuestStatus.Complete)
@@ -97,6 +107,12 @@ end
 function PeriodicQuestItemCtrl:OnBtnClick_Reward(btn)
   if nil ~= self.rewardId then
     UTILS.ClickItemGridWithTips(self.rewardId, btn.transform, true, true, true)
+  end
+end
+
+function PeriodicQuestItemCtrl:OnBtnClick_Reward2(btn)
+  if nil ~= self.rewardId2 then
+    UTILS.ClickItemGridWithTips(self.rewardId2, btn.transform, true, true, true)
   end
 end
 

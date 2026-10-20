@@ -21,12 +21,14 @@ function SoldierItemGridCtrl:SetItem(nRarity, nCount, sIcon, nItemId)
   else
     self._mapNode.txtCount.gameObject:SetActive(false)
   end
-  self.btnSelf = self.gameObject:GetComponent("UIButton")
-  if self.btnSelf ~= nil then
-    self.btnSelf.onClick:RemoveAllListeners()
-    self.btnSelf.onClick:AddListener(function()
-      UTILS.ClickItemGridWithTips(nItemId, self.gameObject.transform, true)
-    end)
+  if nItemId ~= nil and 0 < nItemId then
+    self.btnSelf = self.gameObject:GetComponent("UIButton")
+    if self.btnSelf ~= nil then
+      self.btnSelf.onClick:RemoveAllListeners()
+      self.btnSelf.onClick:AddListener(function()
+        UTILS.ClickItemGridWithTips(nItemId, self.gameObject.transform, true)
+      end)
+    end
   end
 end
 

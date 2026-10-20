@@ -19,8 +19,6 @@ LoginRewardPopUpCtrl_01._mapNodeConfig = {
     sLanguageId = "Quest_Receive"
   }
 }
-LoginRewardPopUpCtrl_01._mapEventConfig = {}
-LoginRewardPopUpCtrl_01._mapRedDotConfig = {}
 
 function LoginRewardPopUpCtrl_01:RefreshRemainTime()
   local endTime = self.actData:GetActEndTime()
@@ -65,7 +63,6 @@ end
 function LoginRewardPopUpCtrl_01:RefreshActData()
   self.nActId = self._panel.nActId
   self.actData = self._panel.actData
-  self.remainTimer = nil
   local actCfg = self.actData:GetActCfgData()
   if actCfg.EndType == GameEnum.activityEndType.NoLimit then
     self._mapNode.goActTime.gameObject:SetActive(false)
@@ -130,10 +127,12 @@ function LoginRewardPopUpCtrl_01:OnBtnClick_Activity()
   end
   
   local function callback()
-    EventManager.Hit("RefreshLoginRewardPanel")
+    PlayerData.CharSkin:TryOpenSkinShowPanel(function()
+      EventManager.Hit("RefreshLoginRewardPanel")
+    end)
   end
   
-  PlayerData.Activity:SendReceiveLoginRewardMsg(301042, callback)
+  PlayerData.Activity:SendReceiveLoginRewardMsg(self.nActId, callback)
 end
 
 return LoginRewardPopUpCtrl_01

@@ -44,6 +44,72 @@ function PlayerCoinData:ChangeCoin(mapCoinChange)
   end
 end
 
+function PlayerCoinData:ExchangeFurnitureCoin(nAllNeedFurniture, funcOpenBuyGem)
+  local nHasFurniture = self:GetCoinCount(AllEnum.CoinItemId.Furniture)
+  if nAllNeedFurniture <= nHasFurniture then
+    return
+  end
+  local nHasJade = self:GetCoinCount(AllEnum.CoinItemId.Jade)
+  local nHasStone = self:GetCoinCount(AllEnum.CoinItemId.FREESTONE) + self:GetCoinCount(AllEnum.CoinItemId.STONE)
+  local nFurnitureConvertProp = ConfigTable.GetConfigNumber("DormBlocksConvertProp")
+  local nJadeConvertCount = nHasJade * nFurnitureConvertProp
+  local nStoneConvertCount = nHasStone * nFurnitureConvertProp
+  local nNeedFurniture = nAllNeedFurniture - nHasFurniture
+  local nAllNeedJade = math.ceil(nNeedFurniture / nFurnitureConvertProp)
+  local nNeedJade = nAllNeedJade - nHasJade
+  local nAllNeedStone = nNeedJade
+  
+  local function stone_warn()
+    local msg = {
+      nType = AllEnum.MessageBox.Confirm,
+      sContent = orderedFormat(ConfigTable.GetUIText("Recruit_Charge"), AllEnum.CoinItemId.STONE),
+      callbackConfirm = funcOpenBuyGem,
+      bBlur = false
+    }
+    EventManager.Hit(EventId.OpenMessageBox, msg)
+  end
+  
+  local function jade_warn(callbackConfirm)
+    local msg = {
+      nType = AllEnum.MessageBox.Confirm,
+      sContent = orderedFormat(ConfigTable.GetUIText("Coin_Exchange"), AllEnum.CoinItemId.Jade, nAllNeedStone, AllEnum.CoinItemId.STONE, nNeedJade, AllEnum.CoinItemId.Jade),
+      callbackConfirm = callbackConfirm,
+      bBlur = false
+    }
+    EventManager.Hit(EventId.OpenMessageBox, msg)
+  end
+  
+  local function furniture_warn(callbackConfirm)
+    local msg = {
+      nType = AllEnum.MessageBox.Confirm,
+      sContent = orderedFormat(ConfigTable.GetUIText("Coin_Exchange"), AllEnum.CoinItemId.Furniture, nAllNeedJade, AllEnum.CoinItemId.Jade, nNeedFurniture, AllEnum.CoinItemId.Furniture),
+      callbackConfirm = callbackConfirm,
+      bBlur = false
+    }
+    EventManager.Hit(EventId.OpenMessageBox, msg)
+  end
+  
+  local function convert_furniture()
+    self:SendDormBlocksConvertReq(nAllNeedJade)
+  end
+  
+  local function convert_jade()
+    self:SendGemConvertReqReq(nAllNeedStone)
+  end
+  
+  if nJadeConvertCount >= nNeedFurniture then
+    furniture_warn(convert_furniture)
+  elseif nNeedFurniture <= nJadeConvertCount + nStoneConvertCount then
+    furniture_warn(function()
+      jade_warn(convert_jade)
+    end)
+  else
+    furniture_warn(function()
+      jade_warn(stone_warn)
+    end)
+  end
+end
+
 function PlayerCoinData:SendGemConvertReqReq(nCount, callback)
   local mapMsg = {Value = nCount}
   
@@ -55,6 +121,19 @@ function PlayerCoinData:SendGemConvertReqReq(nCount, callback)
   end
   
   HttpNetHandler.SendMsg(NetMsgId.Id.gem_convert_req, mapMsg, nil, successCallback)
+end
+
+function PlayerCoinData:SendDormBlocksConvertReq(nCount, callback)
+  local mapMsg = {Value = nCount}
+  
+  local function successCallback(_, mapData)
+    if callback then
+      callback(mapData)
+    end
+    UTILS.OpenReceiveByChangeInfo(mapData)
+  end
+  
+  HttpNetHandler.SendMsg(NetMsgId.Id.dorm_blocks_convert_req, mapMsg, nil, successCallback)
 end
 
 return PlayerCoinData

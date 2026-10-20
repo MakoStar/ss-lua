@@ -65,7 +65,10 @@ AllEnum.CoinItemId = {
   DailyQuestActive = 61,
   WeeklyQuestActive = 63,
   TraceHunt = 37,
-  SoldierCurrency = 40
+  SoldierCurrency = 40,
+  Furniture = 701,
+  AutoDecisionToken = 42,
+  SoldierHp = 40
 }
 AllEnum.QuestStatus = {Undone = false, Done = true}
 AllEnum.CharHeadIconSurfix = {
@@ -544,7 +547,8 @@ AllEnum.FrameType_New = {
   DiscLimitS = "rare_outfit_exceed_s_",
   DiscLimitL = "rare_outfit_exceed_l_",
   DiscFrameL = "rare_outfit_team_l_",
-  DiscFrameS = "rare_outfit_team_s_"
+  DiscFrameS = "rare_outfit_team_s_",
+  DormFurniture = "db2_pack_"
 }
 AllEnum.BuildGrade = {
   S = 3,
@@ -556,6 +560,12 @@ AllEnum.BuildSource = {
   Normal = 1,
   Trial = 2,
   LimitedTrial = 3
+}
+AllEnum.BuildModifierState = {
+  NotModified = 0,
+  PotentialModified = 1,
+  NoteModified = 2,
+  CannotModify = 3
 }
 AllEnum.FrameColor = {
   [GameEnum.itemRarity.SSR] = "5",
@@ -621,6 +631,11 @@ AllEnum.TipPosition = {
 AllEnum.BattleAnimSetting = {
   DayOnce = 1,
   Open = 2,
+  Close = 3
+}
+AllEnum.BattleHudDamageSetting = {
+  Default = 1,
+  Merge = 2,
   Close = 3
 }
 AllEnum.CharacterScreenType = {Rare = 1, Element = 2}
@@ -717,7 +732,9 @@ AllEnum.MallToggle = {
   Gem = 3,
   Shop = 4,
   Skin = 5,
-  Recommend = 6
+  Recommend = 6,
+  Furniture = 7,
+  Activity = 8
 }
 AllEnum.AvgBubbleShowType = {Avg = 1, Voice = 2}
 AllEnum.SkillTypeShow = {
@@ -865,7 +882,8 @@ AllEnum.MainViewCorner = {
   Role = 1,
   Disc = 2,
   Recruit = 3,
-  Mainline = 4
+  Mainline = 4,
+  Dorm = 6
 }
 AllEnum.EffectType = {
   Affinity = 1,
@@ -1035,7 +1053,8 @@ AllEnum.Char_AffiliatedForces = {
   [314] = {sLanguage = 314},
   [315] = {sLanguage = 315},
   [316] = {sLanguage = 316},
-  [317] = {sLanguage = 317}
+  [317] = {sLanguage = 317},
+  [318] = {sLanguage = 318}
 }
 AllEnum.Star_Rarity = {
   [GameEnum.itemRarity.R] = {nSort = 3},
@@ -1107,6 +1126,7 @@ AllEnum.Star_Tag = {
   [809] = {sLanguage = 809},
   [810] = {sLanguage = 810},
   [811] = {sLanguage = 811},
+  [812] = {sLanguage = 812},
   [813] = {sLanguage = 813},
   [817] = {sLanguage = 817},
   [818] = {sLanguage = 818},
@@ -1350,6 +1370,11 @@ AllEnum.EnergyPanelType = {
   ItemUse = 3,
   BatteryUse = 4
 }
+AllEnum.TokenBuyPanelType = {
+  Main = 1,
+  BuyConfirm = 2,
+  ItemUse = 3
+}
 AllEnum.DispatchState = {
   CanAccept = 0,
   Accepting = 1,
@@ -1474,8 +1499,13 @@ AllEnum.StarTowerTipsType = {
   NPCAffinity = 5
 }
 AllEnum.UI_SORTING_ORDER = {
+  StarTowerSweepPopup = 29000,
+  StarTowerSweepDetail = 29100,
+  StarTowerAutoDecisionSetting = 29800,
+  StarTowerAutoDecisionTokenBuy = 30100,
   AVG_Bubble = 298,
   AVG_ST = 299,
+  StarTowerAutoDecisionHUD = 29700,
   Guide = 32000,
   GMMonsterAI = 32760,
   GMTool = 32760,
@@ -1617,7 +1647,7 @@ AllEnum.GamepadIconSuffix = {Light = "", Dark = "_2"}
 AllEnum.SoldierHandbookType = {
   Character = 1,
   Partner = 2,
-  StarterCard = 3,
+  Boss = 3,
   StrategyCard = 4
 }
 AllEnum.SoliderNoteTypeCfg = {
@@ -1666,6 +1696,10 @@ AllEnum.SoldierPartnerLevelIcon = {
   [GameEnum.PartnerLevelQuality.Color] = {
     bg = "PartnerQuality_04",
     levelIcon = "PartnerLevelQuality_04"
+  },
+  [GameEnum.PartnerLevelQuality.Special] = {
+    bg = "PartnerQuality_05",
+    levelIcon = "PartnerLevelQuality_05"
   }
 }
 AllEnum.SoldierChessRarityIcon = {
@@ -1735,5 +1769,94 @@ AllEnum.MainlineLastEndState = {
   Unlock = 2,
   Readed = 3,
   Fobidden = 4
+}
+AllEnum.SoldierTechBattleEffect = {
+  [GameEnum.SoldierTechBattleEffect.FinalDamageUp] = {
+    sIcon = "Icon/SoldierPartnerAttrIcon/Soldier_00_PartnerAttr_GenDmg",
+    sLanguageId = "Soldier_Tech_Node_FinalDamageUp"
+  },
+  [GameEnum.SoldierTechBattleEffect.FinalDamageReduceUp] = {
+    sIcon = "Icon/SoldierPartnerAttrIcon/Soldier_00_PartnerAttr_DmgPlusRcd",
+    sLanguageId = "Soldier_Tech_Node_FinalDamageReduceUp"
+  },
+  [GameEnum.SoldierTechBattleEffect.SkillCritRateUp] = {
+    sIcon = "Icon/SoldierPartnerAttrIcon/Soldier_00_PartnerAttr_SkillDmg",
+    sLanguageId = "Soldier_Tech_Node_SkillCritRateUp"
+  },
+  [GameEnum.SoldierTechBattleEffect.SkillFinalDamageUp] = {
+    sIcon = "Icon/SoldierPartnerAttrIcon/Soldier_00_PartnerAttr_SkillDmg",
+    sLanguageId = "Soldier_Tech_Node_SkillFinalDamageUp"
+  }
+}
+AllEnum.SoldierBossSkillType = {
+  [GameEnum.SoldierRoleSkillType.SoldierRoleSkillType_1] = {
+    sIcon = "",
+    sLanguageId = "Soldier_RoleSkillType_1"
+  },
+  [GameEnum.SoldierRoleSkillType.SoldierRoleSkillType_2] = {
+    sIcon = "",
+    sLanguageId = "Soldier_RoleSkillType_2"
+  },
+  [GameEnum.SoldierRoleSkillType.SoldierRoleSkillType_3] = {
+    sIcon = "",
+    sLanguageId = "Soldier_RoleSkillType_3"
+  },
+  [GameEnum.SoldierRoleSkillType.SoldierRoleSkillType_4] = {
+    sIcon = "",
+    sLanguageId = "Soldier_RoleSkillType_4"
+  }
+}
+AllEnum.SoldierPersonalityLevelIconByStr = {
+  S = "UI/Soldier/SpriteAtlas/Common/PersonalityGrade_S",
+  A = "UI/Soldier/SpriteAtlas/Common/PersonalityGrade_A",
+  ["A+"] = "UI/Soldier/SpriteAtlas/Common/PersonalityGrade_A+",
+  B = "UI/Soldier/SpriteAtlas/Common/PersonalityGrade_B",
+  ["B+"] = "UI/Soldier/SpriteAtlas/Common/PersonalityGrade_B+",
+  C = "UI/Soldier/SpriteAtlas/Common/PersonalityGrade_C",
+  ["C+"] = "UI/Soldier/SpriteAtlas/Common/PersonalityGrade_C+"
+}
+AllEnum.SoldierPersonalityLevelIconByEnum = {
+  [GameEnum.SoldierPersonalityGrade.PersonalityGrade_1] = "UI/Soldier/SpriteAtlas/Common/PersonalityGrade_S",
+  [GameEnum.SoldierPersonalityGrade.PersonalityGrade_2] = "UI/Soldier/SpriteAtlas/Common/PersonalityGrade_A+",
+  [GameEnum.SoldierPersonalityGrade.PersonalityGrade_3] = "UI/Soldier/SpriteAtlas/Common/PersonalityGrade_A",
+  [GameEnum.SoldierPersonalityGrade.PersonalityGrade_4] = "UI/Soldier/SpriteAtlas/Common/PersonalityGrade_B+",
+  [GameEnum.SoldierPersonalityGrade.PersonalityGrade_5] = "UI/Soldier/SpriteAtlas/Common/PersonalityGrade_B",
+  [GameEnum.SoldierPersonalityGrade.PersonalityGrade_6] = "UI/Soldier/SpriteAtlas/Common/PersonalityGrade_C+",
+  [GameEnum.SoldierPersonalityGrade.PersonalityGrade_7] = "UI/Soldier/SpriteAtlas/Common/PersonalityGrade_C"
+}
+AllEnum.SoldierPersonalityDB = {
+  [0] = "UI/Soldier/SpriteAtlas/Event/db_soldier_common_event_1",
+  [GameEnum.SoldierRolePersonality.Personality_Analysis] = "UI/Soldier/SpriteAtlas/Event/db_soldier_common_event_2",
+  [GameEnum.SoldierRolePersonality.Personality_Intuition] = "UI/Soldier/SpriteAtlas/Event/db_soldier_common_event_3",
+  [GameEnum.SoldierRolePersonality.Personality_Chaos] = "UI/Soldier/SpriteAtlas/Event/db_soldier_common_event_4"
+}
+AllEnum.StarTowerAutoDecisionSettings = {
+  AutoDecisionEnable = 0,
+  PresetFirstSwitch = 10101,
+  PresetOnlySwitch = 10102,
+  PotentialSort = 10201,
+  PotentialRerollSwitch = 10301,
+  PotentialRerollCoinNumSelector = 10302,
+  ShopFirstChoose = 20101,
+  ShopUpgradeDropdown = 20201,
+  ShopSort = 20301,
+  ShopCoinRerollSwitch = 20401,
+  ShopCoinNumSelector = 20402,
+  ShopFinalRerollSwitch = 20403,
+  ShopFinalAllInSwitch = 20404,
+  EventTendency = 30101,
+  EventSort = 30201
+}
+AllEnum.GuideType = {Dorm = 1, Soldier = 2}
+AllEnum.SoldierDiscAddType = {BuffCard = 1, TechNode = 2}
+AllEnum.SoldierEventEffectRewardType = {
+  Next = "Next",
+  GainCoin = "GainCoin",
+  LossCoin = "LossCoin",
+  Chess = "Chess",
+  Hp = "Hp",
+  Card = "Card",
+  CardEffect = "CardEffect",
+  LoseAllCoin = "LoseAllCoin"
 }
 return AllEnum

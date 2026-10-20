@@ -1,8 +1,10 @@
 local PlayerDatingData = class("PlayerDatingData")
+local FREE_DATING_COUNT = 99
 
 function PlayerDatingData:Init()
   self.tbDatingCharIds = 0
   self.nAllDatingCount = 0
+  self.bFreeDating = false
   self.tbLandmarkCfg = {}
   self.mapCharLimitedEvent = {}
   self.mapCharStartEvent = {}
@@ -92,6 +94,9 @@ function PlayerDatingData:RefreshDatingCharIds(tbChar)
 end
 
 function PlayerDatingData:AddDatingCharId(nCharId)
+  if self:IsFreeDating() then
+    return
+  end
   for _, v in ipairs(self.tbDatingCharIds) do
     if v == nCharId then
       printError("重复邀约！！！")
@@ -103,6 +108,14 @@ end
 
 function PlayerDatingData:CacheDatingCharIds(tbChar)
   self.tbDatingCharIds = tbChar
+end
+
+function PlayerDatingData:SetFreeDating(bFree)
+  self.bFreeDating = bFree == true
+end
+
+function PlayerDatingData:IsFreeDating()
+  return self.bFreeDating == true
 end
 
 function PlayerDatingData:GetRandomLandmark(nCharId)
@@ -194,10 +207,16 @@ function PlayerDatingData:GetLimitedEventList(nCharId)
 end
 
 function PlayerDatingData:GetDatingCount()
+  if self:IsFreeDating() then
+    return FREE_DATING_COUNT, FREE_DATING_COUNT
+  end
   return #self.tbDatingCharIds, self.nAllDatingCount
 end
 
 function PlayerDatingData:CheckDating(nCharId)
+  if self:IsFreeDating() then
+    return false
+  end
   local bDating = false
   for _, v in ipairs(self.tbDatingCharIds) do
     if v == nCharId then
@@ -233,6 +252,7 @@ end
 
 function PlayerDatingData:GetCharBranchEventId(nCharId, bFirstBranch)
   local nEventId = 0
+  local nBranchType = bFirstBranch and GameEnum.DatingEventType.BranchA or GameEnum.DatingEventType.BranchB
   
   local function funcForeachEvent(mapData)
     if #mapData.DatingEventParams > 0 and mapData.DatingEventParams[1] == self.nCurSelectLandmark then
@@ -241,9 +261,7 @@ function PlayerDatingData:GetCharBranchEventId(nCharId, bFirstBranch)
           return
         end
       end
-      local last_digit = math.abs(mapData.Id) % 10
-      local nBranchFlag = bFirstBranch and 0 or 1
-      if last_digit == nBranchFlag then
+      if mapData.DatingEventType == nBranchType then
         nEventId = mapData.Id
       end
     end
@@ -258,6 +276,19 @@ function PlayerDatingData:GetCharEndEventId(nCharId)
     local nRandom = math.random(1, #self.mapCharEndEvent[nCharId])
     return self.mapCharEndEvent[nCharId][nRandom]
   end
+end
+
+function PlayerDatingData:CheckSpecialOption(nOptId, nCharId, nLandmarkId)
+  if self.mapCharLandmark[nCharId] ~= nil and self.mapCharLandmark[nCharId][nLandmarkId] ~= nil then
+    local tbEvent = self.mapCharLandmark[nCharId][nLandmarkId]
+    for _, nId in ipairs(tbEvent) do
+      local mapCfg = ConfigTable.GetData("DatingCharacterEvent", nId)
+      if mapCfg ~= nil and mapCfg.DatingEventType == GameEnum.DatingEventType.LimitedLandmark and mapCfg.BranchTag == nOptId then
+        return true
+      end
+    end
+  end
+  return false
 end
 
 function PlayerDatingData:SendDatingLandmarkSelectMsg(nCharId, nLandmarkId, callback)

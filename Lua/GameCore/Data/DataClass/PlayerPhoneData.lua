@@ -202,7 +202,7 @@ function PlayerPhoneData:NewChatTrigger(mapMsgData)
         }
         table.insert(self.tbNewChatList, tbData)
       elseif chatCfg.AutoPopUp then
-        EventManager.Hit(EventId.OpenPanel, PanelId.PhonePopUp, nChatId)
+        PopUpManager.PopUpEnQueue(GameEnum.PopUpSeqType.NewChat, nChatId)
       end
     end
   end
@@ -369,7 +369,10 @@ function PlayerPhoneData:CheckNewChat(nAddressId, callback)
     local bPhoneOpen = PanelManager.CheckPanelOpen(PanelId.Phone)
     if chatCfg ~= nil then
       if chatCfg.AutoPopUp and not bPhoneOpen then
-        EventManager.Hit(EventId.OpenPanel, PanelId.PhonePopUp, tbData.nChatId, false, callback)
+        PopUpManager.PopUpEnQueue(GameEnum.PopUpSeqType.NewChat, tbData.nChatId)
+        if nil ~= callback then
+          callback()
+        end
       else
         self:RefreshRedDot()
         EventManager.Hit("NewChatTrigger", tbData.nAddressId, tbData.nChatId)

@@ -132,10 +132,11 @@ StoryEntranceCtrl._mapNodeConfig = {
     sComponentName = "UIButton",
     callback = "OnBtn_ClickHome"
   },
+  imgActivityLockBg = {},
+  goActivityOn = {},
   txtActivityLock = {
     sNodeName = "txtActivityLock",
-    sComponentName = "TMP_Text",
-    sLanguageId = "StoryEntrance_Activity_Lock"
+    sComponentName = "TMP_Text"
   },
   imgPreviewDb = {},
   redDotNovaStory = {},
@@ -169,6 +170,7 @@ function StoryEntranceCtrl:OnEnable()
   self:RefreshMainlineQuickEntranceState()
   self:RefreshRecentStoryQuickEntranceState()
   self:RefreshComingSoonState()
+  self:RefreshActivityLockState()
 end
 
 function StoryEntranceCtrl:OnDisable()
@@ -266,6 +268,17 @@ function StoryEntranceCtrl:RefreshComingSoonState()
   end
 end
 
+function StoryEntranceCtrl:RefreshActivityLockState()
+  local bUnlock = PlayerData.Base:CheckFunctionUnlock(GameEnum.OpenFuncType.ActivityReview)
+  self._mapNode.imgActivityLockBg.gameObject:SetActive(not bUnlock)
+  self._mapNode.goActivityOn.gameObject:SetActive(bUnlock)
+  if not bUnlock then
+    local mapFuncCfgData = ConfigTable.GetData("OpenFunc", GameEnum.OpenFuncType.ActivityReview)
+    local sTips = mapFuncCfgData ~= nil and UTILS.ParseParamDesc(mapFuncCfgData.Tips, mapFuncCfgData) or ""
+    NovaAPI.SetTMPText(self._mapNode.txtActivityLock, sTips)
+  end
+end
+
 function StoryEntranceCtrl:OnBtn_ClickMainline()
   EventManager.Hit(EventId.OpenPanel, PanelId.StoryChapter)
 end
@@ -277,15 +290,10 @@ function StoryEntranceCtrl:OnBtn_ClickNovaStory()
 end
 
 function StoryEntranceCtrl:OnBtn_ClickActivity()
-  if not self.bHasActivityStorys then
-    local data = {
-      nType = AllEnum.MessageBox.Alert,
-      sContent = ConfigTable.GetUIText("NotHave_Story_WaitUpdate"),
-      sContentSub = ""
-    }
-    EventManager.Hit(EventId.OpenMessageBox, data)
+  if not PlayerData.Base:CheckFunctionUnlock(GameEnum.OpenFuncType.ActivityReview, true) then
     return
   end
+  EventManager.Hit(EventId.OpenPanel, PanelId.ActivityStoryReview)
 end
 
 function StoryEntranceCtrl:OnBtn_ClickMainlineQuickEntrance()
@@ -302,6 +310,7 @@ function StoryEntranceCtrl:OnBtn_ClickRecentStoryQuickEntrance()
     return
   end
   if self.tbRecentStory.Type == GameEnum.StoryPreviewType.ActivityStory then
+    PlayerData.StoryReview:TryOpenStoryChapter(self.tbRecentStory.ChapterId)
   elseif self.tbRecentStory.Type == GameEnum.StoryPreviewType.StorySet then
     PlayerData.StorySet:TryOpenStorySetPanel(function()
       EventManager.Hit(EventId.OpenPanel, PanelId.StorySet, false, self.tbRecentStory.ChapterId)

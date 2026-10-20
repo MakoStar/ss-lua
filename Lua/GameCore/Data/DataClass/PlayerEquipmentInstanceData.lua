@@ -114,9 +114,13 @@ function PlayerEquipmentInstanceData:CacheEquipmentInstanceLevel(tbData)
     local t2 = mapData.Star >= 2
     local t3 = mapData.Star >= 3
     local nStar = mapData.Star
+    local nBuildId = 0
+    if mapData.Build ~= nil then
+      nBuildId = mapData.Build.BuildId or 0
+    end
     self.mapAllLevel[mapData.Id] = {
       nStar = nStar,
-      nBuildId = mapData.BuildId,
+      nBuildId = nBuildId,
       tbTarget = {
         t1,
         t2,
@@ -225,9 +229,13 @@ function PlayerEquipmentInstanceData:MsgEnterEquipmentInstance(nLevelId, nBuildI
   self._EntryTime = CS.ClientManager.Instance.serverTimeStampWithTimeZone
   self._Build_id = nBuildId
   self._Level_id = nLevelId
+  local mapBuildData = PlayerData.Build:GetBuildData(nBuildId)
+  local bTrial = mapBuildData.nBuildSource == AllEnum.BuildSource.Trial or mapBuildData.nBuildSource == AllEnum.BuildSource.LimitedTrial
+  local nBuildType = bTrial and 2 or 1
+  local bBuildId = nBuildId
   local msg = {}
   msg.Id = nLevelId
-  msg.BuildId = nBuildId
+  msg.Build = {Type = nBuildType, BuildId = bBuildId}
   msg.RewardType = self.lastRewardType
   
   local function msgCallback(_, mapChangeInfo)

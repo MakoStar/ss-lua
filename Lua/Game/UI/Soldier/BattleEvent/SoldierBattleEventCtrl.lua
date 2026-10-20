@@ -7,15 +7,20 @@ SoldierBattleEventCtrl._mapNodeConfig = {
   mainRoot = {
     sNodeName = "----SafeAreaRoot----"
   },
-  txtLabel = {
+  goSelectCard = {},
+  goSelectBattle = {},
+  txtTitle1 = {
     sComponentName = "TMP_Text",
-    sLanguageId = "SoldierBattleEvent_Label"
+    sLanguageId = "Soldier_Select_BattleEvent_Title_1"
+  },
+  txtCardSelectTitle = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Soldier_Select_BattleEvent_Title_2"
   },
   txtRemainRewardCount = {
     sComponentName = "TMP_Text",
     sLanguageId = "Soldier_BattleEvent_RemainRewardCount"
   },
-  txtFinalPoint = {sComponentName = "TMP_Text"},
   txtBtnBack = {
     sComponentName = "TMP_Text",
     sLanguageId = "SoldierBattleEvent_Back"
@@ -28,10 +33,6 @@ SoldierBattleEventCtrl._mapNodeConfig = {
     nCount = 3,
     sCtrlName = "Game.UI.Soldier.BattleEvent.SoldierAddBuffItemCtrl"
   },
-  btnPolicy = {
-    sComponentName = "UIButton",
-    callback = "OnBtnClick_Policy"
-  },
   btnReturn = {
     sComponentName = "UIButton",
     callback = "OnBtnClick_Return"
@@ -40,23 +41,17 @@ SoldierBattleEventCtrl._mapNodeConfig = {
     sComponentName = "UIButton",
     callback = "OnBtnClick_Guide"
   },
-  btnGoToDice = {
-    sComponentName = "UIButton",
-    callback = "OnBtnClick_btnGoToDice"
-  },
-  txtGoToDice = {
+  txtChoose = {
     sComponentName = "TMP_Text",
-    sLanguageId = "SoldierBattleEvent_GoToDice"
+    sLanguageId = "Soldier_Select_BattleEvent"
   },
-  imgFinalPoint = {},
-  ImgNum = {},
-  EventContainers = {},
-  StrategyContainers = {}
+  TopBar = {
+    sNodeName = "TopBarPanel"
+  }
 }
 SoldierBattleEventCtrl._mapEventConfig = {
   SoldierSelectEventBattle = "OnEvent_SoldierSelectEventBattle",
   SoldierShowBattleEventPanel = "OnEvent_ShowBattleEventPanel",
-  SoldierDiceCasted = "RefreshDiceCasted",
   SoldierStrategySelect = "OnEvent_SoldierStrategySelect",
   SoldierRecommendPanel_Open = "HidePanel",
   SoldierRecommendPanel_Close = "ShowPanel",
@@ -67,7 +62,6 @@ SoldierBattleEventCtrl._mapRedDotConfig = {}
 
 function SoldierBattleEventCtrl:Awake()
   self.tbStrategyCardData = nil
-  self.nDicePoint = nil
   self.bSkipEvent = false
   local tbParams = self:GetPanelParam()
   if tbParams ~= nil and 0 < #tbParams then
@@ -76,23 +70,16 @@ function SoldierBattleEventCtrl:Awake()
 end
 
 function SoldierBattleEventCtrl:OnEnable()
-  self._mapNode.imgFinalPoint.gameObject:SetActive(false)
-  self._mapNode.btnGoToDice.gameObject:SetActive(false)
   if self.bSkipEvent then
     self.bSkipEvent = false
     self:OnSoldierEnterCardSelect()
     return
   end
   self:RefreshBattleEventList()
-  self.nDicePoint = PlayerData.SoldierData:GetCurLevelData():GetEventBattleData().nPoint or 0
-  if self.tbStrategyCardData == nil and self.nDicePoint ~= nil and self.nDicePoint > 0 then
-    self:RefreshEventDicePoint()
-  end
 end
 
 function SoldierBattleEventCtrl:OnDisable()
   self.tbStrategyCardData = nil
-  self.nDicePoint = nil
 end
 
 function SoldierBattleEventCtrl:GetAddBattleEventList()
@@ -120,10 +107,8 @@ function SoldierBattleEventCtrl:RefreshBattleEventList()
   if tbList == nil or #tbList <= 0 then
     return
   end
-  self._mapNode.btnGoToDice.gameObject:SetActive(true)
-  self._mapNode.EventContainers.gameObject:SetActive(true)
-  self._mapNode.StrategyContainers.gameObject:SetActive(false)
-  self._mapNode.btnPolicy.gameObject:SetActive(false)
+  self._mapNode.goSelectBattle.gameObject:SetActive(true)
+  self._mapNode.goSelectCard.gameObject:SetActive(false)
   for i = 1, 3 do
     local item = self._mapNode.EventItem[i]
     if item ~= nil then
@@ -136,27 +121,15 @@ function SoldierBattleEventCtrl:RefreshStrategyCard()
   if self.tbStrategyCardData == nil then
     return
   end
-  self._mapNode.EventContainers.gameObject:SetActive(false)
-  self._mapNode.StrategyContainers.gameObject:SetActive(true)
-  self._mapNode.btnGoToDice.gameObject:SetActive(false)
-  self._mapNode.imgFinalPoint.gameObject:SetActive(false)
-  self._mapNode.btnPolicy.gameObject:SetActive(false)
-  self._mapNode.ImgNum.gameObject:SetActive(false)
-  NovaAPI.SetTMPText(self._mapNode.txtLabel, ConfigTable.GetUIText("Soldier_Strategy_Title"))
+  self._mapNode.goSelectBattle.gameObject:SetActive(false)
+  self._mapNode.goSelectCard.gameObject:SetActive(true)
   for k, v in ipairs(self._mapNode.StrategyItem) do
     local tbItem = {
       id = self.tbStrategyCardData[k],
       index = k
     }
+    v:SetCharTipsRoot(v.gameObject.transform)
     v:SetItemData(tbItem)
-  end
-end
-
-function SoldierBattleEventCtrl:RefreshDiceCasted()
-  self:RefreshBattleEventList()
-  self.nDicePoint = PlayerData.SoldierData:GetCurLevelData():GetEventBattleData().nPoint or 0
-  if self.tbStrategyCardData == nil and self.nDicePoint ~= nil and self.nDicePoint > 0 then
-    self:RefreshEventDicePoint()
   end
 end
 
@@ -220,10 +193,6 @@ function SoldierBattleEventCtrl:ShowPanel()
   end
 end
 
-function SoldierBattleEventCtrl:OnBtnClick_btnGoToDice()
-  EventManager.Hit(EventId.OpenPanel, PanelId.SoldierResolveadisputePanel)
-end
-
 function SoldierBattleEventCtrl:OnBtnClick_Return()
   CS.WwiseAudioManager.Instance:PostEvent("mode_900001_chess_ingame_transition")
   self:HidePanel()
@@ -231,23 +200,6 @@ end
 
 function SoldierBattleEventCtrl:OnBtnClick_Guide()
   EventManager.Hit(EventId.OpenPanel, PanelId.SoldierRecommendPanel, true)
-end
-
-function SoldierBattleEventCtrl:OnBtnClick_Policy()
-  EventManager.Hit(EventId.OpenPanel, PanelId.SoldierHandbookPanel, AllEnum.SoldierHandbookType.StrategyCard)
-end
-
-function SoldierBattleEventCtrl:RefreshEventDicePoint()
-  self._mapNode.imgFinalPoint.gameObject:SetActive(true)
-  self._mapNode.btnGoToDice.gameObject:SetActive(false)
-  local sFinalPoint = ConfigTable.GetUIText("SoldierBattleEvent_FinalPoint")
-  NovaAPI.SetTMPText(self._mapNode.txtFinalPoint, sFinalPoint .. self.nDicePoint)
-  for i = 1, 3 do
-    local item = self._mapNode.EventItem[i]
-    if item ~= nil then
-      item:SetDiceCasted(self.nDicePoint)
-    end
-  end
 end
 
 function SoldierBattleEventCtrl:OnSoldierEnterCardSelect()

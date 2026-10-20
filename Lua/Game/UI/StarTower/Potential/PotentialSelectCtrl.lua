@@ -1,6 +1,7 @@
 local PotentialSelectCtrl = class("PotentialSelectCtrl", BaseCtrl)
 local WwiseAudioMgr = CS.WwiseAudioManager.Instance
 local GamepadUIManager = require("GameCore.Module.GamepadUIManager")
+local StarTowerSettingGate = require("Game.Adventure.StarTower.StarTowerSettingGate")
 PotentialSelectCtrl._mapNodeConfig = {
   blurBg = {},
   menuBg = {},
@@ -19,6 +20,10 @@ PotentialSelectCtrl._mapNodeConfig = {
   btnDepot = {
     sComponentName = "NaviButton",
     callback = "OnBtnClick_Depot"
+  },
+  goDepotRoot = {
+    sNodeName = "imgBg_Back_Log",
+    sComponentName = "GameObject"
   },
   imgUpgradeTitle = {},
   imgSelectTitle = {},
@@ -86,15 +91,18 @@ PotentialSelectCtrl._mapEventConfig = {
   StarTowerPotentialSelect = "OnEvent_StarTowerPotentialSelect",
   RefreshStarTowerCoin = "OnEvent_SetCoin",
   GamepadUIChange = "OnEvent_GamepadUIChange",
-  GamepadUIReopen = "OnEvent_Reopen"
+  GamepadUIReopen = "OnEvent_Reopen",
+  StarTowerAutoSelectPotential = "OnEvent_AutoSelectPotential",
+  StarTowerAutoDecisionStateChanged = "OnEvent_AutoDecisionStateChanged"
 }
 PotentialSelectCtrl._mapRedDotConfig = {}
 
-function PotentialSelectCtrl:Refresh(nEventId, tbPotential, mapPotential, nType, nLevel, tbNewIds, mapRoll, nCoin, tbLuckyIds, bAfterRoll, tbRecommend)
+function PotentialSelectCtrl:Refresh(nEventId, tbPotential, mapPotential, nType, nLevel, tbNewIds, mapRoll, nCoin, tbLuckyIds, bAfterRoll, tbRecommend, nAutoSelectIdx)
   self.nEventId = nEventId
+  self._nAutoSelectIdx = nAutoSelectIdx
   if tbPotential == nil or #tbPotential == 0 then
-    local function completeFunc(nEventId, tbPotential, mapPotential, nType, nLevel, tbNewIds, mapRoll, nCoin, tbLuckyIds, tbRecommend)
-      self:SelectComplete(nEventId, tbPotential, mapPotential, nType, nLevel, tbNewIds, mapRoll, nCoin, tbLuckyIds, tbRecommend)
+    local function completeFunc(nEventId, tbPotential, mapPotential, nType, nLevel, tbNewIds, mapRoll, nCoin, tbLuckyIds, tbRecommend, nAutoSelectIdx)
+      self:SelectComplete(nEventId, tbPotential, mapPotential, nType, nLevel, tbNewIds, mapRoll, nCoin, tbLuckyIds, tbRecommend, nAutoSelectIdx)
     end
     
     self.callback(1000, nEventId, completeFunc)
@@ -126,6 +134,7 @@ function PotentialSelectCtrl:Refresh(nEventId, tbPotential, mapPotential, nType,
   end
   self._mapNode.RollButton:SetActive(mapRoll and mapRoll.CanReRoll and nType ~= 2)
   self._mapNode.btnConfirm.gameObject:SetActive(false)
+  self._mapNode.goDepotRoot:SetActive(self._panel.nStarTowerId ~= 999)
   self.nCoin = nCoin
   NovaAPI.SetTMPText(self._mapNode.txtCoinCount, self:ThousandsNumber(self.nCoin))
   self.mapRoll = mapRoll
@@ -205,7 +214,23 @@ function PotentialSelectCtrl:RefreshCoin(nCoin, mapRoll)
   NovaAPI.SetTMPColor(self._mapNode.txtRollCostCount, nCoin < mapRoll.ReRollPrice and Red_Unable or Blue_Normal)
 end
 
+function PotentialSelectCtrl:ReadySettingPresentationAfter(mapPresentation, nDuration)
+  if self._mapSettingPresentation ~= mapPresentation then
+    return
+  end
+  self:AddTimer(1, nDuration, function()
+    if self._mapSettingPresentation == mapPresentation then
+      mapPresentation.bReady = true
+      StarTowerSettingGate.Ready(self, mapPresentation.nSerial)
+    end
+  end, true, true, true)
+end
+
 function PotentialSelectCtrl:RefreshPotentialList(tbPotential, mapPotential, tbNewIds, tbLuckyIds, bAfterRoll, tbRecommendParam)
+  local mapPresentation = {
+    nSerial = StarTowerSettingGate.Begin()
+  }
+  self._mapSettingPresentation = mapPresentation
   local tbRecommend = {}
   if 0 < #tbRecommendParam then
     if tbRecommendParam[1].nLevel == nil then
@@ -324,7 +349,13 @@ function PotentialSelectCtrl:RefreshPotentialList(tbPotential, mapPotential, tbN
       end
     end
     
-    cs_coroutine.start(wait)
+    cs_coroutine.start(function()
+      wait()
+      local nRollAnimTime = NovaAPI.GetAnimClipLength(self._mapNode.potentialCard[1].animCtrl, {
+        "tc_newperk_card_RollEffect"
+      })
+      self:ReadySettingPresentationAfter(mapPresentation, math.max(nAnimTime, bAfterRoll and nRollAnimTime or 0))
+    end)
   end
 end
 
@@ -355,74 +386,92 @@ function PotentialSelectCtrl:PlayCharVoice(tbPotential)
   PlayerData.Voice:PlayCharVoice(sVoiceKey, nCharId)
 end
 
-function PotentialSelectCtrl:SelectComplete(nEventId, tbPotential, mapPotential, nType, nLevel, tbNewIds, mapRoll, nCoin, tbLuckyIds, tbRecommend)
-  if nEventId == 0 then
-    if self.bSkip then
+function PotentialSelectCtrl:SelectComplete(nEventId, tbPotential, mapPotential, nType, nLevel, tbNewIds, mapRoll, nCoin, tbLuckyIds, tbRecommend, nAutoSelectIdx, readyCallback)
+  self._mapSettingPresentation = nil
+  StarTowerSettingGate.Begin()
+  self:PlaySelectCollect(nEventId == 0, function()
+    if nEventId == 0 then
       self:HidePanel()
-      if nil ~= self.callback then
+      if self.callback ~= nil then
         self.callback(nEventId, -1)
       end
-      return
-    end
-    EventManager.Hit(EventId.BlockInput, true)
-    self._mapNode.blurBg.gameObject:SetActive(false)
-    self._mapNode.menuBg.gameObject:SetActive(true)
-    self._mapNode.btnConfirm.gameObject:SetActive(false)
-    EventManager.Hit("StarTowerSetButtonEnable", true, false)
-    CS.GameCameraStackManager.Instance:OpenMainCamera()
-    for k, v in ipairs(self._mapNode.potentialCard) do
-      if k == self.nSelectIdx then
-        local animCtrl = v.gameObject:GetComponent("Animator")
-        animCtrl:Play("tc_newperk_card_out")
-        local fxRoot = v.gameObject.transform:Find("FX")
-        local fx = v.gameObject.transform:Find("FX/glow")
-        
-        local function OutAnimFinish()
-          local beginPos = fxRoot.transform.position
-          local controlPos = Vector3(3, 5, 0)
-          local endPos = self._mapNode.depotPoint.transform.position
-          
-          local function wait()
-            WwiseAudioMgr:PlaySound("ui_roguelike_card_flyby")
-            local totalMoveTime = 0.3
-            local moveTime = 0
-            local normalizedTime = 0
-            while normalizedTime < 1 do
-              moveTime = moveTime + CS.UnityEngine.Time.unscaledDeltaTime
-              normalizedTime = moveTime / totalMoveTime
-              normalizedTime = normalizedTime <= 1 and normalizedTime or 1
-              local x, y, z = UTILS.GetBezierPointByT(beginPos, controlPos, endPos, normalizedTime)
-              local angleZ = 100 * normalizedTime * 2
-              angleZ = angleZ <= 100 and angleZ or 100
-              fxRoot.transform.localEulerAngles = Vector3(0, 0, angleZ)
-              fxRoot.transform.position = Vector3(x, y, z)
-              coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
-            end
-            self._mapNode.cardFinishParticle:SetActive(true)
-            fx.gameObject:SetActive(false)
-            coroutine.yield(CS.UnityEngine.WaitForSecondsRealtime(0.5))
-            EventManager.Hit(EventId.BlockInput, false)
-            self:HidePanel()
-            fxRoot.transform.position = beginPos
-            fxRoot.transform.localEulerAngles = Vector3(0, 0, 0)
-            fx.gameObject:SetActive(true)
-            if nil ~= self.callback then
-              self.callback(nEventId, -1)
-            end
-          end
-          
-          cs_coroutine.start(wait)
-        end
-        
-        self:SetAnimationCallback(animCtrl, OutAnimFinish)
-      else
-        v.gameObject:SetActive(false)
+    else
+      self._mapNode.cardFinishParticle:SetActive(false)
+      self:Refresh(nEventId, tbPotential, mapPotential, nType, nLevel, tbNewIds, mapRoll, nCoin, tbLuckyIds, false, tbRecommend, nAutoSelectIdx)
+      if type(readyCallback) == "function" then
+        readyCallback()
       end
     end
+  end)
+end
+
+function PotentialSelectCtrl:PlaySelectCollect(bLastSelection, completeCallback)
+  if self.bSkip then
+    self:SetSubmitInputBlocked(false)
+    completeCallback()
+    return
+  end
+  if self.selectTimer ~= nil then
+    self.selectTimer:Cancel()
+    self.selectTimer = nil
+  end
+  self:SetSubmitInputBlocked(true)
+  self._mapNode.btnConfirm.gameObject:SetActive(false)
+  self._mapNode.goDepotRoot:SetActive(false)
+  self._mapNode.RollButton:SetActive(false)
+  if bLastSelection then
+    self._mapNode.blurBg.gameObject:SetActive(false)
+    self._mapNode.menuBg.gameObject:SetActive(true)
+    EventManager.Hit("StarTowerSetButtonEnable", true, false)
+    CS.GameCameraStackManager.Instance:OpenMainCamera()
+  end
+  for nIndex, ctrlCard in ipairs(self._mapNode.potentialCard) do
+    if nIndex == self.nSelectIdx then
+      local animCtrl = ctrlCard.gameObject:GetComponent("Animator")
+      animCtrl:Play("tc_newperk_card_out")
+      local fxRoot = ctrlCard.gameObject.transform:Find("FX")
+      local fx = ctrlCard.gameObject.transform:Find("FX/glow")
+      
+      local function OutAnimFinish()
+        local beginPos = fxRoot.transform.position
+        local controlPos = Vector3(3, 5, 0)
+        local endPos = self._mapNode.depotPoint.transform.position
+        
+        local function wait()
+          WwiseAudioMgr:PlaySound("ui_roguelike_card_flyby")
+          local totalMoveTime = 0.3
+          local moveTime = 0
+          local normalizedTime = 0
+          while normalizedTime < 1 do
+            moveTime = moveTime + CS.UnityEngine.Time.unscaledDeltaTime
+            normalizedTime = math.min(moveTime / totalMoveTime, 1)
+            local nPosX, nPosY, nPosZ = UTILS.GetBezierPointByT(beginPos, controlPos, endPos, normalizedTime)
+            local angleZ = math.min(100 * normalizedTime * 2, 100)
+            fxRoot.transform.localEulerAngles = Vector3(0, 0, angleZ)
+            fxRoot.transform.position = Vector3(nPosX, nPosY, nPosZ)
+            coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
+          end
+          self._mapNode.cardFinishParticle:SetActive(true)
+          fx.gameObject:SetActive(false)
+          coroutine.yield(CS.UnityEngine.WaitForSecondsRealtime(0.5))
+          fxRoot.transform.position = beginPos
+          fxRoot.transform.localEulerAngles = Vector3(0, 0, 0)
+          fx.gameObject:SetActive(true)
+          self:SetSubmitInputBlocked(false)
+          completeCallback()
+        end
+        
+        cs_coroutine.start(wait)
+      end
+      
+      self:SetAnimationCallback(animCtrl, OutAnimFinish)
+    else
+      ctrlCard.gameObject:SetActive(false)
+    end
+  end
+  if bLastSelection then
     self._mapNode.animCtrl:Play("PotentialSelectPanel_out")
     EventManager.Hit("Guide_Potential_SelectComplete")
-  else
-    self:Refresh(nEventId, tbPotential, mapPotential, nType, nLevel, tbNewIds, mapRoll, nCoin, tbLuckyIds, false, tbRecommend)
   end
 end
 
@@ -438,7 +487,10 @@ function PotentialSelectCtrl:MoveConfirmButton(btnCard)
 end
 
 function PotentialSelectCtrl:HidePanel()
+  self._mapSettingPresentation = nil
+  StarTowerSettingGate.Begin()
   self.bOpen = false
+  self._nAutoSelectIdx = nil
   if not self.bSkip then
     PanelManager.InputEnable()
     EventManager.Hit("StarTowerSetButtonEnable", true, true)
@@ -451,6 +503,7 @@ end
 
 function PotentialSelectCtrl:Awake()
   self.nRecommendIdx = 1
+  self._bSubmitInputBlocked = false
   self.canvas = self.gameObject:GetComponent("Canvas")
   self.nInitSortingOrder = NovaAPI.GetCanvasSortingOrder(self.canvas)
   self.btnConfirmPosY = self._mapNode.rtBtnConfirm.localPosition.y
@@ -481,6 +534,10 @@ function PotentialSelectCtrl:OnEnable()
 end
 
 function PotentialSelectCtrl:OnDisable()
+  self._mapSettingPresentation = nil
+  StarTowerSettingGate.Clear(self)
+  self._nAutoSelectIdx = nil
+  self:SetSubmitInputBlocked(false)
   for k, v in ipairs(self._mapNode.btnPotential) do
     v.onSelect:RemoveListener(self.handler[k])
   end
@@ -491,6 +548,8 @@ function PotentialSelectCtrl:OnDisable()
 end
 
 function PotentialSelectCtrl:OnBtnClick_Depot()
+  self._mapSettingPresentation = nil
+  StarTowerSettingGate.Begin()
   self.bOpenDepot = true
   EventManager.Hit("StarTowerSetButtonEnable", false, false)
   CS.GameCameraStackManager.Instance:OpenMainCamera()
@@ -513,22 +572,24 @@ end
 
 function PotentialSelectCtrl:OnBtnClick_Confirm()
   if self.nSelectIdx ~= 0 and self.callback ~= nil then
-    local function completeFunc(nEventId, tbPotential, mapPotential, nType, nLevel, tbNewIds, mapRoll, nCoin, tbLuckyIds, tbRecommend)
-      EventManager.Hit(EventId.BlockInput, false)
+    local function completeFunc(nEventId, tbPotential, mapPotential, nType, nLevel, tbNewIds, mapRoll, nCoin, tbLuckyIds, tbRecommend, nAutoSelectIdx, readyCallback)
+      self:SelectComplete(nEventId, tbPotential, mapPotential, nType, nLevel, tbNewIds, mapRoll, nCoin, tbLuckyIds, tbRecommend, nAutoSelectIdx, readyCallback)
       
-      self:SelectComplete(nEventId, tbPotential, mapPotential, nType, nLevel, tbNewIds, mapRoll, nCoin, tbLuckyIds, tbRecommend)
       if self.nPanelType == 2 then
         PlayerData.Voice:PlayCharVoice("thankLvup", 9133, nil, true)
       end
     end
     
-    EventManager.Hit(EventId.BlockInput, true)
-    self.callback(self.nSelectIdx, self.nEventId, completeFunc)
+    local bAuto = self._bAutoSubmitting == true
+    self._bAutoSubmitting = false
+    self:SetSubmitInputBlocked(true)
+    self.callback(self.nSelectIdx, self.nEventId, completeFunc, false, bAuto)
   end
 end
 
 function PotentialSelectCtrl:OnBtnClick_Roll()
-  if not self.callback then
+  if not (self.callback and self.mapRoll and self.mapRoll.CanReRoll) or self.bSpecialPotential then
+    self._bAutoSubmitting = false
     return
   end
   if self.nCoin < self.mapRoll.ReRollPrice then
@@ -536,13 +597,31 @@ function PotentialSelectCtrl:OnBtnClick_Roll()
     return
   end
   
-  local function completeFunc(nEventId, tbPotential, mapPotential, nType, nLevel, tbNewIds, mapRoll, nCoin, tbLuckyIds, tbRecommend)
-    EventManager.Hit(EventId.BlockInput, false)
-    self:Refresh(nEventId, tbPotential, mapPotential, nType, nLevel, tbNewIds, mapRoll, nCoin, tbLuckyIds, true, tbRecommend)
+  local function completeFunc(nEventId, tbPotential, mapPotential, nType, nLevel, tbNewIds, mapRoll, nCoin, tbLuckyIds, tbRecommend, nAutoSelectIdx, readyCallback)
+    self:SetSubmitInputBlocked(false)
+    self:Refresh(nEventId, tbPotential, mapPotential, nType, nLevel, tbNewIds, mapRoll, nCoin, tbLuckyIds, true, tbRecommend, nAutoSelectIdx)
+    if type(readyCallback) == "function" then
+      readyCallback()
+    end
   end
   
-  EventManager.Hit(EventId.BlockInput, true)
-  self.callback(self.nSelectIdx, self.nEventId, completeFunc, true)
+  local bAuto = self._bAutoSubmitting == true
+  self._bAutoSubmitting = false
+  self:SetSubmitInputBlocked(true)
+  self.callback(self.nSelectIdx, self.nEventId, completeFunc, true, bAuto)
+end
+
+function PotentialSelectCtrl:SetSubmitInputBlocked(bBlocked)
+  if bBlocked then
+    self._mapSettingPresentation = nil
+    StarTowerSettingGate.Begin()
+  end
+  bBlocked = bBlocked == true
+  if self._bSubmitInputBlocked == bBlocked then
+    return
+  end
+  self._bSubmitInputBlocked = bBlocked
+  EventManager.Hit(EventId.BlockInput, bBlocked)
 end
 
 function PotentialSelectCtrl:OnBtnSelect_PotentialItem(btn, nIndex)
@@ -557,6 +636,11 @@ function PotentialSelectCtrl:OnBtnClick_PotentialItem(btn, nIndex)
     return
   end
   WwiseAudioMgr:PlaySound("ui_roguelike_xintiao_slide")
+  StarTowerSettingGate.Transition(self, math.max(NovaAPI.GetAnimClipLength(self._mapNode.potentialCard[nIndex].animCtrl, {
+    "tc_newperk_card_switch_up"
+  }), NovaAPI.GetAnimClipLength(self._mapNode.potentialCard[nIndex].animCtrl, {
+    "tc_newperk_card_switch_down"
+  })))
   self:MoveConfirmButton(btn)
   for k, v in ipairs(self._mapNode.potentialCard) do
     if k == nIndex then
@@ -571,7 +655,38 @@ function PotentialSelectCtrl:OnBtnClick_PotentialItem(btn, nIndex)
   self.nSelectIdx = nIndex
 end
 
-function PotentialSelectCtrl:OnEvent_StarTowerPotentialSelect(nEventId, tbPotential, mapPotential, nType, nLevel, tbNewIds, callback, mapRoll, nCoin, tbLuckyIds, tbRecommend)
+function PotentialSelectCtrl:OnEvent_AutoSelectPotential(nEventId, nIndex, bReRoll)
+  if not self.bOpen or self.nEventId ~= nEventId or self.callback == nil then
+    return
+  end
+  if not self._mapNode.contentRoot.gameObject.activeSelf then
+    return
+  end
+  self._bAutoSubmitting = true
+  if bReRoll then
+    self:OnBtnClick_Roll()
+    return
+  end
+  local btn = self._mapNode.btnPotential[nIndex]
+  if btn == nil or self.tbPotential[nIndex] == nil then
+    self._bAutoSubmitting = false
+    return
+  end
+  self:OnBtnClick_PotentialItem(btn.gameObject, nIndex)
+  self:OnBtnClick_Confirm()
+end
+
+function PotentialSelectCtrl:OnEvent_AutoDecisionStateChanged(mapState)
+  local bAutoInactive = type(mapState) == "table" and (mapState.bEnabled ~= true or mapState.bPaused == true)
+  if bAutoInactive then
+    self._nAutoSelectIdx = nil
+  end
+  if bAutoInactive and mapState.bRequesting ~= true then
+    self:SetSubmitInputBlocked(false)
+  end
+end
+
+function PotentialSelectCtrl:OnEvent_StarTowerPotentialSelect(nEventId, tbPotential, mapPotential, nType, nLevel, tbNewIds, callback, mapRoll, nCoin, tbLuckyIds, tbRecommend, nAutoSelectIdx)
   self.callback = callback
   if tbPotential == nil or #tbPotential == 0 then
     self.bSkip = true
@@ -584,7 +699,24 @@ function PotentialSelectCtrl:OnEvent_StarTowerPotentialSelect(nEventId, tbPotent
     traceback("潜能卡选择列表为空！！！")
     return
   end
+  if self.bOpen and self.nEventId == nEventId then
+    self._nAutoSelectIdx = nAutoSelectIdx
+    if self.nSelectIdx ~= 0 and nAutoSelectIdx and self.tbPotential[nAutoSelectIdx] and self._mapNode.btnPotential[nAutoSelectIdx] then
+      GamepadUIManager.SetSelectedUI(self._mapNode.btnPotential[nAutoSelectIdx].gameObject)
+      self:OnBtnClick_PotentialItem(self._mapNode.btnPotential[nAutoSelectIdx].gameObject, nAutoSelectIdx)
+    end
+    local mapPresentation = self._mapSettingPresentation
+    if mapPresentation ~= nil and not self._bSubmitInputBlocked and not self.bOpenDepot then
+      mapPresentation.nSerial = StarTowerSettingGate.Begin()
+      if mapPresentation.bReady then
+        StarTowerSettingGate.Ready(self, mapPresentation.nSerial)
+      end
+    end
+    return
+  end
   self._panel:SetTop(self.canvas)
+  self._mapSettingPresentation = nil
+  StarTowerSettingGate.Begin()
   self.bSkip = false
   local bCloseCamera = false
   if not self.bOpen then
@@ -610,7 +742,7 @@ function PotentialSelectCtrl:OnEvent_StarTowerPotentialSelect(nEventId, tbPotent
     end
     self._mapNode.contentRoot.gameObject:SetActive(true)
     self._mapNode.animCtrl:Play("PotentialSelectPanel_in")
-    self:Refresh(nEventId, tbPotential, mapPotential, nType, nLevel, tbNewIds, mapRoll, nCoin, tbLuckyIds, false, tbRecommend)
+    self:Refresh(nEventId, tbPotential, mapPotential, nType, nLevel, tbNewIds, mapRoll, nCoin, tbLuckyIds, false, tbRecommend, nAutoSelectIdx)
   end
   
   cs_coroutine.start(wait)
@@ -621,6 +753,10 @@ end
 
 function PotentialSelectCtrl:OnEvent_CloseStarTowerDepot()
   if self.bOpenDepot then
+    local mapPresentation = {
+      nSerial = StarTowerSettingGate.Begin()
+    }
+    self._mapSettingPresentation = mapPresentation
     self.bOpenDepot = false
     EventManager.Hit("StarTowerSetButtonEnable", false, false)
     self._mapNode.blurBg.gameObject:SetActive(true)
@@ -634,11 +770,14 @@ function PotentialSelectCtrl:OnEvent_CloseStarTowerDepot()
       self._mapNode.contentRoot.gameObject:SetActive(true)
       coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
       EventManager.Hit(EventId.BlockInput, false)
+      self:ReadySettingPresentationAfter(mapPresentation, NovaAPI.GetAnimClipLength(self._mapNode.potentialCard[1].animCtrl, {
+        "tc_newperk_card_switch_up"
+      }))
       for k, v in ipairs(self._mapNode.potentialCard) do
         v:CloseBgEffect()
       end
       if self.nSelectIdx == 0 and GamepadUIManager.GetCurUIType() ~= AllEnum.GamepadUIType.Other then
-        self.nSelectIdx = 1
+        self.nSelectIdx = self:GetDefaultSelectIndex(1)
         self:MoveConfirmButton(self._mapNode.btnPotential[self.nSelectIdx])
       end
       if self.nSelectIdx ~= 0 then
@@ -661,7 +800,7 @@ function PotentialSelectCtrl:OnEvent_GamepadUIChange(sName, nBeforeType, nAfterT
     return
   end
   if nBeforeType == AllEnum.GamepadUIType.Other or nBeforeType == AllEnum.GamepadUIType.Mouse then
-    local nSelect = self.nSelectIdx ~= 0 and self.nSelectIdx or self.nRecommendIdx
+    local nSelect = self.nSelectIdx ~= 0 and self.nSelectIdx or self:GetDefaultSelectIndex()
     GamepadUIManager.ClearSelectedUI()
     GamepadUIManager.SetSelectedUI(self._mapNode.btnPotential[nSelect].gameObject)
   end
@@ -675,7 +814,8 @@ function PotentialSelectCtrl:OnEvent_Reopen(sName)
     self:OnEvent_CloseStarTowerDepot()
   else
     if self.nSelectIdx == 0 and GamepadUIManager.GetCurUIType() ~= AllEnum.GamepadUIType.Other then
-      self.nSelectIdx = 1
+      local nSelect = self:GetDefaultSelectIndex(1)
+      self:OnBtnClick_PotentialItem(self._mapNode.btnPotential[nSelect].gameObject, nSelect)
     end
     if self.nSelectIdx == 0 then
       return
@@ -689,6 +829,7 @@ end
 function PotentialSelectCtrl:OnEvent_SetCoin(nCount)
   if self.mapRoll ~= nil and self.mapRoll.CanReRoll and nCount then
     if nCount > self.nCoin then
+      StarTowerSettingGate.Transition(self, 1)
       local twCoin = DOTween.To(function()
         return self.nCoin
       end, function(v)
@@ -707,6 +848,14 @@ function PotentialSelectCtrl:OnEvent_SetCoin(nCount)
   end
 end
 
+function PotentialSelectCtrl:GetDefaultSelectIndex(nFallbackIndex)
+  local nAutoSelectIdx = self._nAutoSelectIdx
+  if nAutoSelectIdx and self.tbPotential[nAutoSelectIdx] and self._mapNode.btnPotential[nAutoSelectIdx] then
+    return nAutoSelectIdx
+  end
+  return nFallbackIndex or self.nRecommendIdx == 0 and 1 or self.nRecommendIdx
+end
+
 function PotentialSelectCtrl:ResetSelect(tbUI)
   self.nSelectIdx = 0
   self.bRecommended = self.nRecommendIdx ~= 0
@@ -719,18 +868,17 @@ function PotentialSelectCtrl:ResetSelect(tbUI)
   })
   local nAnimTime = nCardAnimTime > nPanelAnimTime and nCardAnimTime or nPanelAnimTime
   nAnimTime = nAnimTime + 0.4
+  StarTowerSettingGate.Transition(self, nAnimTime)
   if self.selectTimer ~= nil then
     self.selectTimer:Cancel()
     self.selectTimer = nil
   end
   self.selectTimer = self:AddTimer(1, nAnimTime, function()
     if self.nSelectIdx == 0 then
-      local nSelect = self.nRecommendIdx == 0 and 1 or self.nRecommendIdx
+      local nSelect = self:GetDefaultSelectIndex()
       GamepadUIManager.ClearSelectedUI()
       GamepadUIManager.SetSelectedUI(self._mapNode.btnPotential[nSelect].gameObject)
-      if GamepadUIManager.GetCurUIType() == AllEnum.GamepadUIType.Mouse then
-        self:OnBtnClick_PotentialItem(self._mapNode.btnPotential[nSelect].gameObject, nSelect)
-      end
+      self:OnBtnClick_PotentialItem(self._mapNode.btnPotential[nSelect].gameObject, nSelect)
     end
     if self._panel.nStarTowerId ~= 999 then
       if self.bSpecialPotential then

@@ -71,8 +71,8 @@ end
 function GuideGroup_7:Step_2()
   self.msg = {
     BindIcon = "LevelMenuPanel/----SafeAreaRoot----/imgPhoneBg/PhoneContent/LevelMenu/btnResource",
-    Size = {450, 360},
-    Deviation = {0, 170},
+    Size = {450, 270},
+    Deviation = {0, 130},
     Head = "Icon/Head/head_11101",
     Desc = "Guide_7_2",
     DescDeviation = {-800, -40},

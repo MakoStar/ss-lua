@@ -116,6 +116,8 @@ function SkillTipsCtrl:OnEnable()
     self:ShowMonsterSkill()
   elseif self.mapData.bJointDrill then
     self:ShowJointDrillBossSkill()
+  elseif self.mapData.bSoldier then
+    self:ShowSoldierBossTemplateSkill()
   elseif self.mapData.bCharSkillEnergyEff then
     if self.rtTarget ~= nil then
       local vX = NovaAPI.GetViewPointX(self.rtTarget.gameObject)
@@ -373,6 +375,23 @@ function SkillTipsCtrl:ShowJointDrillBossSkill()
   self._mapNode.TMPSkillLevel.gameObject:SetActive(false)
   self:SetPngSprite(self._mapNode.imgSkillIcon, mapSkill.Icon)
   NovaAPI.SetTMPText(self._mapNode.TMPSkillTitle, mapSkill.Name)
+  local sDesc = UTILS.SubDesc(mapSkill.Desc)
+  sDesc = UTILS.ParseNoBrokenDesc(sDesc)
+  NovaAPI.SetTMPSourceText(self._mapNode.TMPSkillDesc, sDesc)
+  self._mapNode.imgCDInfoBg:SetActive(false)
+  self._mapNode.imgEnergyInfoBg:SetActive(false)
+  self._mapNode.rtSkillInfo:SetActive(false)
+end
+
+function SkillTipsCtrl:ShowSoldierBossTemplateSkill()
+  local mapSkill = ConfigTable.GetData("SoldierBossTemplate", self.mapData.nSkillId)
+  if mapSkill == nil then
+    EventManager.Hit(EventId.CloesCurPanel)
+    return
+  end
+  self._mapNode.TMPSkillLevel.gameObject:SetActive(false)
+  self:SetPngSprite(self._mapNode.imgSkillIcon, mapSkill.SoldierRoleSkillIcon)
+  NovaAPI.SetTMPText(self._mapNode.TMPSkillTitle, mapSkill.Title)
   local sDesc = UTILS.SubDesc(mapSkill.Desc)
   sDesc = UTILS.ParseNoBrokenDesc(sDesc)
   NovaAPI.SetTMPSourceText(self._mapNode.TMPSkillDesc, sDesc)

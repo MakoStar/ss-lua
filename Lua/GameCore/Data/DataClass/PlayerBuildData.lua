@@ -1,12 +1,15 @@
 local LocalData = require("GameCore.Data.LocalData")
 local ConfigData = require("GameCore.Data.ConfigData")
+local RapidJson = require("rapidjson")
 local PlayerBuildData = class("PlayerBuildData")
 local newDayTime = UTILS.GetDayRefreshTimeOffset()
 
 function PlayerBuildData:Init()
   self._MapBuildData = {}
+  self._mapBattleCharSkinId = {}
   self._MapLimitedTrialBuildData = {}
   self._tbLimitedTrialBuildId = {}
+  self._sLimitedTrialBuildCacheKey = nil
   self.hasData = false
   self:InitBuildRank()
 end
@@ -45,6 +48,76 @@ function PlayerBuildData:GetBuildSourceByData(mapBuildData)
   return mapBuildData and mapBuildData.nBuildSource or AllEnum.BuildSource.Normal
 end
 
+function PlayerBuildData:GetBuildCharSkinId(mapBuildData, mapBuildChar)
+  local nBuildSource = self:GetBuildSourceByData(mapBuildData)
+  if nBuildSource == AllEnum.BuildSource.LimitedTrial or nBuildSource == AllEnum.BuildSource.Trial or mapBuildData ~= nil and mapBuildData.bTrial == true then
+    local mapTrialChar = ConfigTable.GetData("TrialCharacter", mapBuildChar.nTrialId)
+    if mapTrialChar ~= nil then
+      return mapTrialChar.CharacterSkin
+    end
+    local mapCharCfg = ConfigTable.GetData_Character(mapBuildChar.nTid)
+    return mapCharCfg ~= nil and mapCharCfg.DefaultSkinId or 0
+  end
+  return PlayerData.Char:GetCharSkinId(mapBuildChar.nTid)
+end
+
+function PlayerBuildData:PrioritizeLimitedTrialBuilds(tbBuildData, funcGetPriority)
+  local mapGroups = {}
+  for nIndex, mapBuild in ipairs(tbBuildData) do
+    local mapCharCfg = ConfigTable.GetData_Character(mapBuild.tbChar[1].nTid)
+    local nPriority = funcGetPriority and funcGetPriority(mapBuild) or 0
+    local sGroupKey = table.concat({
+      mapBuild.mapRank.Level,
+      mapCharCfg.EET,
+      nPriority
+    }, ":")
+    local mapGroup = mapGroups[sGroupKey]
+    if mapGroup == nil then
+      mapGroup = {
+        tbIndices = {},
+        tbLimitedTrial = {},
+        tbOther = {}
+      }
+      mapGroups[sGroupKey] = mapGroup
+    end
+    table.insert(mapGroup.tbIndices, nIndex)
+    if self:GetBuildSourceByData(mapBuild) == AllEnum.BuildSource.LimitedTrial then
+      table.insert(mapGroup.tbLimitedTrial, mapBuild)
+    else
+      table.insert(mapGroup.tbOther, mapBuild)
+    end
+  end
+  for _, mapGroup in pairs(mapGroups) do
+    local nLimitedTrialCount = #mapGroup.tbLimitedTrial
+    if 0 < nLimitedTrialCount then
+      for nIndex, nListIndex in ipairs(mapGroup.tbIndices) do
+        if nIndex <= nLimitedTrialCount then
+          tbBuildData[nListIndex] = mapGroup.tbLimitedTrial[nIndex]
+        else
+          tbBuildData[nListIndex] = mapGroup.tbOther[nIndex - nLimitedTrialCount]
+        end
+      end
+    end
+  end
+end
+
+function PlayerBuildData:GetBuildDiscByData(mapBuildData, nDiscId)
+  if mapBuildData == nil or nDiscId == nil or nDiscId == 0 then
+    return nil
+  end
+  local nBuildSource = self:GetBuildSourceByData(mapBuildData)
+  if nBuildSource == AllEnum.BuildSource.LimitedTrial then
+    return PlayerData.Disc:GetLimitedTrialDiscById(nDiscId)
+  elseif nBuildSource == AllEnum.BuildSource.Trial or mapBuildData.bTrial == true then
+    return PlayerData.Disc:GetTrialDiscById(nDiscId)
+  end
+  local mapDisc = PlayerData.Disc:GetDiscById(nDiscId)
+  if mapDisc == nil and mapBuildData.bRankPreview == true and ConfigTable.GetData("Disc", nDiscId) ~= nil and ConfigTable.GetData_Item(nDiscId) ~= nil then
+    mapDisc = PlayerData.Disc:GetRankDetailDisc(nDiscId)
+  end
+  return mapDisc
+end
+
 function PlayerBuildData:GetBuildSource(nBuildId)
   return self:GetBuildSourceByData(self:GetBuildData(nBuildId))
 end
@@ -80,7 +153,7 @@ function PlayerBuildData:FilterEditableBuildIds(tbBuildId)
 end
 
 function PlayerBuildData:IsLimitedTrialBuildActivityOpen()
-  return false
+  return PlayerData.Reengagement ~= nil and PlayerData.Reengagement:GetActIsOpen()
 end
 
 function PlayerBuildData:IsLimitedTrialBuildAllowedType(nType)
@@ -88,6 +161,14 @@ function PlayerBuildData:IsLimitedTrialBuildAllowedType(nType)
     return false
   end
   return true
+end
+
+function PlayerBuildData:IsLimitedTrialBuildValid(nBuildId, nType)
+  if not self:IsLimitedTrialBuildActivityOpen() or not self:IsLimitedTrialBuildAllowedType(nType) then
+    return false
+  end
+  local tbBuildId = PlayerData.Reengagement:GetLimitedTrialBuildList() or {}
+  return table.indexof(tbBuildId, nBuildId) > 0
 end
 
 function PlayerBuildData:CreateBuildBriefData(mapBuildBriefMsg)
@@ -108,7 +189,8 @@ function PlayerBuildData:CreateBuildBriefData(mapBuildBriefMsg)
     tbSecondarySkill = {},
     tbPotentials = {},
     tbNotes = {},
-    nTowerId = mapBuildBriefMsg.StarTowerId
+    nTowerId = mapBuildBriefMsg.StarTowerId,
+    nModifierState = AllEnum.BuildModifierState.NotModified
   }
   for i = 1, 3 do
     table.insert(mapBuildData.tbChar, {
@@ -147,7 +229,40 @@ function PlayerBuildData:CreateBuildDetailData(nBuildId, mapBuildDetailMsg)
     tbNotes[v.Tid] = v.Qty
   end
   self._MapBuildData[nBuildId].tbNotes = tbNotes
+  self._MapBuildData[nBuildId].nModifierState = mapBuildDetailMsg.ModifierState
   self._MapBuildData[nBuildId].bDetail = true
+end
+
+function PlayerBuildData:RefreshBuildInfo(mapBuildInfo)
+  if nil == mapBuildInfo or nil == mapBuildInfo.Brief then
+    return
+  end
+  local mapBuildBriefMsg = mapBuildInfo.Brief
+  local nBuildId = mapBuildBriefMsg.Id
+  if nil == self._MapBuildData[nBuildId] then
+    printLog(string.format("找不到编队信息，无法刷新！！！id= [%s]", nBuildId))
+    return
+  end
+  local mapBuildData = self._MapBuildData[nBuildId]
+  mapBuildData.sName = mapBuildBriefMsg.Name
+  mapBuildData.nScore = mapBuildBriefMsg.Score
+  mapBuildData.mapRank = self:CalBuildRank(mapBuildBriefMsg.Score)
+  mapBuildData.bLock = mapBuildBriefMsg.Lock
+  mapBuildData.bPreference = mapBuildBriefMsg.Preference
+  mapBuildData.nTowerId = mapBuildBriefMsg.StarTowerId
+  mapBuildData.tbDisc = mapBuildBriefMsg.DiscIds
+  if mapBuildInfo.Detail ~= nil then
+  end
+  local tbChar = {}
+  for i = 1, 3 do
+    table.insert(tbChar, {
+      nTid = mapBuildBriefMsg.Chars[i].CharId,
+      nPotentialCount = mapBuildBriefMsg.Chars[i].PotentialCnt
+    })
+  end
+  mapBuildData.tbChar = tbChar
+  mapBuildData.tbPotentials = {}
+  self:CreateBuildDetailData(nBuildId, mapBuildInfo.Detail)
 end
 
 function PlayerBuildData:GetAllBuildBriefData(callback)
@@ -259,18 +374,85 @@ function PlayerBuildData:SaveBuild(nBuildID, bDelete, bLock, bPreference, sName,
   self:NetMsg_SaveBuild(nBuildID, bDelete, bLock, bPreference, sName, callback)
 end
 
+function PlayerBuildData:ModifyBuildNote(nBuildId, tbNoteChange, callback)
+  local mapBuildData = self:GetBuildData(nBuildId)
+  local nModifierState = mapBuildData and mapBuildData.nModifierState
+  local bNoteModifiable = nModifierState == AllEnum.BuildModifierState.NotModified or nModifierState == AllEnum.BuildModifierState.PotentialModified
+  if not bNoteModifiable then
+    if callback then
+      callback(false)
+    end
+    return
+  end
+  local msg = {
+    BuildId = nBuildId,
+    NoteChange = {Items = tbNoteChange}
+  }
+  
+  local function callBack(_, mapMainData)
+    self:RefreshBuildInfo(mapMainData.Info)
+    if callback ~= nil then
+      callback(mapMainData.Change)
+    end
+  end
+  
+  HttpNetHandler.SendMsg(NetMsgId.Id.star_tower_build_note_modify_req, msg, nil, callBack)
+end
+
+function PlayerBuildData:ModifyBuildPotential(nBuildId, tbPotentialChange, callback)
+  local mapBuildData = self:GetBuildData(nBuildId)
+  local nModifierState = mapBuildData and mapBuildData.nModifierState
+  local bPotentialModifiable = nModifierState == AllEnum.BuildModifierState.NotModified or nModifierState == AllEnum.BuildModifierState.NoteModified
+  if not bPotentialModifiable then
+    if callback then
+      callback(false)
+    end
+    return
+  end
+  local msg = {
+    BuildId = nBuildId,
+    PotentialChange = {Items = tbPotentialChange}
+  }
+  
+  local function callBack(_, mapMainData)
+    self:RefreshBuildInfo(mapMainData.Info)
+    if callback ~= nil then
+      callback(mapMainData.Change)
+    end
+  end
+  
+  HttpNetHandler.SendMsg(NetMsgId.Id.star_tower_build_potential_modify_req, msg, nil, callBack)
+end
+
 function PlayerBuildData:CheckHasBuild()
   return next(self._MapBuildData) ~= nil
 end
 
+function PlayerBuildData:ClearBattleCharSkinIds()
+  self._mapBattleCharSkinId = {}
+end
+
+function PlayerBuildData:GetBattleCharSkinId(nCharId)
+  return self._mapBattleCharSkinId[nCharId] or PlayerData.Char:GetCharSkinId(nCharId)
+end
+
 function PlayerBuildData:CalBuildCharacterAttrBattle(nBuildId, nCharId, nTrialId, stActorInfo, bMainChar, tbDiscId)
-  local nSource = self:GetBuildSource(nBuildId)
-  if nSource == AllEnum.BuildSource.LimitedTrial then
-    return PlayerData.Char:CalCharacterLimitedTrialAttrBattle(nTrialId, stActorInfo, bMainChar, tbDiscId, nBuildId)
-  elseif nSource == AllEnum.BuildSource.Trial then
-    return PlayerData.Char:CalCharacterTrialAttrBattle(nTrialId, stActorInfo, bMainChar, tbDiscId, nBuildId)
+  if bMainChar then
+    self:ClearBattleCharSkinIds()
   end
-  return PlayerData.Char:CalCharacterAttrBattle(nCharId, stActorInfo, bMainChar, tbDiscId, nBuildId)
+  local nSource = self:GetBuildSource(nBuildId)
+  local mapAttr
+  if nSource == AllEnum.BuildSource.LimitedTrial then
+    mapAttr = PlayerData.Char:CalCharacterLimitedTrialAttrBattle(nTrialId, stActorInfo, bMainChar, tbDiscId, nBuildId)
+  elseif nSource == AllEnum.BuildSource.Trial then
+    mapAttr = PlayerData.Char:CalCharacterTrialAttrBattle(nTrialId, stActorInfo, bMainChar, tbDiscId, nBuildId)
+  else
+    mapAttr = PlayerData.Char:CalCharacterAttrBattle(nCharId, stActorInfo, bMainChar, tbDiscId, nBuildId)
+  end
+  if stActorInfo.skinId ~= nil and stActorInfo.skinId > 0 then
+    self._mapBattleCharSkinId[nCharId] = stActorInfo.skinId
+  end
+  return mapAttr
 end
 
 function PlayerBuildData:GetBuildDiscInfoInBuild(nBuildId, nDiscId, tbSecondarySkill)
@@ -567,6 +749,7 @@ function PlayerBuildData:NetMsg_GetBuildDetailData(nBuildId, func, ...)
     end
     self._MapBuildData[nBuildId].tbNotes = tbNotes
     self._MapBuildData[nBuildId].bDetail = true
+    self._MapBuildData[nBuildId].nModifierState = msgData.Detail.ModifierState
     func(self, table.unpack(arg))
   end
   
@@ -676,7 +859,8 @@ function PlayerBuildData:CreateLimitedTrialBuild(nTrialId)
     tbSecondarySkill = {},
     tbPotentials = {},
     tbNotes = {},
-    nTowerId = mapTrialData.StarTowerId or 0
+    nTowerId = mapTrialData.StarTowerId or 0,
+    nModifierState = AllEnum.BuildModifierState.CannotModify
   }
   local tbCharTrialId = {}
   local tbCharPotentialCount = {}
@@ -686,7 +870,6 @@ function PlayerBuildData:CreateLimitedTrialBuild(nTrialId)
       nTid = 0,
       nPotentialCount = 0
     })
-    tbCharPotentialCount[v] = 0
     table.insert(tbCharTrialId, v)
   end
   mapBuildData.tbDisc = mapTrialData.Disc
@@ -699,20 +882,11 @@ function PlayerBuildData:CreateLimitedTrialBuild(nTrialId)
       if not mapBuildData.tbPotentials[nCharId] then
         mapBuildData.tbPotentials[nCharId] = {}
       end
-      if tbCharPotentialCount[nCharId] ~= nil then
-        tbCharPotentialCount[nCharId] = tbCharPotentialCount[nCharId] + v.Level
-      end
+      tbCharPotentialCount[nCharId] = (tbCharPotentialCount[nCharId] or 0) + v.Level
       table.insert(mapBuildData.tbPotentials[nCharId], {
         nPotentialId = v.Tid,
         nLevel = v.Level
       })
-    end
-  end
-  for nCharId, nCount in pairs(tbCharPotentialCount) do
-    for _, v in pairs(mapBuildData.tbChar) do
-      if v.nTrialId == nCharId then
-        v.nPotentialCount = nCount
-      end
     end
   end
   local tbNoteJson = decodeJson(mapTrialData.Note)
@@ -726,6 +900,7 @@ function PlayerBuildData:CreateLimitedTrialBuild(nTrialId)
   for k, v in pairs(mapBuildData.tbChar) do
     local mapTrialChar = PlayerData.Char:GetLimitedTrialCharById(v.nTrialId)
     mapBuildData.tbChar[k].nTid = mapTrialChar ~= nil and mapTrialChar.nId or 0
+    mapBuildData.tbChar[k].nPotentialCount = tbCharPotentialCount[mapBuildData.tbChar[k].nTid] or 0
   end
   self._MapLimitedTrialBuildData[nTrialId] = mapBuildData
   if 0 >= table.indexof(self._tbLimitedTrialBuildId, nTrialId) then
@@ -737,6 +912,7 @@ end
 function PlayerBuildData:ClearLimitedTrialBuildCache()
   self._MapLimitedTrialBuildData = {}
   self._tbLimitedTrialBuildId = {}
+  self._sLimitedTrialBuildCacheKey = nil
   PlayerData.Char:DeleteLimitedTrialChar()
   PlayerData.Disc:DeleteLimitedTrialDisc()
 end
@@ -746,15 +922,32 @@ function PlayerBuildData:RefreshLimitedTrialBuildCache(tbTrialBuildId)
   if type(tbTrialBuildId) ~= "table" then
     return
   end
+  self._sLimitedTrialBuildCacheKey = table.concat(tbTrialBuildId, ",")
   for _, nTrialId in ipairs(tbTrialBuildId) do
     self:CreateLimitedTrialBuild(nTrialId)
   end
 end
 
-function PlayerBuildData:GetActiveLimitedTrialBuilds(nType)
+function PlayerBuildData:SyncLimitedTrialBuildCache()
+  local tbTrialBuildId = {}
+  if self:IsLimitedTrialBuildActivityOpen() then
+    tbTrialBuildId = PlayerData.Reengagement:GetLimitedTrialBuildList() or {}
+  end
+  local sKey = table.concat(tbTrialBuildId, ",")
+  if self._sLimitedTrialBuildCacheKey == sKey then
+    return
+  end
+  self:RefreshLimitedTrialBuildCache(tbTrialBuildId)
+end
+
+function PlayerBuildData:GetActiveLimitedTrialBuilds(nType, bIncludeUnsupported)
   local tbRet = {}
   local mapRet = {}
-  if not self:IsLimitedTrialBuildActivityOpen() or not self:IsLimitedTrialBuildAllowedType(nType) then
+  self:SyncLimitedTrialBuildCache()
+  if not self:IsLimitedTrialBuildActivityOpen() then
+    return tbRet, mapRet
+  end
+  if not bIncludeUnsupported and not self:IsLimitedTrialBuildAllowedType(nType) then
     return tbRet, mapRet
   end
   for _, nBuildId in ipairs(self._tbLimitedTrialBuildId) do
@@ -767,12 +960,18 @@ function PlayerBuildData:GetActiveLimitedTrialBuilds(nType)
   return tbRet, mapRet
 end
 
-function PlayerBuildData:GetSelectableBuildBriefData(callback, nType)
+function PlayerBuildData:GetSelectableBuildBriefData(callback, nType, bIncludeUnsupported)
   local function onGetBuildBrief(tbBuildData, mapAllBuild)
-    local tbRet = clone(tbBuildData)
+    local tbRet = {}
     
-    local mapRet = clone(mapAllBuild)
-    local tbLimitedBuild, mapLimitedBuild = self:GetActiveLimitedTrialBuilds(nType)
+    local mapRet = {}
+    for _, mapBuildData in ipairs(tbBuildData) do
+      table.insert(tbRet, mapBuildData)
+    end
+    for nBuildId, mapBuildData in pairs(mapAllBuild) do
+      mapRet[nBuildId] = mapBuildData
+    end
+    local tbLimitedBuild, mapLimitedBuild = self:GetActiveLimitedTrialBuilds(nType, bIncludeUnsupported)
     for _, mapBuildData in ipairs(tbLimitedBuild) do
       table.insert(tbRet, mapBuildData)
     end
@@ -809,6 +1008,7 @@ function PlayerBuildData:CreateTrialBuild(nTrialId)
     tbPotentials = {},
     tbNotes = {},
     nTowerId = mapTrialData.StarTowerId or 0,
+    nModifierState = AllEnum.BuildModifierState.CannotModify,
     bTrial = true
   }
   local tbCharTrialId = {}
@@ -819,7 +1019,6 @@ function PlayerBuildData:CreateTrialBuild(nTrialId)
       nTid = 0,
       nPotentialCount = 0
     })
-    tbCharPotentialCount[v] = 0
     table.insert(tbCharTrialId, v)
   end
   self._mapTrialBuild.tbDisc = mapTrialData.Disc
@@ -832,20 +1031,11 @@ function PlayerBuildData:CreateTrialBuild(nTrialId)
       if not self._mapTrialBuild.tbPotentials[nCharId] then
         self._mapTrialBuild.tbPotentials[nCharId] = {}
       end
-      if tbCharPotentialCount[nCharId] ~= nil then
-        tbCharPotentialCount[nCharId] = tbCharPotentialCount[nCharId] + v.Level
-      end
+      tbCharPotentialCount[nCharId] = (tbCharPotentialCount[nCharId] or 0) + v.Level
       table.insert(self._mapTrialBuild.tbPotentials[nCharId], {
         nPotentialId = v.Tid,
         nLevel = v.Level
       })
-    end
-  end
-  for nCharId, nCount in pairs(tbCharPotentialCount) do
-    for _, v in pairs(self._mapTrialBuild.tbChar) do
-      if v.nTrialId == nCharId then
-        v.nPotentialCount = nCount
-      end
     end
   end
   local tbNoteJson = decodeJson(mapTrialData.Note)
@@ -859,6 +1049,7 @@ function PlayerBuildData:CreateTrialBuild(nTrialId)
   for k, v in pairs(self._mapTrialBuild.tbChar) do
     local mapTrialChar = PlayerData.Char:GetTrialCharById(v.nTrialId)
     self._mapTrialBuild.tbChar[k].nTid = mapTrialChar ~= nil and mapTrialChar.nId or 0
+    self._mapTrialBuild.tbChar[k].nPotentialCount = tbCharPotentialCount[self._mapTrialBuild.tbChar[k].nTid] or 0
   end
   return self._mapTrialBuild
 end
@@ -980,8 +1171,8 @@ function PlayerBuildData:GetTrialBuildAllEft()
 end
 
 function PlayerBuildData:SetBuildReportInfo(nBuildId)
-  local mapDetailData = self._MapBuildData[nBuildId]
-  if mapDetailData == nil or not self._MapBuildData[nBuildId].bDetail then
+  local mapDetailData = self:GetBuildData(nBuildId)
+  if mapDetailData == nil or not mapDetailData.bDetail then
     printError("No Build Detail Data")
     return
   end
@@ -995,7 +1186,7 @@ function PlayerBuildData:SetBuildReportInfo(nBuildId)
     local stBuildDisc = CS.BuildDiscData()
     stBuildDisc.discId = nDiscId
     local mapDiscData = PlayerData.Disc:GetDiscById(nDiscId)
-    if mapDetailData ~= nil then
+    if mapDiscData ~= nil then
       stBuildDisc.level = mapDiscData.nLevel
       stBuildDisc.breakCount = mapDiscData.nStar
       stBuildDisc.advance = mapDiscData.nPhase
@@ -1020,7 +1211,25 @@ function PlayerBuildData:SetBuildReportInfo(nBuildId)
     stBuildCharData.potentialIds = tbPotentials
     table.insert(tbCharData, stBuildCharData)
   end
-  NovaAPI.SetBuildReportInfo(nBuildId, mapDetailData.sName or "", tbCharData, tbDiscData, tbSkills, tbNotes)
+  
+  local function fnStringKeyMap(map)
+    local tb = {}
+    if map == nil then
+      return tb
+    end
+    for k, v in pairs(map) do
+      tb[tostring(k)] = v
+    end
+    return tb
+  end
+  
+  local mapEncode = {}
+  for k, v in pairs(mapDetailData) do
+    mapEncode[k] = v
+  end
+  mapEncode.tbPotentials = fnStringKeyMap(mapDetailData.tbPotentials)
+  mapEncode.tbNotes = fnStringKeyMap(mapDetailData.tbNotes)
+  NovaAPI.SetBuildReportInfo(RapidJson.encode(mapEncode), mapDetailData.sName or "", tbCharData, tbDiscData, tbSkills, tbNotes)
 end
 
 return PlayerBuildData

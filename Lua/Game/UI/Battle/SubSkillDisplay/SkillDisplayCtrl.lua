@@ -58,7 +58,7 @@ function SkillDisplayCtrl:ShowSkillTips(nSkillId, nCharId, callback)
   else
     NovaAPI.SetTMPText(self._mapNode.TMP_SkillName, mapSkillCfgData.Title)
   end
-  local nSkinId = PlayerData.Char:GetCharSkinId(nCharId)
+  local nSkinId = PlayerData.Build:GetBattleCharSkinId(nCharId)
   local mapSkin = ConfigTable.GetData_CharacterSkin(nSkinId)
   self:SetPngSprite(self._mapNode.imgSubSkillIcon, mapSkin.Icon .. AllEnum.CharHeadIconSurfix.XXL)
   self.ShowEndCallback = callback

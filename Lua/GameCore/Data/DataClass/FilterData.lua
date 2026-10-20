@@ -17,6 +17,8 @@ function FilterData:Init()
   self.bFormationCharOrder = false
   self.nFormationDiscSrotType = AllEnum.SortType.Level
   self.bFormationDiscOrder = false
+  self.nDormCharSrotType = AllEnum.SortType.Rarity
+  self.bDormCharOrder = true
   self.tbCacheOptionData = {}
 end
 
@@ -316,15 +318,26 @@ function FilterData:CacheDiscSort(nType, bOrder)
   LocalData.SetPlayerLocalData("FormationDiscOrder", self.bFormationDiscOrder)
 end
 
+function FilterData:CacheDormSort(nType, bOrder)
+  self.nDormCharSrotType = nType
+  self.bDormCharOrder = bOrder
+  LocalData.SetPlayerLocalData("DormCharSrotType", self.nDormCharSrotType)
+  LocalData.SetPlayerLocalData("DormCharOrder", self.bDormCharOrder)
+end
+
 function FilterData:InitSortData()
   self.nFormationCharSrotType = AllEnum.SortType.Level
   self.bFormationCharOrder = false
   self.nFormationDiscSrotType = AllEnum.SortType.Level
   self.bFormationDiscOrder = false
+  self.nDormCharSrotType = AllEnum.SortType.Rarity
+  self.bDormCharOrder = true
   self.nFormationCharSrotType = LocalData.GetPlayerLocalData("FormationCharSrotType") or AllEnum.SortType.Level
   self.bFormationCharOrder = LocalData.GetPlayerLocalData("FormationCharOrder") or false
   self.nFormationDiscSrotType = LocalData.GetPlayerLocalData("FormationDiscSrotType") or AllEnum.SortType.Level
   self.bFormationDiscOrder = LocalData.GetPlayerLocalData("FormationDiscOrder") or false
+  self.nDormCharSrotType = LocalData.GetPlayerLocalData("DormCharSrotType") or AllEnum.SortType.Rarity
+  self.bDormCharOrder = LocalData.GetPlayerLocalData("DormCharOrder") or true
 end
 
 return FilterData

@@ -1,155 +1,225 @@
 local SoldierLevelSelectCtrl = class("SoldierLevelSelectCtrl", BaseCtrl)
+local WwiseAudioMgr = CS.WwiseAudioManager.Instance
 SoldierLevelSelectCtrl._mapNodeConfig = {
   topbar = {
     sNodeName = "TopBarPanel",
     sCtrlName = "Game.UI.TopBarEx.TopBarCtrl"
   },
-  btn_Difficulty = {
-    nCount = 2,
+  ScrollView = {
+    sComponentName = "LoopScrollView"
+  },
+  snapScrollView = {
+    sNodeName = "ScrollView",
+    sComponentName = "LoopScrollSnap",
+    callback = "OnGridSelect_Center"
+  },
+  rtGridTest = {
+    sComponentName = "RectTransform"
+  },
+  txtTestDesc = {nCount = 2, sComponentName = "TMP_Text"},
+  txt_Experience = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Soldier_LevelSelect_Experience"
+  },
+  txt_ExperienceNum = {sComponentName = "TMP_Text"},
+  txt_Tech = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Soldier_LevelSelect_Tech"
+  },
+  txt_TechNum = {sComponentName = "TMP_Text"},
+  btnSearch = {
     sComponentName = "UIButton",
-    callback = "OnBtnClick_Difficulty"
-  }
+    callback = "OnBtnClick_Search"
+  },
+  btnRewardWindow = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_RewardWindow"
+  },
+  txtRewardTitle = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Soldier_LevelSelect_RewardTitle"
+  },
+  txt_TechTree = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Soldier_LevelSelect_TechTree"
+  },
+  btn_BackToHighest = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_BackToHighest"
+  },
+  txt_Back = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Soldier_LevelSelect_BackToHighest"
+  },
+  btn_Start = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_Start"
+  },
+  txt_Start = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Soldier_LevelSelect_Start"
+  },
+  txtRankDifficulty = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Soldier_LevelSelect_RankDifficulty"
+  },
+  txtPhaseTitle = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Soldier_LevelSelect_PhaseTitle"
+  },
+  txtPhaseLevel = {sComponentName = "TMP_Text"},
+  txtEnemyDifficulty = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Soldier_LevelSelect_EnemyDifficulty"
+  },
+  txtEnemyDifficultyNum = {sComponentName = "TMP_Text"},
+  rtRankRewardPopup = {},
+  goRewardWindow = {},
+  goBlurRankReward = {},
+  animRewardWindow = {
+    sNodeName = "goRewardWindow",
+    sComponentName = "Animator"
+  },
+  btnRewardCloseBg = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_CloseRewardPopup"
+  },
+  btnRankRewardClose = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_CloseRewardPopup"
+  },
+  txtRankReward = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Soldier_LevelSelect_RankReward"
+  },
+  txtCurRank = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Soldier_LevelSelect_CurRank"
+  },
+  txtRankName = {sComponentName = "TMP_Text"},
+  txtRankLevel = {sComponentName = "TMP_Text"},
+  txtExpReward = {sComponentName = "TMP_Text"},
+  txtExpRewardDetail = {sComponentName = "TMP_Text"},
+  txtTechReward = {sComponentName = "TMP_Text"},
+  txtTechRewardDetail = {sComponentName = "TMP_Text"}
 }
 SoldierLevelSelectCtrl._mapEventConfig = {}
 SoldierLevelSelectCtrl._mapRedDotConfig = {}
 
 function SoldierLevelSelectCtrl:Awake()
-  local actData = PlayerData.Activity:GetActivityDataByType(GameEnum.activityType.Soldier)
-  if actData == nil then
-    return
-  end
-  actData:RefreshLevelNew()
 end
 
 function SoldierLevelSelectCtrl:OnEnable()
-  self:Refresh()
+  self._mapNode.rtRankRewardPopup.gameObject:SetActive(false)
+  self:RefreshGradeChallenge()
 end
 
-function SoldierLevelSelectCtrl:Refresh()
-  local curChallengeData = PlayerData.SoldierData:GetCurChallengeData()
-  self.curChallengeData = curChallengeData
-  self.tbAllChallenge = {}
-  
-  local function func_ForEach_Challenge(mapLineData)
-    table.insert(self.tbAllChallenge, mapLineData)
+function SoldierLevelSelectCtrl:OnDisable()
+  for k, v in pairs(self.tbGridCtrl or {}) do
+    self:UnbindCtrlByNode(v)
+    self.tbGridCtrl[k] = nil
   end
-  
-  ForEachTableLine(DataTable.SoldierGradeChallenge, func_ForEach_Challenge)
-  table.sort(self.tbAllChallenge, function(a, b)
-    if a.KeyGradeId == b.KeyGradeId then
-      return a.GradeLevel < b.GradeLevel
+  self.tbGridCtrl = nil
+end
+
+function SoldierLevelSelectCtrl:RefreshGradeChallenge()
+  if self.tbGradeChallenge == nil or self.tbGridHeight == nil then
+    self.tbGradeChallenge = {}
+    ForEachTableLine(DataTable.SoldierGradeChallenge, function(mapLineData)
+      table.insert(self.tbGradeChallenge, mapLineData)
+    end)
+    table.sort(self.tbGradeChallenge, function(a, b)
+      return a.Id > b.Id
+    end)
+    self.tbGridHeight = {}
+    for _, v in ipairs(self.tbGradeChallenge) do
+      local sText = orderedFormat(ConfigTable.GetUIText("Soldier_LevelSelect_InitialHp"), v.InitialHp)
+      NovaAPI.SetTMPText(self._mapNode.txtTestDesc[1], sText)
+      local sOppoAttrAddShow = math.floor(tonumber(v.OppoAttrAddShow) * 100) .. "%"
+      sText = orderedFormat(ConfigTable.GetUIText("Soldier_LevelSelect_OppoAttrAddShow"), sOppoAttrAddShow)
+      NovaAPI.SetTMPText(self._mapNode.txtTestDesc[2], sText)
+      CS.UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(self._mapNode.rtGridTest)
+      local nHeight = self._mapNode.rtGridTest.sizeDelta.y
+      table.insert(self.tbGridHeight, nHeight)
     end
-    return a.KeyGradeId < b.KeyGradeId
-  end)
+  end
   self.nHighestChallengeId = PlayerData.SoldierData:GetHighestChallengeId()
-  local nIndex = table.indexof(self.tbAllChallenge, function(a)
-    return a.KeyGradeId == self.nHighestChallengeId
-  end)
-  if nIndex == 0 then
-    nIndex = 1
+  self.nSelectedChallenge = self.nHighestChallengeId
+  self.curChallengeData = ConfigTable.GetData("SoldierGradeChallenge", self.nHighestChallengeId)
+  self.nCenterGridIndex = nil
+  self.tbUnlock = {}
+  self._mapNode.ScrollView:InitEx(self.tbGridHeight, self, self.OnGridRefresh, self.OnGridBtnClick, false)
+  self:ScrollToHighest(0)
+  self._mapNode.ScrollView:ForceRefresh()
+end
+
+function SoldierLevelSelectCtrl:OnGridRefresh(goGrid, nGridIndex)
+  local nIndex = nGridIndex + 1
+  local mapData = self.tbGradeChallenge[nIndex]
+  local nInstanceId = goGrid:GetInstanceID()
+  if self.tbGridCtrl == nil then
+    self.tbGridCtrl = {}
   end
-  self:OnBtnClick_Difficulty(_, nIndex)
-  for i = 1, 2 do
-    local config = ConfigTable.GetData("SoldierGradeChallenge", self.tbAllChallenge[i].Id)
-    if config ~= nil then
-      local btnDifficulty = self._mapNode.btn_Difficulty[i]
-      local txt_TitleNormal = btnDifficulty.transform:Find("AnimRoot/txt_TitleNormal"):GetComponent("TMP_Text")
-      local txt_CountNormal = btnDifficulty.transform:Find("AnimRoot/txt_CountNormal"):GetComponent("TMP_Text")
-      local txtGoLevelNormal = btnDifficulty.transform:Find("AnimRoot/imgLevelNormal/txtGoLevelNormal"):GetComponent("TMP_Text")
-      local btnChallenge = btnDifficulty.transform:Find("AnimRoot/btnChallenge"):GetComponent("UIButton")
-      local txtBtnChallenge = btnChallenge.transform:Find("AnimRoot/txtBtnChallenge"):GetComponent("TMP_Text")
-      local goLevelHint = btnDifficulty.transform:Find("AnimRoot/goLevelHint")
-      local btnContinue = btnDifficulty.transform:Find("AnimRoot/btnContinue"):GetComponent("UIButton")
-      local txtBtnContinue = btnContinue.transform:Find("AnimRoot/txtBtnContinue"):GetComponent("TMP_Text")
-      local txt_goLevelHint = btnDifficulty.transform:Find("AnimRoot/goLevelHint/imgContentBg/txt_goLevelHint"):GetComponent("TMP_Text")
-      local btnSettle = btnDifficulty.transform:Find("AnimRoot/btnSettle"):GetComponent("UIButton")
-      local txtBtnSettle = btnSettle.transform:Find("AnimRoot/txtBtnSettle"):GetComponent("TMP_Text")
-      local imgLockRoot = btnDifficulty.transform:Find("AnimRoot/imgLockRoot"):GetComponent("Image")
-      local txtLockHard = btnDifficulty.transform:Find("AnimRoot/imgLockRoot/imgLockHard/txtLockHard"):GetComponent("TMP_Text")
-      NovaAPI.SetTMPText(txt_TitleNormal, config.Name)
-      NovaAPI.SetTMPText(txt_CountNormal, orderedFormat(ConfigTable.GetUIText("Soldier_Level_Select_Reward"), config.Score))
-      NovaAPI.SetTMPText(txtGoLevelNormal, orderedFormat(ConfigTable.GetUIText("Soldier_Battle_Level"), config.OppoLevelShow))
-      NovaAPI.SetTMPText(txtBtnChallenge, ConfigTable.GetUIText("Soldier_Level_Select_Challenge"))
-      NovaAPI.SetTMPText(txtBtnContinue, ConfigTable.GetUIText("Soldier_Level_Select_Continue"))
-      NovaAPI.SetTMPText(txtBtnSettle, ConfigTable.GetUIText("Soldier_Level_Select_DoResult"))
-      btnChallenge.onClick:RemoveAllListeners()
-      btnChallenge.onClick:AddListener(function()
-        self:OnBtnClick_Challenge(i)
-      end)
-      btnContinue.onClick:RemoveAllListeners()
-      btnContinue.onClick:AddListener(function()
-        self:OnBtnClick_Continue(i)
-      end)
-      btnSettle.onClick:RemoveAllListeners()
-      btnSettle.onClick:AddListener(function()
-        local function callback()
-          self:Refresh()
-        end
-        
-        PlayerData.SoldierData:SendGiveUp(callback)
-      end)
-      goLevelHint.gameObject:SetActive(false)
-      btnContinue.gameObject:SetActive(false)
-      btnSettle.gameObject:SetActive(false)
-      imgLockRoot.gameObject:SetActive(false)
-      btnChallenge.gameObject:SetActive(false)
-      local bUnlocked = PlayerData.SoldierData:CheckChallengeUnlocked(self.tbAllChallenge[i].Id)
-      imgLockRoot.gameObject:SetActive(not bUnlocked)
-      if bUnlocked then
-        if self.curChallengeData.nGradeChallengeId ~= 0 then
-          if self.curChallengeData.nGradeChallengeId == self.tbAllChallenge[i].Id then
-            btnContinue.gameObject:SetActive(true)
-            goLevelHint.gameObject:SetActive(true)
-            btnSettle.gameObject:SetActive(true)
-            local nStage, nNodexIndex = PlayerData.SoldierData:GetCurChallengeState()
-            NovaAPI.SetTMPText(txt_goLevelHint, orderedFormat(ConfigTable.GetUIText("Soldier_Level_Select_NodeIndex"), nStage, nNodexIndex))
-          else
-            imgLockRoot.gameObject:SetActive(true)
-            NovaAPI.SetTMPText(txtLockHard, ConfigTable.GetUIText("Soldier_Level_Select_Lock1"))
-          end
-        else
-          btnChallenge.gameObject:SetActive(true)
-        end
-      else
-        imgLockRoot.gameObject:SetActive(true)
-        NovaAPI.SetTMPText(txtLockHard, ConfigTable.GetUIText("Soldier_Level_Select_Lock2"))
-      end
-      if i == 2 then
-        local chess1 = btnDifficulty.transform:Find("AnimRoot/img_Chess2/img_Chess2").gameObject:GetComponent("DOTweenAnimation")
-        local chess2 = btnDifficulty.transform:Find("AnimRoot/imgIconDb/img_Chess1/img_Chess2").gameObject:GetComponent("DOTweenAnimation")
-        local chess3 = btnDifficulty.transform:Find("AnimRoot/imgIconDb/img_Chess3/img_Chess2").gameObject:GetComponent("DOTweenAnimation")
-        if bUnlocked then
-          chess1:DOPlay()
-          chess2:DOPlay()
-          chess3:DOPlay()
-        else
-          chess1:DOKill()
-          chess2:DOKill()
-          chess3:DOKill()
-        end
-      end
-    end
+  if self.tbGridCtrl[nInstanceId] == nil then
+    self.tbGridCtrl[nInstanceId] = self:BindCtrlByNode(goGrid, "Game.UI.Soldier.SoldierLevelSelectItemCtrl")
+  end
+  local bUnlock = self.nHighestChallengeId >= mapData.Id
+  self.tbUnlock[mapData.Id] = bUnlock
+  self.tbGridCtrl[nInstanceId]:SetData(mapData, bUnlock)
+  if self.nHighestChallengeId == mapData.Id then
+    self.nAutoSelectIndex = nGridIndex
+  end
+  self.tbGridCtrl[nInstanceId]:SetSelect(nGridIndex == self.nCenterGridIndex)
+  if nGridIndex == self.nCenterGridIndex then
+    self.nSelectedChallenge = self.tbGridCtrl[nInstanceId]:GetChallengeId()
   end
 end
 
-function SoldierLevelSelectCtrl:EnterSoldier(nIndex)
-  local actData = PlayerData.Activity:GetActivityDataByType(GameEnum.activityType.Soldier)
-  if actData == nil then
+function SoldierLevelSelectCtrl:OnGridSelect_Center(_, goGrid)
+  local nGridIndex = tonumber(goGrid.name)
+  if nGridIndex == nil or self.nCenterGridIndex == nGridIndex then
     return
   end
-  
-  local function callback()
-    self:ClosePanel()
+  self.nCenterGridIndex = nGridIndex
+  for _, objGridCtrl in pairs(self.tbGridCtrl or {}) do
+    local goGridObj = objGridCtrl.gameObject
+    if goGridObj ~= nil then
+      objGridCtrl:SetSelect(tonumber(goGridObj.name) == nGridIndex)
+    end
   end
-  
-  PlayerData.SoldierData:EnterSoldier(actData.nActId, self.tbAllChallenge[nIndex].Id, callback)
+  local nNewChallengeId = self.tbGridCtrl[goGrid:GetInstanceID()]:GetChallengeId()
+  self.nSelectedChallenge = nNewChallengeId and nNewChallengeId or self.nSelectedChallenge
+  self._mapNode.btn_BackToHighest.gameObject:SetActive(self.nSelectedChallenge ~= self.nHighestChallengeId)
+  local mapGrade = ConfigTable.GetData("SoldierGradeChallenge", self.nSelectedChallenge)
+  if mapGrade ~= nil then
+    NovaAPI.SetTMPText(self._mapNode.txt_ExperienceNum, "+" .. mapGrade.Score)
+    NovaAPI.SetTMPText(self._mapNode.txt_TechNum, "+" .. mapGrade.TechPoint)
+  end
+  WwiseAudioMgr:PostEvent("mode_900001_chess_rankLevel_drag")
+end
+
+function SoldierLevelSelectCtrl:RefreshRewardWindow()
+  local mapCurGrade = ConfigTable.GetData("SoldierGradeChallenge", self.nSelectedChallenge)
+  if mapCurGrade == nil then
+    return
+  end
+  local sExpNum = orderedFormat(ConfigTable.GetUIText("Soldier_LevelSelect_ExpRewardNum"), mapCurGrade.Score)
+  NovaAPI.SetTMPText(self._mapNode.txtExpReward, sExpNum)
+  local sExpDetail = orderedFormat(ConfigTable.GetUIText("Soldier_LevelSelect_ExpRewardDesc"), mapCurGrade.Score)
+  NovaAPI.SetTMPText(self._mapNode.txtExpRewardDetail, sExpDetail)
+  local sTechNum = orderedFormat(ConfigTable.GetUIText("Soldier_LevelSelect_TechRewardNum"), mapCurGrade.TechPoint)
+  NovaAPI.SetTMPText(self._mapNode.txtTechReward, sTechNum)
+  local sTechDetail = orderedFormat(ConfigTable.GetUIText("Soldier_LevelSelect_TechRewardDesc"), mapCurGrade.TechPoint)
+  NovaAPI.SetTMPText(self._mapNode.txtTechRewardDetail, sTechDetail)
+  NovaAPI.SetTMPText(self._mapNode.txtRankLevel, mapCurGrade.Name)
+  local mapKeyGrade = ConfigTable.GetData("SoldierKeyGrade", mapCurGrade.KeyGradeId)
+  if mapKeyGrade ~= nil then
+    NovaAPI.SetTMPText(self._mapNode.txtRankName, mapKeyGrade.Name)
+  end
 end
 
 function SoldierLevelSelectCtrl:ClosePanel()
-end
-
-function SoldierLevelSelectCtrl:OnBtnClick_Difficulty(_, nIndex)
-  self.nSelectedChallenge = self.tbAllChallenge[nIndex].Id
+  EventManager.Hit(EventId.ClosePanel, PanelId.SoldierLevelSelectPanel)
 end
 
 function SoldierLevelSelectCtrl:OnBtnClick_Challenge(nIndex)
@@ -158,6 +228,73 @@ end
 
 function SoldierLevelSelectCtrl:OnBtnClick_Continue(nIndex)
   self:EnterSoldier(nIndex)
+end
+
+function SoldierLevelSelectCtrl:OnBtnClick_Search()
+  EventManager.Hit(EventId.OpenPanel, PanelId.SoldierTechPreviewPanel)
+end
+
+function SoldierLevelSelectCtrl:OnBtnClick_RewardWindow()
+  self._mapNode.rtRankRewardPopup.gameObject:SetActive(true)
+  self._mapNode.goRewardWindow.gameObject:SetActive(false)
+  self._mapNode.goBlurRankReward.gameObject:SetActive(false)
+  self:RefreshRewardWindow()
+  
+  local function wait()
+    self._mapNode.goBlurRankReward.gameObject:SetActive(true)
+    coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
+    self._mapNode.goRewardWindow.gameObject:SetActive(true)
+    self._mapNode.animRewardWindow:Play("t_window_04_t_in")
+  end
+  
+  cs_coroutine.start(wait)
+end
+
+function SoldierLevelSelectCtrl:OnBtnClick_CloseRewardPopup()
+  self._mapNode.animRewardWindow:Play("t_window_04_t_out")
+  self:AddTimer(1, 0.2, function()
+    self._mapNode.rtRankRewardPopup.gameObject:SetActive(false)
+  end, true, true, true)
+end
+
+function SoldierLevelSelectCtrl:OnBtnClick_BackToHighest()
+  self:ScrollToHighest(0.25)
+end
+
+function SoldierLevelSelectCtrl:ScrollToHighest(nTime)
+  if self.tbGradeChallenge == nil or self.tbGridHeight == nil then
+    return
+  end
+  self.nHighestChallengeId = PlayerData.SoldierData:GetHighestChallengeId()
+  local nTargetIndex = 0
+  for k, v in pairs(self.tbGradeChallenge) do
+    if v.Id == self.nHighestChallengeId then
+      nTargetIndex = k
+      break
+    end
+  end
+  if nTargetIndex == 0 then
+    return
+  end
+  if 0 < nTime then
+    WwiseAudioMgr:PostEvent("mode_900001_chess_rankLevel")
+    self:AddTimer(1, nTime, function()
+      WwiseAudioMgr:PostEvent("mode_900001_chess_rankLevel_stop")
+    end, true, true, true)
+  end
+  self._mapNode.ScrollView:SetScrollGridPosEx(self.tbGridHeight, nTargetIndex, nTime, 0)
+end
+
+function SoldierLevelSelectCtrl:OnBtnClick_Start()
+  local function callback()
+    self:ClosePanel()
+  end
+  
+  if not self.tbUnlock[self.nSelectedChallenge] then
+    EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Soldier_LevelSelect_Locked"))
+    return
+  end
+  PlayerData.SoldierData:EnterSoldier(self.nSelectedChallenge, callback)
 end
 
 return SoldierLevelSelectCtrl

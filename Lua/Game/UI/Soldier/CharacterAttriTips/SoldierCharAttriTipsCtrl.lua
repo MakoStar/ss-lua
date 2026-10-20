@@ -10,6 +10,14 @@ SoldierCharAttriTipsCtrl._mapNodeConfig = {
     sComponentName = "UIButton",
     callback = "OnBtnClick_Close"
   },
+  aniRoot = {sNodeName = "Window", sComponentName = "Animator"},
+  aniBlur = {
+    sNodeName = "t_fullscreen_blur_black",
+    sComponentName = "Animator"
+  },
+  goBlur = {
+    sNodeName = "t_fullscreen_blur_black"
+  },
   imgIcon = {sComponentName = "Image"},
   txt_CharName = {sComponentName = "TMP_Text"},
   txtStatus = {sNodeName = "TextStatus", sComponentName = "TMP_Text"},
@@ -26,7 +34,30 @@ SoldierCharAttriTipsCtrl._mapNodeConfig = {
     sComponentName = "TMP_Text",
     sLanguageId = "Soldier_Handbook_CharDetail"
   },
-  imgRare = {sComponentName = "Image"}
+  imgRare = {sComponentName = "Image"},
+  rtSwitch = {},
+  aniSwitch = {sNodeName = "rtSwitch", sComponentName = "Animator"},
+  goSwitch = {nCount = 2},
+  txtBtnSwitch2 = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Soldier_Handbook_CharDetail_Switch2"
+  },
+  txtBtnSwitch1 = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Soldier_Handbook_CharDetail_Switch1"
+  },
+  txtBtnSwitch3 = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Soldier_Handbook_CharDetail_Switch1"
+  },
+  txtBtnSwitch4 = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Soldier_Handbook_CharDetail_Switch2"
+  },
+  btnSwitch = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_Switch"
+  }
 }
 SoldierCharAttriTipsCtrl._mapEventConfig = {}
 SoldierCharAttriTipsCtrl._mapRedDotConfig = {}
@@ -36,10 +67,32 @@ function SoldierCharAttriTipsCtrl:Awake()
   local tbParam = self:GetPanelParam()
   if type(tbParam) == "table" then
     self._nCharId = tbParam[1]
+    self._bShowSwitchBtn = tbParam[2]
   end
+  self.bSwitchCharGrowth = true
+  if self._bShowSwitchBtn == nil then
+    self._bShowSwitchBtn = false
+  end
+  if self._bShowSwitchBtn then
+    local cfgChess = ConfigTable.GetData("SoldierCharacter", self._nCharId)
+    if cfgChess == nil then
+      return
+    end
+    if cfgChess.CharacterType == GameEnum.SoldierCharacterType.Monster then
+      self._bShowSwitchBtn = false
+    elseif cfgChess.CharacterType == GameEnum.SoldierCharacterType.Actor then
+      local mapChar = PlayerData.Char:GetCharDataByTid(cfgChess.CharacterId)
+      if mapChar == nil then
+        self._bShowSwitchBtn = false
+      end
+    end
+  end
+  self:SetSwitchBtnShow()
 end
 
 function SoldierCharAttriTipsCtrl:OnEnable()
+  self._mapNode.goBlur:SetActive(true)
+  self._mapNode.aniRoot:Play("t_window_04_t_in")
   if self._nCharId ~= nil then
     self:OnRefresh(self._nCharId)
   end
@@ -49,6 +102,10 @@ function SoldierCharAttriTipsCtrl:OnDisable()
 end
 
 function SoldierCharAttriTipsCtrl:OnDestroy()
+end
+
+function SoldierCharAttriTipsCtrl:SetSwitchBtnShow()
+  self._mapNode.rtSwitch.gameObject:SetActive(self._bShowSwitchBtn)
 end
 
 function SoldierCharAttriTipsCtrl:OnRefresh(nCharId)
@@ -79,11 +136,14 @@ function SoldierCharAttriTipsCtrl:OnRefresh(nCharId)
       goLevel:SetActive(i <= self.maxLevel)
     end
   end
-  self:_RefreshAttrItems(cfgChess.Id)
+  self:_RefreshAttrItems(cfgChess.Id, self._bShowSwitchBtn and self.bSwitchCharGrowth)
+  if self._bShowSwitchBtn then
+    self._mapNode.aniSwitch:Play("CharAttriTipsSwitch_2")
+  end
 end
 
-function SoldierCharAttriTipsCtrl:_RefreshAttrItems(nCharId)
-  local tbAttr = SoldierAttrData.CalcCharacterAttr(nCharId, 1)
+function SoldierCharAttriTipsCtrl:_RefreshAttrItems(nCharId, bAddCharGrowth)
+  local tbAttr = SoldierAttrData.CalcCharacterAttr(nCharId, 1, nil, nil, nil, bAddCharGrowth)
   self._tbShowAttr = {}
   for _, attr in ipairs(tbAttr or {}) do
     if attr.sKey ~= "Energy" and attr.sKey ~= "InitialEnergy" then
@@ -112,8 +172,9 @@ function SoldierCharAttriTipsCtrl:RefreshAttrItem(goGird, gridIndex)
     NovaAPI.SetTMPText(txtName, mapAttributeDesc.Desc)
   end
   local tbAttrByLevel = {}
+  local bAddCharGrowth = self._bShowSwitchBtn and self.bSwitchCharGrowth
   for i = 1, self.maxLevel do
-    local tbAttr = SoldierAttrData.CalcCharacterAttr(self._nCharId, i)
+    local tbAttr = SoldierAttrData.CalcCharacterAttr(self._nCharId, i, nil, nil, nil, bAddCharGrowth)
     local curAttr
     for _, item in ipairs(tbAttr or {}) do
       if item.sKey == attr.sKey then
@@ -148,7 +209,23 @@ function SoldierCharAttriTipsCtrl:_TransValueFormat(nValue, bPercent, nFormat, b
 end
 
 function SoldierCharAttriTipsCtrl:OnBtnClick_Close()
-  EventManager.Hit(EventId.ClosePanel, PanelId.SoldierCharAttriTips)
+  self._mapNode.aniRoot:Play("t_window_04_t_out")
+  self._mapNode.aniBlur:SetTrigger("tOut")
+  self:AddTimer(1, 0.3, function()
+    EventManager.Hit(EventId.ClosePanel, PanelId.SoldierCharAttriTips)
+  end, true, true, true)
+  EventManager.Hit(EventId.TemporaryBlockInput, 0.3)
+end
+
+function SoldierCharAttriTipsCtrl:OnBtnClick_Switch()
+  self.bSwitchCharGrowth = not self.bSwitchCharGrowth
+  if self.bSwitchCharGrowth then
+    self._mapNode.aniSwitch:Play("CharAttriTipsSwitch_2")
+  else
+    self._mapNode.aniSwitch:Play("CharAttriTipsSwitch_1")
+  end
+  self:SetSwitchBtnShow()
+  self:_RefreshAttrItems(self._nCharId, self._bShowSwitchBtn and self.bSwitchCharGrowth)
 end
 
 return SoldierCharAttriTipsCtrl

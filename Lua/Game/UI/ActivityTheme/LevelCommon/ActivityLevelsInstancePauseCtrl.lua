@@ -135,7 +135,10 @@ function ActivityLevelsInstancePauseCtrl:Refresh()
     end
   end
   for i = 1, 3 do
-    self._mapNode.goChar[i]:SetChar(self.tbChar[i])
+    local nCharId = self.tbChar[i]
+    local nTrialId = self._mapCharTrialId and self._mapCharTrialId[nCharId]
+    self._mapNode.btnChar[i].interactable = not nTrialId or not (0 < nTrialId)
+    self._mapNode.goChar[i]:SetChar(nCharId, false, false, nTrialId)
   end
 end
 
@@ -197,8 +200,9 @@ end
 function ActivityLevelsInstancePauseCtrl:OnDestroy()
 end
 
-function ActivityLevelsInstancePauseCtrl:Pause(nActivityId, nLevelId, tbCharId)
+function ActivityLevelsInstancePauseCtrl:Pause(nActivityId, nLevelId, tbCharId, mapCharTrialId)
   self.tbChar = tbCharId
+  self._mapCharTrialId = mapCharTrialId
   self.nLevelId = nLevelId
   self.nActivityId = nActivityId
   EventManager.Hit(EventId.BattleDashboardVisible, false)

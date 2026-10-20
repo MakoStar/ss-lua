@@ -167,6 +167,7 @@ function MessageBoxCommonCtrl:RefreshConfirm(mapMsg, ctrlBase)
   end
   if self.handlerConfirm then
     self._mapNode.btnConfirm[1].onClick:RemoveListener(self.handlerConfirm)
+    self._mapNode.btnConfirm[2].onClick:RemoveListener(self.handlerConfirm)
   end
   self.handlerConfirm = nil
   
@@ -279,6 +280,7 @@ function MessageBoxCommonCtrl:RefreshAlert(mapMsg, ctrlBase)
     NovaAPI.SetTMPText(self._mapNode.txtWindowTitle, sTitle)
   end
   if self.handlerConfirm then
+    self._mapNode.btnConfirm[1].onClick:RemoveListener(self.handlerConfirm)
     self._mapNode.btnConfirm[2].onClick:RemoveListener(self.handlerConfirm)
   end
   self.handlerConfirm = nil
@@ -325,7 +327,7 @@ end
 
 function MessageBoxCommonCtrl:OnEnable()
   if GamepadUIManager.GetInputState() then
-    GamepadUIManager.EnableGamepadUI("MessageBoxCommonCtrl", self.tbGamepadUINode)
+    GamepadUIManager.EnableGamepadUI("MessageBoxCommonCtrl", self.tbGamepadUINode, nil, nil, nil, AllEnum.UI_SORTING_ORDER.MessageBox)
   else
     for _, v in pairs(self.tbGamepadUINode) do
       if v.sComponentName == "NaviButton" then

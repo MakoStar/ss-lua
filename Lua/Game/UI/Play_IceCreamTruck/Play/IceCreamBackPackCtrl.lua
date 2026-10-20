@@ -59,7 +59,7 @@ function IceCreamBackPackCtrl:InitBackPack(tbCurrentItems)
           imgBuffIcon.gameObject:SetActive(false)
           printError("道具资源路径为空,ID: " .. tostring(value))
         else
-          self:SetActivityAtlasSprite_New(imgBuffIcon, "_400013/SpriteAtlas", IconPath)
+          self:SetActivityAtlasSprite_New(imgBuffIcon, "_400020/SpriteAtlas", IconPath)
         end
       end
     end

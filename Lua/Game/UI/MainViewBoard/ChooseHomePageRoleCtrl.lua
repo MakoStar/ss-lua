@@ -139,7 +139,8 @@ local tbTypeToTab = {
   [GameEnum.handbookType.SKIN] = AllEnum.HandBookTab.Skin,
   [GameEnum.handbookType.OUTFIT] = AllEnum.HandBookTab.Disc,
   [GameEnum.handbookType.PLOT] = AllEnum.HandBookTab.MainScreenCG,
-  [GameEnum.handbookType.StorySet] = AllEnum.HandBookTab.MainScreenCG
+  [GameEnum.handbookType.StorySet] = AllEnum.HandBookTab.MainScreenCG,
+  [GameEnum.handbookType.StoryReview] = AllEnum.HandBookTab.MainScreenCG
 }
 
 local function CharSortSelectFunc(a, b)
@@ -814,7 +815,8 @@ function ChooseHomePageRoleCtrl:OnEnable()
   end
   local tbHandBookPlotList = PlayerHandbookData:GetUnlockHandbookByType({
     GameEnum.handbookType.PLOT,
-    GameEnum.handbookType.StorySet
+    GameEnum.handbookType.StorySet,
+    GameEnum.handbookType.StoryReview
   })
   self.tbAllPlot = {}
   for id, v in pairs(tbHandBookPlotList) do
@@ -1018,7 +1020,7 @@ function ChooseHomePageRoleCtrl:OnSelectBoardItem(nHandbookId)
       tbSortList = self.tbSortedSkin
     elseif handbookData:GetType() == GameEnum.handbookType.OUTFIT then
       tbSortList = self.tbSortedDisc
-    elseif handbookData:GetType() == GameEnum.handbookType.PLOT or handbookData:GetType() == GameEnum.handbookType.StorySet then
+    elseif handbookData:GetType() == GameEnum.handbookType.PLOT or handbookData:GetType() == GameEnum.handbookType.StorySet or handbookData:GetType() == GameEnum.handbookType.StoryReview then
       tbSortList = self.tbSortedPlot
     end
     if nil ~= tbSortList then

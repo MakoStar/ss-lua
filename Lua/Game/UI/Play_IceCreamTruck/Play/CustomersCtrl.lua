@@ -135,6 +135,14 @@ function CustomersCtrl:SetInActiveCustomer(customerItem)
   local bIsSpecial = false
   if self.LevelData.LevelType ~= GameEnum.ActivityIceCreamLevelType.Teaching and nTryCount % self.SpecialCustomerNum == 0 then
     bIsSpecial = math.random() <= self.SpecialProbability
+    if bIsSpecial == true then
+      self.SpecialProbability = ConfigTable.GetConfigNumber("IceCreamSpecialCustomerProbability")
+    else
+      self.SpecialProbability = math.min(self.SpecialProbability + 0.1, 1)
+    end
+  end
+  if self.LevelData.LevelType == GameEnum.ActivityIceCreamLevelType.Infinite and nTryCount % 10 == 0 then
+    EventManager.Hit("Event_ShowOctopus")
   end
   local nItemID = 0
   if bIsSpecial then
@@ -187,12 +195,15 @@ function CustomersCtrl:SetInActiveCustomer(customerItem)
   if not bSpecialFromPool then
     self.ActiveRoles[nSelectedRoleId] = (self.ActiveRoles[nSelectedRoleId] or 0) + 1
   end
-  if self.LevelData.LevelType == GameEnum.ActivityIceCreamLevelType.Infinite and self.nCustomerCount % self.PatienceGroup == 0 then
+  if bIsSpecial then
+    self.nMaxPatienceValue = ConfigTable.GetConfigNumber("IceCreamPatienceShylock")
+  elseif self.LevelData.LevelType == GameEnum.ActivityIceCreamLevelType.Infinite and self.nCustomerCount % self.PatienceGroup == 0 then
     self.nMaxPatienceValue = math.max(self.PatienceLowerVal, self.nMaxPatienceValue - self.PatiencePerReduce)
   end
   local nMaxScoop = self.LevelData.IceCreamBallLimit or 1
   local nInstId = self:_NextInstId()
-  customerItem:SetActiveData(nInstId, nSelectedRoleId, bIsSpecial, nItemID, self.nMaxPatienceValue, nMaxScoop)
+  local tbUnlockSlot = self.LevelData.UnlockSlot
+  customerItem:SetActiveData(nInstId, nSelectedRoleId, bIsSpecial, nItemID, self.nMaxPatienceValue, nMaxScoop, tbUnlockSlot)
   return customerItem
 end
 

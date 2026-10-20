@@ -91,6 +91,16 @@ PenguinCardFlipCtrl._mapNodeConfig = {
     sComponentName = "TMP_Text",
     sLanguageId = "PenguinCard_Round_Ratio"
   },
+  txtLevelAimScoreTitle = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "PenguinCard_EndlessAimTitle"
+  },
+  txtLevelAimScore = {sComponentName = "TMP_Text"},
+  imgGoalIcon = {},
+  aniGoalTitleBg = {
+    sNodeName = "imgGoalTitleBg",
+    sComponentName = "Animator"
+  },
   trRoundScore = {
     sNodeName = "txtRoundScore",
     sComponentName = "Transform"
@@ -239,11 +249,21 @@ function PenguinCardFlipCtrl:RefreshRoundScore()
   local nScore = math.floor(self._panel.mapLevel.nScore)
   local nRoundScore = math.floor(self._panel.mapLevel.nRoundScore)
   local nRoundValue = math.floor(self._panel.mapLevel.nRoundValue)
-  NovaAPI.SetTMPText(self._mapNode.txtScore, self:ThousandsNumber(nScore))
+  local nAimScore = math.floor(self._panel.mapLevel:GetAimScore())
+  local sScore = self:ThousandsNumber(nScore)
+  local sAimScore = self:ThousandsNumber(nAimScore)
+  NovaAPI.SetTMPText(self._mapNode.txtScore, sScore)
   NovaAPI.SetTMPText(self._mapNode.txtRoundScore, self:ThousandsNumber(nRoundScore))
   NovaAPI.SetTMPText(self._mapNode.txtRoundScoreBase, self:ThousandsNumber(nRoundValue))
   local nRatio = self._panel.mapLevel.nRoundMultiRatio > 0 and self._panel.mapLevel.nRoundRatio * self._panel.mapLevel.nRoundMultiRatio or self._panel.mapLevel.nRoundRatio
   NovaAPI.SetTMPText(self._mapNode.txtRoundScoreRatio, math.floor(nRatio * 100) / 100)
+  if self._panel.mapLevel.nScore >= self._panel.mapLevel:GetAimScore() then
+    self._mapNode.imgGoalIcon:SetActive(true)
+    NovaAPI.SetTMPText(self._mapNode.txtLevelAimScore, "<color=#ffde6a>" .. sScore .. "</color>/" .. sAimScore)
+  else
+    self._mapNode.imgGoalIcon:SetActive(false)
+    NovaAPI.SetTMPText(self._mapNode.txtLevelAimScore, sScore .. "/" .. sAimScore)
+  end
 end
 
 function PenguinCardFlipCtrl:RefreshHp()
@@ -507,8 +527,8 @@ function PenguinCardFlipCtrl:OnBtnClick_ShowAll(btn)
 end
 
 function PenguinCardFlipCtrl:OnBtnClick_NextRound(btn)
-  self._panel.mapLevel:NextRound()
   self:QuitScoreAni()
+  self._panel.mapLevel:NextRound()
 end
 
 function PenguinCardFlipCtrl:OnBtnClick_CheckRound(btn)
@@ -631,11 +651,24 @@ function PenguinCardFlipCtrl:OnEvent_ChangeScore(nBefore)
       WwiseManger:PostEvent("Mode_Card_coin_stop")
     end
   end)
+  local nAimScore = self._panel.mapLevel:GetAimScore()
+  local sAimScore = self:ThousandsNumber(math.floor(nAimScore))
+  local bAim = nAimScore <= self._panel.mapLevel.nScore
+  self._mapNode.imgGoalIcon:SetActive(bAim)
+  if bAim and nBefore < nAimScore then
+    self._mapNode.aniGoalTitleBg:Play("PenguinCard_GoalComplete", 0, 0)
+    WwiseManger:PostEvent("Mode_Card_targetcomplete")
+  end
   DOTween.To(function()
     return nBefore
   end, function(v)
     local nScore = math.floor(v)
-    NovaAPI.SetTMPText(self._mapNode.txtScore, self:ThousandsNumber(nScore))
+    local sScore = self:ThousandsNumber(nScore)
+    if bAim then
+      NovaAPI.SetTMPText(self._mapNode.txtLevelAimScore, "<color=#ffde6a>" .. sScore .. "</color>/" .. sAimScore)
+    else
+      NovaAPI.SetTMPText(self._mapNode.txtLevelAimScore, sScore .. "/" .. sAimScore)
+    end
   end, self._panel.mapLevel.nScore, 0.5):OnComplete(callback)
 end
 

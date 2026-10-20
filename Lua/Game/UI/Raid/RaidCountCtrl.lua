@@ -69,7 +69,16 @@ RaidCountCtrl._mapNodeConfig = {
     sLanguageId = "MessageBox_Cancel"
   },
   imgDoubleDrop = {},
-  txtDoubleDrop = {sComponentName = "TMP_Text"}
+  txtDoubleDrop = {sComponentName = "TMP_Text"},
+  rtReengagement = {},
+  txtReengagementTip = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Reengagement_DoubleDrop_Count"
+  },
+  txtReengagement = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Reengagement_DoubleDrop_Tip"
+  }
 }
 RaidCountCtrl._mapEventConfig = {
   [EventId.UpdateEnergy] = "OnEvent_Energy"
@@ -133,23 +142,42 @@ function RaidCountCtrl:RefreshBar()
 end
 
 function RaidCountCtrl:RefreshDoubleCount()
+  self._mapNode.txtRaidTip.gameObject:SetActive(true)
+  self._mapNode.rtReengagement.gameObject:SetActive(false)
   self._mapNode.imgDoubleDrop.gameObject:SetActive(false)
   local actData = PlayerData.Activity:GetActivityDataByType(GameEnum.activityType.Double)
+  local nReengagementCount = PlayerData.Reengagement:GetDoubleDropCount() or 0
+  local bShowNormalDouble = false
   if actData ~= nil and actData:CheckActShow() then
     local tbInstanceType = actData:GetInstanceType()
-    if table.indexof(tbInstanceType, self.nType) > 0 then
-      self._mapNode.imgDoubleDrop.gameObject:SetActive(true)
+    if 0 < table.indexof(tbInstanceType, self.nType) then
       local nDoubleCount, nMaxDoubleCount = actData:GetDoubleDropsTimes()
+      bShowNormalDouble = 0 < nMaxDoubleCount - nDoubleCount
+    end
+  end
+  if bShowNormalDouble then
+    self._mapNode.imgDoubleDrop.gameObject:SetActive(true)
+    local nDoubleCount, nMaxDoubleCount = actData:GetDoubleDropsTimes()
+    local nCurEnergy = PlayerData.Base:GetCurEnergy().nEnergy
+    local nCount = math.floor(nCurEnergy / self.nEnergy)
+    local nRemainDoubleCount = nMaxDoubleCount - nDoubleCount
+    if 0 < nRemainDoubleCount then
+      self.nRemainDoubleCount = math.max(math.min(nRemainDoubleCount, nCount), 1)
+    else
+      self.nRemainDoubleCount = 0
+    end
+    local str = actData:GetDropString()
+    NovaAPI.SetTMPText(self._mapNode.txtDoubleDrop, str)
+  elseif 0 < nReengagementCount then
+    local tbInstanceType = PlayerData.Reengagement:GetDoubleFuncType()
+    if 0 < table.indexof(tbInstanceType, self.nType) then
+      self._mapNode.txtRaidTip.gameObject:SetActive(false)
+      self._mapNode.rtReengagement.gameObject:SetActive(true)
       local nCurEnergy = PlayerData.Base:GetCurEnergy().nEnergy
       local nCount = math.floor(nCurEnergy / self.nEnergy)
-      local nRemainDoubleCount = nMaxDoubleCount - nDoubleCount
-      if 0 < nRemainDoubleCount then
-        self.nRemainDoubleCount = math.max(math.min(nRemainDoubleCount, nCount), 1)
-      else
-        self.nRemainDoubleCount = 0
-      end
-      local str = actData:GetDropString()
-      NovaAPI.SetTMPText(self._mapNode.txtDoubleDrop, str)
+      self.nRemainDoubleCount = math.max(math.min(nReengagementCount, nCount), 1)
+      local sStr = ConfigTable.GetUIText("Reengagement_DoubleDrop_Count") .. nReengagementCount
+      NovaAPI.SetTMPText(self._mapNode.txtReengagementTip, sStr)
     end
   end
 end

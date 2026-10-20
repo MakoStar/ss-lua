@@ -21,6 +21,7 @@ local replace_str = "==DATING_CHARACTER=="
 function DatingEventOptionItemCtrl:InitItem(data)
   self.data = data
   self.tbBtnCtrl = {}
+  self._mapOptionDisplayText = {}
   local charCfg = ConfigTable.GetData_Character(self._panel.nCharId)
   for nId, mapOptData in pairs(self.data.tbOptions) do
     local goItem = instantiate(self._mapNode.btnOption, self._mapNode.OptionList)
@@ -34,9 +35,13 @@ function DatingEventOptionItemCtrl:InitItem(data)
       local sOpt = mapOptData.sOpt
       if charCfg ~= nil then
         sOpt = string.gsub(sOpt, replace_str, charCfg.Name)
-        mapOptData.sOpt = sOpt
       end
+      self._mapOptionDisplayText[mapOptData.nOptId] = sOpt
       NovaAPI.SetTMPText(txtOption, sOpt)
+      local imgAnimFavor = goItem.transform:Find("AnimRoot/imgBg_favor")
+      local bSpecial = PlayerData.Dating:CheckSpecialOption(mapOptData.nOptId, self._panel.nCharId, self._panel.nLandmark)
+      local bBranchB = self.data.nId.nType == GameEnum.DatingEventType.BranchB
+      imgAnimFavor.gameObject:SetActive(bSpecial and bBranchB)
     end
   end
   self.txtSelection = instantiate(self._mapNode.txtSelection, self._mapNode.OptionList):GetComponent("TMP_Text")
@@ -56,8 +61,9 @@ function DatingEventOptionItemCtrl:OnBtnClick_Select(btn, nIndex)
   self._mapNode.goOptionTip.gameObject:SetActive(false)
   for k, mapOptData in pairs(self.data.tbOptions) do
     if mapOptData.nOptId == nIndex then
-      NovaAPI.SetTMPText(self.txtSelection, mapOptData.sOpt)
-      NovaAPI.SetTMPText(self.txtSelectionDummy, mapOptData.sOpt)
+      local sOpt = self._mapOptionDisplayText[mapOptData.nOptId] or mapOptData.sOpt
+      NovaAPI.SetTMPText(self.txtSelection, sOpt)
+      NovaAPI.SetTMPText(self.txtSelectionDummy, sOpt)
       self.txtSelection.gameObject:SetActive(true)
       self.txtSelectionDummy.gameObject:SetActive(true)
       self.animator:Play("DatingPanel_EventSelectionItem_Select")
@@ -109,6 +115,7 @@ function DatingEventOptionItemCtrl:OnDisable()
     end
     self.tbBtnCtrl = nil
   end
+  self._mapOptionDisplayText = nil
 end
 
 return DatingEventOptionItemCtrl

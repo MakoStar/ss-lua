@@ -3,6 +3,7 @@ local PenguinCardUtils = require("Game.UI.Play_PenguinCard.PenguinCardUtils")
 local WwiseManger = CS.WwiseAudioManager.Instance
 PenguinCardStartCtrl._mapNodeConfig = {
   txtLevelDesc = {sComponentName = "TMP_Text"},
+  txtSubLevelDesc = {sComponentName = "TMP_Text"},
   txtTurnDesc = {sComponentName = "TMP_Text"},
   txtStartTitle = {sComponentName = "TMP_Text"},
   txtAim = {sComponentName = "TMP_Text"},
@@ -32,6 +33,7 @@ function PenguinCardStartCtrl:Refresh()
   local nScore = math.floor(self._panel.mapLevel:GetAimScore())
   NovaAPI.SetTMPText(self._mapNode.txtAim, orderedFormat(ConfigTable.GetUIText("PenguinCard_Endless_AimScoreTitle"), self:ThousandsNumber(nScore)))
   NovaAPI.SetTMPText(self._mapNode.txtLevelDesc, self._panel.mapLevel.sLevelDesc)
+  NovaAPI.SetTMPText(self._mapNode.txtSubLevelDesc, self._panel.mapLevel.sSubLevelDesc)
   NovaAPI.SetTMPText(self._mapNode.txtTurnDesc, self._panel.mapLevel.sEndlessDesc)
   NovaAPI.SetTMPText(self._mapNode.txtStartTitle, orderedFormat(ConfigTable.GetUIText("PenguinCard_Endless_LevelTittle"), self._panel.mapLevel.nEndlessLevel))
   self._mapNode.btnStart[1].gameObject:SetActive(self._panel.mapLevel.nEndlessLevel == 1)

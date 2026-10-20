@@ -73,7 +73,7 @@ function MallShopDetailCtrl:RefreshInfo()
   end
   NovaAPI.SetTMPText(self._mapNode.txtName, self.mapCfg.Name)
   self._mapNode.goItem:SetItem(self.mapCfg.ItemId, nil, self.mapCfg.ItemQty, nil, nil, nil, nil, true)
-  if mapItemCfg.Type == GameEnum.itemType.Disc or mapItemCfg.Type == GameEnum.itemType.Char or mapItemCfg.Type == GameEnum.itemType.CharacterSkin then
+  if mapItemCfg.Type == GameEnum.itemType.Disc or mapItemCfg.Type == GameEnum.itemType.Char or mapItemCfg.Type == GameEnum.itemType.CharacterSkin or mapItemCfg.Stype == GameEnum.itemStype.DormFurniture then
     self._mapNode.txtHas.gameObject:SetActive(false)
   else
     self._mapNode.txtHas.gameObject:SetActive(true)

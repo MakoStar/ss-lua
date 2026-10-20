@@ -142,7 +142,14 @@ function VampireLevelSelect_levelInfoGrid:Refresh(mapLevelData, mapBuildData, bF
       if mapBuildData.tbChar[i] ~= nil then
         self._mapNode.tcChar[i].gameObject:SetActive(true)
         local mapChar = ConfigTable.GetData_Character(mapBuildData.tbChar[i].nTid)
-        local mapCharData = PlayerData.Char:GetCharDataByTid(mapBuildData.tbChar[i].nTid)
+        local mapCharData
+        if mapBuildData.nBuildSource == AllEnum.BuildSource.LimitedTrial then
+          mapCharData = PlayerData.Char:GetLimitedTrialCharById(mapBuildData.tbChar[i].nTrialId)
+        elseif mapBuildData.nBuildSource == AllEnum.BuildSource.Trial then
+          mapCharData = PlayerData.Char:GetTrialCharById(mapBuildData.tbChar[i].nTrialId)
+        else
+          mapCharData = PlayerData.Char:GetCharDataByTid(mapBuildData.tbChar[i].nTid)
+        end
         NovaAPI.SetTMPText(self._mapNode.txtRank[i], mapCharData.nLevel)
         local nCharSkinId = mapCharData.nSkinId
         local mapCharSkin = ConfigTable.GetData_CharacterSkin(nCharSkinId)

@@ -57,12 +57,8 @@ end
 function SoldierHandbookCharCtrl:InitCharList()
   self.tbAllChar = {}
   self.mapCharByRarity = {}
-  local actData = PlayerData.Activity:GetActivityDataByType(GameEnum.activityType.Soldier)
-  if actData == nil then
-    return
-  end
-  local nActId = actData:GetActId()
-  local seasonConfig = ConfigTable.GetData("SoldierSeason", nActId)
+  local nSeasonId = PlayerData.SoldierData:GetCurSelectSeasonId()
+  local seasonConfig = ConfigTable.GetData("SoldierSeason", nSeasonId)
   if seasonConfig == nil then
     return
   end

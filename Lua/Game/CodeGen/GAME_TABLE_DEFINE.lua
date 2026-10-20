@@ -22,6 +22,7 @@ GameTableDefine.CommonTable = {
     Key = true,
     Lang = {"Desc"}
   },
+  ActivityEntrance = {Key = true},
   ActivityGoods = {
     Key = true,
     Lang = {"Name", "Desc"}
@@ -51,6 +52,10 @@ GameTableDefine.CommonTable = {
       "Desc"
     }
   },
+  ActivityMailBindControl = {
+    Key = true,
+    Lang = {"Desc"}
+  },
   ActivityPenguinCardLevel = {
     Key = true,
     Lang = {"Name"}
@@ -63,6 +68,36 @@ GameTableDefine.CommonTable = {
     Key = true,
     Lang = {"GroupName"}
   },
+  ActivityReturnee = {Key = true},
+  ActivityReturneeCard = {
+    Key = true,
+    Lang = {"Name", "Desc"}
+  },
+  ActivityReturneeLoginRewardControl = {
+    Key = true,
+    Lang = {"DesText"}
+  },
+  ActivityReturneeLoginRewardGroup = {
+    Key = true,
+    Lang = {"RewardDesc"}
+  },
+  ActivityReturneePack = {
+    Key = true,
+    Lang = {
+      "Name",
+      "DetailName",
+      "SimpleName"
+    }
+  },
+  ActivityReturneeQuest = {
+    Key = true,
+    Lang = {"Title"}
+  },
+  ActivityReturneeQuestGroup = {Key = true},
+  ActivityReturneeQuestPoint = {},
+  ActivityReturneeReunionReward = {Key = true},
+  ActivityReturneeTrialBuild = {Key = true},
+  ActivityReturneeTrialBuildGroup = {Key = true},
   ActivityShop = {
     Key = true,
     Lang = {"Name"}
@@ -77,9 +112,16 @@ GameTableDefine.CommonTable = {
       "Aim"
     }
   },
-  ActivityStoryChapter = {Key = true},
+  ActivityStoryChapter = {
+    Key = true,
+    Lang = {"Title", "StoryTime"}
+  },
   ActivityStoryCondition = {Key = true},
   ActivityStoryEvidence = {Key = true},
+  ActivityStoryLine = {
+    Key = true,
+    Lang = {"Title"}
+  },
   ActivityTask = {
     Key = true,
     Lang = {"Title", "Desc"}
@@ -416,6 +458,45 @@ GameTableDefine.CommonTable = {
     Key = true,
     Lang = {"Title"}
   },
+  DormAchievement = {
+    Key = true,
+    Lang = {"Title", "Desc"}
+  },
+  DormFurniture = {Key = true},
+  DormHonorTitle = {Key = true},
+  DormInteractive = {Key = true},
+  DormLayoutReward = {
+    Key = true,
+    Lang = {
+      "RoomLayoutName",
+      "RoomLayoutDesc",
+      "RoomLayoutTag",
+      "GetWay"
+    }
+  },
+  DormQuest = {
+    Key = true,
+    Lang = {"Title"}
+  },
+  DormQuestGroup = {
+    Key = true,
+    Lang = {"Title"}
+  },
+  DormReward = {Key = true},
+  DormRole = {Key = true},
+  DormRoleSkin = {Key = true},
+  DormRoom = {
+    Key = true,
+    Lang = {
+      "DefaultName"
+    }
+  },
+  DormRoomLayout = {Key = true},
+  DormRoomScene = {
+    Key = true,
+    Lang = {"Desc"}
+  },
+  DormRoomSize = {Key = true},
   Drop = {},
   DropItemShow = {},
   DropObject = {Key = true},
@@ -477,6 +558,7 @@ GameTableDefine.CommonTable = {
   GachaATypeProb = {},
   GachaNewbie = {Key = true},
   GachaPkg = {},
+  GachaReward = {Key = true},
   GachaStorage = {
     Key = true,
     Lang = {"Name"}
@@ -538,8 +620,14 @@ GameTableDefine.CommonTable = {
   GoldenSpySkill = {Key = true},
   Guide = {Key = true},
   GuideGroup = {Key = true},
-  GuideMissionChapter = {Key = true},
-  GuideMissionQuest = {Key = true},
+  GuideMissionChapter = {
+    Key = true,
+    Lang = {"Index", "Title"}
+  },
+  GuideMissionQuest = {
+    Key = true,
+    Lang = {"Title"}
+  },
   GuideMissionQuestGroup = {Key = true},
   Handbook = {Key = true},
   HitDamage = {Key = true},
@@ -669,6 +757,10 @@ GameTableDefine.CommonTable = {
     Key = true,
     Lang = {"Name", "Desc"}
   },
+  MallActivity = {
+    Key = true,
+    Lang = {"Name"}
+  },
   MallAdvRecommend = {Key = true},
   MallGem = {
     Key = true,
@@ -709,6 +801,33 @@ GameTableDefine.CommonTable = {
   MangaLoading = {
     Key = true,
     Lang = {"Title"}
+  },
+  MathParkourAreaConfig = {Key = true},
+  MathParkourBuffItem = {
+    Key = true,
+    Lang = {"Name", "Desc"}
+  },
+  MathParkourConfig = {Key = true},
+  MathParkourControl = {
+    Key = true,
+    Lang = {"Desc"}
+  },
+  MathParkourItemGroup = {Key = true},
+  MathParkourLevel = {
+    Key = true,
+    Lang = {"Title", "Desc"}
+  },
+  MathParkourObject = {
+    Key = true,
+    Lang = {"Name"}
+  },
+  MathParkourQuest = {
+    Key = true,
+    Lang = {"Desc"}
+  },
+  MathParkourQuestGroup = {
+    Key = true,
+    Lang = {"GroupName"}
   },
   MiningControl = {
     Key = true,
@@ -822,7 +941,7 @@ GameTableDefine.CommonTable = {
   PenguinCardFixedTurn = {Key = true},
   PenguinCardFloor = {
     Key = true,
-    Lang = {"Floortips"}
+    Lang = {"Floortips", "FloorDesc"}
   },
   PenguinCardHandRank = {
     Key = true,
@@ -945,12 +1064,24 @@ GameTableDefine.CommonTable = {
     Key = true,
     Lang = {"Name"}
   },
+  SoldierBossPersonalityGrade = {},
+  SoldierBossTemplate = {
+    Key = true,
+    Lang = {
+      "Name",
+      "Title",
+      "Desc"
+    }
+  },
   SoldierBuff = {Key = true},
   SoldierCardEffect = {Key = true},
   SoldierCharacter = {
     Key = true,
     Lang = {"Name"}
   },
+  SoldierCharGrowthTier = {Key = true},
+  SoldierCharTierAttrBonus = {Key = true},
+  SoldierCheckStageAddScore = {Key = true},
   SoldierChessAI = {Key = true},
   SoldierChessType = {
     Key = true,
@@ -961,10 +1092,19 @@ GameTableDefine.CommonTable = {
     Key = true,
     Lang = {"DesText"}
   },
+  SoldierDifficultyAdjustGrade = {Key = true},
+  SoldierEndingPlan = {
+    Key = true,
+    Lang = {
+      "EndingTitle",
+      "Desc"
+    }
+  },
   SoldierEventBattlePool = {
     Key = true,
     Lang = {"Title", "Name"}
   },
+  SoldierEventPersonalityStory = {Key = true},
   SoldierEventPlan = {Key = true},
   SoldierFloor = {Key = true},
   SoldierGradeChallenge = {
@@ -977,6 +1117,10 @@ GameTableDefine.CommonTable = {
   },
   SoldierLabelMark = {Key = true},
   SoldierNodePlan = {Key = true},
+  SoldierOptionType = {
+    Key = true,
+    Lang = {"OptionDesc", "CostDesc"}
+  },
   SoldierPartner = {
     Key = true,
     Lang = {"Name", "Desc"}
@@ -1023,6 +1167,20 @@ GameTableDefine.CommonTable = {
       "Desc"
     }
   },
+  SoldierStoryPersonalityOption = {Key = true},
+  SoldierStoryResult = {
+    Key = true,
+    Lang = {"ResultText"}
+  },
+  SoldierStoryReward = {Key = true},
+  SoldierStoryType = {
+    Key = true,
+    Lang = {
+      "Title",
+      "Desc",
+      "OptionTitleDesc1"
+    }
+  },
   SoldierStrategyCard = {
     Key = true,
     Lang = {
@@ -1031,6 +1189,12 @@ GameTableDefine.CommonTable = {
       "Desc"
     }
   },
+  SoldierTechBattleEffect = {Key = true},
+  SoldierTechNode = {
+    Key = true,
+    Lang = {"Name", "Desc"}
+  },
+  SoldierTotalReward = {Key = true},
   StarTower = {
     Key = true,
     Lang = {"Name", "Desc"}
@@ -1137,6 +1301,10 @@ GameTableDefine.CommonTable = {
   StoryEvidence = {
     Key = true,
     Lang = {"Name", "Desc"}
+  },
+  StoryLine = {
+    Key = true,
+    Lang = {"TitleMain", "TitleSub"}
   },
   StoryPersonality = {
     Key = true,
@@ -1277,6 +1445,20 @@ GameTableDefine.CommonTable = {
   },
   TowerDefenseStory = {Key = true},
   TowerDefenseTeamExp = {Key = true},
+  TowerVitaOption = {
+    Key = true,
+    Lang = {
+      "OptionText1",
+      "OptionText2",
+      "OptionText3",
+      "OptionText4",
+      "OptionText5",
+      "OptionText6",
+      "OptionText7",
+      "OptionText8",
+      "OptionText9"
+    }
+  },
   TraceHuntBoss = {Key = true},
   TraceHuntControl = {Key = true},
   TraceHuntDifficulty = {},

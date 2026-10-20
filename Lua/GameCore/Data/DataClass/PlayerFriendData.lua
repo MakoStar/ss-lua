@@ -84,6 +84,10 @@ function PlayerFriendData:GetFriendListData()
   return tbList
 end
 
+function PlayerFriendData:GetFriendDetailData(nUid)
+  return self._tbFriendList[nUid]
+end
+
 function PlayerFriendData:GetFriendListNum()
   return self._nFriendListNum
 end

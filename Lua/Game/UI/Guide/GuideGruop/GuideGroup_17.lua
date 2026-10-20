@@ -52,7 +52,7 @@ end
 function GuideGroup_17:Step_1()
   self.msg = {
     BindIcon = "LevelMenuPanel/----SafeAreaRoot----/imgPhoneBg/PhoneContent/LevelMenu/rtFunctionBg/btnInfinity",
-    Size = {200, 200},
+    Size = {210, 186},
     Deviation = {0, 0},
     Head = "Icon/Head/head_917402",
     Desc = "Guide_17_1",

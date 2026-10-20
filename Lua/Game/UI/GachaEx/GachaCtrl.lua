@@ -10,7 +10,8 @@ local coverScript = {
   [GameEnum.gachaStorageType.DiscCardPool] = "Game.UI.GachaEx.GachaCover.GachaCoverCtrl_PermanentDiscUp",
   [GameEnum.gachaStorageType.CharacterUpCardPool] = "Game.UI.GachaEx.GachaCover.GachaCoverCtrl_CharUp",
   [GameEnum.gachaStorageType.DiscUpCardPool] = "Game.UI.GachaEx.GachaCover.GachaCoverCtrl_DiscUp",
-  [GameEnum.gachaStorageType.BeginnerCardPool] = "Game.UI.GachaEx.GachaCover.GachaCoverCtrl_NewBie"
+  [GameEnum.gachaStorageType.BeginnerCardPool] = "Game.UI.GachaEx.GachaCover.GachaCoverCtrl_NewBie",
+  [GameEnum.gachaStorageType.CharacterCardRewardPool] = "Game.UI.GachaEx.GachaCover.GachaCoverCtrl_PermanentCharReward"
 }
 GachaCtrl._mapNodeConfig = {
   coverRoot = {
@@ -305,6 +306,8 @@ function GachaCtrl:RefreshTab()
     local imgIconTab = goTab.transform:Find("AnimRoot/imgTab"):GetComponent("Image")
     self:SetPngSprite(imgIconTab, mapGacha.Icon)
     goTab.transform:Find("AnimRoot/imgChoose").gameObject:SetActive(false)
+    local goRedDot = goTab.transform:Find("AnimRoot/goPoolTabRedDot").gameObject
+    RedDotManager.RegisterNode(RedDotDefine.Gacha_List, nGachaId, goRedDot)
   end
 end
 
@@ -344,7 +347,7 @@ end
 
 function GachaCtrl:RefreshRemainGachaTimes(curPoolId)
   local LimitTimes = ConfigTable.GetData("Gacha", curPoolId).LimitTimes
-  if 999 < LimitTimes or LimitTimes == nil then
+  if LimitTimes == nil or 999 < LimitTimes then
     self._mapNode.TMP_GachaTimes.gameObject:SetActive(false)
     return
   end
@@ -406,12 +409,12 @@ function GachaCtrl:RefreshCoin(mapGacha)
   local bShowSpecialOne = false
   if mapGacha.SpecificTid > 0 then
     local nCurCount = PlayerData.Item:GetItemCountByID(mapGacha.SpecificTid)
-    if nCurCount >= mapGacha.SpecificQty then
+    if nCurCount >= mapGachaStorage.DefaultQty then
       bShowSpecialOne = true
     end
   end
   if bShowSpecialOne then
-    NovaAPI.SetTMPText(self._mapNode.TMP_gachaOneCost, mapGacha.SpecificQty)
+    NovaAPI.SetTMPText(self._mapNode.TMP_gachaOneCost, mapGachaStorage.DefaultQty)
     local mapItemCfgData = ConfigTable.GetData_Item(mapGacha.SpecificTid)
     if mapItemCfgData ~= nil then
       self:SetPngSprite(self._mapNode.imgItemOne, mapItemCfgData.Icon2)
@@ -448,12 +451,12 @@ function GachaCtrl:RefreshCoin(mapGacha)
   local bShowSpecialTen = false
   if mapGacha.SpecificTid > 0 then
     local nCurCount = PlayerData.Item:GetItemCountByID(mapGacha.SpecificTid)
-    if nCurCount >= 10 * mapGacha.SpecificQty then
+    if nCurCount >= 10 * mapGachaStorage.DefaultQty then
       bShowSpecialTen = true
     end
   end
   if bShowSpecialTen then
-    NovaAPI.SetTMPText(self._mapNode.TMP_gachaTenCost, 10 * mapGacha.SpecificQty)
+    NovaAPI.SetTMPText(self._mapNode.TMP_gachaTenCost, 10 * mapGachaStorage.DefaultQty)
     local mapItemCfgData = ConfigTable.GetData_Item(mapGacha.SpecificTid)
     if mapItemCfgData ~= nil then
       self:SetPngSprite(self._mapNode.imgItemTen, mapItemCfgData.Icon2)
@@ -650,11 +653,9 @@ function GachaCtrl:GachaOneExchangeCoin(mapGacha)
     return
   end
   local bSpecial = false
-  if mapGacha.SpecificTid > 0 then
-    local nCurCount = PlayerData.Item:GetItemCountByID(mapGacha.SpecificTid)
-    if nCurCount >= mapGacha.SpecificQty then
-      bSpecial = true
-    end
+  local nCurSpecificCountCount = PlayerData.Item:GetItemCountByID(mapGacha.SpecificTid)
+  if mapGacha.SpecificTid > 0 and nCurSpecificCountCount >= mapGachaStorage.DefaultQty then
+    bSpecial = true
   end
   local nDefaultCount = PlayerData.Item:GetItemCountByID(mapGachaStorage.DefaultId)
   if nDefaultCount >= mapGachaStorage.DefaultQty or bSpecial then
@@ -663,10 +664,10 @@ function GachaCtrl:GachaOneExchangeCoin(mapGacha)
     local nCostCount = PlayerData.Item:GetItemCountByID(mapGachaStorage.CostId)
     
     local function confirmCallback()
-      if nCostCount >= mapGachaStorage.CostQty * (mapGachaStorage.DefaultQty - nDefaultCount) then
+      if nCostCount >= mapGachaStorage.CostQty * (mapGachaStorage.DefaultQty - nDefaultCount - nCurSpecificCountCount) then
         PlayerData.Gacha:SendGachaReq(self.curPoolId, 1, GachaCallback)
       elseif mapGachaStorage.CostId == AllEnum.CoinItemId.Jade then
-        local nNeedCount = mapGachaStorage.CostQty * (mapGachaStorage.DefaultQty - nDefaultCount)
+        local nNeedCount = mapGachaStorage.CostQty * (mapGachaStorage.DefaultQty - nDefaultCount - nCurSpecificCountCount)
         local nJadeCount = PlayerData.Item:GetItemCountByID(AllEnum.CoinItemId.Jade)
         nNeedCount = nNeedCount - nJadeCount
         local mapCostCfgData = ConfigTable.GetData_Item(AllEnum.CoinItemId.STONE)
@@ -700,7 +701,15 @@ function GachaCtrl:GachaOneExchangeCoin(mapGacha)
     local mapDefaultCfgData = ConfigTable.GetData_Item(mapGachaStorage.DefaultId)
     local sTips
     if 0 < nDefaultCount then
-      sTips = orderedFormat(ConfigTable.GetUIText("Recruit_ExchangeGem"), nDefaultCount, mapDefaultCfgData.Id, nNeedCount, mapCostCfgData.Id, mapGachaStorage.DefaultQty - nDefaultCount, mapDefaultCfgData.Id)
+      if 0 < nCurSpecificCountCount then
+        local nNeed = mapGachaStorage.CostQty * (mapGachaStorage.DefaultQty - nCurSpecificCountCount - nDefaultCount)
+        sTips = orderedFormat(ConfigTable.GetUIText("Recruit_ExchangeGem2"), nDefaultCount, mapDefaultCfgData.Id, nCurSpecificCountCount, mapGacha.SpecificTid, nNeed, mapCostCfgData.Id, mapGachaStorage.DefaultQty - nCurSpecificCountCount - nDefaultCount, mapDefaultCfgData.Id)
+      else
+        sTips = orderedFormat(ConfigTable.GetUIText("Recruit_ExchangeGem"), nDefaultCount, mapDefaultCfgData.Id, nNeedCount, mapCostCfgData.Id, mapGachaStorage.DefaultQty - nDefaultCount, mapDefaultCfgData.Id)
+      end
+    elseif 0 < nCurSpecificCountCount then
+      local nNeed = mapGachaStorage.CostQty * (mapGachaStorage.DefaultQty - nCurSpecificCountCount)
+      sTips = orderedFormat(ConfigTable.GetUIText("Recruit_ExchangeGem"), nCurSpecificCountCount, mapGacha.SpecificTid, nNeed, mapCostCfgData.Id, mapGachaStorage.DefaultQty - nCurSpecificCountCount, mapDefaultCfgData.Id)
     else
       sTips = orderedFormat(ConfigTable.GetUIText("Recruit_Exchange"), nNeedCount, mapCostCfgData.Id, mapGachaStorage.DefaultQty - nDefaultCount, mapDefaultCfgData.Id)
     end
@@ -780,14 +789,10 @@ function GachaCtrl:GachaTenExchangeCoin(mapGacha)
   local nDefaultCount = PlayerData.Item:GetItemCountByID(mapGachaStorage.DefaultId)
   if 0 < mapGacha.SpecificTid then
     nSpecificCount = PlayerData.Item:GetItemCountByID(mapGacha.SpecificTid)
-    if nSpecificCount >= 10 * mapGacha.SpecificQty then
+    if nSpecificCount >= 10 * mapGachaStorage.DefaultQty then
       bSpecial = true
-    else
-      nSpecificGachaCount = math.floor(nSpecificCount / mapGacha.SpecificQty)
-      local nDefaultGachaCount = math.floor(nDefaultCount / mapGachaStorage.DefaultQty)
-      if 10 <= nSpecificGachaCount + nDefaultGachaCount then
-        bSpecial = true
-      end
+    elseif 0 < nSpecificCount and 10 <= math.floor((nDefaultCount + nSpecificCount) / mapGachaStorage.DefaultQty) then
+      bSpecial = true
     end
   end
   if nDefaultCount >= mapGachaStorage.DefaultQty * 10 or bSpecial then
@@ -796,10 +801,10 @@ function GachaCtrl:GachaTenExchangeCoin(mapGacha)
     local nCostCount = PlayerData.Item:GetItemCountByID(mapGachaStorage.CostId)
     
     local function confirmCallback()
-      if nCostCount >= mapGachaStorage.CostQty * (mapGachaStorage.DefaultQty * (10 - nSpecificGachaCount) - nDefaultCount) then
+      if nCostCount >= mapGachaStorage.CostQty * (mapGachaStorage.DefaultQty * 10 - nSpecificCount - nDefaultCount) then
         PlayerData.Gacha:SendGachaReq(self.curPoolId, 2, GachaCallback)
       elseif mapGachaStorage.CostId == AllEnum.CoinItemId.Jade then
-        local nNeedCount = mapGachaStorage.CostQty * (mapGachaStorage.DefaultQty * (10 - nSpecificGachaCount) - nDefaultCount)
+        local nNeedCount = mapGachaStorage.CostQty * (mapGachaStorage.DefaultQty * 10 - nSpecificCount - nDefaultCount)
         local nJadeCount = PlayerData.Item:GetItemCountByID(AllEnum.CoinItemId.Jade)
         nNeedCount = nNeedCount - nJadeCount
         local mapCostCfgData = ConfigTable.GetData_Item(AllEnum.CoinItemId.STONE)
@@ -828,18 +833,18 @@ function GachaCtrl:GachaTenExchangeCoin(mapGacha)
       end
     end
     
-    local nNeedCount = mapGachaStorage.CostQty * (mapGachaStorage.DefaultQty * (10 - nSpecificGachaCount) - nDefaultCount)
+    local nNeedCount = mapGachaStorage.CostQty * (mapGachaStorage.DefaultQty * 10 - nSpecificCount - nDefaultCount)
     local mapCostCfgData = ConfigTable.GetData_Item(mapGachaStorage.CostId)
     local mapDefaultCfgData = ConfigTable.GetData_Item(mapGachaStorage.DefaultId)
     local sTips
     if 0 < nDefaultCount and 0 < nSpecificCount then
-      sTips = orderedFormat(ConfigTable.GetUIText("Recruit_ExchangeGem2"), nDefaultCount, mapDefaultCfgData.Id, nSpecificCount, mapGacha.SpecificTid, nNeedCount, mapCostCfgData.Id, mapGachaStorage.DefaultQty * (10 - nSpecificGachaCount) - nDefaultCount, mapDefaultCfgData.Id)
+      sTips = orderedFormat(ConfigTable.GetUIText("Recruit_ExchangeGem2"), nDefaultCount, mapDefaultCfgData.Id, nSpecificCount, mapGacha.SpecificTid, nNeedCount, mapCostCfgData.Id, mapGachaStorage.DefaultQty * 10 - nSpecificCount - nDefaultCount, mapDefaultCfgData.Id)
     elseif 0 < nDefaultCount then
-      sTips = orderedFormat(ConfigTable.GetUIText("Recruit_ExchangeGem"), nDefaultCount, mapDefaultCfgData.Id, nNeedCount, mapCostCfgData.Id, mapGachaStorage.DefaultQty * (10 - nSpecificGachaCount) - nDefaultCount, mapDefaultCfgData.Id)
+      sTips = orderedFormat(ConfigTable.GetUIText("Recruit_ExchangeGem"), nDefaultCount, mapDefaultCfgData.Id, nNeedCount, mapCostCfgData.Id, mapGachaStorage.DefaultQty * 10 - nSpecificCount - nDefaultCount, mapDefaultCfgData.Id)
     elseif 0 < nSpecificCount then
-      sTips = orderedFormat(ConfigTable.GetUIText("Recruit_ExchangeGem"), nSpecificCount, mapGacha.SpecificTid, nNeedCount, mapCostCfgData.Id, mapGachaStorage.DefaultQty * (10 - nSpecificGachaCount) - nDefaultCount, mapDefaultCfgData.Id)
+      sTips = orderedFormat(ConfigTable.GetUIText("Recruit_ExchangeGem"), nSpecificCount, mapGacha.SpecificTid, nNeedCount, mapCostCfgData.Id, mapGachaStorage.DefaultQty * 10 - nSpecificCount - nDefaultCount, mapDefaultCfgData.Id)
     else
-      sTips = orderedFormat(ConfigTable.GetUIText("Recruit_Exchange"), nNeedCount, mapCostCfgData.Id, mapGachaStorage.DefaultQty * (10 - nSpecificGachaCount) - nDefaultCount, mapDefaultCfgData.Id)
+      sTips = orderedFormat(ConfigTable.GetUIText("Recruit_Exchange"), nNeedCount, mapCostCfgData.Id, mapGachaStorage.DefaultQty * 10 - nSpecificCount - nDefaultCount, mapDefaultCfgData.Id)
     end
     ConfirmPanel(sTips, confirmCallback, "GachaShowTicketExchange")
   else
@@ -905,7 +910,8 @@ function GachaCtrl:OnBtnClick_One()
   local bSpecialOne = false
   if 0 < mapGacha.SpecificTid then
     local nCurCount = PlayerData.Item:GetItemCountByID(mapGacha.SpecificTid)
-    if 0 < nCurCount then
+    local nSpecialCount = math.floor(nCurCount / mapGachaStorage.DefaultQty)
+    if 1 <= nSpecialCount then
       bSpecialOne = true
     end
   end
@@ -976,9 +982,9 @@ function GachaCtrl:OnBtnClick_Ten()
   local nSpecialCount = 0
   local nDefaultCurCount = PlayerData.Item:GetItemCountByID(mapGachaStorage.DefaultId)
   local nDefaultGachaCount = math.floor(nDefaultCurCount / mapGachaStorage.DefaultQty)
+  local nCurSpecificCount = PlayerData.Item:GetItemCountByID(mapGacha.SpecificTid)
   if 0 < mapGacha.SpecificTid then
-    local nCurCount = PlayerData.Item:GetItemCountByID(mapGacha.SpecificTid)
-    nSpecialCount = math.floor(nCurCount / mapGacha.SpecificQty)
+    nSpecialCount = math.floor(nCurSpecificCount / mapGachaStorage.DefaultQty)
   end
   
   local function specialGachaHint(Tid1, Tid2, nCount1, nCount2, againKey)
@@ -1039,8 +1045,10 @@ function GachaCtrl:OnBtnClick_Ten()
   
   if 10 <= nSpecialCount then
     PlayerData.Gacha:SendGachaReq(self.curPoolId, 2, GachaCallback)
-  elseif 0 < nSpecialCount and 10 <= nDefaultGachaCount + nSpecialCount then
-    specialGachaHint(mapGacha.SpecificTid, mapGachaStorage.DefaultId, nSpecialCount * mapGacha.SpecificQty, (10 - nSpecialCount) * mapGachaStorage.DefaultQty, "RecruitComboDrawTicketHint")
+  elseif 0 < nCurSpecificCount and math.floor((nDefaultCurCount + nCurSpecificCount) / mapGachaStorage.DefaultQty) >= 10 then
+    local nCostSpecific = nCurSpecificCount
+    local nCostDefault = 10 * mapGachaStorage.DefaultQty - nCurSpecificCount
+    specialGachaHint(mapGacha.SpecificTid, mapGachaStorage.DefaultId, nCostSpecific, nCostDefault, "RecruitComboDrawTicketHint")
   elseif #mapGachaStorage.TenTimesPreferred > 0 then
     for nIdx, mapCost in ipairs(mapGachaStorage.TenTimesPreferred) do
       local f = pairs(mapCost)
@@ -1121,9 +1129,11 @@ function GachaCtrl:GetGachaItem(mapData, nStorageId, bGetFirstTenReward)
   local function GetRewardItem(nIdx, nTid)
     local ret = {}
     local nNumber = 0
-    for _, mapAcq in ipairs(tbAcquire.List) do
-      if mapAcq.Tid == nTid then
-        nNumber = mapAcq.Begin
+    if tbAcquire.List ~= nil then
+      for _, mapAcq in ipairs(tbAcquire.List) do
+        if mapAcq.Tid == nTid then
+          nNumber = mapAcq.Begin
+        end
       end
     end
     for i = 1, nIdx do
@@ -1135,10 +1145,8 @@ function GachaCtrl:GetGachaItem(mapData, nStorageId, bGetFirstTenReward)
     if mapItemCfgData == nil then
       return ret
     end
-    local nMaxCount = self._mapMaxAcquireReward[mapItemCfgData.Stype][mapItemCfgData.Rarity]
-    if nMaxCount == nil then
-      nMaxCount = 1
-    end
+    local mapByStype = self._mapMaxAcquireReward[mapItemCfgData.Stype]
+    local nMaxCount = mapByStype[mapItemCfgData.Rarity] or 1
     nNumber = math.min(nMaxCount, nNumber)
     local nId = mapItemCfgData.Stype * 1000 + mapItemCfgData.Rarity * 100 + nNumber
     local mapCfg = ConfigTable.GetData("AcquireReward", nId)
@@ -1491,9 +1499,11 @@ function GachaCtrl:OnEvent_GachaNewbieObtainRecordOver(changes, items, tbNew)
   local function GetRewardItem(nIdx, nTid)
     local ret = {}
     local nNumber = 0
-    for _, mapAcq in ipairs(tbAcquire.List) do
-      if mapAcq.Tid == nTid then
-        nNumber = mapAcq.Begin
+    if tbAcquire.List ~= nil then
+      for _, mapAcq in ipairs(tbAcquire.List) do
+        if mapAcq.Tid == nTid then
+          nNumber = mapAcq.Begin
+        end
       end
     end
     for i = 1, nIdx do
@@ -1505,10 +1515,8 @@ function GachaCtrl:OnEvent_GachaNewbieObtainRecordOver(changes, items, tbNew)
     if mapItemCfgData == nil then
       return ret
     end
-    local nMaxCount = self._mapMaxAcquireReward[mapItemCfgData.Stype][mapItemCfgData.Rarity]
-    if nMaxCount == nil then
-      nMaxCount = 1
-    end
+    local mapByStype = self._mapMaxAcquireReward[mapItemCfgData.Stype]
+    local nMaxCount = mapByStype[mapItemCfgData.Rarity] or 1
     nNumber = math.min(nMaxCount, nNumber)
     local nId = mapItemCfgData.Stype * 1000 + mapItemCfgData.Rarity * 100 + nNumber
     local mapCfg = ConfigTable.GetData("AcquireReward", nId)

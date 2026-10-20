@@ -83,12 +83,14 @@ DiscSkillActiveCtrl._mapEventConfig = {
   StarTowerShowDiscSkill = "OnEvent_ShowDiscSkillActive",
   OpenNoteDepot = "OnEvent_OpenNoteDepot",
   GamepadUIReopen = "OnEvent_Reopen",
-  StarTowerDiscTips = "OnEvent_StarTowerDiscTips"
+  StarTowerDiscTips = "OnEvent_StarTowerDiscTips",
+  StarTowerAutoAdvanceDiscSkill = "OnEvent_AutoAdvance"
 }
 DiscSkillActiveCtrl._mapRedDotConfig = {}
 local panel_stage_note = 1
 local panel_stage_skill = 2
 local panel_stage_skill_upgrade = 3
+local AUTO_ADVANCE_DELAY = 2
 
 function DiscSkillActiveCtrl:InitNoteSkillList()
   for k, v in ipairs(self._mapNode.imgNote) do
@@ -201,10 +203,12 @@ function DiscSkillActiveCtrl:RefreshNoteSkill(tbNoteChange)
         self._mapNode.txtTips[1].gameObject:SetActive(true)
         self._mapNode.txtTips[2].gameObject:SetActive(true)
         EventManager.Hit("Guide_PassiveCheck_Msg", "Guide_OpenDiscSkillActive")
+        self:TryAutoAdvance()
       end
     end, true, true, true)
   else
     EventManager.Hit(EventId.BlockInput, false)
+    self:TryAutoAdvance()
   end
   self._mapNode.txtTips[1].gameObject:SetActive(false)
   self._mapNode.txtTips[2].gameObject:SetActive(false)
@@ -246,10 +250,13 @@ function DiscSkillActiveCtrl:RefreshDiscSkill(tbSkillList)
         EventManager.Hit(EventId.BlockInput, false)
         self._mapNode.txtTips[1].gameObject:SetActive(true)
         self._mapNode.txtTips[2].gameObject:SetActive(true)
+        self:TryAutoAdvance()
       end
     end, true, true, true)
     self._mapNode.txtTips[1].gameObject:SetActive(false)
     self._mapNode.txtTips[2].gameObject:SetActive(false)
+  else
+    self:TryAutoAdvance()
   end
 end
 
@@ -263,6 +270,7 @@ function DiscSkillActiveCtrl:ShowDiscUpgradeCard()
   self:AddTimer(1, nAnimLen, function()
     self._mapNode.txtTips[1].gameObject:SetActive(true)
     self._mapNode.txtTips[2].gameObject:SetActive(true)
+    self:TryAutoAdvance()
   end, true, true, true)
   EventManager.Hit(EventId.TemporaryBlockInput, nAnimLen)
   WwiseManger:PlaySound("ui_roguelike_outfit_select")
@@ -286,6 +294,8 @@ end
 
 function DiscSkillActiveCtrl:HidePanel()
   self.bOpen = false
+  self._bAutoAdvance = false
+  self._bAutoAdvanceScheduled = false
   GamepadUIManager.DisableGamepadUI("DiscSkillActiveCtrl")
   EventManager.Hit("StarTowerSetButtonEnable", true, true)
   PanelManager.InputEnable()
@@ -345,7 +355,35 @@ function DiscSkillActiveCtrl:OnDisable()
   self.tbSkillItemCtrl = {}
 end
 
+function DiscSkillActiveCtrl:TryAutoAdvance()
+  if not self._bAutoAdvance or self._bAutoAdvanceScheduled or not self.bOpen then
+    return
+  end
+  if self._isAutoEnabledCallback ~= nil and not self._isAutoEnabledCallback() then
+    self._bAutoAdvance = false
+    return
+  end
+  self._bAutoAdvanceScheduled = true
+  local nSerial = self._nAutoAdvanceSerial or 0
+  self:AddTimer(1, AUTO_ADVANCE_DELAY, function()
+    self._bAutoAdvanceScheduled = false
+    if nSerial == (self._nAutoAdvanceSerial or 0) and self._bAutoAdvance and self.bOpen and (self._isAutoEnabledCallback == nil or self._isAutoEnabledCallback()) then
+      self:OnBtnClick_BtnBg()
+    end
+  end, true, true, true)
+end
+
+function DiscSkillActiveCtrl:OnEvent_AutoAdvance(callback, isAutoEnabledCallback)
+  if not self.bOpen or self.callback ~= callback then
+    return
+  end
+  self._bAutoAdvance = true
+  self._isAutoEnabledCallback = isAutoEnabledCallback
+end
+
 function DiscSkillActiveCtrl:OnBtnClick_BtnBg()
+  self._nAutoAdvanceSerial = (self._nAutoAdvanceSerial or 0) + 1
+  self._bAutoAdvanceScheduled = false
   if self.nPanelStage == panel_stage_note then
     if self.tbParam.tbSkill ~= nil and next(self.tbParam.tbSkill) ~= nil then
       self.nPanelStage = panel_stage_skill

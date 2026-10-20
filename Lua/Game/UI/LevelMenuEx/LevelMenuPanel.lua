@@ -8,6 +8,7 @@ LevelMenuPanel._tbDefine = {
 
 function LevelMenuPanel:Awake()
   self.nCurStarTowerGroupId = nil
+  self.bFirstInit = true
 end
 
 function LevelMenuPanel:OnEnable()

@@ -130,6 +130,17 @@ function LoginSpRewardCtrl_List:RefreshRewardList()
   end
 end
 
+function LoginSpRewardCtrl_List:StopVoice()
+  self.bPlayVoice = false
+  BubbleVoiceManager.StopBubbleAnim()
+  PlayerVoiceData:ClearTimer()
+  PlayerVoiceData:StopCharVoice()
+  if self.timer then
+    self.timer:Cancel()
+    self.timer = nil
+  end
+end
+
 function LoginSpRewardCtrl_List:RefreshNPC2D(bSwitch)
   local tbRewardList = self.actData:GetActLoginRewardList()
   local nNpcId = tbRewardList[self.nSelectIndex].NpcId
@@ -147,14 +158,7 @@ function LoginSpRewardCtrl_List:RefreshNPC2D(bSwitch)
     self._mapNode.animActorL2D:Play("Actor2D_PNG_right_middle_in", 0, 0)
   end
   if bSwitch and self.bPlayVoice then
-    self.bPlayVoice = false
-    BubbleVoiceManager.StopBubbleAnim()
-    PlayerVoiceData:ClearTimer()
-    PlayerVoiceData:StopCharVoice()
-    if self.timer then
-      self.timer:Cancel()
-      self.timer = nil
-    end
+    self:StopVoice()
   else
     self:PlayVoice()
   end
@@ -186,6 +190,7 @@ function LoginSpRewardCtrl_List:InitActData(actData)
   self.actData = actData
   self.nNpcId = nil
   self.bPlayVoice = false
+  self.bChangeTabStop = true
   self:RefreshRewardList()
   self:RefreshNPC2D()
   self:RefreshDetail()
@@ -211,9 +216,7 @@ end
 
 function LoginSpRewardCtrl_List:OnDisable()
   Actor2DManager.UnsetBoardNPC2D()
-  BubbleVoiceManager.StopBubbleAnim()
-  PlayerVoiceData:ClearTimer()
-  PlayerVoiceData:StopCharVoice()
+  self:StopVoice()
 end
 
 function LoginSpRewardCtrl_List:OnDestroy()
@@ -299,9 +302,7 @@ function LoginSpRewardCtrl_List:OnEvent_ActivityListChangeTab(nId)
     self.bChangeTabStop = true
   elseif nId ~= self.actData:GetActId() and self.bChangeTabStop then
     self.bChangeTabStop = false
-    BubbleVoiceManager.StopBubbleAnim()
-    PlayerVoiceData:ClearTimer()
-    PlayerVoiceData:StopCharVoice()
+    self:StopVoice()
   end
 end
 

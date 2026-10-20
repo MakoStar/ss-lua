@@ -41,22 +41,34 @@ StarTowerBuildDetailCtrl._mapNodeConfig = {
   },
   ContentList = {
     sCtrlName = "Game.UI.StarTower.Build.StarTowerBuildContentCtrl"
+  },
+  txtEdit = {sComponentName = "TMP_Text"},
+  BtnEntrance = {sComponentName = "Transform"},
+  EditNml = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_EditBuild"
+  },
+  EditInvalid = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_EditBuild"
   }
 }
-StarTowerBuildDetailCtrl._mapEventConfig = {}
+StarTowerBuildDetailCtrl._mapEventConfig = {
+  StarTowerBuildContent_ChangeTab = "OnEvent_ContentChangeTab"
+}
 
 function StarTowerBuildDetailCtrl:InitPanel()
   if not self.mapBuild.bDetail then
     print("build数据错误 无详细数据")
     return
   end
-  self._mapNode.BuildDetail:Refresh(self.mapBuild)
-  self._mapNode.ContentList:Refresh(self.mapBuild)
-  self._mapNode.btn_Preference.gameObject:SetActive(self.mapBuild.bTrial ~= true)
-  self._mapNode.btn_Lock.gameObject:SetActive(self.mapBuild.bTrial ~= true)
-  self._mapNode.TMPBuildSaveTime.gameObject:SetActive(self.mapBuild.bTrial ~= true)
-  self._mapNode.btnDelete.gameObject:SetActive(self.mapBuild.bTrial ~= true)
-  self._mapNode.btnRename.gameObject:SetActive(self.mapBuild.bTrial ~= true)
+  local bEditable = PlayerData.Build:IsBuildEditable(self.mapBuild.nBuildId)
+  self._mapNode.btn_Preference.gameObject:SetActive(bEditable)
+  self._mapNode.btn_Lock.gameObject:SetActive(bEditable)
+  self._mapNode.TMPBuildSaveTime.gameObject:SetActive(bEditable)
+  self._mapNode.btnDelete.gameObject:SetActive(bEditable)
+  self._mapNode.btnRename.gameObject:SetActive(bEditable)
+  self._mapNode.BtnEntrance.gameObject:SetActive(not PlayerData.Build:IsLimitedTrialBuild(self.mapBuild.nBuildId))
   if self.mapBuild.bPreference ~= nil then
     self._mapNode.btn_PreferenceIcon.interactable = self.mapBuild.bPreference
     NovaAPI.SetTMPColor(self._mapNode.txtLike, self.mapBuild.bPreference and Color(0.14901960784313725, 0.25882352941176473, 0.47058823529411764) or Color(0.5803921568627451, 0.6666666666666666, 0.7529411764705882))
@@ -66,9 +78,13 @@ function StarTowerBuildDetailCtrl:InitPanel()
     NovaAPI.SetTMPText(self._mapNode.txtBuildLock, self.mapBuild.bLock and ConfigTable.GetUIText("RoguelikeBuild_Save_Lock") or ConfigTable.GetUIText("RoguelikeBuild_Save_Unlock"))
     NovaAPI.SetTMPColor(self._mapNode.txtBuildLock, self.mapBuild.bLock and Color(0.14901960784313725, 0.25882352941176473, 0.47058823529411764) or Color(0.5803921568627451, 0.6666666666666666, 0.7529411764705882))
   end
-  if self.mapBuild.bTrial ~= true then
+  if bEditable then
     NovaAPI.SetTMPText(self._mapNode.TMPBuildSaveTime, string.format("<color=#5e89b4>保存时间：</color>%s", os.date("%Y/%m/%d %H:%M", math.floor(self.mapBuild.nBuildId / 1.0E9))))
   end
+  self._panel.nCachedIdx = (self._panel.nCachedIdx == nil or self._panel.nCachedIdx == 0) and 1 or self._panel.nCachedIdx
+  self:OnEvent_ContentChangeTab(self._panel.nCachedIdx)
+  self._mapNode.BuildDetail:Refresh(self.mapBuild)
+  self._mapNode.ContentList:Refresh(self.mapBuild, self._panel.nCachedIdx)
 end
 
 function StarTowerBuildDetailCtrl:OpenConfirmHint()
@@ -139,6 +155,9 @@ function StarTowerBuildDetailCtrl:OnRelease()
 end
 
 function StarTowerBuildDetailCtrl:OnBtnClick_Preference(btn)
+  if not PlayerData.Build:IsBuildEditable(self.mapBuild.nBuildId) then
+    return
+  end
   local tbPreferenceCheckIn = {}
   local tbPreferenceCheckOut = {}
   
@@ -156,9 +175,12 @@ function StarTowerBuildDetailCtrl:OnBtnClick_Preference(btn)
 end
 
 function StarTowerBuildDetailCtrl:OnBtnClick_Lock(btn)
+  if not PlayerData.Build:IsBuildEditable(self.mapBuild.nBuildId) then
+    return
+  end
+  
   local function callback()
     self._mapNode.btn_LockIcon.interactable = self.mapBuild.bLock
-    
     NovaAPI.SetTMPText(self._mapNode.txtBuildLock, self.mapBuild.bLock and ConfigTable.GetUIText("RoguelikeBuild_Save_Lock") or ConfigTable.GetUIText("RoguelikeBuild_Save_Unlock"))
     NovaAPI.SetTMPColor(self._mapNode.txtBuildLock, self.mapBuild.bLock and Color(0.14901960784313725, 0.25882352941176473, 0.47058823529411764) or Color(0.5803921568627451, 0.6666666666666666, 0.7529411764705882))
   end
@@ -167,6 +189,9 @@ function StarTowerBuildDetailCtrl:OnBtnClick_Lock(btn)
 end
 
 function StarTowerBuildDetailCtrl:OnBtnClick_DeleteBuild(btn)
+  if not PlayerData.Build:IsBuildEditable(self.mapBuild.nBuildId) then
+    return
+  end
   if self.mapBuild.bLock then
     EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("BUILD_01"))
     return
@@ -175,6 +200,10 @@ function StarTowerBuildDetailCtrl:OnBtnClick_DeleteBuild(btn)
 end
 
 function StarTowerBuildDetailCtrl:OnBtnClick_Rename(btn)
+  if not PlayerData.Build:IsBuildEditable(self.mapBuild.nBuildId) then
+    return
+  end
+  
   local function callback(sName)
     self._mapNode.BuildDetail:SetName(sName)
   end
@@ -190,6 +219,70 @@ function StarTowerBuildDetailCtrl:OnBtnClick_CharInfo(btn, nIndex)
     self.mapBuild.tbChar[3].nTid
   }
   EventManager.Hit(EventId.OpenPanel, PanelId.CharBgPanel, PanelId.CharInfo, nCharTid, tbChar)
+end
+
+function StarTowerBuildDetailCtrl:OnBtnClick_EditBuild()
+  if PlayerData.Build:IsLimitedTrialBuild(self.mapBuild.nBuildId) then
+    return
+  end
+  if self.mapBuild.bLock then
+    EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("BuildModifier_ValidTips5"))
+    return
+  end
+  local nScoreFixedable = ConfigTable.GetConfigNumber("BuildModifierScoreMin")
+  if nScoreFixedable > self.mapBuild.nScore then
+    EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("BuildModifier_ValidTips2"))
+    return
+  end
+  local nIdx = self._mapNode.ContentList.nCurTab
+  if nIdx == 1 then
+    local nModifierState = self.mapBuild and self.mapBuild.nModifierState
+    local bPotentialModifiable = nModifierState == AllEnum.BuildModifierState.NotModified or nModifierState == AllEnum.BuildModifierState.NoteModified
+    local nModifiyCount = bPotentialModifiable and 1 or 0
+    if nModifiyCount < 1 then
+      EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("BuildModifier_ValidTips3"))
+      return
+    end
+    EventManager.Hit(EventId.OpenPanel, PanelId.BuildModifierPotentialPanel, self.mapBuild.nBuildId)
+  else
+    local nModifierState = self.mapBuild and self.mapBuild.nModifierState
+    local bNoteModifiable = nModifierState == AllEnum.BuildModifierState.NotModified or nModifierState == AllEnum.BuildModifierState.PotentialModified
+    local nModifiyCount = bNoteModifiable and 1 or 0
+    if nModifiyCount < 1 then
+      EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("BuildModifier_ValidTips4"))
+      return
+    end
+    EventManager.Hit(EventId.OpenPanel, PanelId.BuildModifierMusicPanel, self.mapBuild.nBuildId)
+  end
+end
+
+function StarTowerBuildDetailCtrl:OnEvent_ContentChangeTab(nIdx)
+  self._panel.nCachedIdx = nIdx
+  local sEdit = ""
+  local nScoreFixedable = ConfigTable.GetConfigNumber("BuildModifierScoreMin")
+  if nScoreFixedable > self.mapBuild.nScore then
+    self._mapNode.EditNml.gameObject:SetActive(false)
+    self._mapNode.EditInvalid.gameObject:SetActive(true)
+    sEdit = ConfigTable.GetUIText("BuildModifier_ValidTips1")
+    NovaAPI.SetTMPText(self._mapNode.txtEdit, sEdit)
+    return
+  end
+  if nIdx == 1 then
+    local nModifierState = self.mapBuild and self.mapBuild.nModifierState
+    local bPotentialModifiable = nModifierState == AllEnum.BuildModifierState.NotModified or nModifierState == AllEnum.BuildModifierState.NoteModified
+    local nModifiyCount = bPotentialModifiable and 1 or 0
+    self._mapNode.EditNml.gameObject:SetActive(0 < nModifiyCount)
+    self._mapNode.EditInvalid.gameObject:SetActive(nModifiyCount == 0)
+    sEdit = orderedFormat(ConfigTable.GetUIText("BuildDetail_PotentialModifiyTitle"), nModifiyCount)
+  else
+    local nModifierState = self.mapBuild and self.mapBuild.nModifierState
+    local bNoteModifiable = nModifierState == AllEnum.BuildModifierState.NotModified or nModifierState == AllEnum.BuildModifierState.PotentialModified
+    local nModifiyCount = bNoteModifiable and 1 or 0
+    self._mapNode.EditNml.gameObject:SetActive(0 < nModifiyCount)
+    self._mapNode.EditInvalid.gameObject:SetActive(nModifiyCount == 0)
+    sEdit = orderedFormat(ConfigTable.GetUIText("BuildDetail_NoteModifiyTitle"), nModifiyCount)
+  end
+  NovaAPI.SetTMPText(self._mapNode.txtEdit, sEdit)
 end
 
 return StarTowerBuildDetailCtrl

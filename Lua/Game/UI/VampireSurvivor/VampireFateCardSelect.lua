@@ -3,6 +3,7 @@ local WwiseAudioMgr = CS.WwiseAudioManager.Instance
 local GamepadUIManager = require("GameCore.Module.GamepadUIManager")
 local LocalData = require("GameCore.Data.LocalData")
 local newDayTime = UTILS.GetDayRefreshTimeOffset()
+local sAutoSelectKey = "VampireAutoSelectFateCard"
 VampireFateCardSelect._mapNodeConfig = {
   blurBg = {},
   contentRoot = {
@@ -93,7 +94,29 @@ VampireFateCardSelect._mapNodeConfig = {
   },
   ActionBar = {
     sCtrlName = "Game.UI.ActionBar.ActionBarCtrl"
-  }
+  },
+  btnAutoSelectOpen = {
+    sComponentName = "NaviButton",
+    callback = "OnClick_AutoSelectOpen",
+    sAction = "AutoBattle"
+  },
+  btnAutoSelectClose = {
+    sComponentName = "NaviButton",
+    callback = "OnClick_AutoSelectClose",
+    sAction = "AutoBattle"
+  },
+  txtBtnAutoSelectOpen = {
+    nCount = 4,
+    sComponentName = "TMP_Text",
+    sLanguageId = "Vampire_FateCardAutoSelect"
+  },
+  txtBtnAutoSelectClose = {
+    nCount = 4,
+    sComponentName = "TMP_Text",
+    sLanguageId = "Vampire_FateCardAutoSelect"
+  },
+  txtBtnAutoSelectNum = {nCount = 4, sComponentName = "TMP_Text"},
+  AutoSelectPanel = {}
 }
 VampireFateCardSelect._mapEventConfig = {
   VampireRewardChestFailed = "OnEvent_VampireRewardChestFailed",
@@ -207,6 +230,9 @@ function VampireFateCardSelect:Refresh(nEventId, tbFateCard, mapRoll, nCoin, bRe
     }
   end
   self._mapNode.ActionBar:InitActionBar(tbConfig)
+  if bReward then
+    self:StartAutoSelectCountDown()
+  end
 end
 
 function VampireFateCardSelect:RefreshFateCardList(tbFateCard, bAfterRoll, bReward)
@@ -395,6 +421,7 @@ end
 
 function VampireFateCardSelect:HidePanel()
   self.bOpen = false
+  self:StopAutoSelectCountDown()
   PanelManager.InputEnable()
   NovaAPI.SetCanvasGroupAlpha(self._mapNode.contentRoot, 0)
   self._mapNode.contentRoot.gameObject:SetActive(false)
@@ -413,11 +440,14 @@ function VampireFateCardSelect:Awake()
   self._mapNode.contentRoot.gameObject:SetActive(false)
   NovaAPI.SetCanvasGroupAlpha(self._mapNode.contentRoot, 0)
   self._mapNode.blurBg.gameObject:SetActive(false)
+  self.nAutoTime = ConfigTable.GetConfigNumber("VampireAutoSelectFateCardTime")
+  self.nAutoRemainTime = 0
   self.tbGamepadUINode = self:GetGamepadUINode()
   self.nCoin = 0
 end
 
 function VampireFateCardSelect:OnEnable()
+  self:LoadAutoSelectState()
   self.handler = {}
   for k, v in ipairs(self._mapNode.btnFateCard) do
     self.handler[k] = ui_handler(self, self.OnBtnSelect_FateCardItem, v, k)
@@ -455,6 +485,7 @@ function VampireFateCardSelect:OnEnable()
 end
 
 function VampireFateCardSelect:OnDisable()
+  self:StopAutoSelectCountDown()
   for k, v in ipairs(self._mapNode.btnFateCard) do
     v.onSelect:RemoveListener(self.handler[k])
   end
@@ -464,6 +495,7 @@ function VampireFateCardSelect:OnBtnClick_Confirm()
   if self.bProcessing == true then
     return
   end
+  self:StopAutoSelectCountDown()
   if nil ~= self.callback then
     self.bProcessing = true
     
@@ -513,6 +545,7 @@ function VampireFateCardSelect:OnBtnClick_Roll()
   if self.bProcessing == true then
     return
   end
+  self:InterruptAutoSelect()
   self.bProcessing = true
   
   local function completeFunc(nEventId, tbFateCard, mapRoll, nCoin, bReward, mapCurFateCard)
@@ -553,6 +586,8 @@ function VampireFateCardSelect:OnBtnClick_Roll()
 end
 
 function VampireFateCardSelect:OnBtnClick_Abandon()
+  self:StopAutoSelectCountDown()
+  
   local function confirm()
     if nil ~= self.callback then
       self.nSelectIdx = 0
@@ -598,11 +633,16 @@ function VampireFateCardSelect:OnBtnClick_Abandon()
       isSelectAgain = isSelect
     end
     
+    local function cancelCallback()
+      self:StartAutoSelectCountDown()
+    end
+    
     local msg = {
       nType = AllEnum.MessageBox.Confirm,
       sContent = orderedFormat(ConfigTable.GetUIText("FateCard_AbandonTip")),
       callbackConfirm = confirmCallback,
-      callbackAgain = againCallback
+      callbackAgain = againCallback,
+      callbackCancel = cancelCallback
     }
     EventManager.Hit(EventId.OpenMessageBox, msg)
   end
@@ -618,12 +658,15 @@ function VampireFateCardSelect:OnBtnSelect_FateCardItem(btn, nIndex)
   end
 end
 
-function VampireFateCardSelect:OnBtnClick_FateCardItem(btn, nIndex)
+function VampireFateCardSelect:OnBtnClick_FateCardItem(btn, nIndex, bAutoSelect)
   if self.bReward == true then
     return
   end
   if nil == self.tbFateCardList[nIndex] or self.nSelectIdx == nIndex then
     return
+  end
+  if bAutoSelect ~= true then
+    self:InterruptAutoSelect()
   end
   for i, nCount in ipairs(self.tbCount) do
     self._mapNode.pkgInfo[i]:SetPackageAddMarket(false)
@@ -654,6 +697,7 @@ end
 
 function VampireFateCardSelect:OnBtnClick_Depot()
   self.bOpenDepot = true
+  self:InterruptAutoSelect()
   CS.GameCameraStackManager.Instance:OpenMainCamera()
   self._mapNode.contentRoot.gameObject:SetActive(false)
   NovaAPI.SetCanvasGroupAlpha(self._mapNode.contentRoot, 0)
@@ -849,17 +893,159 @@ end
 function VampireFateCardSelect:ResetSelect(tbUI, sAnimName)
   self.nSelectIdx = 0
   self.bRecommended = false
+  self:StopAutoSelectCountDown()
+  self:ResetAutoSelectTime()
   GamepadUIManager.SetNavigation(tbUI)
   local animTime = NovaAPI.GetAnimClipLength(self._mapNode.animCtrl, {sAnimName}) + 0.1
   self:AddTimer(1, animTime, function()
     if self.nSelectIdx == 0 then
-      GamepadUIManager.ClearSelectedUI()
-      GamepadUIManager.SetSelectedUI(self._mapNode.btnFateCard[1].gameObject)
-      if GamepadUIManager.GetCurUIType() == AllEnum.GamepadUIType.Mouse then
-        self:OnBtnClick_FateCardItem(self._mapNode.btnFateCard[1].gameObject, 1)
+      if self.bAutoSelect == true then
+        self:DoAutoSelect()
+      else
+        GamepadUIManager.ClearSelectedUI()
+        GamepadUIManager.SetSelectedUI(self._mapNode.btnFateCard[1].gameObject)
+        self.bRecommended = true
+        if GamepadUIManager.GetCurUIType() == AllEnum.GamepadUIType.Mouse then
+          self:OnBtnClick_FateCardItem(self._mapNode.btnFateCard[1].gameObject, 1)
+        end
       end
     end
+    self:StartAutoSelectCountDown()
   end, true, true, true)
+end
+
+function VampireFateCardSelect:GetAutoSelectIndex()
+  local nIndex = self.tbRecommend ~= nil and self.tbRecommend[1] or nil
+  if nIndex == nil or self.tbFateCardList[nIndex] == nil then
+    nIndex = 1
+  end
+  return nIndex
+end
+
+function VampireFateCardSelect:StartAutoSelectCountDown()
+  self:StopAutoSelectCountDown()
+  if self.bAutoSelect ~= true or self.bOpenDepot == true then
+    return
+  end
+  if type(self.nAutoTime) ~= "number" or self.nAutoTime <= 0 then
+    return
+  end
+  self:ResetAutoSelectTime()
+  
+  local function countdown()
+    self.nAutoRemainTime = self.nAutoRemainTime - 1
+    self:RefreshAutoSelectTime()
+    if self.nAutoRemainTime <= 0 then
+      self:StopAutoSelectCountDown()
+      self:OnAutoSelectTimeEnd()
+    end
+  end
+  
+  self.autoSelectTimer = self:AddTimer(0, 1, countdown, true, true, true)
+end
+
+function VampireFateCardSelect:StopAutoSelectCountDown()
+  if self.autoSelectTimer ~= nil then
+    self.autoSelectTimer:Cancel()
+    self.autoSelectTimer = nil
+  end
+end
+
+function VampireFateCardSelect:DoAutoSelect()
+  local nAutoIdx = self:GetAutoSelectIndex()
+  self.bAutoSelecting = true
+  GamepadUIManager.ClearSelectedUI()
+  GamepadUIManager.SetSelectedUI(self._mapNode.btnFateCard[nAutoIdx].gameObject)
+  self.bRecommended = true
+  self:OnBtnClick_FateCardItem(self._mapNode.btnFateCard[nAutoIdx].gameObject, nAutoIdx, true)
+  self.bAutoSelecting = false
+end
+
+function VampireFateCardSelect:InterruptAutoSelect()
+  if self.bAutoSelecting == true then
+    return
+  end
+  if self.bAutoSelect ~= true then
+    self:StopAutoSelectCountDown()
+    return
+  end
+  self:SetAutoSelectState(false, true)
+end
+
+function VampireFateCardSelect:CheckAutoSelectUnlock()
+  local tbHardUnlock = PlayerData.VampireSurvivor:GetHardUnlock()
+  return tbHardUnlock ~= nil and tbHardUnlock[2] == true
+end
+
+function VampireFateCardSelect:LoadAutoSelectState()
+  self.bAutoSelectUnlock = self:CheckAutoSelectUnlock()
+  if not self.bAutoSelectUnlock then
+    self:SetAutoSelectState(false, false)
+    return
+  end
+  local sData = LocalData.GetPlayerLocalData(sAutoSelectKey)
+  local nState = tonumber(sData == nil and "0" or sData)
+  self:SetAutoSelectState(nState == 1, false)
+end
+
+function VampireFateCardSelect:SetAutoSelectState(bOpen, bSave)
+  self.bAutoSelect = bOpen == true
+  if self.bAutoSelect then
+    self._mapNode.btnAutoSelectClose.gameObject:SetActive(false)
+    self._mapNode.btnAutoSelectOpen.gameObject:SetActive(true)
+  else
+    self._mapNode.btnAutoSelectOpen.gameObject:SetActive(false)
+    self._mapNode.btnAutoSelectClose.gameObject:SetActive(true)
+  end
+  if bSave == true then
+    LocalData.SetPlayerLocalData(sAutoSelectKey, self.bAutoSelect and 1 or 0)
+  end
+  if not self.bAutoSelect then
+    self:StopAutoSelectCountDown()
+    self:ResetAutoSelectTime()
+  end
+end
+
+function VampireFateCardSelect:OnClick_AutoSelectOpen()
+  self:SetAutoSelectState(false, true)
+end
+
+function VampireFateCardSelect:OnClick_AutoSelectClose()
+  if self.bAutoSelectUnlock ~= true then
+    EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Vampire_Tips_AutoSelectLock"))
+    return
+  end
+  self:SetAutoSelectState(true, true)
+  if self.bReward ~= true and self.nSelectIdx == 0 and self.tbFateCardList ~= nil and 0 < #self.tbFateCardList then
+    self:DoAutoSelect()
+  end
+  self:StartAutoSelectCountDown()
+end
+
+function VampireFateCardSelect:ResetAutoSelectTime()
+  self.nAutoRemainTime = type(self.nAutoTime) == "number" and math.ceil(self.nAutoTime) or 0
+  self:RefreshAutoSelectTime()
+end
+
+function VampireFateCardSelect:RefreshAutoSelectTime()
+  local nTime = self.nAutoRemainTime or 0
+  if nTime < 0 then
+    nTime = 0
+  end
+  local sTime = string.format("%02d:%02d", math.floor(nTime / 60), nTime % 60)
+  for _, txtNum in ipairs(self._mapNode.txtBtnAutoSelectNum) do
+    NovaAPI.SetTMPText(txtNum, sTime)
+  end
+end
+
+function VampireFateCardSelect:OnAutoSelectTimeEnd()
+  if not self.bOpen or self.bProcessing == true or self.bOpenDepot == true then
+    return
+  end
+  if self.nSelectIdx == 0 or self.tbFateCardList[self.nSelectIdx] == nil then
+    return
+  end
+  self:OnBtnClick_Confirm()
 end
 
 function VampireFateCardSelect:SelectScroll(nIndex)

@@ -1,7 +1,6 @@
 local BaseCtrl = require("GameCore.UI.BaseCtrl")
 local LocalData = require("GameCore.Data.LocalData")
 local SwimThemeStoryCtrl = class("SwimThemeStoryCtrl", BaseCtrl)
-local ActivityAvgData = PlayerData.ActivityAvg
 SwimThemeStoryCtrl._mapNodeConfig = {
   goActTime = {},
   txtYear = {sComponentName = "TMP_Text"},
@@ -45,8 +44,10 @@ function SwimThemeStoryCtrl:Awake()
   local param = self:GetPanelParam()
   if type(param) == "table" then
     self.nActId = param[1]
+    self.bReview = param[2] == true
   end
-  self.tbAllStory = ActivityAvgData:GetStoryIdListByActivityId(self.nActId)
+  self.storyData = self.bReview and PlayerData.StoryReview or PlayerData.ActivityAvg
+  self.tbAllStory, self.nChapterId = self.storyData:GetStoryIdListByActivityId(self.nActId)
   self.storyNodePos = {27, -30}
 end
 
@@ -65,7 +66,7 @@ function SwimThemeStoryCtrl:RefreshPanel()
 end
 
 function SwimThemeStoryCtrl:RefreshDate()
-  local nOpenTime, nEndTime = PlayerData.ActivityAvg:GetActivityOpenTime(self.nActId)
+  local nOpenTime, nEndTime = self.storyData:GetActivityOpenTime(self.nActId)
   local nYear = tonumber(os.date("%Y", nOpenTime))
   local nOpenMonth = tonumber(os.date("%m", nOpenTime))
   local nOpenDay = tonumber(os.date("%d", nOpenTime))
@@ -88,7 +89,7 @@ function SwimThemeStoryCtrl:RefreshPersonality()
   if personalityId <= 0 then
     return
   end
-  local tbRetPercent, sTitle, sFace, tbPData, nTotalCount, sHead = PlayerData.ActivityAvg:CalcPersonality(personalityId)
+  local tbRetPercent, sTitle, sFace, tbPData, nTotalCount, sHead = self.storyData:CalcPersonality(personalityId)
   NovaAPI.SetPersonalityRing(self._mapNode.goPersonality, tbRetPercent)
   NovaAPI.SetTMPText(self._mapNode.txtPersonality, sTitle)
   local sIcon = "Icon/PlayerHead/" .. sHead
@@ -101,7 +102,7 @@ function SwimThemeStoryCtrl:RefreshStoryList()
   end
   self._mapNode.svStory:SetAnim(0.07)
   self._mapNode.svStory:Init(#self.tbAllStory, self, self.OnRefreshGrid, self.OnClickGrid)
-  local recentIndex = PlayerData.ActivityAvg:GetRecentAcvitityIndex(self.nActId)
+  local recentIndex = self.storyData:GetRecentAcvitityIndex(self.nActId)
   if 2 < recentIndex then
     recentIndex = recentIndex - 3
   else
@@ -122,19 +123,23 @@ function SwimThemeStoryCtrl:OnRefreshGrid(grid, index)
   local goComplete = RootNode:Find("goComplete")
   local goLock = RootNode:Find("goLock")
   local reddot = RootNode:Find("RedDot")
-  local isTimeUnlock, isPreReaded, nOpenTime = PlayerData.ActivityAvg:IsActivityAvgUnlock(self.nActId, storyId)
-  local isReaded = PlayerData.ActivityAvg:IsActivityAvgReaded(self.nActId, storyId)
-  local isNew = PlayerData.ActivityAvg:IsNew(self.nActId, storyId)
+  local isTimeUnlock, isPreReaded, nOpenTime = self.storyData:IsActivityAvgUnlock(self.nActId, storyId)
+  local isReaded = self.storyData:IsActivityAvgReaded(self.nActId, storyId)
+  local isNew = self.storyData:IsNew(self.nActId, storyId)
   local isUnlock = isTimeUnlock and isPreReaded
   goUnlock.gameObject:SetActive(isUnlock)
   goComplete.gameObject:SetActive(isReaded)
   goLock.gameObject:SetActive(not isUnlock)
-  local bInActGroup, nActGroupId = PlayerData.Activity:IsActivityInActivityGroup(self.nActId)
-  RedDotManager.RegisterNode(RedDotDefine.Activity_GroupNew_Avg_Group, {
-    nActGroupId,
-    self.nActId,
-    storyId
-  }, reddot, nil, nil, true)
+  if self.bReview then
+    reddot:SetActive(false)
+  else
+    local bInActGroup, nActGroupId = PlayerData.Activity:IsActivityInActivityGroup(self.nActId)
+    RedDotManager.RegisterNode(RedDotDefine.Activity_GroupNew_Avg_Group, {
+      nActGroupId,
+      self.nActId,
+      storyId
+    }, reddot, nil, nil, true)
+  end
   local imgStory = RootNode:Find("imgStory"):GetComponent("Image")
   local txtIndex = goUnlock:Find("txtIndex"):GetComponent("TMP_Text")
   local txtTitle = goUnlock:Find("txtTitle"):GetComponent("TMP_Text")
@@ -159,7 +164,7 @@ function SwimThemeStoryCtrl:OnRefreshGrid(grid, index)
       goTime.gameObject:SetActive(true)
       local bPreTimeUnlock = true
       if avgCfg.PreLevelId ~= 0 then
-        bPreTimeUnlock = PlayerData.ActivityAvg:IsActivityAvgUnlock(self.nActId, avgCfg.PreLevelId)
+        bPreTimeUnlock = self.storyData:IsActivityAvgUnlock(self.nActId, avgCfg.PreLevelId)
       end
       if not bPreTimeUnlock then
         goTime.gameObject:SetActive(false)
@@ -190,7 +195,7 @@ end
 function SwimThemeStoryCtrl:OnClickGrid(grid, index)
   local gridIndex = index + 1
   local storyId = self.tbAllStory[gridIndex]
-  local isTimeUnlock, isPreReaded, nOpenTime = PlayerData.ActivityAvg:IsActivityAvgUnlock(self.nActId, storyId)
+  local isTimeUnlock, isPreReaded, nOpenTime = self.storyData:IsActivityAvgUnlock(self.nActId, storyId)
   local isUnlock = isTimeUnlock and isPreReaded
   local avgcfg = ConfigTable.GetData("ActivityAvgLevel", storyId)
   if not isUnlock then
@@ -209,10 +214,10 @@ function SwimThemeStoryCtrl:OnClickGrid(grid, index)
     return
   end
   self._mapNode.ctlAvgRoot.gameObject:SetActive(true)
-  self._mapNode.ctlAvgRoot:OpenLevelInfo(storyId, self.nActId)
+  self._mapNode.ctlAvgRoot:OpenLevelInfo(storyId, self.nActId, nil, self.bReview)
   self._mapNode.t_fullscreen_blur_black:SetActive(true)
-  LocalData.SetPlayerLocalData("Act_Story_New" .. self.nActId .. storyId, true)
-  PlayerData.ActivityAvg:RefreshAvgRedDot()
+  LocalData.SetPlayerLocalData(self.storyData:_GetLocalReadKey(self.nActId, storyId), true)
+  self.storyData:RefreshAvgRedDot()
 end
 
 function SwimThemeStoryCtrl:GetRemainTimeStr(nOpenTime, openDay)
@@ -248,18 +253,21 @@ function SwimThemeStoryCtrl:OnBtn_ClickCloseLevelInfoPanel()
   self._mapNode.t_fullscreen_blur_black:SetActive(false)
   self._mapNode.ctlAvgRoot.gameObject:SetActive(false)
   self._mapNode.goChapterComplete:SetActive(false)
+  EventManager.Hit("ActivityStoryReceive_SetVisible", true)
 end
 
 function SwimThemeStoryCtrl:OnEvent_CloseAvgInfoRoot()
   self._mapNode.t_fullscreen_blur_black:SetActive(false)
   self._mapNode.ctlAvgRoot.gameObject:SetActive(false)
   self._mapNode.goChapterComplete:SetActive(false)
+  EventManager.Hit("ActivityStoryReceive_SetVisible", true)
 end
 
 function SwimThemeStoryCtrl:OnEvent_Activity_Story_Done()
   self._mapNode.t_fullscreen_blur_black:SetActive(false)
   self._mapNode.ctlAvgRoot.gameObject:SetActive(false)
   self._mapNode.goChapterComplete:SetActive(false)
+  EventManager.Hit("ActivityStoryReceive_SetVisible", true)
   self:RefreshPanel()
 end
 
@@ -271,6 +279,7 @@ function SwimThemeStoryCtrl:OnEvent_Activity_Story_RewardClosed()
   if self.bAllComplate then
     self._mapNode.t_fullscreen_blur_black:SetActive(true)
     self._mapNode.goChapterComplete:SetActive(true)
+    EventManager.Hit("ActivityStoryReceive_SetVisible", false)
     self.bAllComplate = false
   end
 end

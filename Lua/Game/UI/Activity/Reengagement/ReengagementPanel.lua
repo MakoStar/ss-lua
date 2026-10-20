@@ -1,6 +1,7 @@
 local BasePanel = require("GameCore.UI.BasePanel")
 local ReengagementPanel = class("ReengagementPanel", BasePanel)
 ReengagementPanel._sUIResRootPath = "UI_Activity/"
+ReengagementPanel._bIsMainPanel = true
 ReengagementPanel._tbDefine = {
   {
     sPrefabPath = "_101004/ReengagementPanel.prefab",

@@ -122,12 +122,12 @@ function BossSkillHintIndicator:OnEvent_SkillCancel()
 end
 
 function BossSkillHintIndicator:OnEvent_HintShow()
-  local indicatorBase = self.gameObject:GetComponent("IndicatorBase")
+  local indicatorBase = self.gameObject:GetComponent(typeof(CS.IndicatorBase))
   indicatorBase:SetLogicHide(false)
 end
 
 function BossSkillHintIndicator:OnEvent_HintHide()
-  local indicatorBase = self.gameObject:GetComponent("IndicatorBase")
+  local indicatorBase = self.gameObject:GetComponent(typeof(CS.IndicatorBase))
   indicatorBase:SetLogicHide(true)
 end
 

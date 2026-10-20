@@ -39,8 +39,8 @@ StarTowerBuildContentCtrl._mapNodeConfig = {
     sComponentName = "TMP_Text",
     sLanguageId = "StarTower_Build_DiscSkill_Title"
   },
-  imgNote = {nCount = 12, sComponentName = "Image"},
-  txtNoteCount = {nCount = 12, sComponentName = "TMP_Text"},
+  imgNote = {nCount = 13, sComponentName = "Image"},
+  txtNoteCount = {nCount = 13, sComponentName = "TMP_Text"},
   imgSkillEmpty = {},
   rtSkill = {},
   txtSkillEmpty = {
@@ -97,15 +97,18 @@ StarTowerBuildContentCtrl._mapEventConfig = {
 }
 StarTowerBuildContentCtrl._mapRedDotConfig = {}
 
-function StarTowerBuildContentCtrl:Refresh(mapBuild)
+function StarTowerBuildContentCtrl:Refresh(mapBuild, nDefaultTab)
   self.mapBuild = mapBuild
   self:InitDisc()
   self:InitPotential()
-  self:SetDefaultTab()
+  if nDefaultTab == nil then
+    nDefaultTab = 1
+  end
+  self:SetDefaultTab(nDefaultTab)
 end
 
-function StarTowerBuildContentCtrl:SetDefaultTab()
-  self.nCurTab = 1
+function StarTowerBuildContentCtrl:SetDefaultTab(nDefaultTab)
+  self.nCurTab = nDefaultTab
   for i = 1, 2 do
     self._mapNode.imgOn[i]:SetActive(i == self.nCurTab)
     self._mapNode.imgOff[i]:SetActive(i ~= self.nCurTab)
@@ -123,7 +126,8 @@ function StarTowerBuildContentCtrl:InitPotential()
     v.gameObject:SetActive(0 < nCount)
     if 0 < nCount then
       bEmpty = false
-      v:Init(tbChar[k].nTid, tbChar[k].nPotentialCount, tbPotential[tbChar[k].nTid], self._mapNode.PotentialDepotItem, k == 1, self.mapBuild.bRankPreview)
+      local nCharSkinId = PlayerData.Build:GetBuildCharSkinId(self.mapBuild, tbChar[k])
+      v:Init(tbChar[k].nTid, tbChar[k].nPotentialCount, tbPotential[tbChar[k].nTid], self._mapNode.PotentialDepotItem, k == 1, self.mapBuild.bRankPreview, nCharSkinId)
     end
   end
   self._mapNode.goEmptyPotential.gameObject:SetActive(bEmpty)
@@ -157,7 +161,7 @@ function StarTowerBuildContentCtrl:InitDisc()
   end
   local nNoteCount = #tbNote
   self.tbShowNote = {}
-  for i = 1, 12 do
+  for i = 1, 13 do
     self._mapNode.imgNote[i].gameObject:SetActive(i <= nNoteCount)
     if i <= nNoteCount then
       self.tbShowNote[tbNote[i]] = self.mapBuild.tbNotes[tbNote[i]] or 0
@@ -172,13 +176,7 @@ function StarTowerBuildContentCtrl:InitDisc()
   local tbDisc = self.mapBuild.tbDisc
   for k, nId in ipairs(tbDisc) do
     if k <= 3 then
-      local mapDisc = PlayerData.Disc:GetDiscById(nId)
-      if mapDisc == nil then
-        mapDisc = PlayerData.Disc:GetTrialDiscById(nId)
-      end
-      if mapDisc == nil then
-        mapDisc = PlayerData.Disc:GetRankDetailDisc(nId)
-      end
+      local mapDisc = PlayerData.Build:GetBuildDiscByData(self.mapBuild, nId)
       if mapDisc ~= nil then
         local tbSubSkill = mapDisc:GetAllSubSkill(self.mapBuild.tbNotes)
         for nSkillIndex, v in ipairs(tbSubSkill) do
@@ -240,6 +238,7 @@ function StarTowerBuildContentCtrl:ChangeTab(nIndex)
   self.nCurTab = nIndex
   self._mapNode.svPotential:SetActive(self.nCurTab == 1)
   self._mapNode.svDisc:SetActive(self.nCurTab == 2)
+  EventManager.Hit("StarTowerBuildContent_ChangeTab", nIndex)
 end
 
 function StarTowerBuildContentCtrl:Awake()

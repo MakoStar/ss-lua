@@ -59,13 +59,9 @@ function ActivityBreakOutPopUpCtrl:PlayOpenAnim()
 end
 
 function ActivityBreakOutPopUpCtrl:RefreshDate()
-  local nOpenMonth = tonumber(os.date("%m", self.nOpenTime))
-  local nOpenDay = tonumber(os.date("%d", self.nOpenTime))
-  local nEndMonth = tonumber(os.date("%m", self.nEndTime))
-  local nEndDay = tonumber(os.date("%d", self.nEndTime))
-  local strOpenDay = string.format("%d", nOpenDay)
-  local strEndDay = string.format("%d", nEndDay)
-  local dateStr = string.format("%s/%s ~ %s/%s", nOpenMonth, strOpenDay, nEndMonth, strEndDay)
+  local sOpen = os.date("%m/%d", self.nOpenTime)
+  local sEnd = os.date("%m/%d", self.nEndTime)
+  local dateStr = string.format("%s ~ %s", sOpen, sEnd)
   NovaAPI.SetTMPText(self._mapNode.txtDate, dateStr)
 end
 

@@ -8,14 +8,8 @@ ReengagementMallCtrl._mapNodeConfig = {
   },
   txtLabelValue = {sComponentName = "TMP_Text"},
   txtRemainDay = {sComponentName = "TMP_Text"},
-  txtWeeklyCardName = {
-    sComponentName = "TMP_Text",
-    sLanguageId = "Reengagement_WeeklyCardName"
-  },
-  txtWeeklyCardDesc = {
-    sComponentName = "TMP_Text",
-    sLanguageId = "Reengagement_WeeklyCardDesc"
-  },
+  txtWeeklyCardName = {sComponentName = "TMP_Text"},
+  txtWeeklyCardDesc = {sComponentName = "TMP_Text"},
   txtGetNow = {
     sComponentName = "TMP_Text",
     sLanguageId = "Reengagement_GetNow"
@@ -24,10 +18,18 @@ ReengagementMallCtrl._mapNodeConfig = {
     sComponentName = "TMP_Text",
     sLanguageId = "Reengagement_GetDaily"
   },
+  btnBuyWeeklyCard = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_BuyWeeklyCard"
+  },
   txtBtnBuy = {sComponentName = "TMP_Text"},
+  txtBtnReceiveWeeklyCard = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Quest_Receive_Btn_Text"
+  },
   txtAlreadyReceived = {
     sComponentName = "TMP_Text",
-    sLanguageId = "Reengagement_AlreadyReceived"
+    sLanguageId = "CharPlot_Task_Received"
   },
   btnReceiveWeeklyCard = {
     sComponentName = "UIButton",
@@ -41,6 +43,7 @@ ReengagementMallCtrl._mapNodeConfig = {
     nCount = 3,
     sCtrlName = "Game.UI.TemplateEx.TemplateItemCtrl"
   },
+  btnMallItem = {nCount = 3, sComponentName = "UIButton"},
   txtBannerTitle = {
     sComponentName = "TMP_Text",
     sLanguageId = "Reengagement_Mall_BannerTitle"
@@ -70,17 +73,28 @@ ReengagementMallCtrl._mapNodeConfig = {
   imgPointBg = {nCount = 10},
   PkgItem = {
     nCount = 3,
-    sCtrlName = "Game.UI.Mall.MallPackageItemCtrl"
+    sCtrlName = "Game.UI.Activity.Reengagement.ReengagementMallPackageItemCtrl"
   }
 }
-ReengagementMallCtrl._mapEventConfig = {}
+ReengagementMallCtrl._mapEventConfig = {
+  MallOrderClear = "OnEvent_MallOrderClear",
+  RefreshReengagementWeeklyCard = "OnEvent_RefreshReengagementWeeklyCard"
+}
 
 function ReengagementMallCtrl:OnEnable()
   self.tbPackagePage = {}
-  self.actData = {}
+  self.tbBannerInitPos = {}
+  for _, v in ipairs(self._mapNode.activityBannerItem) do
+    self.nBannerWidth = v.sizeDelta.x
+    table.insert(self.tbBannerInitPos, v.anchoredPosition)
+  end
+  self.nBannerInterval = ConfigTable.GetConfigNumber("Activity_Banner_Interval_Time")
 end
 
 function ReengagementMallCtrl:OnDisable()
+  self._mapNode.btnMallItem[1].onClick:RemoveAllListeners()
+  self._mapNode.btnMallItem[2].onClick:RemoveAllListeners()
+  self._mapNode.btnMallItem[3].onClick:RemoveAllListeners()
   self:ResetTimer()
 end
 
@@ -94,23 +108,80 @@ function ReengagementMallCtrl:Refresh(nCurTog)
 end
 
 function ReengagementMallCtrl:RefreshWeeklyCard()
-  local mapWeeklyCardCfg = self.actData:GetWeeklyCardData()
-  local mapWeeklyCardData = {}
-  NovaAPI.SetTMPText(self._mapNode.txtLabelValue, "")
-  NovaAPI.SetTMPText(self._mapNode.txtWeeklyCardDesc, "")
-  self._mapNode.btnReceiveWeeklyCard.gameObject:SetActive(true)
-  self._mapNode.btnAlreadyReceived.gameObject:SetActive(true)
-  self._mapNode.MallItem[1]:SetItem()
-  self._mapNode.MallItem[2]:SetItem()
-  self._mapNode.MallItem[3]:SetItem()
+  local mapWeeklyCard = PlayerData.Reengagement:GetWeeklyCardData()
+  local nActId = PlayerData.Reengagement:GetActId()
+  local bHasWeeklyCard = mapWeeklyCard.Id ~= nil and mapWeeklyCard.Id ~= ""
+  
+  local function foreach(mapData)
+    if mapData ~= nil and mapData.ReturneeId == nActId then
+      self.mapCurWeeklyCard = mapData
+    end
+  end
+  
+  ForEachTableLine(ConfigTable.Get("ActivityReturneeCard"), foreach)
+  local sCanBuy = ConfigTable.GetUIText("Mall_Package_LimitTitle") .. ":1/1"
+  local sOut = ConfigTable.GetUIText("Mall_Package_SoldOut")
+  local bDisabled = mapWeeklyCard.Received or mapWeeklyCard.Remaining <= 0
+  NovaAPI.SetTMPText(self._mapNode.txtLabelValue, bHasWeeklyCard and sOut or sCanBuy)
+  NovaAPI.SetTMPText(self._mapNode.txtWeeklyCardDesc, self.mapCurWeeklyCard.Desc)
+  NovaAPI.SetTMPText(self._mapNode.txtWeeklyCardName, self.mapCurWeeklyCard.Name)
+  self._mapNode.btnReceiveWeeklyCard.gameObject:SetActive(not bDisabled and bHasWeeklyCard)
+  self._mapNode.btnAlreadyReceived.gameObject:SetActive(bDisabled and bHasWeeklyCard)
+  self._mapNode.btnBuyWeeklyCard.gameObject:SetActive(not bHasWeeklyCard)
+  NovaAPI.SetTMPText(self._mapNode.txtBtnBuy, self.mapCurWeeklyCard.ShowPrice)
+  if bHasWeeklyCard then
+    local sRemain = orderedFormat(ConfigTable.GetUIText("Mall_MonthlyCard_RemainDay") or "", mapWeeklyCard.Remaining)
+    local sReceived = ""
+    if mapWeeklyCard.Received then
+      sReceived = ConfigTable.GetUIText("Mall_MonthlyCard_Received")
+    else
+      sReceived = ConfigTable.GetUIText("Mall_MonthlyCard_Unreceived")
+    end
+    local sToday = "<color=#08D3D4>" .. sReceived .. "</color>"
+    if mapWeeklyCard.Remaining > 0 then
+      sRemain = sRemain .. " " .. sToday
+    end
+    NovaAPI.SetTMPText(self._mapNode.txtRemainDay, sRemain)
+  end
+  self._mapNode.txtRemainDay.gameObject:SetActive(bHasWeeklyCard)
+  self._mapNode.MallItem[1]:SetItem(self.mapCurWeeklyCard.BaseItemId, nil, self.mapCurWeeklyCard.BaseItemQty)
+  self._mapNode.MallItem[2]:SetItem(self.mapCurWeeklyCard.DailyItemId1, nil, self.mapCurWeeklyCard.DailyItemQty1)
+  self._mapNode.MallItem[3]:SetItem(self.mapCurWeeklyCard.DailyItemId2, nil, self.mapCurWeeklyCard.DailyItemQty2)
+  self._mapNode.btnMallItem[1].onClick:RemoveAllListeners()
+  self._mapNode.btnMallItem[2].onClick:RemoveAllListeners()
+  self._mapNode.btnMallItem[3].onClick:RemoveAllListeners()
+  self._mapNode.btnMallItem[1].onClick:AddListener(function()
+    UTILS.ClickItemGridWithTips(self.mapCurWeeklyCard.BaseItemId, self._mapNode.btnMallItem[1].transform, true, true, false)
+  end)
+  self._mapNode.btnMallItem[2].onClick:AddListener(function()
+    UTILS.ClickItemGridWithTips(self.mapCurWeeklyCard.DailyItemId1, self._mapNode.btnMallItem[2].transform, true, true, false)
+  end)
+  self._mapNode.btnMallItem[3].onClick:AddListener(function()
+    UTILS.ClickItemGridWithTips(self.mapCurWeeklyCard.DailyItemId2, self._mapNode.btnMallItem[3].transform, true, true, false)
+  end)
 end
 
 function ReengagementMallCtrl:RefreshPkgItem()
+  local nActId = PlayerData.Reengagement:GetActId()
+  self.tbPackagePage = {}
+  
+  local function foreach(mapData)
+    if mapData ~= nil and mapData.ReturneeId == nActId then
+      table.insert(self.tbPackagePage, mapData)
+    end
+  end
+  
+  ForEachTableLine(ConfigTable.Get("ActivityReturneePack"), foreach)
+  table.sort(self.tbPackagePage, function(a, b)
+    return a.Sort < b.Sort
+  end)
+  local tbPurchasedBundles = PlayerData.Reengagement:GetPurchasedBundles()
   for i = 1, 3 do
     local mapData = self.tbPackagePage[i]
     if mapData ~= nil then
+      local bPurchased = table.indexof(tbPurchasedBundles, mapData.Id) > 0
       self._mapNode.PkgItem[i].gameObject:SetActive(true)
-      self._mapNode.PkgItem[i]:Refresh(mapData)
+      self._mapNode.PkgItem[i]:RefreshReengagement(mapData, bPurchased)
     else
       self._mapNode.PkgItem[i].gameObject:SetActive(false)
     end
@@ -128,7 +199,7 @@ function ReengagementMallCtrl:SetBanner()
     for _, v in ipairs(self._mapNode.imgPointBg) do
       v.gameObject:SetActive(false)
     end
-    for k, v in ipairs(self.tbBannerList) do
+    for k, v in pairs(self.tbBannerList) do
       if nil ~= self._mapNode.imgPointBg[k] then
         self._mapNode.imgPointBg[k]:SetActive(true)
         self._mapNode.imgPointBg[k].transform:Find("imgPoint").gameObject:SetActive(false)
@@ -140,220 +211,6 @@ function ReengagementMallCtrl:SetBanner()
   end
   self:StartActBannerTimer()
   self._mapNode.eventActBannerDrag.enabled = #self.tbBannerList > 1
-end
-
-function ReengagementMallCtrl:AddActivityBanner()
-  local tb_activityBanner = PlayerData.Activity:GetActivityBannerList()
-  for _, value in ipairs(tb_activityBanner) do
-    table.insert(self.tbBannerList, {
-      nId = value:GetActId(),
-      nType = GameEnum.bannerType.Activity,
-      actData = value,
-      nFuncType = GameEnum.OpenFuncType.Activity
-    })
-  end
-end
-
-function ReengagementMallCtrl:AddOtherBanner()
-  local nNextOpenTime = 0
-  local nNextCloseTime = 0
-  local nCurTime = CS.ClientManager.Instance.serverTimeStamp
-  
-  local function forEachMap(mapLineData)
-    if mapLineData.BannerType == GameEnum.bannerType.OpenFunc then
-      local funcNum = tonumber(mapLineData.Param1)
-      if funcNum == nil then
-        return
-      end
-      local bUnlock = PlayerData.Base:CheckFunctionUnlock(funcNum, false)
-      if bUnlock then
-        local jumpToNum = tonumber(mapLineData.Param2)
-        if jumpToNum == nil then
-          return
-        end
-        table.insert(self.tbBannerList, {
-          nId = mapLineData.Id,
-          nType = GameEnum.bannerType.OpenFunc,
-          sBanner = mapLineData.bannerName,
-          nJumpTo = jumpToNum,
-          nFuncType = funcNum
-        })
-      end
-    elseif mapLineData.BannerType == GameEnum.bannerType.Community then
-      local clientPublishRegion = CS.ClientConfig.ClientPublishRegion
-      local channelName = CS.ClientConfig.ClientPublishChannelName
-      if SDKManager:IsSDKInit() and clientPublishRegion == CS.ClientPublishRegion.CN and (channelName == "Official" or channelName == "TEST_1" or channelName == "Taptap") then
-        table.insert(self.tbBannerList, {
-          nId = mapLineData.Id,
-          nType = GameEnum.bannerType.Community,
-          sBanner = mapLineData.bannerName
-        })
-      end
-    elseif mapLineData.BannerType == GameEnum.bannerType.Payment then
-      if not NovaAPI.IsReviewServerEnv() then
-        local clientPublishRegion = CS.ClientConfig.ClientPublishRegion
-        local channelName = CS.ClientConfig.ClientPublishChannelName
-        if SDKManager:IsSDKInit() and clientPublishRegion == CS.ClientPublishRegion.CN and (channelName == "Official" or channelName == "TEST_1" or channelName == "Taptap" or channelName == "TEST_2") then
-          table.insert(self.tbBannerList, {
-            nId = mapLineData.Id,
-            nType = GameEnum.bannerType.Payment,
-            sBanner = mapLineData.bannerName
-          })
-        end
-      end
-    elseif mapLineData.BannerType == GameEnum.bannerType.Mall or mapLineData.BannerType == GameEnum.bannerType.MallSkin then
-      local nOpenTime = CS.ClientManager.Instance:ISO8601StrToTimeStamp(mapLineData.Param1)
-      local nCloseTime = CS.ClientManager.Instance:ISO8601StrToTimeStamp(mapLineData.Param2)
-      if nOpenTime <= nCurTime and nCloseTime >= nCurTime then
-        table.insert(self.tbBannerList, {
-          nId = mapLineData.Id,
-          nType = mapLineData.BannerType,
-          sBanner = mapLineData.bannerName,
-          sParam = mapLineData.Param3
-        })
-        if nCloseTime < nNextCloseTime or nNextCloseTime == 0 then
-          nNextCloseTime = nCloseTime
-        end
-      elseif nOpenTime > nCurTime and (nOpenTime < nNextOpenTime or nNextOpenTime == 0) then
-        nNextOpenTime = nOpenTime
-      end
-    elseif mapLineData.BannerType == GameEnum.bannerType.TimeLimit_Func then
-      local nOpenTime = CS.ClientManager.Instance:ISO8601StrToTimeStamp(mapLineData.Param1)
-      local nCloseTime = CS.ClientManager.Instance:ISO8601StrToTimeStamp(mapLineData.Param2)
-      local nJumpToId = tonumber(mapLineData.Param3)
-      local nFuncType = tonumber(mapLineData.Param4)
-      if nFuncType == nil or nJumpToId == nil then
-        return
-      end
-      local bUnlock = PlayerData.Base:CheckFunctionUnlock(nFuncType, false)
-      if bUnlock and nOpenTime <= nCurTime and nCloseTime >= nCurTime then
-        table.insert(self.tbBannerList, {
-          nId = mapLineData.Id,
-          nType = GameEnum.bannerType.TimeLimit_Func,
-          sBanner = mapLineData.bannerName,
-          nJumpTo = nJumpToId,
-          nFuncType = nFuncType
-        })
-        if nCloseTime < nNextCloseTime or nNextCloseTime == 0 then
-          nNextCloseTime = nCloseTime
-        end
-      elseif nOpenTime > nCurTime and (nOpenTime < nNextOpenTime or nNextOpenTime == 0) then
-        nNextOpenTime = nOpenTime
-      end
-    elseif mapLineData.BannerType == GameEnum.bannerType.JumpToUrl then
-      if NovaAPI.IsReviewServerEnv() and mapLineData.Param6 == "1" then
-        return
-      end
-      local sUrl = mapLineData.Param3
-      if sUrl == nil or sUrl == "" then
-        return
-      end
-      local sPlatform = mapLineData.Param4
-      local sOption = mapLineData.Param5
-      local curPlatform = CS.ClientManager.Instance.Platform
-      local bUseOpenUrl = mapLineData.Param7 == "1"
-      if mapLineData.Param1 == "" then
-        if sPlatform == "" then
-          table.insert(self.tbBannerList, {
-            nId = mapLineData.Id,
-            nType = GameEnum.bannerType.JumpToUrl,
-            sBanner = mapLineData.bannerName,
-            sUrl = sUrl,
-            bInside = true,
-            bUseOpenUrl = bUseOpenUrl
-          })
-        else
-          local tbPlatformList = string.split(sPlatform, ",")
-          local tbOptionList = string.split(sOption, ",")
-          local nIndex = table.indexof(tbPlatformList, curPlatform)
-          if nIndex ~= nil and 0 < nIndex then
-            local sOptionType = tbOptionList[nIndex]
-            local bInside = sOptionType == "0"
-            table.insert(self.tbBannerList, {
-              nId = mapLineData.Id,
-              nType = GameEnum.bannerType.JumpToUrl,
-              sBanner = mapLineData.bannerName,
-              sUrl = sUrl,
-              bInside = bInside,
-              bUseOpenUrl = bUseOpenUrl
-            })
-          end
-        end
-      else
-        local nOpenTime = CS.ClientManager.Instance:ISO8601StrToTimeStamp(mapLineData.Param1)
-        local nCloseTime = CS.ClientManager.Instance:ISO8601StrToTimeStamp(mapLineData.Param2)
-        if nOpenTime <= nCurTime and nCloseTime >= nCurTime then
-          if sPlatform == "" then
-            table.insert(self.tbBannerList, {
-              nId = mapLineData.Id,
-              nType = GameEnum.bannerType.JumpToUrl,
-              sBanner = mapLineData.bannerName,
-              sUrl = sUrl,
-              bInside = true,
-              bUseOpenUrl = bUseOpenUrl
-            })
-          else
-            local tbPlatformList = string.split(sPlatform, ",")
-            local tbOptionList = string.split(sOption, ",")
-            local nIndex = table.indexof(tbPlatformList, curPlatform)
-            if nIndex ~= nil and 0 < nIndex then
-              local sOptionType = tbOptionList[nIndex]
-              local bInside = sOptionType == "0"
-              table.insert(self.tbBannerList, {
-                nId = mapLineData.Id,
-                nType = GameEnum.bannerType.JumpToUrl,
-                sBanner = mapLineData.bannerName,
-                sUrl = sUrl,
-                bInside = bInside,
-                bUseOpenUrl = bUseOpenUrl
-              })
-            end
-          end
-          if nCloseTime < nNextCloseTime or nNextCloseTime == 0 then
-            nNextCloseTime = nCloseTime
-          end
-        elseif nOpenTime > nCurTime and (nOpenTime < nNextOpenTime or nNextOpenTime == 0) then
-          nNextOpenTime = nOpenTime
-        end
-      end
-    elseif mapLineData.BannerType == GameEnum.bannerType.SeaPayment and not NovaAPI.IsReviewServerEnv() then
-      local sUrl = mapLineData.Param3
-      if sUrl == nil or sUrl == "" then
-        return
-      end
-      local nOpenTime = CS.ClientManager.Instance:ISO8601StrToTimeStamp(mapLineData.Param1)
-      local nCloseTime = CS.ClientManager.Instance:ISO8601StrToTimeStamp(mapLineData.Param2)
-      if nOpenTime <= nCurTime and nCloseTime >= nCurTime then
-        local sPlatform = mapLineData.Param4
-        local sOption = mapLineData.Param5
-        local curPlatform = CS.ClientManager.Instance.Platform
-        local tbPlatformList = string.split(sPlatform, ",")
-        local tbOptionList = string.split(sOption, ",")
-        local nIndex = table.indexof(tbPlatformList, curPlatform)
-        local sPid = mapLineData.Param6
-        if nIndex ~= nil and 0 < nIndex then
-          local sOptionType = tbOptionList[nIndex]
-          local bInside = sOptionType == "0"
-          if SDKManager:IsSDKInit() then
-            table.insert(self.tbBannerList, {
-              nId = mapLineData.Id,
-              nType = GameEnum.bannerType.SeaPayment,
-              sBanner = mapLineData.bannerName,
-              sUrl = sUrl,
-              bInside = bInside,
-              sPid = sPid
-            })
-          end
-        end
-      end
-    end
-  end
-  
-  ForEachTableLine(DataTable.Banner, forEachMap)
-  local nRefreshTime = math.min(math.max(nNextOpenTime, 0), math.max(nNextCloseTime, 0))
-  if 0 < nRefreshTime and nCurTime < nRefreshTime then
-    self.bannerRefreshTimer = self:AddTimer(1, nRefreshTime - nCurTime, "SetBanner", true, true, true)
-  end
 end
 
 function ReengagementMallCtrl:AddGachaBanner()
@@ -618,6 +475,28 @@ function ReengagementMallCtrl:ResetTimer()
     self.bannerRefreshTimer:Cancel(false)
     self.bannerRefreshTimer = nil
   end
+end
+
+function ReengagementMallCtrl:OnBtnClick_BuyWeeklyCard()
+  PlayerData.Reengagement:BuyWeeklyCard(self.mapCurWeeklyCard.Id, self.mapCurWeeklyCard.StatisticalGroup)
+end
+
+function ReengagementMallCtrl:OnBtnClick_ReceiveWeeklyCard()
+  PlayerData.Reengagement:RequestReceiveWeeklyCard()
+end
+
+function ReengagementMallCtrl:OnEvent_RefreshReengagementWeeklyCard()
+  self:RefreshWeeklyCard()
+end
+
+function ReengagementMallCtrl:OnBtnClick_AlreadyReceived()
+end
+
+function ReengagementMallCtrl:OnEvent_MallOrderClear()
+  PlayerData.Reengagement:RequestReengagementInfo(function()
+    self:RefreshWeeklyCard()
+    self:RefreshPkgItem()
+  end)
 end
 
 return ReengagementMallCtrl

@@ -35,6 +35,9 @@ function StarTowerFastBattleLogCtrl:Awake()
 end
 
 function StarTowerFastBattleLogCtrl:OnEnable()
+  local canvas = self.gameObject:GetComponent("Canvas")
+  NovaAPI.SetCanvasOverrideSorting(canvas, true)
+  NovaAPI.SetCanvasSortingOrder(canvas, AllEnum.UI_SORTING_ORDER.StarTowerAutoDecisionHUD + 1)
   self._mapNode.goBlur:SetActive(true)
   
   local function wait()

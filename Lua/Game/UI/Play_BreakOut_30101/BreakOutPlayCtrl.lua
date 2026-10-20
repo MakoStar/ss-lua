@@ -45,7 +45,7 @@ BreakOutPlayCtrl._mapNodeConfig = {
   },
   BossHUDPanel = {
     sNodeName = "BossHUDPanel",
-    sCtrlName = "Game.UI.Battle.BossPanelCtrl"
+    sCtrlName = "Game.UI.Play_BreakOut_30101.BreakOutBossHud.BreakOutBossPanelCtrl"
   },
   btn_dic = {
     sComponentName = "NaviButton",

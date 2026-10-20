@@ -1,4 +1,5 @@
 local PlayerGuideData = class("PlayerGuideData")
+local TimerManager = require("GameCore.Timer.TimerManager")
 PanelId = require("GameCore.UI.PanelId")
 
 function PlayerGuideData:Init()
@@ -67,7 +68,7 @@ function PlayerGuideData:CheckInGuideGroup(nId)
   return self.isProcessing and self.runGroupId == nId
 end
 
-function PlayerGuideData:SetPlayerLearnReq(groupId, stepId)
+function PlayerGuideData:SetPlayerLearnReq(groupId, stepId, type, season)
   self.tabGuideNewbie[groupId] = stepId
   if stepId == -1 then
     local function callallback()
@@ -76,12 +77,29 @@ function PlayerGuideData:SetPlayerLearnReq(groupId, stepId)
       end
     end
     
-    HttpNetHandler.SendMsg(NetMsgId.Id.player_learn_req, {GroupId = groupId, StepId = stepId}, nil, callallback)
+    if type and type == AllEnum.GuideType.Dorm then
+      HttpNetHandler.SendMsg(NetMsgId.Id.dorm_learn_req, {GroupId = groupId, StepId = stepId}, nil, callallback)
+    elseif type and type == AllEnum.GuideType.Soldier then
+      HttpNetHandler.SendMsg(NetMsgId.Id.soldier_learn_req, {
+        Season = season,
+        GroupId = groupId,
+        StepId = stepId
+      }, nil, callallback)
+    else
+      HttpNetHandler.SendMsg(NetMsgId.Id.player_learn_req, {GroupId = groupId, StepId = stepId}, nil, callallback)
+    end
   end
 end
 
 function PlayerGuideData:OnEvent_PanelOnEnableById(_panelId)
   if EditorSettings and EditorSettings.bJumpGuide then
+    return
+  end
+  if PopUpManager.IsQueueOccupied() then
+    if _panelId ~= PanelId.MainView then
+      self.openPanelId = _panelId
+      self:_ReleaseLoginGuideQueue()
+    end
     return
   end
   if _panelId == PanelId.MainView then
@@ -101,23 +119,13 @@ function PlayerGuideData:OnEvent_CloseDisposablePanel(nPanelId)
 end
 
 function PlayerGuideData:Event_PopUpEndCheckMainView()
-  if EditorSettings and EditorSettings.bJumpGuide then
-    return
-  end
-  if self.isProcessing then
-    return
-  end
-  if PanelManager.GetCurPanelId() == PanelId.MainView then
-    if PlayerData.State:CheckState() then
-      return
-    end
-    self.openPanelId = PanelId.MainView
-    self:CheckHaveGuideData()
-  end
 end
 
 function PlayerGuideData:OnEvent_UpdateWorldClass()
   if EditorSettings and EditorSettings.bJumpGuide then
+    return
+  end
+  if PopUpManager.IsQueueOccupied() then
     return
   end
   if self.isProcessing then
@@ -126,7 +134,55 @@ function PlayerGuideData:OnEvent_UpdateWorldClass()
   self:CheckHaveGuideData()
 end
 
+function PlayerGuideData:_ReleaseLoginGuideQueue()
+  if self._fnLoginGuideDone == nil then
+    return
+  end
+  local fnLoginGuideDone = self._fnLoginGuideDone
+  self._fnLoginGuideDone = nil
+  fnLoginGuideDone()
+end
+
+function PlayerGuideData:RunLoginGuide(callback)
+  if EditorSettings and EditorSettings.bJumpGuide then
+    if callback ~= nil then
+      callback()
+    end
+    return
+  end
+  self._fnLoginGuideDone = callback
+  self.openPanelId = PanelId.MainView
+  self:CheckHaveGuideData()
+  if not self.isProcessing then
+    self._fnLoginGuideDone = nil
+    if callback ~= nil then
+      callback()
+    end
+  end
+end
+
+function PlayerGuideData:NoteDormAbort(nGroupId)
+  self._mapDormAbortCd = self._mapDormAbortCd or {}
+  self._mapDormAbortCd[nGroupId] = TimerManager.GetUnscaledTime() + 3
+  self._nDormAbortFrame = CS.UnityEngine.Time.frameCount
+  self._nDormAbortGroup = nGroupId
+end
+
+function PlayerGuideData:_DormBlocked(nGroupId)
+  if self._nDormAbortGroup == nGroupId and self._nDormAbortFrame == CS.UnityEngine.Time.frameCount then
+    return true
+  end
+  local nCd = self._mapDormAbortCd and self._mapDormAbortCd[nGroupId]
+  if nCd ~= nil and nCd > TimerManager.GetUnscaledTime() then
+    return true
+  end
+  return false
+end
+
 function PlayerGuideData:CheckHaveGuideData()
+  if self.isProcessing then
+    return
+  end
   for i, v in pairs(self._guideInitiativeTableData) do
     if (self.tabGuideNewbie[v.Id] == nil or self.tabGuideNewbie[v.Id] ~= -1) and v.IsActive then
       local bGuide = true
@@ -137,7 +193,7 @@ function PlayerGuideData:CheckHaveGuideData()
         bGuide = self:CheckGuidePrePose(v.GuidePrepose2, v.PreposeParams2)
       end
       bGuide = bGuide and self:CheckGuidePost(v) and self:CheckGuidetrigger(v)
-      if bGuide then
+      if bGuide and not self:_DormBlocked(v.Id) then
         self.runGroupId = v.Id
         self.runStepId = self.tabGuideNewbie[v.Id] or 0
         self:OpenGuidePanel()
@@ -200,6 +256,24 @@ function PlayerGuideData:CheckGuidePrePose(nPoseType, param)
     local charid = data.Char
     local isFinish = PlayerData.Char:IsCharPlotFinish(charid, _prepose[1])
     if isFinish == false then
+      return true
+    end
+  elseif nPoseType == (GameEnum.guideprepose.FinishDormQuest or 8) then
+    local _prepose = decodeJson(param)
+    local DormGuideAdapter = require("Game.UI.Dorm.DormGuideAdapter")
+    return DormGuideAdapter.QuestStatus(_prepose[1]) == 2
+  elseif nPoseType == (GameEnum.guideprepose.FinishDormQuestGroup or 9) then
+    local _prepose = decodeJson(param)
+    local nGroupId = _prepose[1]
+    local objDorm = PlayerData.PlayerDormData
+    if objDorm == nil or objDorm.bHasRoomData ~= true then
+      return false
+    end
+    local nCurGroup, nGroupState = objDorm:GetDormQuestDataWithGroup()
+    if nCurGroup == 0 or nGroupId < nCurGroup then
+      return true
+    end
+    if nCurGroup == nGroupId and nGroupState == 1 then
       return true
     end
   else
@@ -274,7 +348,10 @@ function PlayerGuideData:FinishCurrentGroup(isCheck)
   if isCheck then
     self:CheckHaveGuideData()
   end
-  if PanelManager.GetCurPanelId() == PanelId.MainView then
+  local DormGuideAdapter = require("Game.UI.Dorm.DormGuideAdapter")
+  DormGuideAdapter.OnGuideReleased()
+  if not self.isProcessing then
+    self:_ReleaseLoginGuideQueue()
   end
 end
 
@@ -283,6 +360,10 @@ function PlayerGuideData:Event_PassiveCheckMsg(msg)
     return
   end
   if self.isProcessing then
+    if msg == "Guide_DormEnter" or msg == "Guide_DormEnterRoom2" then
+      local DormGuideAdapter = require("Game.UI.Dorm.DormGuideAdapter")
+      DormGuideAdapter.NotePassive(msg)
+    end
     return
   end
   for i, v in pairs(self._guidePassiveTableData) do
@@ -295,7 +376,7 @@ function PlayerGuideData:Event_PassiveCheckMsg(msg)
         bGuide = self:CheckGuidePrePose(v.GuidePrepose2, v.PreposeParams2)
       end
       bGuide = bGuide and self:CheckGuidePost(v) and self:CheckGuidetrigger(v)
-      if bGuide then
+      if bGuide and not self:_DormBlocked(v.Id) then
         self.runGroupId = v.Id
         self.runStepId = self.tabGuideNewbie[v.Id] or 0
         self:OpenGuidePanel()

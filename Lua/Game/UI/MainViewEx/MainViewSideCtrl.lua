@@ -236,10 +236,6 @@ function MainViewSideCtrl:CheckToolBoxEnable()
   if NovaAPI.IsReviewServerEnv() then
     return false
   end
-  local clientPublishRegion = CS.ClientConfig.ClientPublishRegion
-  if clientPublishRegion == CS.ClientPublishRegion.JP then
-    return false
-  end
   return true
 end
 

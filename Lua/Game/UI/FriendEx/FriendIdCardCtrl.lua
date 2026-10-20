@@ -94,7 +94,12 @@ end
 
 function FriendIdCardCtrl:Refresh()
   self._mapNode.RectCard:SetActive(true)
-  self._mapNode.imgSaveBtn:SetActive(true)
+  local bGP = CS.ClientManager.Instance.isAndroidOnPC
+  if not bGP then
+    self._mapNode.imgSaveBtn:SetActive(true)
+  else
+    self._mapNode.imgSaveBtn:SetActive(false)
+  end
   self._mapNode.goTip:SetActive(true)
   NovaAPI.SetTMPText(self._mapNode.txtNameCard, PlayerData.Base:GetPlayerNickName())
   NovaAPI.SetTMPText(self._mapNode.txtUidCard, PlayerData.Base:GetPlayerId())
@@ -146,6 +151,8 @@ function FriendIdCardCtrl:RefreshHonorTitle()
             break
           end
         end
+      elseif honorData.Type == GameEnum.honorType.Dorm then
+        level = PlayerData.PlayerDormData:GetHonorTitleLevel()
       end
       self._mapNode.goHonorTitleCard[i]:SetHonotTitle(honorData.Id, i == 1, level)
     end

@@ -77,7 +77,20 @@ end
 function PlayerShopData:GetShopList()
   local tbList = {}
   for _, mapShop in pairs(self._tbShops) do
-    if mapShop.bUnlock and mapShop.bOpenAble then
+    if mapShop.bUnlock and mapShop.bOpenAble and mapShop.nType == GameEnum.ShopType.Resident then
+      table.insert(tbList, mapShop)
+    end
+  end
+  table.sort(tbList, function(a, b)
+    return a.nSequence < b.nSequence
+  end)
+  return tbList
+end
+
+function PlayerShopData:GetShopListByType(nType)
+  local tbList = {}
+  for _, mapShop in pairs(self._tbShops) do
+    if mapShop.bUnlock and mapShop.bOpenAble and mapShop.nType == nType then
       table.insert(tbList, mapShop)
     end
   end
@@ -143,6 +156,22 @@ function PlayerShopData:GetShopFirstIn()
   return bFirst
 end
 
+function PlayerShopData:CheckShopJumpAble(nShopId)
+  local sLockTip = ""
+  local mapCfg = ConfigTable.GetData("ResidentShop", nShopId)
+  if not mapCfg then
+    return false, sLockTip
+  end
+  if mapCfg.UnlockCondType == GameEnum.shopCond.WorldClassSpecific then
+    local worldClass = PlayerData.Base:GetWorldClass()
+    local tbParams = decodeJson(mapCfg.UnlockCondParams)
+    local bAble = worldClass >= tbParams[1]
+    sLockTip = orderedFormat(ConfigTable.GetUIText("Shop_Cond_WorldClass"), tbParams[1])
+    return bAble, sLockTip
+  end
+  return true, sLockTip
+end
+
 function PlayerShopData:CreateData()
   local nServerTimeStamp = ClientManager.serverTimeStamp
   
@@ -181,7 +210,8 @@ function PlayerShopData:CreateShopData(mapCfgData, nServerTimeStamp)
     bUnlock = false,
     bOpenAble = false,
     nServerRefreshTime = 0,
-    nNextRefreshTime = 0
+    nNextRefreshTime = 0,
+    nType = mapCfgData.Type
   }
   self._tbShops[mapCfgData.Id] = mapShop
   self:UpdateShopData(mapCfgData.Id)

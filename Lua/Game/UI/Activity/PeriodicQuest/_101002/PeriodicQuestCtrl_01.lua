@@ -1,4 +1,5 @@
 local PeriodicQuestCtrl_01 = class("PeriodicQuestCtrl_01", BaseCtrl)
+local TimerManager = require("GameCore.Timer.TimerManager")
 PeriodicQuestCtrl_01._mapNodeConfig = {
   goCommon = {
     sNodeName = "---Common---"
@@ -38,11 +39,25 @@ PeriodicQuestCtrl_01._mapNodeConfig = {
   btnCharDetail = {
     sComponentName = "UIButton",
     callback = "OnBtnClick_CharPreview"
-  }
+  },
+  btnDetail = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_Detail"
+  },
+  txtBtnDetail = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Activity_Btn_Detail"
+  },
+  goActTime = {},
+  txtActivityTime = {sComponentName = "TMP_Text"}
 }
 PeriodicQuestCtrl_01._mapEventConfig = {
   RefreshPeriodicAct = "OnEvent_RefreshPeriodicAct"
 }
+
+function PeriodicQuestCtrl_01:OnDisable()
+  self:UnbindCtrl()
+end
 
 function PeriodicQuestCtrl_01:RefreshActInfo()
   if self.activityCtrl ~= nil then
@@ -113,32 +128,24 @@ function PeriodicQuestCtrl_01:InitActData(actData, bResetGroup)
   self.nActId = actData:GetActId()
   self.activityCtrl:InitActData(actData, bResetGroup)
   self:RefreshActInfo()
+  self:SetTime()
 end
 
 function PeriodicQuestCtrl_01:ClearActivity()
   self:UnbindCtrl()
 end
 
-function PeriodicQuestCtrl_01:Awake()
-end
-
-function PeriodicQuestCtrl_01:FadeIn()
-end
-
-function PeriodicQuestCtrl_01:FadeOut()
-end
-
-function PeriodicQuestCtrl_01:OnEnable()
-end
-
-function PeriodicQuestCtrl_01:OnDisable()
-  self:UnbindCtrl()
-end
-
-function PeriodicQuestCtrl_01:OnDestroy()
-end
-
-function PeriodicQuestCtrl_01:OnRelease()
+function PeriodicQuestCtrl_01:SetTime()
+  local actCfg = self.actData:GetActCfgData()
+  if actCfg.EndType == GameEnum.activityEndType.NoLimit then
+    self._mapNode.goActTime.gameObject:SetActive(false)
+  else
+    self._mapNode.goActTime.gameObject:SetActive(true)
+    self:RefreshRemainTime()
+    if nil == self.remainTimer then
+      self.remainTimer = self:AddTimer(0, 1, "RefreshRemainTime", true, true, false)
+    end
+  end
 end
 
 function PeriodicQuestCtrl_01:OnBtnClick_Receive()
@@ -188,6 +195,64 @@ function PeriodicQuestCtrl_01:OnBtnClick_CharPreview()
       end
     end
   end
+end
+
+function PeriodicQuestCtrl_01:OnBtnClick_Detail()
+  local perQuestActCfg = self.actData:GetPerQuestCfg()
+  local msg = {
+    nType = AllEnum.MessageBox.Desc,
+    sContent = perQuestActCfg.DesText,
+    sTitle = ConfigTable.GetUIText("Activity_Btn_Detail")
+  }
+  EventManager.Hit(EventId.OpenMessageBox, msg)
+end
+
+function PeriodicQuestCtrl_01:RefreshRemainTime()
+  local endTime = self.actData:GetActEndTime()
+  local curTime = CS.ClientManager.Instance.serverTimeStamp
+  local remainTime = endTime - curTime
+  if remainTime < 0 then
+    TimerManager.Remove(self.remainTimer)
+    self.remainTimer = nil
+    EventManager.Hit(EventId.OpenMessageBox, {
+      nType = AllEnum.MessageBox.Alert,
+      sContent = ConfigTable.GetUIText("Activity_Invalid_Tip_1"),
+      callbackConfirm = function()
+        EventManager.Hit(EventId.ClosePanel, PanelId.ActivityList)
+      end
+    })
+    return
+  end
+  local sTimeStr = ""
+  if remainTime <= 60 then
+    local sec = math.floor(remainTime)
+    sTimeStr = orderedFormat(ConfigTable.GetUIText("Activity_Remain_Time_Sec") or "", sec)
+  elseif 60 < remainTime and remainTime <= 3600 then
+    local min = math.floor(remainTime / 60)
+    local sec = math.floor(remainTime - min * 60)
+    if sec == 0 then
+      min = min - 1
+      sec = 60
+    end
+    sTimeStr = orderedFormat(ConfigTable.GetUIText("Activity_Remain_Time_Min") or "", min, sec)
+  elseif 3600 < remainTime and remainTime <= 86400 then
+    local hour = math.floor(remainTime / 3600)
+    local min = math.floor((remainTime - hour * 3600) / 60)
+    if min == 0 then
+      hour = hour - 1
+      min = 60
+    end
+    sTimeStr = orderedFormat(ConfigTable.GetUIText("Activity_Remain_Time_Hour") or "", hour, min)
+  elseif 86400 < remainTime then
+    local day = math.floor(remainTime / 86400)
+    local hour = math.floor((remainTime - day * 86400) / 3600)
+    if hour == 0 then
+      day = day - 1
+      hour = 24
+    end
+    sTimeStr = orderedFormat(ConfigTable.GetUIText("Activity_Remain_Time_Day") or "", day, hour)
+  end
+  NovaAPI.SetTMPText(self._mapNode.txtActivityTime, orderedFormat(ConfigTable.GetUIText("PerActivity_Remain_Time") or "", sTimeStr))
 end
 
 return PeriodicQuestCtrl_01

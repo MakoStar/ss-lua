@@ -55,6 +55,10 @@ StarTowerBuildBriefItem._mapNodeConfig = {
   },
   btnExport = {sComponentName = "UIButton"},
   objUnavailable = {},
+  imgUnavailableMask = {
+    sNodeName = "objUnavailable",
+    sComponentName = "Image"
+  },
   objUnavailableIcon = {sComponentName = "Image"},
   imgRareScoreMask = {sComponentName = "Image"},
   texUnavailable = {
@@ -80,14 +84,15 @@ StarTowerBuildBriefItem._mapNodeConfig = {
 }
 StarTowerBuildBriefItem._mapEventConfig = {}
 
-function StarTowerBuildBriefItem:RefreshGrid(mapData, nPanelState, bSelectDelete, bCheckOut, bCheckIn, nType, bTrial)
+function StarTowerBuildBriefItem:RefreshGrid(mapData, nPanelState, bSelectDelete, bCheckOut, bCheckIn, nType)
   self._mapData = mapData
   self._nType = nType
-  self._bTrial = bTrial
+  self._bLimitedTrialBuild = mapData.nBuildSource == AllEnum.BuildSource.LimitedTrial
+  self._bLimitedTrialBuildLocked = self._bLimitedTrialBuild and not PlayerData.Build:IsLimitedTrialBuildAllowedType(self._nType)
   self:RefreshInfo()
   self:RefreshChar()
   self:RefreshDisc()
-  self._mapNode.imgLabel2:SetActive(bTrial == true)
+  self._mapNode.imgLabel2:SetActive(self._bLimitedTrialBuild)
   if nPanelState == PanelState.Delete then
     self._mapNode.img_SelectDelete:SetActive(bSelectDelete)
     self._mapNode.img_SelectPreference:SetActive(false)
@@ -116,13 +121,20 @@ function StarTowerBuildBriefItem:RefreshGrid(mapData, nPanelState, bSelectDelete
       bShowUnavailable = self._mapData.bBuildUsed or self._mapData.bCharUsed
     end
     self._mapNode.objUnavailable:SetActive(bShowUnavailable)
-    self._mapNode.imgUnavailable:SetActive(self._mapData.isCanUse)
+    self._mapNode.imgUnavailable:SetActive(false)
     self._mapNode.imgBuildUsed:SetActive(self._mapData.bBuildUsed)
     self._mapNode.imgCharUsed:SetActive(self._mapData.bCharUsed and not self._mapData.bBuildUsed)
     local sKey = self._nType == AllEnum.RegionBossFormationType.InfinityTower and "InfinityTower_Build_NotAvailable" or "VampireFormation_Unable"
     NovaAPI.SetTMPText(self._mapNode.texUnavailable, ConfigTable.GetUIText(sKey))
   else
     self._mapNode.objUnavailable:SetActive(false)
+  end
+  if self._bLimitedTrialBuildLocked then
+    self._mapNode.objUnavailable:SetActive(true)
+    self._mapNode.imgUnavailable:SetActive(true)
+    self._mapNode.imgBuildUsed:SetActive(false)
+    self._mapNode.imgCharUsed:SetActive(false)
+    NovaAPI.SetTMPText(self._mapNode.texUnavailable, ConfigTable.GetUIText("LimitedTrialBuild_UnableTip"))
   end
 end
 
@@ -131,6 +143,18 @@ function StarTowerBuildBriefItem:RefreshInfo()
   local sFrame = AllEnum.FrameType_New.BuildRankDB .. AllEnum.FrameColor_New[self._mapData.mapRank.Rarity]
   self:SetPngSprite(self._mapNode.imgRareScore, sScore)
   self:SetAtlasSprite(self._mapNode.imgRareFrame, "12_rare", sFrame)
+  local nBuildRank = self._mapData.mapRank.Id
+  local nMaskIndex = 1
+  if 31 <= nBuildRank then
+    nMaskIndex = 5
+  elseif 21 <= nBuildRank then
+    nMaskIndex = 4
+  elseif 11 <= nBuildRank then
+    nMaskIndex = 3
+  elseif 6 <= nBuildRank then
+    nMaskIndex = 2
+  end
+  self:SetAtlasSprite(self._mapNode.imgUnavailableMask, "08_db", "db_common_bd_mask_0" .. nMaskIndex)
   if self._mapData.sName == "" or self._mapData.sName == nil then
     NovaAPI.SetTMPText(self._mapNode.txtBuildName, ConfigTable.GetUIText("RoguelikeBuild_EmptyBuildName"))
   else
@@ -143,7 +167,7 @@ end
 function StarTowerBuildBriefItem:RefreshChar()
   for i = 1, 3 do
     local nCharTid = self._mapData.tbChar[i].nTid
-    local nCharSkinId = PlayerData.Char:GetCharSkinId(nCharTid)
+    local nCharSkinId = PlayerData.Build:GetBuildCharSkinId(self._mapData, self._mapData.tbChar[i])
     local mapCharSkin = ConfigTable.GetData_CharacterSkin(nCharSkinId)
     local mapCharCfg = ConfigTable.GetData_Character(nCharTid)
     local sFrame = AllEnum.FrameType_New.BoardFrame .. AllEnum.BoardFrameColor[mapCharCfg.Grade]
@@ -201,6 +225,10 @@ function StarTowerBuildBriefItem:OnRelease()
 end
 
 function StarTowerBuildBriefItem:OnBtnClick_Grid(btn)
+  if self._bLimitedTrialBuildLocked then
+    EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("LimitedTrialBuild_UnableTip"))
+    return
+  end
   if self._nType then
     if self._nType == AllEnum.RegionBossFormationType.InfinityTower or self._nType == AllEnum.RegionBossFormationType.Vampire then
       if not self._mapData.isCanUse then

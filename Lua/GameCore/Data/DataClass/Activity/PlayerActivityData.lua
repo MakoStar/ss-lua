@@ -40,6 +40,11 @@ local Summer_20103Data = require("GameCore.Data.DataClass.Activity.Summer_20103D
 local IceCreamActData = require("GameCore.Data.DataClass.Activity.IceCreamActData")
 local SoldierActData = require("GameCore.Data.DataClass.Activity.SoldierActData")
 local LongestDay_10112Data = require("GameCore.Data.DataClass.Activity.LongestDay_10112Data")
+local MathParkourActData = require("GameCore.Data.DataClass.Activity.MathParkourActData")
+local DustDawn_20104Data = require("GameCore.Data.DataClass.Activity.DustDawn_20104Data")
+local MailBindActData = require("GameCore.Data.DataClass.Activity.MailBindActData")
+local MallCheckInActData = require("GameCore.Data.DataClass.Activity.MallCheckInActData")
+local UnchartedMap_10113Data = require("GameCore.Data.DataClass.Activity.UnchartedMap_10113Data")
 
 function PlayerActivityData:Init()
   self.bCacheActData = false
@@ -48,6 +53,7 @@ function PlayerActivityData:Init()
   self.tbActivityPopUp = {}
   self.tbLoginRewardPopUp = {}
   self.tbReadedCG = {}
+  self.mapMallActType = {}
   self:InitActivityCfg()
   EventManager.Add(EventId.IsNewDay, self, self.OnEvent_NewDay)
   EventManager.Add(EventId.UpdateWorldClass, self, self.OnEvent_UpdateWorldClass)
@@ -100,6 +106,10 @@ function PlayerActivityData:InitActivityCfg()
   end
   
   ForEachTableLine(DataTable.ActivityTaskControl, foreachTableLine)
+  self.mapMallActType = {}
+  for _, nType in ipairs(ConfigTable.GetConfigNumberArray("MallActType") or {}) do
+    self.mapMallActType[nType] = true
+  end
 end
 
 function PlayerActivityData:CacheAllActivityData(mapNetMsg)
@@ -108,17 +118,13 @@ function PlayerActivityData:CacheAllActivityData(mapNetMsg)
     for _, v in ipairs(mapNetMsg.List) do
       local nActId = v.Id
       local actCfg = ConfigTable.GetData("Activity", nActId)
-      if nil ~= actCfg then
-        if actCfg.ActivityType == GameEnum.activityType.Story then
-          PlayerData.ActivityAvg:CacheAvgData(v.StoryChapter, nActId)
-        elseif actCfg.ActivityType == GameEnum.activityType.HistoryStory then
-          PlayerData.ActivityAvg:CacheAvgData(v.HistoryStoryChapter, nActId)
-        end
+      if nil ~= actCfg and v.HistoryStoryChapter ~= nil then
+        PlayerData.ActivityAvg:CacheAvgData(v.HistoryStoryChapter, nActId)
       end
       if nil ~= actCfg then
         if actCfg.ActivityType == GameEnum.activityType.PeriodicQuest then
           self:RefreshPeriodicActQuest(nActId, v.Periodic)
-        elseif actCfg.ActivityType == GameEnum.activityType.LoginReward then
+        elseif actCfg.ActivityType == GameEnum.activityType.LoginReward or actCfg.ActivityType == GameEnum.activityType.SignIn then
           self:RefreshLoginRewardActData(nActId, v.Login)
         elseif actCfg.ActivityType == GameEnum.activityType.Mining then
           self:RefreshMiningGameActData(nActId, v.Mining)
@@ -170,6 +176,12 @@ function PlayerActivityData:CacheAllActivityData(mapNetMsg)
           self:RefreshIceCreamActData(nActId, v.IceCream)
         elseif actCfg.ActivityType == GameEnum.activityType.Soldier then
           self:RefreshSoldierActData(nActId, v.Soldier)
+        elseif actCfg.ActivityType == GameEnum.activityType.MathParkour then
+          self:RefreshMathParkourActData(nActId, v.MathParkour)
+        elseif actCfg.ActivityType == GameEnum.activityType.MailBind then
+          self:RefreshMailBindActData(nActId, v.MailBind)
+        elseif actCfg.ActivityType == GameEnum.activityType.MallLogin then
+          self:RefreshMallLoginActData(nActId, v.MallLogin)
         end
       end
     end
@@ -239,7 +251,7 @@ function PlayerActivityData:CreateActivityIns(actData)
   end
   if actCfg.ActivityType == GameEnum.activityType.PeriodicQuest then
     actIns = PeriodicQuestActData.new(actData)
-  elseif actCfg.ActivityType == GameEnum.activityType.LoginReward then
+  elseif actCfg.ActivityType == GameEnum.activityType.LoginReward or actCfg.ActivityType == GameEnum.activityType.SignIn then
     actIns = LoginRewardActData.new(actData)
   elseif actCfg.ActivityType == GameEnum.activityType.Mining then
     actIns = MiningGameData.new(actData)
@@ -253,7 +265,7 @@ function PlayerActivityData:CreateActivityIns(actData)
     actIns = JointDrillActData.new(actData)
   elseif actCfg.ActivityType == GameEnum.activityType.Levels then
     actIns = ActivityLevelTypeData.new(actData)
-  elseif actCfg.ActivityType == GameEnum.activityType.HistoryStory or actCfg.ActivityType == GameEnum.activityType.Story then
+  elseif actCfg.ActivityType == GameEnum.activityType.HistoryStory or actCfg.ActivityType == GameEnum.activityType.Story or actCfg.ActivityType == GameEnum.activityType.NewStory then
     PlayerData.ActivityAvg:CacheActivityAvgData(actData)
   elseif actCfg.ActivityType == GameEnum.activityType.Task then
     actIns = ActivityTaskData.new(actData)
@@ -281,6 +293,12 @@ function PlayerActivityData:CreateActivityIns(actData)
     actIns = IceCreamActData.new(actData)
   elseif actCfg.ActivityType == GameEnum.activityType.Soldier then
     actIns = SoldierActData.new(actData)
+  elseif actCfg.ActivityType == GameEnum.activityType.MathParkour then
+    actIns = MathParkourActData.new(actData)
+  elseif actCfg.ActivityType == GameEnum.activityType.MailBind then
+    actIns = MailBindActData.new(actData)
+  elseif actCfg.ActivityType == GameEnum.activityType.MallLogin then
+    actIns = MallCheckInActData.new(actData)
   end
   if actIns ~= nil then
     self.tbAllActivity[actData.Id] = actIns
@@ -289,6 +307,8 @@ end
 
 function PlayerActivityData:RefreshActivityRedDot()
   local bHasNewRedDot = false
+  local mapEntranceRedDot = {}
+  local mapEntranceNewRedDot = {}
   for _, v in pairs(self.tbAllActivity) do
     RedDotManager.SetValid(RedDotDefine.Activity_Tab, v:GetActId(), v:CheckActShow() and v:GetActivityRedDot() and not v:CheckHideFromActList())
     if type(v.RefreshRedDot) == "function" then
@@ -307,16 +327,43 @@ function PlayerActivityData:RefreshActivityRedDot()
         bHasNewRedDot = true
       end
       RedDotManager.SetValid(RedDotDefine.Activity_New_Tab, v:GetActId(), bNewRedDot)
+      local nEntranceId = v:GetActCfgData().EntranceId or 0
+      mapEntranceRedDot[nEntranceId] = mapEntranceRedDot[nEntranceId] or bTabRedDot
+      mapEntranceNewRedDot[nEntranceId] = mapEntranceNewRedDot[nEntranceId] or bNewRedDot
     end
   end
   local bHasGroupNewRedDot = false
   for nId, v in pairs(self.tbAllActivityGroup) do
-    if v:CheckActGroupShow() and RedDotManager.GetValid(RedDotDefine.Activity_New_Tab, nId) then
-      bHasGroupNewRedDot = true
+    if v:CheckActGroupShow() then
+      local bGroupNewRedDot = RedDotManager.GetValid(RedDotDefine.Activity_New_Tab, nId)
+      if bGroupNewRedDot then
+        bHasGroupNewRedDot = true
+      end
+      local nEntranceId = v:GetActGroupCfgData().EntranceId or 0
+      mapEntranceRedDot[nEntranceId] = mapEntranceRedDot[nEntranceId] or RedDotManager.GetValid(RedDotDefine.Activity_Group, nId)
+      mapEntranceNewRedDot[nEntranceId] = mapEntranceNewRedDot[nEntranceId] or bGroupNewRedDot
     end
   end
   local bHasRedDot = RedDotManager.GetValid(RedDotDefine.Activity)
   RedDotManager.SetValid(RedDotDefine.Activity_New, nil, not bHasRedDot and (bHasNewRedDot or bHasGroupNewRedDot))
+  self:RefreshActivityEntranceRedDot(mapEntranceRedDot, mapEntranceNewRedDot)
+end
+
+function PlayerActivityData:RefreshActivityEntranceRedDot(mapEntranceRedDot, mapEntranceNewRedDot)
+  local mapEntranceId = self.mapLastEntranceRedDotId or {}
+  for nEntranceId in pairs(mapEntranceRedDot) do
+    mapEntranceId[nEntranceId] = true
+  end
+  for nEntranceId in pairs(mapEntranceNewRedDot) do
+    mapEntranceId[nEntranceId] = true
+  end
+  for nEntranceId in pairs(mapEntranceId) do
+    local bRedDot = mapEntranceRedDot[nEntranceId] == true
+    local bNewRedDot = not bRedDot and mapEntranceNewRedDot[nEntranceId] == true
+    RedDotManager.SetValid(RedDotDefine.Activity_Entrance, nEntranceId, bRedDot)
+    RedDotManager.SetValid(RedDotDefine.Activity_Entrance_New, nEntranceId, bNewRedDot)
+  end
+  self.mapLastEntranceRedDotId = mapEntranceId
 end
 
 function PlayerActivityData:GetActivityList()
@@ -345,6 +392,37 @@ function PlayerActivityData:GetSortedActList()
   return tbActList
 end
 
+function PlayerActivityData:GetActivitySubEntranceId()
+  local tbEntranceIds = {}
+  local mapHasEntrance = {}
+  
+  local function collect(nEntranceId)
+    nEntranceId = nEntranceId or 0
+    if nEntranceId <= 0 or mapHasEntrance[nEntranceId] then
+      return
+    end
+    mapHasEntrance[nEntranceId] = true
+    table.insert(tbEntranceIds, nEntranceId)
+  end
+  
+  for _, actData in ipairs(self:GetSortedActList()) do
+    local actCfg = actData:GetActCfgData()
+    if actCfg ~= nil then
+      collect(actCfg.EntranceId)
+    end
+  end
+  for _, actGroupData in ipairs(self:GetSortedActGroupList()) do
+    local actGroupCfg = actGroupData:GetActGroupCfgData()
+    if actGroupCfg ~= nil then
+      collect(actGroupCfg.EntranceId)
+    end
+  end
+  if 1 < #tbEntranceIds then
+    printError(string.format("同时开放了%d个活动列表子入口(EntranceId: %s)，只显示第一个", #tbEntranceIds, table.concat(tbEntranceIds, ", ")))
+  end
+  return tbEntranceIds[1] or 0
+end
+
 function PlayerActivityData:GetActivityDataById(nActId)
   return self.tbAllActivity[nActId] or nil
 end
@@ -355,6 +433,26 @@ function PlayerActivityData:GetActivityDataByType(nActType)
       return v
     end
   end
+end
+
+function PlayerActivityData:GetMallActivityData()
+  local tbActList = {}
+  for _, actData in pairs(self.tbAllActivity) do
+    if self.mapMallActType[actData:GetActType()] and actData:CheckActShow() then
+      table.insert(tbActList, actData)
+    end
+  end
+  if 1 < #tbActList then
+    table.sort(tbActList, function(a, b)
+      return a:GetActId() < b:GetActId()
+    end)
+    local tbActIds = {}
+    for _, actData in ipairs(tbActList) do
+      table.insert(tbActIds, actData:GetActId())
+    end
+    printError(string.format("同时开放了%d个商城活动(ActivityId: %s)，只显示id最小的那个", #tbActList, table.concat(tbActIds, ", ")))
+  end
+  return tbActList[1]
 end
 
 function PlayerActivityData:CacheActivityGroupData()
@@ -413,6 +511,10 @@ function PlayerActivityData:CreateActivityGroupIns(actData)
       actIns = CultivationManual_10111Data.new(actData)
     elseif actCfg.ActivityThemeType == GameEnum.activityThemeType.LongestDay_10112 then
       actIns = LongestDay_10112Data.new(actData)
+    elseif actCfg.ActivityThemeType == GameEnum.activityThemeType.DustDawn_20104 then
+      actIns = DustDawn_20104Data.new(actData)
+    elseif actCfg.ActivityThemeType == GameEnum.activityThemeType.UnchartedMap_10113 then
+      actIns = UnchartedMap_10113Data.new(actData)
     end
     self.tbAllActivityGroup[actData.Id] = actIns
     PlayerData.ActivityAvg:RefreshAvgRedDot()
@@ -542,8 +644,10 @@ function PlayerActivityData:RefreshSingleQuest(questData)
   elseif actCfg.ActivityType == GameEnum.activityType.JointDrill then
     self.tbAllActivity[questData.ActivityId]:RefreshQuestData(questData)
   elseif actCfg.ActivityType == GameEnum.activityType.Task then
-    self.tbAllActivity[questData.ActivityId]:RefreshSingleQuest(questData)
-    EventManager.Hit("RefreshActivityTask")
+    if self.tbAllActivity[questData.ActivityId] ~= nil then
+      self.tbAllActivity[questData.ActivityId]:RefreshSingleQuest(questData)
+      EventManager.Hit("RefreshActivityTask")
+    end
   elseif actCfg.ActivityType == GameEnum.activityType.BDConvert then
     if nil ~= self.tbAllActivity[questData.ActivityId] then
       self.tbAllActivity[questData.ActivityId]:RefreshQuestData(questData)
@@ -590,6 +694,26 @@ function PlayerActivityData:ReceiveLoginRewardSuc(nActId)
   end
 end
 
+function PlayerActivityData:CacheMallLoginActData(nActId, mapMsgData)
+  self:RefreshMallLoginActData(nActId, mapMsgData)
+  self:RefreshActivityRedDot()
+end
+
+function PlayerActivityData:RefreshMallLoginActData(nActId, actData)
+  if nil == actData or nil == self.tbAllActivity[nActId] then
+    return
+  end
+  self.tbAllActivity[nActId]:RefreshMallLoginData(actData)
+end
+
+function PlayerActivityData:ReceiveMallLoginRewardSuc(nActId)
+  if nil == self.tbAllActivity[nActId] then
+    return
+  end
+  self.tbAllActivity[nActId]:ReceiveRewardSuc()
+  self:RefreshActivityRedDot()
+end
+
 function PlayerActivityData:RefreshPopUpList()
   self.tbActivityPopUp = {}
   local bFuncOpen = PlayerData.Base:CheckFunctionUnlock(GameEnum.OpenFuncType.Activity)
@@ -619,7 +743,7 @@ function PlayerActivityData:RefreshLoginRewardPopUpList()
   end
   for nActId, data in pairs(self.tbAllActivity) do
     local nActType = data:GetActType()
-    if nActType == GameEnum.activityType.LoginReward and data:CheckCanReceive() and data:CheckActivityOpen() and data:CheckActPlay() then
+    if (nActType == GameEnum.activityType.LoginReward or nActType == GameEnum.activityType.SignIn) and data:CheckCanReceive() and data:CheckActivityOpen() and data:CheckActPlay() then
       table.insert(self.tbLoginRewardPopUp, data)
     end
   end
@@ -718,6 +842,12 @@ function PlayerActivityData:RefreshActivityLevelGameActData(nActId, msgData)
   end
 end
 
+function PlayerActivityData:RefreshMailBindActData(nActId, msgData)
+  if nil ~= self.tbAllActivity[nActId] then
+    self.tbAllActivity[nActId]:RefreshMailBindActData(nActId, msgData)
+  end
+end
+
 function PlayerActivityData:SetActivityLevelActId(nActId)
   self.nActivityLevelActId = nActId
 end
@@ -756,6 +886,12 @@ end
 function PlayerActivityData:RefreshDoubleDropsActData(nActId, msgData)
   if nil ~= self.tbAllActivity[nActId] then
     self.tbAllActivity[nActId]:RefreshDoubleDropsActData(nActId, msgData)
+  end
+end
+
+function PlayerActivityData:RefreshMathParkourActData(nActId, msgData)
+  if nil ~= self.tbAllActivity[nActId] then
+    self.tbAllActivity[nActId]:RefreshMathParkourActData(nActId, msgData)
   end
 end
 
@@ -839,7 +975,17 @@ function PlayerActivityData:SendReceiveLoginRewardMsg(nActId, callFunc, mapNpc)
   HttpNetHandler.SendMsg(NetMsgId.Id.activity_login_reward_receive_req, {Value = nActId}, nil, callback)
 end
 
-function PlayerActivityData:OpenActivityPanel(nActId)
+function PlayerActivityData:SendReceiveMallLoginRewardMsg(nActId, callFunc, mapNpc)
+  local function callback(_, mapMsgData)
+    self:ReceiveMallLoginRewardSuc(nActId)
+    
+    UTILS.OpenReceiveByChangeInfo(mapMsgData, callFunc, nil, nil, mapNpc)
+  end
+  
+  HttpNetHandler.SendMsg(NetMsgId.Id.activity_malllogin_reward_receive_req, {Value = nActId}, nil, callback)
+end
+
+function PlayerActivityData:OpenActivityPanel(nActId, nEntranceId)
   local tbList = self:GetSortedActList()
   if nil == next(tbList) then
     self:RefreshActivityRedDot()
@@ -849,7 +995,7 @@ function PlayerActivityData:OpenActivityPanel(nActId)
   
   local function openFunc()
     local function func()
-      EventManager.Hit(EventId.OpenPanel, PanelId.ActivityList, nActId)
+      EventManager.Hit(EventId.OpenPanel, PanelId.ActivityList, nActId or 0, nEntranceId)
     end
     
     EventManager.Hit(EventId.SetTransition, 5, func)

@@ -26,12 +26,18 @@ PenguinCardSelectCtrl._mapNodeConfig = {
 }
 PenguinCardSelectCtrl._mapEventConfig = {
   PenguinCard_ClickLevel = "OnEvent_Click",
-  PenguinCard_EnterLevel = "OnEvent_Enter"
+  PenguinCard_EnterLevel = "OnEvent_Enter",
+  ActivityPenguinCardSkipLevel = "OnEvent_Skip"
 }
 
 function PenguinCardSelectCtrl:Refresh()
   self.goFirstLock = nil
   self.tbLevel = self.actData:GetLevelList()
+  for k, v in pairs(self.tbGridCtrl) do
+    self:UnbindCtrlByNode(v)
+    self.tbGridCtrl[k] = nil
+  end
+  self.tbGridCtrl = {}
   delChildren(self._mapNode.LevelContent)
   for k, nLevelId in ipairs(self.tbLevel) do
     local mapCfg = ConfigTable.GetData("ActivityPenguinCardLevel", nLevelId)
@@ -44,6 +50,27 @@ function PenguinCardSelectCtrl:Refresh()
         self:RefreshNormal(k, nLevelId)
       end
     end
+  end
+  EventManager.Hit("Guide_PassiveCheck_Msg", "Guide_PenguinCard_304")
+  self:AutoMoveScroll()
+end
+
+function PenguinCardSelectCtrl:AutoMoveScroll()
+  local bGuided = PlayerData.Guide:CheckGuideFinishById(305)
+  local bEndless = self.actData:CheckEndlessLevelUnlock()
+  if not bGuided and bEndless then
+    local function wait()
+      coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
+      
+      NovaAPI.SetHorizontalNormalizedPosition(self._mapNode.sv, 1)
+      self:AddTimer(1, 1, function()
+        EventManager.Hit("Guide_PassiveCheck_Msg", "Guide_PenguinCard_305")
+      end, true, true, true)
+      EventManager.Hit(EventId.TemporaryBlockInput, 1)
+    end
+    
+    cs_coroutine.start(wait)
+    return
   end
   
   local function wait()
@@ -59,7 +86,6 @@ function PenguinCardSelectCtrl:Refresh()
   end
   
   cs_coroutine.start(wait)
-  EventManager.Hit("Guide_PassiveCheck_Msg", "Guide_PenguinCard_304")
 end
 
 function PenguinCardSelectCtrl:RefreshHard(nIndex, nLevelId)
@@ -178,6 +204,10 @@ function PenguinCardSelectCtrl:OnEvent_Enter(callback)
   WwiseManger:PostEvent("Mode_Card_level")
   self:AddTimer(1, 0.5, callback, true, true, true)
   EventManager.Hit(EventId.TemporaryBlockInput, 0.5)
+end
+
+function PenguinCardSelectCtrl:OnEvent_Skip()
+  self:Refresh()
 end
 
 return PenguinCardSelectCtrl

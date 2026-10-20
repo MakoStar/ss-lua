@@ -31,7 +31,15 @@ SoldierTestEnterCtrl._mapNodeConfig = {
   txtAttrTitle = {sComponentName = "TMP_Text"},
   tc_property = {},
   goPartnerItem = {},
-  PartnerLayouts = {}
+  PartnerLayouts = {},
+  btnTechnology = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_Tech"
+  },
+  btnEnterSoldier = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_EnterSoldier"
+  }
 }
 SoldierTestEnterCtrl._mapEventConfig = {}
 SoldierTestEnterCtrl._mapRedDotConfig = {}
@@ -235,6 +243,8 @@ function SoldierTestEnterCtrl:Awake()
 end
 
 function SoldierTestEnterCtrl:OnEnable()
+  PlayerData.SoldierData:SetCurSelectSeasonId(1)
+  PlayerData.SoldierData:SendSoldierTechDetailReq()
   self._tbDeployedChess = {}
   self.tbPartner = {}
   self:InitChessDropdowns()
@@ -252,6 +262,14 @@ function SoldierTestEnterCtrl:OnBtnClick_Confirm()
   if #self._tbDeployedChess > 0 then
     PlayerData.SoldierData:GMEnterSoldier(self._tbDeployedChess, 0, 1, 10101, 10101)
   end
+end
+
+function SoldierTestEnterCtrl:OnBtnClick_Tech()
+  EventManager.Hit(EventId.OpenPanel, PanelId.SoldierTechPanel)
+end
+
+function SoldierTestEnterCtrl:OnBtnClick_EnterSoldier()
+  EventManager.Hit(EventId.OpenPanel, PanelId.SoldierMainViewPanel)
 end
 
 function SoldierTestEnterCtrl:OnDropDownChanged_Chess(objComp, nIndex)

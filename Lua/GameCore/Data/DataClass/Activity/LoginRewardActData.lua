@@ -74,4 +74,11 @@ function LoginRewardActData:GetActSortId()
   end
 end
 
+function LoginRewardActData:GetActivityRedDot()
+  if self.nActId == 301053 and self:CheckCanReceive() then
+    return true
+  end
+  return self.bRedDot
+end
+
 return LoginRewardActData

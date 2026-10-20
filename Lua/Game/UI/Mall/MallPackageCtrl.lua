@@ -69,18 +69,25 @@ function MallPackageCtrl:RefreshData(tbList)
     end
   end
   self.nPageCount = #self.tbPages
+  local nTab
   if self._panel.nDefaultId then
     for k, v in ipairs(self.tbPages) do
       if v.Id == self._panel.nDefaultId then
-        self.nCurTab = k
+        nTab = k
         self._panel.nDefaultId = nil
         break
       end
     end
   end
-  if not self.tbPages[self.nCurTab] or self.nSelectPage and self.tbPages[self.nCurTab].Id ~= self.nSelectPage then
-    self.nCurTab = 1
+  if nTab == nil and self.nSelectPage then
+    for k, v in ipairs(self.tbPages) do
+      if v.Id == self.nSelectPage then
+        nTab = k
+        break
+      end
+    end
   end
+  self.nCurTab = nTab or 1
   self.nSelectPage = self.tbPages[self.nCurTab].Id
 end
 
@@ -179,9 +186,13 @@ function MallPackageCtrl:ResetTab(nTab)
     self.nCurTab = 1
   end
   self.ctrlTab[self.nCurTab]:SetSelect(true, 1)
+  self.nSelectPage = self.tbPages[self.nCurTab] and self.tbPages[self.nCurTab].Id or nil
 end
 
-function MallPackageCtrl:GetCurTab()
+function MallPackageCtrl:GetCurSort()
+  if not self.tbPages or not self.tbPages[self.nCurTab] then
+    return 0
+  end
   return self.tbPages[self.nCurTab].Sort
 end
 
@@ -216,7 +227,8 @@ function MallPackageCtrl:OnBtnClick_ChangeSheet(btn, nIndex)
   if nIndex == self.nCurTab then
     return
   end
-  PlayerData.Mall:RemovePackageNew(GameEnum.MallItemType.Package, self.tbPages[self.nCurTab].Sort)
+  local nSort = self:GetCurSort()
+  PlayerData.Mall:RemovePackageNew(GameEnum.MallItemType.Package, nSort)
   local nState = self:GetTabState(self.nCurTab)
   self.ctrlTab[self.nCurTab]:SetSelect(false, nState)
   if self.nCurTab > 1 then

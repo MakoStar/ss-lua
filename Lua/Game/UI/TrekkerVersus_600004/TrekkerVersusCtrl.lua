@@ -427,6 +427,9 @@ function TrekkerVersusCtrl:Awake()
       table.insert(self.tbFanLevelData, mapData)
     end
   end)
+  table.sort(self.tbFanLevelData, function(a, b)
+    return a.Level < b.Level
+  end)
 end
 
 function TrekkerVersusCtrl:OnEnable()

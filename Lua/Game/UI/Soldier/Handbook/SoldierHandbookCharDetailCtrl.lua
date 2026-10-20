@@ -134,7 +134,7 @@ function SoldierHandbookCharDetailCtrl:RefreshDetail(nCharId)
     self:SetPngSprite(self._mapNode.icon_Position, RootPath .. tbChessTypeConfig.Icon)
     NovaAPI.SetTMPText(self._mapNode.txt_Position, tbChessTypeConfig.Name)
   end
-  local _, tbAttrMap = SoldierAttrData.CalcCharacterAttr(self.nCharId, 1, nil, nil)
+  local _, tbAttrMap = SoldierAttrData.CalcCharacterAttr(self.nCharId, 1, nil, nil, false)
   local txt_hp = self._mapNode.property_hp.transform:Find("txtValue"):GetComponent("TMP_Text")
   local hp = tbAttrMap.Hp
   NovaAPI.SetTMPText(txt_hp, hp.nValue .. "/" .. hp.nValue)

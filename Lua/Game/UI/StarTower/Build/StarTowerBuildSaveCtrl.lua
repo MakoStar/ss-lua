@@ -170,7 +170,11 @@ function StarTowerBuildSaveCtrl:Awake()
   if type(tbParam) == "table" then
     self.bSuccess = tbParam[1]
     self.mapBuild = tbParam[2]
-    self.bSweep = tbParam[4]
+    if type(tbParam[3]) == "function" then
+      self._fnCloseCallback = tbParam[3]
+    else
+      self.bSweep = tbParam[4]
+    end
   end
 end
 
@@ -196,6 +200,11 @@ function StarTowerBuildSaveCtrl:OnEnable()
 end
 
 function StarTowerBuildSaveCtrl:OnDisable()
+  if self._fnCloseCallback ~= nil then
+    local fnCloseCallback = self._fnCloseCallback
+    self._fnCloseCallback = nil
+    fnCloseCallback()
+  end
 end
 
 function StarTowerBuildSaveCtrl:OnDestroy()

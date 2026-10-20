@@ -69,10 +69,19 @@ function DepotCharInfoCtrl:RefreshCharInfo(tbTeam, mapCharaData)
 end
 
 function DepotCharInfoCtrl:SwitchChar()
+  local mapCustom
+  if self._panel._bTrialBuild then
+    local mapChar = self.mapCharData[self.nCharId]
+    mapCustom = {
+      mapChar = mapChar,
+      tbEffect = mapChar.tbAttrEffect,
+      tbRandomAttr = {}
+    }
+  end
   if not self.attrData then
-    self.attrData = CharacterAttrData.new(self.nCharId)
+    self.attrData = CharacterAttrData.new(self.nCharId, mapCustom)
   else
-    self.attrData:SetCharacter(self.nCharId)
+    self.attrData:SetCharacter(self.nCharId, mapCustom)
   end
   self:RefreshActor2D()
   self:RefreshAttribute()
@@ -158,6 +167,10 @@ function DepotCharInfoCtrl:RefreshInfo()
 end
 
 function DepotCharInfoCtrl:RefreshEquipment()
+  self._mapNode.rtEquipment:SetActive(not self._panel._bTrialBuild)
+  if self._panel._bTrialBuild then
+    return
+  end
   local nSelect = PlayerData.Equipment:GetSelectPreset(self.nCharId)
   local tbSlot = PlayerData.Equipment:GetSlotWithIndex(self.nCharId, nSelect)
   for i, mapSlot in ipairs(tbSlot) do
@@ -219,7 +232,7 @@ function DepotCharInfoCtrl:OnBtnClick_Char(btn, nIndex)
 end
 
 function DepotCharInfoCtrl:OnBtnClick_Skill(btn)
-  EventManager.Hit(EventId.OpenPanel, PanelId.PopupSkillPanel, self.tbTeam, false, {}, self.mapCharData, self.nCharId)
+  EventManager.Hit(EventId.OpenPanel, PanelId.PopupSkillPanel, self.tbTeam, false, {}, {}, self.nCharId)
 end
 
 function DepotCharInfoCtrl:OnBtnClick_Detail()
@@ -348,6 +361,9 @@ function DepotCharInfoCtrl:OnBtnClick_Detail()
 end
 
 function DepotCharInfoCtrl:OnBtnClick_Equipment(btn)
+  if self._panel._bTrialBuild then
+    return
+  end
   local tbEquipment = PlayerData.Equipment:GetEquipedGem(self.nCharId)
   if next(tbEquipment) == nil then
     EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Equipment_CharEquipNone"))

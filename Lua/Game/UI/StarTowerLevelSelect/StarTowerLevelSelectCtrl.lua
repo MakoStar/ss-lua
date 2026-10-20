@@ -146,6 +146,14 @@ StarTowerLevelSelectCtrl._mapNodeConfig = {
   },
   StarTowerGrowthPreviewWindow = {
     sCtrlName = "Game.UI.StarTowerGrowth.StarTowerGrowthPreviewWindowCtrl"
+  },
+  btnAutoBattle = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_AutoBattle"
+  },
+  autoDecisionPhone = {
+    sNodeName = "btnAutoBattle",
+    sCtrlName = "Game.UI.StarTowerFastBattle.StarTowerAutoDecisionPhoneCtrl"
   }
 }
 StarTowerLevelSelectCtrl._mapEventConfig = {
@@ -456,6 +464,7 @@ function StarTowerLevelSelectCtrl:RefreshStarTowerInfo(nGroupId, nHard, bSetTog)
     self._mapNode.btnResearch.gameObject:SetActive(false)
     self._mapNode.btnGo.gameObject:SetActive(false)
     self._mapNode.btnSweep.gameObject:SetActive(false)
+    self._mapNode.btnAutoBattle.gameObject:SetActive(false)
   else
     self._mapNode.ListConditions:SetActive(false)
     self._mapNode.btnLock.gameObject:SetActive(false)
@@ -488,6 +497,13 @@ function StarTowerLevelSelectCtrl:RefreshSweep()
         cs_coroutine.start(wait)
       end
     end
+  end
+  local bSweepUnlock = PlayerData.StarTower:CheckUnlockTowerSweep()
+  local bUnlock = PlayerData.StarTower:IsStarTowerUnlock(self.curStarTowerId)
+  local bShowAutoBattle = bUnlock and bSweepUnlock or false
+  self._mapNode.btnAutoBattle.gameObject:SetActive(bShowAutoBattle)
+  if bShowAutoBattle then
+    self._mapNode.autoDecisionPhone:Refresh()
   end
   local bAble, _, sLockTip = PlayerData.StarTower:CheckCanSweep(self.nCurGroupId, self.curStarTowerId)
   if bAble then
@@ -679,6 +695,15 @@ function StarTowerLevelSelectCtrl:OnBtnClick_Research(btn)
   local nDifficulty = mapToggle[self.curStarTowerHard]
   local nMaxDifficulty = PlayerData.StarTower:GetGlobalMaxDifficult()
   self._mapNode.StarTowerGrowthPreviewWindow:OpenPanel(nDifficulty, nMaxDifficulty)
+end
+
+function StarTowerLevelSelectCtrl:OnBtnClick_AutoBattle(btn)
+  local bSweepUnlock = PlayerData.StarTower:CheckUnlockTowerSweep()
+  if not bSweepUnlock then
+    EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("StarTower_Sweep_NodeAlert"))
+    return
+  end
+  EventManager.Hit(EventId.OpenPanel, PanelId.StarTowerAutoDecisionSettingPanel)
 end
 
 return StarTowerLevelSelectCtrl

@@ -59,12 +59,8 @@ function VampireSurvivorBattlePanel:Awake()
   EventManager.Add("VampireSurvivorChangeArea", self, self.OnEvent_ChangeArea)
   GamepadUIManager.EnterAdventure()
   GamepadUIManager.EnableGamepadUI("BattleMenu", {})
-  self.tbTeam = self._tbParam[1]
   self.nLevelId = self._tbParam[2]
-  self.mapCharData = {}
-  for _, nCharId in ipairs(self.tbTeam) do
-    self.mapCharData[nCharId] = clone(PlayerData.Char:GetCharDataByTid(nCharId))
-  end
+  self:RefreshCharData(self._tbParam[1], self._tbParam[3])
 end
 
 function VampireSurvivorBattlePanel:SetTop(goCanvas)
@@ -105,12 +101,37 @@ function VampireSurvivorBattlePanel:OnDisable()
   GamepadUIManager.QuitAdventure()
 end
 
-function VampireSurvivorBattlePanel:OnEvent_ChangeArea(tbTeam)
+function VampireSurvivorBattlePanel:RefreshCharData(tbTeam, mapBuildData)
   self.tbTeam = tbTeam
+  local nBuildSource = PlayerData.Build:GetBuildSourceByData(mapBuildData)
+  self._bTrialBuild = nBuildSource == AllEnum.BuildSource.Trial or nBuildSource == AllEnum.BuildSource.LimitedTrial
+  local mapTrialId = {}
+  if self._bTrialBuild then
+    for _, mapBuildChar in ipairs(mapBuildData.tbChar) do
+      mapTrialId[mapBuildChar.nTid] = mapBuildChar.nTrialId
+    end
+  end
   self.mapCharData = {}
   for _, nCharId in ipairs(self.tbTeam) do
-    self.mapCharData[nCharId] = clone(PlayerData.Char:GetCharDataByTid(nCharId))
+    local mapChar
+    local nTrialId = mapTrialId[nCharId]
+    if nBuildSource == AllEnum.BuildSource.LimitedTrial then
+      mapChar = clone(PlayerData.Char:GetLimitedTrialCharById(nTrialId))
+      mapChar.tbAttrEffect = PlayerData.Talent:GetLimitedTrialTalentEffect(nTrialId)
+      mapChar.tbSkillAddedLvs = PlayerData.Char:GetLimitedTrialCharSkillAddedLevel(nTrialId)
+    elseif nBuildSource == AllEnum.BuildSource.Trial then
+      mapChar = clone(PlayerData.Char:GetTrialCharById(nTrialId))
+      mapChar.tbAttrEffect = PlayerData.Talent:GetTrialTalentEffect(nTrialId)
+      mapChar.tbSkillAddedLvs = PlayerData.Char:GetTrialCharSkillAddedLevel(nTrialId)
+    else
+      mapChar = clone(PlayerData.Char:GetCharDataByTid(nCharId))
+    end
+    self.mapCharData[nCharId] = mapChar
   end
+end
+
+function VampireSurvivorBattlePanel:OnEvent_ChangeArea(tbTeam, mapBuildData)
+  self:RefreshCharData(tbTeam, mapBuildData)
 end
 
 return VampireSurvivorBattlePanel

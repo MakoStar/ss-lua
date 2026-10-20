@@ -1,6 +1,14 @@
 local StarTowerSweepData = class("StarTowerSweepData")
 local WwiseAudioMgr = CS.WwiseAudioManager.Instance
-local mapEventConfig = {}
+local StarTowerAutoDecision = require("Game.Adventure.StarTower.StarTowerAutoDecision")
+local TimerManager = require("GameCore.Timer.TimerManager")
+local StarTowerSettingGate = require("Game.Adventure.StarTower.StarTowerSettingGate")
+local AUTO_REQUEST_TIMEOUT = 30
+local mapEventConfig = {
+  StarTowerReward = "OnEvent_RewardPopup",
+  PotentialLevelUp = "OnEvent_PotentialPopup",
+  ShopStrengthFx = "OnEvent_ShopStrengthFx"
+}
 
 function StarTowerSweepData:ctor(nStarTowerId)
   self.EnumCase = {
@@ -73,6 +81,264 @@ function StarTowerSweepData:ctor(nStarTowerId)
   self.tbStarTowerAllLevel, self.nStarTowerDifficulty, self.nStarTowerLevelDifficulty = BuildStarTowerAllFloorData(self.nTowerId)
   self.mapFloorExp = BuildStarTowerExpData(self.nTowerId)
   self.tbStrengthMachineCost = ConfigTable.GetConfigNumberArray("StrengthenMachineGoldConsume")
+  self._bAutoDecisionEnabled = false
+  self._bAutoDecisionPaused = false
+  self._bAutoRequestPending = false
+  self._nAutoDecisionSerial = 0
+  self._mapPendingAutoDecision = nil
+  self._timerAutoDecision = nil
+  self._timerAutoRequestTimeout = nil
+  self._autoShopCompleteCallback = nil
+  self._bOpenManualAfterAutoRequest = false
+end
+
+function StarTowerSweepData:BuildAutoDecisionContext()
+  local mapPlan = PlayerData.StarTowerAutoPlan and PlayerData.StarTowerAutoPlan:GetSelectedDecisionPlan() or nil
+  local nToken = PlayerData.StarTowerAutoPlan and PlayerData.StarTowerAutoPlan:GetTokenCount() or 0
+  return StarTowerAutoDecision:BuildContext(self, mapPlan, {
+    bAutoEnabled = self:IsAutoDecisionEnabled(),
+    nToken = nToken,
+    nTokenCost = ConfigTable.GetConfigNumber("TowerVitaEachActionConsumedEnergy"),
+    mapNeedNote = self:BuildAutoNeedNoteMap()
+  })
+end
+
+function StarTowerSweepData:BuildAutoNeedNoteMap()
+  local mapNeedNote = {}
+  for nIndex, nDiscId in ipairs(self.tbDisc or {}) do
+    if 3 < nIndex then
+      break
+    end
+    local mapDiscData = self.mapDiscData and self.mapDiscData[nDiscId] or nil
+    if mapDiscData ~= nil then
+      for _, nSkillGroupId in ipairs(mapDiscData.tbSubSkillGroupId or {}) do
+        local tbSkillGroup = CacheTable.GetData("_SecondarySkill", nSkillGroupId)
+        local nCurLayer = 0
+        for nLayer = #(tbSkillGroup or {}), 1, -1 do
+          if mapDiscData:CheckSubSkillActive(self._mapNote, tbSkillGroup[nLayer]) then
+            nCurLayer = nLayer
+            break
+          end
+        end
+        local mapNextSkill = tbSkillGroup and tbSkillGroup[nCurLayer + 1] or nil
+        if mapNextSkill ~= nil then
+          local mapRequiredNote = decodeJson(mapNextSkill.NeedSubNoteSkills) or {}
+          for sNoteId, nRequiredCount in pairs(mapRequiredNote) do
+            local nNoteId = tonumber(sNoteId)
+            nRequiredCount = tonumber(nRequiredCount) or 0
+            if nNoteId ~= nil and nRequiredCount > (self._mapNote[nNoteId] or 0) then
+              mapNeedNote[nNoteId] = true
+            end
+          end
+        end
+      end
+    end
+  end
+  return mapNeedNote
+end
+
+function StarTowerSweepData:NotifyAutoDecisionState(nFailReason)
+  EventManager.Hit("StarTowerAutoDecisionStateChanged", {
+    bEnabled = self._bAutoDecisionEnabled == true,
+    bPaused = self._bAutoDecisionPaused == true,
+    bPending = self._mapPendingAutoDecision ~= nil,
+    bRequesting = self._bAutoRequestPending == true,
+    nActionType = self._mapPendingAutoDecision and self._mapPendingAutoDecision.nActionType or StarTowerAutoDecision.ActionType.None,
+    nFailReason = nFailReason or StarTowerAutoDecision.FailReason.None,
+    nToken = PlayerData.StarTowerAutoPlan and PlayerData.StarTowerAutoPlan:GetTokenCount() or 0
+  })
+end
+
+function StarTowerSweepData:IsAutoDecisionEnabled()
+  return self._bAutoDecisionEnabled == true and self._bAutoDecisionPaused ~= true and self.bEnd ~= true
+end
+
+function StarTowerSweepData:IsAutoDecisionBusy()
+  return self._mapPendingAutoDecision ~= nil or self._bAutoRequestPending == true
+end
+
+function StarTowerSweepData:GetPendingAutoDecision()
+  return self._mapPendingAutoDecision
+end
+
+function StarTowerSweepData:CancelPendingAutoDecision()
+  self._nAutoDecisionSerial = self._nAutoDecisionSerial + 1
+  self._mapPendingAutoDecision = nil
+  if self._timerAutoDecision ~= nil then
+    TimerManager.Remove(self._timerAutoDecision, false)
+    self._timerAutoDecision = nil
+  end
+  self:NotifyAutoDecisionState()
+end
+
+function StarTowerSweepData:SetAutoDecisionPaused(bPaused)
+  bPaused = bPaused == true
+  if self._bAutoDecisionPaused == bPaused then
+    return
+  end
+  self._bAutoDecisionPaused = bPaused
+  if not bPaused and self._bAutoDecisionEnabled then
+    self._bAutoShopFinished = false
+    self._bAutoShopExhausted = false
+    self._bAutoUpgradeBeforeShopSpendAll = false
+  end
+  self:CancelPendingAutoDecision()
+  if not bPaused and self._bAutoDecisionEnabled and not self._bAutoRequestPending then
+    self:HandleCases()
+  end
+end
+
+function StarTowerSweepData:SetAutoDecisionEnabled(bEnabled, bOpenManual)
+  bEnabled = bEnabled == true
+  if bEnabled and self.bEnd then
+    return false, StarTowerAutoDecision.FailReason.Disabled
+  end
+  if not bEnabled then
+    self:StopAutoDecision(StarTowerAutoDecision.FailReason.Disabled, bOpenManual == true)
+    return true
+  end
+  local mapPlan = PlayerData.StarTowerAutoPlan and PlayerData.StarTowerAutoPlan:GetSelectedDecisionPlan() or nil
+  if mapPlan == nil or mapPlan.bEnabled ~= true then
+    self:NotifyAutoDecisionState(StarTowerAutoDecision.FailReason.Disabled)
+    return false, StarTowerAutoDecision.FailReason.Disabled
+  end
+  if not self._bAutoDecisionEnabled or self._bAutoDecisionPaused then
+    self._bAutoShopFinished = false
+    self._bAutoShopExhausted = false
+    self._bAutoUpgradeBeforeShopSpendAll = false
+  end
+  self._bAutoDecisionEnabled = true
+  self._bAutoDecisionPaused = false
+  self._bOpenManualAfterAutoRequest = false
+  self:CancelPendingAutoDecision()
+  if not self._bAutoRequestPending and self.mapCases ~= nil then
+    self:HandleCases()
+  end
+  return true
+end
+
+function StarTowerSweepData:StopAutoDecision(nReason, bOpenManual)
+  local bWasEnabled = self._bAutoDecisionEnabled == true
+  local bRequestPending = self._bAutoRequestPending == true
+  local bHadPendingDecision = self._mapPendingAutoDecision ~= nil or self._autoShopCompleteCallback ~= nil
+  local bShouldOpenManual = bOpenManual and bWasEnabled and (bRequestPending or bHadPendingDecision)
+  self._bAutoDecisionEnabled = false
+  self._bAutoDecisionPaused = false
+  self._autoShopCompleteCallback = nil
+  self._bOpenManualAfterAutoRequest = bShouldOpenManual and bRequestPending
+  self:CancelPendingAutoDecision()
+  self:NotifyAutoDecisionState(nReason)
+  if bShouldOpenManual and not bRequestPending then
+    EventManager.Hit("StarTowerAutoDecisionRequestManual")
+  end
+end
+
+function StarTowerSweepData:EndExploration()
+  if self.bEnd then
+    return false
+  end
+  self.bEnd = true
+  self._mapStrengthMachineRequest = nil
+  self:StopAutoDecision(StarTowerAutoDecision.FailReason.Disabled, false)
+  self:FinishAutoRequest(false, StarTowerAutoDecision.FailReason.Disabled)
+  EventManager.Hit("StarTowerSweepEnd")
+  return true
+end
+
+function StarTowerSweepData:TryOpenManualAfterAutoRequest()
+  if self.bEnd or self._bOpenManualAfterAutoRequest ~= true then
+    return false
+  end
+  self._bOpenManualAfterAutoRequest = false
+  EventManager.Hit("StarTowerAutoDecisionRequestManual")
+  return true
+end
+
+function StarTowerSweepData:BeginAutoRequest(nCaseId, nActionType)
+  if self.bEnd or self._bAutoRequestPending then
+    return false
+  end
+  self._bAutoRequestPending = true
+  self._mapPendingAutoDecision = {nCaseId = nCaseId, nActionType = nActionType}
+  self._timerAutoRequestTimeout = TimerManager.Add(1, AUTO_REQUEST_TIMEOUT, self, function()
+    if self._bAutoRequestPending then
+      self:StopAutoDecision(StarTowerAutoDecision.FailReason.InvalidParam, true)
+      self:FinishAutoRequest(false, StarTowerAutoDecision.FailReason.InvalidParam)
+      self:TryOpenManualAfterAutoRequest()
+    end
+  end, true, true, true)
+  self:NotifyAutoDecisionState()
+  return true
+end
+
+function StarTowerSweepData:FinishAutoRequest(bSuccess, nFailReason)
+  if not self._bAutoRequestPending then
+    return false
+  end
+  self._bAutoRequestPending = false
+  self._mapPendingAutoDecision = nil
+  if self._timerAutoRequestTimeout ~= nil then
+    TimerManager.Remove(self._timerAutoRequestTimeout, false)
+    self._timerAutoRequestTimeout = nil
+  end
+  if bSuccess then
+  end
+  self:NotifyAutoDecisionState(nFailReason)
+  return true
+end
+
+function StarTowerSweepData:ScheduleAutoDecision(mapDecision, mapGuard, executeCallback)
+  if type(mapDecision) ~= "table" or mapDecision.bSuccess ~= true then
+    return false
+  end
+  if self:IsAutoDecisionBusy() or not self:IsAutoDecisionEnabled() then
+    return false
+  end
+  local nSerial = self._nAutoDecisionSerial
+  self._mapPendingAutoDecision = mapDecision
+  self:NotifyAutoDecisionState()
+  self._timerAutoDecision = TimerManager.Add(1, mapDecision.nDelay or 2, self, function()
+    self._timerAutoDecision = nil
+    if nSerial ~= self._nAutoDecisionSerial or not self:IsAutoDecisionEnabled() then
+      return
+    end
+    if type(mapGuard) == "table" and type(mapGuard.isValidCallback) == "function" and not mapGuard.isValidCallback() then
+      self._mapPendingAutoDecision = nil
+      self:NotifyAutoDecisionState()
+      if type(mapGuard.invalidCallback) == "function" then
+        mapGuard.invalidCallback()
+      end
+      return
+    end
+    if mapDecision.bNeedToken == true then
+      local mapContext = self:BuildAutoDecisionContext()
+      local bCanConsume = StarTowerAutoDecision:CanConsumeToken(mapContext, mapDecision.nActionType)
+      if not bCanConsume then
+        self:StopAutoDecision(StarTowerAutoDecision.FailReason.TokenNotEnough, true)
+        return
+      end
+    end
+    self._mapPendingAutoDecision = nil
+    if type(mapGuard) == "table" and mapGuard.bLocalAction == true then
+      self:NotifyAutoDecisionState()
+      executeCallback(true)
+      return
+    end
+    if self:BeginAutoRequest(mapGuard and mapGuard.nCaseId, mapDecision.nActionType) then
+      executeCallback(true)
+    end
+  end, true, true, true)
+  return true
+end
+
+function StarTowerSweepData:HandleAutoDecisionFail(mapDecision, openManualCallback)
+  local nFailReason = mapDecision and mapDecision.nFailReason or StarTowerAutoDecision.FailReason.InvalidParam
+  if nFailReason ~= StarTowerAutoDecision.FailReason.Disabled then
+    self:StopAutoDecision(nFailReason, false)
+  end
+  if type(openManualCallback) == "function" then
+    openManualCallback()
+  end
 end
 
 function StarTowerSweepData:BindEvent()
@@ -370,6 +636,7 @@ function StarTowerSweepData:GetCharEnhancedPotential(tbActiveTalent, tbEquipment
 end
 
 function StarTowerSweepData:InitRoom(tbCases)
+  self:CancelPendingAutoDecision()
   self.bEnd = false
   self.tbEvent = {}
   self.roomData = {}
@@ -380,6 +647,12 @@ function StarTowerSweepData:InitRoom(tbCases)
   self:SaveCase(tbCases)
   self.tbPopup = {}
   self.blockNpcBtn = false
+  self._bAutoShopFinished = false
+  self._bAutoShopExhausted = false
+  self._bAutoMachineFinished = false
+  self._bAutoUpgradeBeforeShopSpendAll = false
+  self._autoShopCompleteCallback = nil
+  self._bOpenManualAfterAutoRequest = false
 end
 
 function StarTowerSweepData:SaveCase(tbCases)
@@ -551,18 +824,49 @@ function StarTowerSweepData:SaveSelectResp(mapCaseData, nCaseId)
     self.mapCases[self.EnumCase.Hawker].bFinish = false
     self.mapCases[self.EnumCase.Hawker].bReRoll = true
     self.mapCases[self.EnumCase.Hawker].Id = temp.Id
-    self.mapCases[self.EnumCase.Hawker].nNpc = temp.nNpcId
+    self.mapCases[self.EnumCase.Hawker].nNpc = temp.nNpc
+    self._bAutoShopFinished = false
+    self._bAutoShopExhausted = false
+    self._bAutoUpgradeBeforeShopSpendAll = false
   end
 end
 
-function StarTowerSweepData:StarTowerInteract(mapMsgData, callback)
+function StarTowerSweepData:OnInteractFailed(nCaseId, mapError)
   if self.bEnd then
     return
   end
+  local mapDecision = self._mapPendingAutoDecision or {}
+  printWarn(string.format("[StarTowerAuto] InteractFailed tower=%s floor=%s case=%s action=%s coin=%s token=%s code=%s trace=%s", tostring(self.nTowerId), tostring(self.nCurLevel), tostring(nCaseId), tostring(mapDecision.nActionType), tostring(self._mapItem and self._mapItem[AllEnum.CoinItemId.FixedRogCurrency]), tostring(PlayerData.StarTowerAutoPlan and PlayerData.StarTowerAutoPlan:GetTokenCount()), tostring(mapError and mapError.Code), tostring(mapError and mapError.TraceId)))
+  self:StopAutoDecision(StarTowerAutoDecision.FailReason.InvalidParam, false)
+  self:FinishAutoRequest(false, StarTowerAutoDecision.FailReason.InvalidParam)
+  EventManager.Hit("StarTowerAutoDecisionRequestFailed", self)
+end
+
+function StarTowerSweepData:StarTowerInteract(mapMsgData, callback, failedCallback)
+  if self.bEnd then
+    return
+  end
+  StarTowerSettingGate.Begin()
+  local mapSettingRequest = StarTowerSettingGate.BeginRequest(function(mapError)
+    if failedCallback ~= nil then
+      failedCallback(mapError)
+    end
+    self:OnInteractFailed(mapMsgData.Id, mapError)
+  end)
   
   local function NetCallback(_, mapNetData)
+    if self.bEnd then
+      if mapNetData.Change ~= nil then
+        HttpNetHandler.ProcChangeInfo(UTILS.DecodeChangeInfo(mapNetData.Change))
+      end
+      StarTowerSettingGate.FinishRequest(mapSettingRequest)
+      return
+    end
     local mapChangeNote, mapChangeSecondarySkill = self:ProcessTowerChangeData(mapNetData.Data)
     local tbChangeFateCard, mapItemChange, mapPotentialChange = self:ProcessChangeInfo(mapNetData.Change)
+    if mapNetData.Change ~= nil then
+      HttpNetHandler.ProcChangeInfo(UTILS.DecodeChangeInfo(mapNetData.Change))
+    end
     local nExpChange = 0
     local nLevelChange = 0
     EventManager.Hit("RefreshNoteCount", self._mapNote, mapChangeNote, mapChangeSecondarySkill)
@@ -577,18 +881,29 @@ function StarTowerSweepData:StarTowerInteract(mapMsgData, callback)
     self:SaveCase(mapNetData.Cases)
     self:SaveSelectResp(mapNetData.SelectResp, mapMsgData.Id)
     if callback ~= nil and type(callback) == "function" then
-      callback(mapNetData, tbChangeFateCard, mapChangeNote, mapItemChange, nLevelChange, nExpChange, mapPotentialChange)
+      callback(mapNetData, tbChangeFateCard, mapChangeNote, mapItemChange, nLevelChange, nExpChange, mapPotentialChange, mapChangeSecondarySkill)
     end
+    StarTowerSettingGate.FinishRequest(mapSettingRequest)
   end
   
   HttpNetHandler.SendMsg(NetMsgId.Id.star_tower_interact_req, mapMsgData, nil, NetCallback)
 end
 
 function StarTowerSweepData:EnterRoom(nCaseId, nRoomType)
+  if self.bEnd or self._bAutoRequestPending or self._mapStrengthMachineRequest ~= nil then
+    return false
+  end
+  if self:HasPendingCases() then
+    self:HandleCases()
+    return false
+  end
+  self:CancelPendingAutoDecision()
+  StarTowerSettingGate.Begin()
   if self.nCurLevel + 1 > #self.tbStarTowerAllLevel then
     self:StarTowerClear(nCaseId)
-    return
+    return true
   end
+  local mapSettingRequest = StarTowerSettingGate.BeginRequest()
   local floorId = 0
   local sExData = ""
   local scenePrefabId = 0
@@ -598,13 +913,19 @@ function StarTowerSweepData:EnterRoom(nCaseId, nRoomType)
   end
   
   local function NetCallback(_, mapNetData)
+    if self.bEnd then
+      StarTowerSettingGate.FinishRequest(mapSettingRequest)
+      return
+    end
     if mapNetData.EnterResp == nil then
+      StarTowerSettingGate.FinishRequest(mapSettingRequest)
       printError("�������ݷ���Ϊ��")
       return
     end
     self:ProcessChangeInfo(mapNetData.Change)
     self:InitRoom(mapNetData.EnterResp.Room.Cases)
     EventManager.Hit("InitRoom")
+    StarTowerSettingGate.FinishRequest(mapSettingRequest)
   end
   
   local EnterReq = {
@@ -617,9 +938,13 @@ function StarTowerSweepData:EnterRoom(nCaseId, nRoomType)
   }
   local mapMsg = {Id = nCaseId, EnterReq = EnterReq}
   HttpNetHandler.SendMsg(NetMsgId.Id.star_tower_interact_req, mapMsg, nil, NetCallback)
+  return true
 end
 
 function StarTowerSweepData:StarTowerLeave()
+  if not self:EndExploration() then
+    return
+  end
   local nRecon = PlayerData.State:GetStarTowerRecon()
   local mapStateInfo = {
     Id = self.nTowerId,
@@ -633,10 +958,20 @@ function StarTowerSweepData:StarTowerLeave()
 end
 
 function StarTowerSweepData:StarTowerClear(nCaseId)
+  if self.bEnd then
+    return
+  end
+  StarTowerSettingGate.Begin()
+  local mapSettingRequest = StarTowerSettingGate.BeginRequest()
+  self:StopAutoDecision(StarTowerAutoDecision.FailReason.Disabled, false)
   local EnterReq = {MapId = 0}
   local mapMsg = {Id = nCaseId, EnterReq = EnterReq}
   
   local function NetCallback(_, mapNetMsg)
+    if self.bEnd then
+      StarTowerSettingGate.FinishRequest(mapSettingRequest)
+      return
+    end
     local mapBuildInfo
     local mapChangeInfo = {}
     local tbRes = {}
@@ -709,6 +1044,7 @@ function StarTowerSweepData:StarTowerClear(nCaseId)
       tbRewards = tbTowerRewards,
       bSweep = true
     }
+    self:EndExploration()
     EventManager.Hit(EventId.OpenPanel, PanelId.StarTowerResult, mapResult, self.tbTeam)
     
     local function wait()
@@ -718,6 +1054,7 @@ function StarTowerSweepData:StarTowerClear(nCaseId)
     
     cs_coroutine.start(wait)
     PlayerData.State:CacheStarTowerStateData(nil)
+    StarTowerSettingGate.FinishRequest(mapSettingRequest)
   end
   
   HttpNetHandler.SendMsg(NetMsgId.Id.star_tower_interact_req, mapMsg, nil, NetCallback)
@@ -891,7 +1228,58 @@ function StarTowerSweepData:HandleNpc(nNpcId, nNpcUid)
   printError("û���ҵ��ɽ������¼�:" .. nNpcId)
 end
 
+function StarTowerSweepData:HasPendingCases()
+  local mapBattle = self.mapCases[self.EnumCase.Battle]
+  if mapBattle ~= nil and mapBattle.bFinish ~= true then
+    return true
+  end
+  local tbCaseTypes = {
+    self.EnumCase.RecoveryHP,
+    self.EnumCase.SelectSpecialPotential,
+    self.EnumCase.PotentialSelect,
+    self.EnumCase.NoteSelect,
+    self.EnumCase.FateCardSelect,
+    self.EnumCase.NpcEvent,
+    self.EnumCase.DoorDanger
+  }
+  for _, nCaseType in ipairs(tbCaseTypes) do
+    for _, mapData in pairs(self.mapCases[nCaseType] or {}) do
+      if mapData.bFinish ~= true then
+        return true
+      end
+    end
+  end
+  local tbPopupTypes = {
+    self.EnumPopup.StrengthFx,
+    self.EnumPopup.Potential,
+    self.EnumPopup.Reward,
+    self.EnumPopup.Disc
+  }
+  for _, nPopupType in ipairs(tbPopupTypes) do
+    for _, mapData in ipairs(self.tbPopup[nPopupType] or {}) do
+      if not mapData.bFinish then
+        return true
+      end
+    end
+  end
+  return false
+end
+
 function StarTowerSweepData:HandleCases()
+  if self.bEnd then
+    return false
+  end
+  StarTowerSettingGate.Begin()
+  if self._bAutoRequestPending then
+    return
+  end
+  if self._bAutoDecisionEnabled and self._bAutoDecisionPaused then
+    if not self:HasPendingCases() then
+      EventManager.Hit("EventHandleOver")
+      return false
+    end
+    return
+  end
   if self.mapCases[self.EnumCase.Battle] ~= nil and self.mapCases[self.EnumCase.Battle].bFinish ~= true then
     local msg = {}
     local nEventId = self.mapCases[self.EnumCase.Battle].Id
@@ -1015,14 +1403,18 @@ function StarTowerSweepData:HandleCases()
   return false
 end
 
-function StarTowerSweepData:OpenSelectPotential(nCaseId, bSpecial)
+function StarTowerSweepData:OpenSelectPotential(nCaseId, bSpecial, bKeepPanelOpen, panelRefreshCallback)
   local function ProcessSpecialPotentialData(nId)
     local mapCaseData = self.mapCases[self.EnumCase.SelectSpecialPotential][nId]
     
     local tbPotential = {}
     local mapPotential = {}
     for _, nPotentialId in ipairs(mapCaseData.Ids) do
-      table.insert(tbPotential, {Id = nPotentialId, Count = 1})
+      table.insert(tbPotential, {
+        Id = nPotentialId,
+        Count = 1,
+        bSpecial = true
+      })
       mapPotential[nPotentialId] = 0
       local mapPotentialCfgData = ConfigTable.GetData("Potential", nPotentialId)
       if mapPotentialCfgData == nil then
@@ -1039,7 +1431,7 @@ function StarTowerSweepData:OpenSelectPotential(nCaseId, bSpecial)
       nType = 1
     end
     local mapRoll = {
-      CanReRoll = mapCaseData.CanReRoll,
+      CanReRoll = false,
       ReRollPrice = mapCaseData.ReRollPrice
     }
     return tbPotential, mapPotential, nType, mapCaseData.TeamLevel, mapCaseData.NewIds, mapRoll
@@ -1092,13 +1484,18 @@ function StarTowerSweepData:OpenSelectPotential(nCaseId, bSpecial)
     return 0, {}, {}, 0
   end
   
-  local function SelectCallback(nIdx, nId, panelCallback, bReRoll)
+  local function SelectCallback(nIdx, nId, panelCallback, bReRoll, bAuto)
     if nId == -1 then
+      if self._bAutoRequestPending then
+        self:FinishAutoRequest(true)
+      end
+      
       local function wait()
         coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
-        
         coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
-        self:HandleCases()
+        if not self:TryOpenManualAfterAutoRequest() then
+          self:HandleCases()
+        end
       end
       
       cs_coroutine.start(wait)
@@ -1107,6 +1504,7 @@ function StarTowerSweepData:OpenSelectPotential(nCaseId, bSpecial)
     local msg = {}
     msg.Id = nId
     msg.SelectReq = {}
+    msg.SelectReq.Auto = bAuto == true
     if bReRoll then
       msg.SelectReq.ReRoll = true
     else
@@ -1131,9 +1529,27 @@ function StarTowerSweepData:OpenSelectPotential(nCaseId, bSpecial)
       end
       local caseId, tbPotential, mapPotential, nType, nTeamLevel, tbNewIds, mapRoll, tbLuckyIds = GetUnfinishedSelect()
       local nCoin = self._mapItem[AllEnum.CoinItemId.FixedRogCurrency] or 0
-      if panelCallback ~= nil and type(panelCallback) == "function" then
+      local bHasPanelCallback = panelCallback ~= nil and type(panelCallback) == "function"
+      if bAuto == true and caseId ~= 0 then
+        self:FinishAutoRequest(true)
+        if bHasPanelCallback then
+          self._bOpenManualAfterAutoRequest = false
+        end
+        if self:IsAutoDecisionEnabled() then
+          local mapSpecialCase = self.mapCases[self.EnumCase.SelectSpecialPotential]
+          local bNextSpecial = mapSpecialCase ~= nil and mapSpecialCase[caseId] ~= nil
+          self:OpenSelectPotential(caseId, bNextSpecial, true, panelCallback)
+          return
+        end
+      end
+      if bHasPanelCallback then
         local tbRecommend = self:GetRecommondPotential(tbPotential)
         panelCallback(caseId, tbPotential, mapPotential, nType, nTeamLevel, tbNewIds, mapRoll, nCoin, tbLuckyIds, tbRecommend)
+      elseif bAuto == true and caseId == 0 then
+        self:FinishAutoRequest(true)
+        if not self:TryOpenManualAfterAutoRequest() then
+          self:HandleCases()
+        end
       end
     end
     
@@ -1148,7 +1564,44 @@ function StarTowerSweepData:OpenSelectPotential(nCaseId, bSpecial)
   end
   local nCoin = self._mapItem[AllEnum.CoinItemId.FixedRogCurrency] or 0
   local tbRecommend = self:GetRecommondPotential(tbPotential)
-  EventManager.Hit("StarTowerPotentialSelect", nCaseId, tbPotential, mapPotential, nType, nTeamLevel, tbNewIds, SelectCallback, mapRoll, nCoin, tbLuckyIds, tbRecommend)
+  
+  local function OpenPotentialPanel(nAutoSelectIdx, readyCallback)
+    if type(panelRefreshCallback) == "function" then
+      panelRefreshCallback(nCaseId, tbPotential, mapPotential, nType, nTeamLevel, tbNewIds, mapRoll, nCoin, tbLuckyIds, tbRecommend, nAutoSelectIdx, readyCallback)
+    else
+      if bKeepPanelOpen ~= true then
+        EventManager.Hit("StarTowerPotentialSelect", nCaseId, tbPotential, mapPotential, nType, nTeamLevel, tbNewIds, SelectCallback, mapRoll, nCoin, tbLuckyIds, tbRecommend, nAutoSelectIdx)
+      end
+      if type(readyCallback) == "function" then
+        readyCallback()
+      end
+    end
+  end
+  
+  if not self:IsAutoDecisionEnabled() then
+    OpenPotentialPanel()
+    return
+  end
+  local mapContext = self:BuildAutoDecisionContext()
+  local mapDecision = StarTowerAutoDecision:DecidePotential(mapContext, tbPotential, mapPotential, mapRoll, tbNewIds, tbLuckyIds, tbRecommend)
+  if mapDecision.bSuccess ~= true then
+    self:HandleAutoDecisionFail(mapDecision, OpenPotentialPanel)
+    return
+  end
+  local nAutoSelectIdx = mapDecision.nActionType == StarTowerAutoDecision.ActionType.SelectPotential and mapDecision.nTargetIndex or nil
+  local mapGuard = {
+    nCaseId = nCaseId,
+    isValidCallback = function()
+      local mapCaseGroup = bSpecial and self.mapCases[self.EnumCase.SelectSpecialPotential] or self.mapCases[self.EnumCase.PotentialSelect]
+      return mapCaseGroup ~= nil and mapCaseGroup[nCaseId] ~= nil and mapCaseGroup[nCaseId].bFinish ~= true
+    end
+  }
+  OpenPotentialPanel(nAutoSelectIdx, function()
+    self:ScheduleAutoDecision(mapDecision, mapGuard, function()
+      local bReRoll = mapDecision.nActionType == StarTowerAutoDecision.ActionType.PotentialReroll
+      EventManager.Hit("StarTowerAutoSelectPotential", nCaseId, mapDecision.nTargetIndex, bReRoll)
+    end)
+  end)
 end
 
 function StarTowerSweepData:OpenSelectNote(nCaseId)
@@ -1309,7 +1762,7 @@ function StarTowerSweepData:OpenNpcOptionPanel(nCaseId, nNpcConfigId)
   local nTableEvtId = mapCase.EvtId
   local nEventId = nCaseId
   
-  local function callback(nIdx, nEvtId, bClose)
+  local function callback(nIdx, nEvtId, bClose, bAuto)
     EventManager.Hit("InteractiveNpcFinish", nNpcConfigId)
     if bClose then
       self.mapCases[self.EnumCase.NpcEvent][nCaseId].bFinish = true
@@ -1324,7 +1777,8 @@ function StarTowerSweepData:OpenNpcOptionPanel(nCaseId, nNpcConfigId)
     else
       printError("EventOptions Missing��" .. nOptionId)
     end
-    if bJump then
+    local bAutoEventSelect = bAuto == true or self._bAutoRequestPending == true and self._mapPendingAutoDecision ~= nil and self._mapPendingAutoDecision.nActionType == StarTowerAutoDecision.ActionType.EventSelect
+    if bJump and not bAutoEventSelect then
       self.mapCases[self.EnumCase.NpcEvent][nCaseId].bFinish = true
       self:HandleCases()
       return
@@ -1333,8 +1787,9 @@ function StarTowerSweepData:OpenNpcOptionPanel(nCaseId, nNpcConfigId)
     msg.Id = nEvtId
     msg.SelectReq = {}
     msg.SelectReq.Index = nIdx - 1
+    msg.SelectReq.Auto = bAutoEventSelect
     
-    local function InteractiveCallback(callbackMsg, tbChangeFateCard, mapChangeNote, mapItemChange, nLevelChange, nExpChange, mapPotentialChange)
+    local function InteractiveCallback(callbackMsg, tbChangeFateCard, mapChangeNote, mapItemChange, nLevelChange, nExpChange, mapPotentialChange, mapChangeSecondarySkill)
       local function wait()
         coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
         
@@ -1358,11 +1813,25 @@ function StarTowerSweepData:OpenNpcOptionPanel(nCaseId, nNpcConfigId)
         end
         self.mapCases[self.EnumCase.NpcEvent][nCaseId].Infos = tbInfo
         EventManager.Hit("StarTowerEventInteract", clone(mapChangeNote), clone(mapItemChange), clone(mapPotentialChange), clone(tbChangeFateCard), clone(mapChangeSecondarySkill))
-        cs_coroutine.start(wait)
+        if bAuto == true then
+          self:FinishAutoRequest(true)
+        end
+        if bAuto ~= true or self:IsAutoDecisionEnabled() then
+          cs_coroutine.start(wait)
+        else
+          self:TryOpenManualAfterAutoRequest()
+        end
       else
         EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Startower_EventFailHint"))
         table.insert(mapCase.FailedIdxes, nIdx - 1)
-        self:HandleNpc(nNpcConfigId)
+        if bAuto == true then
+          self:FinishAutoRequest(true)
+        end
+        if bAuto ~= true or self:IsAutoDecisionEnabled() then
+          self:HandleNpc(nNpcConfigId)
+        else
+          self:TryOpenManualAfterAutoRequest()
+        end
       end
       if callbackMsg.SelectResp ~= nil and callbackMsg.SelectResp.Resp ~= nil and callbackMsg.SelectResp.Resp.OptionsParamId ~= nil and callbackMsg.SelectResp.Resp.OptionsParamId ~= 0 then
         local sTextId = "EventResult_" .. tostring(callbackMsg.SelectResp.Resp.OptionsParamId)
@@ -1402,7 +1871,43 @@ function StarTowerSweepData:OpenNpcOptionPanel(nCaseId, nNpcConfigId)
   end
   mapCase.bFirst = false
   local nCoin = self._mapItem[AllEnum.CoinItemId.FixedRogCurrency] or 0
-  EventManager.Hit(EventId.OpenPanel, PanelId.NpcOptionPanel, 1, nEventId, tbOption, nSkinId, callback, tbUnabledOption, nTableEvtId, nTalkId, mapCase.nActionId, false, true, nCoin, self.nTowerId, self._mapNote, self.tbDisc)
+  
+  local function OpenOptionPanel(mapAutoDisplay)
+    EventManager.Hit(EventId.OpenPanel, PanelId.NpcOptionPanel, 1, nEventId, tbOption, nSkinId, callback, tbUnabledOption, nTableEvtId, nTalkId, mapCase.nActionId, false, true, nCoin, self.nTowerId, self._mapNote, self.tbDisc, mapAutoDisplay)
+  end
+  
+  if not self:IsAutoDecisionEnabled() then
+    OpenOptionPanel()
+    return
+  end
+  local mapDecision = StarTowerAutoDecision:DecideEvent(self:BuildAutoDecisionContext(), tbOption, tbUnabledOption, nEventId)
+  if mapDecision.bSuccess ~= true then
+    self:HandleAutoDecisionFail(mapDecision, OpenOptionPanel)
+    return
+  end
+  local mapAutoDisplay = {
+    nTargetIndex = mapDecision.nTargetIndex,
+    isEnabledCallback = function()
+      return self:IsAutoDecisionEnabled()
+    end,
+    readyCallback = function()
+      self:ScheduleAutoDecision(mapDecision, {
+        nCaseId = nCaseId,
+        isValidCallback = function()
+          local mapEventCase = self.mapCases[self.EnumCase.NpcEvent]
+          return mapEventCase ~= nil and mapEventCase[nCaseId] ~= nil and mapEventCase[nCaseId].bFinish ~= true
+        end
+      }, function()
+        EventManager.Hit("StarTowerAutoSelectEvent", nEventId, mapDecision.nTargetIndex)
+      end)
+    end
+  }
+  local bOptionPanelOpen, bOptionPanelActive = PanelManager.CheckPanelOpen(PanelId.NpcOptionPanel)
+  if bOptionPanelOpen and bOptionPanelActive then
+    EventManager.Hit("StarTowerAutoDisplayEvent", nEventId, mapAutoDisplay)
+  else
+    OpenOptionPanel(mapAutoDisplay)
+  end
 end
 
 function StarTowerSweepData:HandleRecover(nCaseId, nNpcConfigId)
@@ -1515,6 +2020,11 @@ function StarTowerSweepData:HandlePopupDisc(mapData)
   end
   
   EventManager.Hit("StarTowerShowDiscSkill", mapData.param, clone(self._mapNote), callback)
+  if self:IsAutoDecisionEnabled() then
+    EventManager.Hit("StarTowerAutoAdvanceDiscSkill", callback, function()
+      return self:IsAutoDecisionEnabled()
+    end)
+  end
 end
 
 function StarTowerSweepData:HandlePopupReward(mapData)
@@ -1525,6 +2035,11 @@ function StarTowerSweepData:HandlePopupReward(mapData)
   end
   
   EventManager.Hit("StarTowerShowReward", mapData.param, callback)
+  if self:IsAutoDecisionEnabled() then
+    EventManager.Hit("StarTowerAutoCloseReward", callback, function()
+      return self:IsAutoDecisionEnabled()
+    end)
+  end
 end
 
 function StarTowerSweepData:HandlePopupPotential(mapData)
@@ -1535,6 +2050,11 @@ function StarTowerSweepData:HandlePopupPotential(mapData)
   end
   
   EventManager.Hit("ShowPotentialLevelUp", mapData.param, callback)
+  if self:IsAutoDecisionEnabled() then
+    EventManager.Hit("StarTowerAutoClosePotentialLevelUp", callback, function()
+      return self:IsAutoDecisionEnabled()
+    end)
+  end
 end
 
 function StarTowerSweepData:HandleShopStrengthFx(mapData)
@@ -1547,7 +2067,7 @@ function StarTowerSweepData:HandleShopStrengthFx(mapData)
   EventManager.Hit("ShowShopStrengthFx", mapData.param, callback)
 end
 
-function StarTowerSweepData:InteractiveShop(nCaseId, nNpcConfigId)
+function StarTowerSweepData:InteractiveShop(nCaseId, nNpcConfigId, bAuto)
   if self.mapCases[self.EnumCase.Hawker] == nil then
     printError("No Hawker Case!")
     return
@@ -1583,10 +2103,11 @@ function StarTowerSweepData:InteractiveShop(nCaseId, nNpcConfigId)
     return tbShopData
   end
   
-  local function BuyCallback(nEvtId, nSid, callback, bReRoll)
+  local function BuyCallback(nEvtId, nSid, callback, bReRoll, bAutoRequest)
     local msg = {}
     msg.Id = nEvtId
     msg.HawkerReq = {}
+    msg.HawkerReq.Auto = bAutoRequest == true
     if bReRoll then
       msg.HawkerReq.ReRoll = true
     else
@@ -1594,21 +2115,35 @@ function StarTowerSweepData:InteractiveShop(nCaseId, nNpcConfigId)
     end
     
     local function InteractiveCallback(callbackMsg, tbChangeFateCard, mapChangeNote, mapItemChange, nLevelChange, nExpChange, mapPotentialChange)
-      if callback ~= nil and type(callback) == "function" then
-        local nBagCount = self._mapItem[AllEnum.CoinItemId.FixedRogCurrency] or 0
-        local mapInteractiveCase = self.mapCases[self.EnumCase.Hawker]
+      local nBagCount = self._mapItem[AllEnum.CoinItemId.FixedRogCurrency] or 0
+      local mapInteractiveCase = self.mapCases[self.EnumCase.Hawker]
+      if mapInteractiveCase ~= nil then
         if mapInteractiveCase.bReRoll then
-          self.mapCases[self.EnumCase.Hawker].bReRoll = false
+          mapInteractiveCase.bReRoll = false
+        elseif nSid ~= nil and 0 >= table.indexof(mapInteractiveCase.Purchase, nSid) then
+          table.insert(mapInteractiveCase.Purchase, nSid)
+        end
+      end
+      if callback ~= nil and type(callback) == "function" then
+        if bReRoll and mapInteractiveCase ~= nil then
           local mapRoll = BuildRollData(mapInteractiveCase)
           local tbShopData = BuildShopData(mapInteractiveCase)
           callback(nBagCount, tbShopData, mapRoll)
         else
-          table.insert(mapInteractiveCase.Purchase, nSid)
           callback(nBagCount)
         end
       end
       EventManager.Hit("StarTowerShopInteract", mapChangeNote)
-      self:HandleCases()
+      if bAutoRequest == true then
+        self:FinishAutoRequest(true)
+        if self:IsAutoDecisionEnabled() then
+          self:HandleCases()
+        else
+          self:TryOpenManualAfterAutoRequest()
+        end
+      else
+        self:HandleCases()
+      end
     end
     
     self:StarTowerInteract(msg, InteractiveCallback)
@@ -1617,10 +2152,85 @@ function StarTowerSweepData:InteractiveShop(nCaseId, nNpcConfigId)
   local mapRoll = BuildRollData(mapCase)
   local tbShopData = BuildShopData(mapCase)
   local nCoin = self._mapItem[AllEnum.CoinItemId.FixedRogCurrency] or 0
-  EventManager.Hit(EventId.OpenPanel, PanelId.StarTowerShop, tbShopData, nCoin, BuyCallback, nCaseId, mapRoll, self.tbDisc, self._mapNote, self.nTowerId, self.nCurLevel)
+  
+  local function OpenShopPanel(autoStartCallback)
+    EventManager.Hit(EventId.OpenPanel, PanelId.StarTowerShop, tbShopData, nCoin, BuyCallback, nCaseId, mapRoll, self.tbDisc, self._mapNote, self.nTowerId, self.nCurLevel, autoStartCallback)
+  end
+  
+  if bAuto ~= true or not self:IsAutoDecisionEnabled() then
+    OpenShopPanel()
+    return
+  end
+  local bShopPanelOpen, bShopPanelActive = PanelManager.CheckPanelOpen(PanelId.StarTowerShop)
+  if not bShopPanelOpen or not bShopPanelActive then
+    OpenShopPanel(function()
+      if self:IsAutoDecisionEnabled() then
+        self:InteractiveShop(nCaseId, nNpcConfigId, true)
+      end
+    end)
+    return
+  end
+  local mapContext = self:BuildAutoDecisionContext()
+  local mapMachineCase = self.mapCases[self.EnumCase.StrengthenMachine]
+  mapContext.bMachine = mapMachineCase ~= nil and mapMachineCase.bFinish ~= true and self._bAutoMachineFinished ~= true
+  mapContext.nMachineCost = self:GetStrengthMachineCost()
+  local mapDecision = StarTowerAutoDecision:DecideShop(mapContext, tbShopData, mapRoll, nCoin)
+  if mapDecision.bSuccess ~= true then
+    if mapDecision.nFailReason == StarTowerAutoDecision.FailReason.CoinNotEnough or mapDecision.nFailReason == StarTowerAutoDecision.FailReason.NoOption then
+      self._bAutoShopFinished = true
+      self._bAutoShopExhausted = mapDecision.bShopExhausted == true
+      self:CloseAutoShop(function()
+        self:TryAutoShopEntry()
+      end)
+    else
+      self._autoShopCompleteCallback = nil
+      self:HandleAutoDecisionFail(mapDecision)
+      EventManager.Hit("StarTowerAutoDecisionRequestManual")
+    end
+    return
+  end
+  if mapDecision.nActionType == StarTowerAutoDecision.ActionType.StrengthMachine then
+    self._bAutoUpgradeBeforeShopSpendAll = true
+    self:TryAutoShopEntry()
+    return
+  end
+  self:ScheduleAutoDecision(mapDecision, {
+    nCaseId = nCaseId,
+    isValidCallback = function()
+      return self.mapCases[self.EnumCase.Hawker] == mapCase and mapCase.bFinish ~= true
+    end
+  }, function()
+    local bReRoll = mapDecision.nActionType == StarTowerAutoDecision.ActionType.ShopReroll
+    if not bReRoll then
+      local nCurrentCoin = self._mapItem[AllEnum.CoinItemId.FixedRogCurrency] or 0
+      local nFailReason = StarTowerAutoDecision.FailReason.NoOption
+      for _, mapGood in ipairs(BuildShopData(mapCase)) do
+        if mapGood.nSid == mapDecision.nTargetId then
+          if not mapGood.bSoldOut then
+            local nPrice = 0 < mapGood.nDiscount and mapGood.nDiscount or mapGood.Price
+            if nCurrentCoin >= nPrice then
+              nFailReason = nil
+              break
+            end
+            nFailReason = StarTowerAutoDecision.FailReason.CoinNotEnough
+          end
+          break
+        end
+      end
+      if nFailReason ~= nil then
+        self:FinishAutoRequest(false, nFailReason)
+        self:InteractiveShop(nCaseId, nNpcConfigId, true)
+        return
+      end
+    end
+    EventManager.Hit("StarTowerAutoShopExecute", mapDecision.nTargetId, bReRoll)
+  end)
 end
 
-function StarTowerSweepData:InteractiveStrengthMachine(nCaseId, nNpcConfigId)
+function StarTowerSweepData:InteractiveStrengthMachine(nCaseId, nNpcConfigId, bAuto)
+  if self.bEnd or self._mapStrengthMachineRequest ~= nil then
+    return
+  end
   if self.mapCases[self.EnumCase.StrengthenMachine] == nil then
     printError("No StrengthMachine Case!")
     return
@@ -1634,26 +2244,62 @@ function StarTowerSweepData:InteractiveStrengthMachine(nCaseId, nNpcConfigId)
   if nCoin == nil then
     nCoin = 0
   end
-  local nDiscount = mapCase.Discount
   local bFirstFree = mapCase.FirstFree
-  local nCost = self.tbStrengthMachineCost[mapCase.Times + 1]
-  if nCost == nil then
-    nCost = self.tbStrengthMachineCost[#self.tbStrengthMachineCost]
-  end
-  nCost = nCost - nDiscount
-  if bFirstFree then
-    nCost = 0
+  local nCost = self:GetStrengthMachineCost()
+  if bAuto == true then
+    local bCanConsume = StarTowerAutoDecision:CanConsumeToken(self:BuildAutoDecisionContext(), StarTowerAutoDecision.ActionType.StrengthMachine)
+    if not bCanConsume then
+      self:StopAutoDecision(StarTowerAutoDecision.FailReason.TokenNotEnough, true)
+      self:FinishAutoRequest(false, StarTowerAutoDecision.FailReason.TokenNotEnough)
+      self:TryOpenManualAfterAutoRequest()
+      return
+    end
   end
   if nCoin < nCost then
     printError("Not Enough Coin!")
-    EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("StarTower_NotEnoughCoin"))
+    if bAuto == true then
+      self:FinishAutoRequest(false, StarTowerAutoDecision.FailReason.CoinNotEnough)
+      self._bAutoMachineFinished = true
+      if self:IsAutoDecisionEnabled() then
+        self:TryAutoShopEntry()
+      else
+        self:TryOpenManualAfterAutoRequest()
+      end
+    else
+      EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("StarTower_NotEnoughCoin"))
+    end
     return
+  end
+  local mapRequest = {}
+  self._mapStrengthMachineRequest = mapRequest
+  
+  local function LogRequest(sResult)
+    printLog(string.format("[StarTowerAuto] StrengthMachine result=%s tower=%s floor=%s case=%s auto=%s cost=%s coinBefore=%s coinNow=%s times=%s free=%s discount=%s token=%s", sResult, tostring(self.nTowerId), tostring(self.nCurLevel), tostring(nCaseId), tostring(bAuto == true), tostring(nCost), tostring(nCoin), tostring(self._mapItem[AllEnum.CoinItemId.FixedRogCurrency]), tostring(mapCase.Times), tostring(mapCase.FirstFree), tostring(mapCase.Discount), tostring(PlayerData.StarTowerAutoPlan and PlayerData.StarTowerAutoPlan:GetTokenCount())))
+  end
+  
+  local function ReleaseRequest()
+    if self._mapStrengthMachineRequest == mapRequest then
+      self._mapStrengthMachineRequest = nil
+    end
   end
   
   local function InteractiveCallback(netmsgData)
+    ReleaseRequest()
+    LogRequest(netmsgData.StrengthenMachineResp and netmsgData.StrengthenMachineResp.BuySucceed == false and "Rejected" or "Succeeded")
     if netmsgData.StrengthenMachineResp ~= nil and not netmsgData.StrengthenMachineResp.BuySucceed then
+      if bAuto == true then
+        self:FinishAutoRequest(false, StarTowerAutoDecision.FailReason.NoMatchedTarget)
+        self._bAutoMachineFinished = true
+      end
       EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("StarTower_NoPotential"))
       printError("û�п�ѡ��Ǳ��")
+      if bAuto == true then
+        if self:IsAutoDecisionEnabled() then
+          self:TryAutoShopEntry()
+        else
+          self:TryOpenManualAfterAutoRequest()
+        end
+      end
       return
     end
     if bFirstFree then
@@ -1661,14 +2307,27 @@ function StarTowerSweepData:InteractiveStrengthMachine(nCaseId, nNpcConfigId)
     else
       mapCase.Times = mapCase.Times + 1
     end
-    self:HandleCases()
+    if bAuto == true then
+      self:FinishAutoRequest(true)
+      if self:IsAutoDecisionEnabled() then
+        self:HandleCases()
+      else
+        self:TryOpenManualAfterAutoRequest()
+      end
+    else
+      self:HandleCases()
+    end
     EventManager.Hit("InteractiveNpcFinish")
     EventManager.Hit("RefreshStrengthMachineCost", mapCase.Times, mapCase.FirstFree)
   end
   
   local msg = {}
   msg.Id = nCaseId
-  self:StarTowerInteract(msg, InteractiveCallback)
+  LogRequest("Send")
+  self:StarTowerInteract(msg, InteractiveCallback, function()
+    ReleaseRequest()
+    LogRequest("Failed")
+  end)
 end
 
 function StarTowerSweepData:CalBuildScore()
@@ -1720,22 +2379,163 @@ function StarTowerSweepData:GetShopAndMachine()
   return bShop, bMachine, nMachineCount, nDiscount, bFirstFree
 end
 
-function StarTowerSweepData:OpenShop()
+function StarTowerSweepData:GetStrengthMachineCost()
+  local mapCase = self.mapCases[self.EnumCase.StrengthenMachine]
+  if mapCase == nil then
+    return 0
+  end
+  local nCost = self.tbStrengthMachineCost[mapCase.Times + 1]
+  if nCost == nil then
+    nCost = self.tbStrengthMachineCost[#self.tbStrengthMachineCost] or 0
+  end
+  if mapCase.FirstFree then
+    return 0
+  end
+  return math.max(0, nCost - (mapCase.Discount or 0))
+end
+
+function StarTowerSweepData:CloseAutoShop(completeCallback)
+  if not self:IsAutoDecisionEnabled() then
+    return
+  end
+  local nSerial = self._nAutoDecisionSerial
+  
+  local function callback()
+    if nSerial == self._nAutoDecisionSerial and self:IsAutoDecisionEnabled() and not PanelManager.CheckPanelOpen(PanelId.StarTowerShop) and type(completeCallback) == "function" then
+      completeCallback()
+    end
+  end
+  
+  local bShopPanelOpen, bShopPanelActive = PanelManager.CheckPanelOpen(PanelId.StarTowerShop)
+  if bShopPanelOpen and bShopPanelActive then
+    EventManager.Hit("StarTowerAutoShopComplete", callback)
+  elseif not bShopPanelOpen then
+    callback()
+  end
+end
+
+function StarTowerSweepData:CompleteAutoShopEntry()
+  self:CloseAutoShop(function()
+    local callback = self._autoShopCompleteCallback
+    self._autoShopCompleteCallback = nil
+    if type(callback) == "function" then
+      callback()
+    end
+  end)
+end
+
+function StarTowerSweepData:TryAutoShopEntry(completeCallback)
+  local bInitial = type(completeCallback) == "function"
+  if bInitial then
+    self._autoShopCompleteCallback = completeCallback
+  end
+  if not self:IsAutoDecisionEnabled() then
+    if bInitial then
+      self._autoShopCompleteCallback = nil
+    end
+    return false
+  end
+  local mapShopCase = self.mapCases[self.EnumCase.Hawker]
+  local mapMachineCase = self.mapCases[self.EnumCase.StrengthenMachine]
+  local bShop = mapShopCase ~= nil and mapShopCase.bFinish ~= true and self._bAutoShopFinished ~= true
+  local bMachine = mapMachineCase ~= nil and mapMachineCase.bFinish ~= true and self._bAutoMachineFinished ~= true
+  if not bShop and not bMachine then
+    self:CompleteAutoShopEntry()
+    return true
+  end
+  local nCoin = self._mapItem[AllEnum.CoinItemId.FixedRogCurrency] or 0
+  local mapDecision = StarTowerAutoDecision:DecideShopEntry(self:BuildAutoDecisionContext(), {
+    bShop = bShop,
+    bShopExhausted = self._bAutoShopExhausted == true,
+    bUpgradeBeforeSpendAll = self._bAutoUpgradeBeforeShopSpendAll == true,
+    bMachine = bMachine,
+    nMachineCost = self:GetStrengthMachineCost(),
+    nCoin = nCoin
+  })
+  if mapDecision.bSuccess ~= true then
+    if mapDecision.nFailReason == StarTowerAutoDecision.FailReason.NoMatchedTarget or mapDecision.nFailReason == StarTowerAutoDecision.FailReason.CoinNotEnough then
+      self._bAutoMachineFinished = true
+      self:CompleteAutoShopEntry()
+      return true
+    end
+    if bInitial then
+      self._autoShopCompleteCallback = nil
+      self:StopAutoDecision(mapDecision.nFailReason, false)
+      return false
+    end
+    if mapDecision.nFailReason == StarTowerAutoDecision.FailReason.TokenNotEnough then
+      self._autoShopCompleteCallback = nil
+      self:StopAutoDecision(mapDecision.nFailReason, false)
+      EventManager.Hit("StarTowerAutoDecisionRequestManual")
+    else
+      self:CompleteAutoShopEntry()
+    end
+    return true
+  end
+  if mapDecision.nActionType == StarTowerAutoDecision.ActionType.OpenShop then
+    self._bAutoUpgradeBeforeShopSpendAll = false
+    local bShopPanelOpen, bShopPanelActive = PanelManager.CheckPanelOpen(PanelId.StarTowerShop)
+    if bShopPanelOpen and bShopPanelActive then
+      self:InteractiveShop(mapShopCase.Id, mapShopCase.nNpc, true)
+      return true
+    end
+    EventManager.Hit("StarTowerAutoPreviewShopOption", 1)
+    self:ScheduleAutoDecision(mapDecision, {
+      nCaseId = mapShopCase.Id,
+      bLocalAction = true,
+      isValidCallback = function()
+        local bOptionOpen, bOptionActive = PanelManager.CheckPanelOpen(PanelId.StarTowerFastBattleOption)
+        return bOptionOpen and bOptionActive and self.mapCases[self.EnumCase.Hawker] == mapShopCase and mapShopCase.bFinish ~= true and self._bAutoShopFinished ~= true
+      end
+    }, function()
+      EventManager.Hit("StarTowerAutoExecuteShopOption", 1)
+    end)
+    return true
+  end
+  if mapDecision.nActionType == StarTowerAutoDecision.ActionType.StrengthMachine then
+    if PanelManager.CheckPanelOpen(PanelId.StarTowerShop) then
+      self:CloseAutoShop(function()
+        self:TryAutoShopEntry()
+      end)
+      return true
+    end
+    EventManager.Hit("StarTowerAutoPreviewShopOption", 2)
+    self:ScheduleAutoDecision(mapDecision, {
+      nCaseId = mapMachineCase.Id,
+      isValidCallback = function()
+        local bOptionOpen, bOptionActive = PanelManager.CheckPanelOpen(PanelId.StarTowerFastBattleOption)
+        return bOptionOpen and bOptionActive and not PanelManager.CheckPanelOpen(PanelId.StarTowerShop) and self.mapCases[self.EnumCase.StrengthenMachine] == mapMachineCase and mapMachineCase.bFinish ~= true and self._bAutoMachineFinished ~= true
+      end,
+      invalidCallback = function()
+        self:HandleCases()
+      end
+    }, function()
+      EventManager.Hit("StarTowerAutoExecuteShopOption", 2)
+    end)
+    return true
+  end
+  if bInitial then
+    self._autoShopCompleteCallback = nil
+  end
+  return false
+end
+
+function StarTowerSweepData:OpenShop(bAuto)
   local mapShopCase = self.mapCases[self.EnumCase.Hawker]
   if mapShopCase == nil then
     return false
   end
   local nCaseId = mapShopCase.Id
-  self:InteractiveShop(nCaseId, mapShopCase.nNpc)
+  self:InteractiveShop(nCaseId, mapShopCase.nNpc, bAuto == true)
   return true
 end
 
-function StarTowerSweepData:OpenStrengthMachine()
+function StarTowerSweepData:OpenStrengthMachine(bAuto)
   local mapStrengthMachine = self.mapCases[self.EnumCase.StrengthenMachine]
   if mapStrengthMachine == nil then
     return false
   end
-  self:InteractiveStrengthMachine(mapStrengthMachine.Id, 0)
+  self:InteractiveStrengthMachine(mapStrengthMachine.Id, 0, bAuto == true)
   return true
 end
 
@@ -1744,6 +2544,27 @@ function StarTowerSweepData:DiscSkillActive(tbParam)
     self.tbPopup[self.EnumPopup.Disc] = {}
   end
   table.insert(self.tbPopup[self.EnumPopup.Disc], {bFinish = false, param = tbParam})
+end
+
+function StarTowerSweepData:OnEvent_RewardPopup(tbParam)
+  if self.tbPopup[self.EnumPopup.Reward] == nil then
+    self.tbPopup[self.EnumPopup.Reward] = {}
+  end
+  table.insert(self.tbPopup[self.EnumPopup.Reward], {bFinish = false, param = tbParam})
+end
+
+function StarTowerSweepData:OnEvent_PotentialPopup(tbParam)
+  if self.tbPopup[self.EnumPopup.Potential] == nil then
+    self.tbPopup[self.EnumPopup.Potential] = {}
+  end
+  table.insert(self.tbPopup[self.EnumPopup.Potential], {bFinish = false, param = tbParam})
+end
+
+function StarTowerSweepData:OnEvent_ShopStrengthFx(tbParam)
+  if self.tbPopup[self.EnumPopup.StrengthFx] == nil then
+    self.tbPopup[self.EnumPopup.StrengthFx] = {}
+  end
+  table.insert(self.tbPopup[self.EnumPopup.StrengthFx], {bFinish = false, param = tbParam})
 end
 
 function StarTowerSweepData:CheckLastShopRoom()

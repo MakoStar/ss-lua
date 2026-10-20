@@ -1,23 +1,25 @@
 local SoldierRoomInfoCtrl = class("SoldierRoomInfoCtrl", BaseCtrl)
 local GamepadUIManager = require("GameCore.Module.GamepadUIManager")
 local SoldierAttrData = require("GameCore.Data.DataClass.Soldier.SoldierAttrData")
+local LocalData = require("GameCore.Data.LocalData")
 SoldierRoomInfoCtrl._mapNodeConfig = {
   canvas_group = {
     sComponentName = "CanvasGroup",
     sNodeName = "----SafeAreaRoot----"
   },
   btnPause = {
-    sComponentName = "NaviButton",
+    sComponentName = "UIButton",
     callback = "OnBtn_Pause"
   },
   BtnBg = {},
+  goNodeInfo = {},
   txtNode = {sComponentName = "TMP_Text"},
   txtProgress = {sComponentName = "TMP_Text"},
   imgProgressBg = {
     sComponentName = "RectTransform"
   },
   imgProgress = {sComponentName = "Image"},
-  txtHp = {sComponentName = "TMP_Text"},
+  txtCurHp = {sComponentName = "TMP_Text"},
   txtCoin = {sComponentName = "TMP_Text"},
   btnCoin = {
     sComponentName = "UIButton",
@@ -101,8 +103,44 @@ SoldierRoomInfoCtrl._mapNodeConfig = {
     callback = "OnClick_AutoBattleClose",
     sAction = "AutoBattle"
   },
+  btn_speed = {
+    sComponentName = "NaviButton",
+    callback = "OnBtnClick_ChangeSpeed"
+  },
+  txtBtnspeed = {
+    nCount = 4,
+    sComponentName = "TMP_Text",
+    sLanguageId = "Soldier_AddSpeed"
+  },
+  go_X1 = {},
+  go_X2 = {},
   charDetialRoot = {sComponentName = "Transform"},
-  parnterDetialRoot = {sComponentName = "Transform"}
+  parnterDetialRoot = {sComponentName = "Transform"},
+  goSurvivalTime = {},
+  txtSurvivalTime = {sComponentName = "TMP_Text"},
+  TimeItem = {nCount = 3},
+  goRating = {},
+  txtNodeRating = {sComponentName = "TMP_Text"},
+  txtProgressRating = {sComponentName = "TMP_Text"},
+  imgProgressRating = {sComponentName = "Image"},
+  txtHp = {nCount = 3, sComponentName = "TMP_Text"},
+  SkillItem = {},
+  bossItem = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_SkillDetail"
+  },
+  imgSkill = {sComponentName = "Image"},
+  imgSkillInitiative = {},
+  txtSkillInitiative = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Soldier_BossSkill_Active"
+  },
+  imgSkillPassive = {},
+  txtSkillPassive = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Soldier_BossSkill_Passive"
+  },
+  txtSkillName = {sComponentName = "TMP_Text"}
 }
 SoldierRoomInfoCtrl._mapEventConfig = {
   OpenSoldierRoomInfo = "OnEvent_OpenUI",
@@ -117,7 +155,9 @@ SoldierRoomInfoCtrl._mapEventConfig = {
   SettleSoldierBattle = "OnEvent_ClearSoldier",
   LeaveSoldier = "OnEvent_ClearSoldier",
   Soldier_Settlement_Ready = "OnEvent_SettlementReady",
-  Soldier_IsStart_Ready = "OnEvent_IsStartReady"
+  Soldier_IsStart_Ready = "OnEvent_IsStartReady",
+  Soldier_IsStart_Ok = "OnEvent_IsStartOk",
+  EnemyBattle_DpsCheckStageTotalDamage = "OnEvent_SetDPSMsg"
 }
 local colorWhite = Color(1, 1, 1, 1)
 local colorRed = Color(0.8470588235294118, 0.3137254901960784, 0.32941176470588235)
@@ -131,17 +171,20 @@ local iconPartnerPath = "Icon/SoldierPartner/"
 function SoldierRoomInfoCtrl:OpenUI(nFloorId)
   self.nFloorId = nFloorId
   local mapFloorCfg = ConfigTable.GetData("SoldierFloor", nFloorId)
+  self.isDpsCheckStage = false
   if mapFloorCfg ~= nil then
     self.nTotalTime = mapFloorCfg.BattleTime
     self.nRemainTime = 0
+    self.isDpsCheckStage = mapFloorCfg.IsDpsCheckStage
   end
+  self:InitDpsCheckUI()
   nMaxWidth = self._mapNode.imgProgressBg.sizeDelta.x
   nHeight = self._mapNode.imgProgressBg.sizeDelta.y
   self._mapNode.rtChallengeTime.gameObject:SetActive(false)
   NovaAPI.SetTMPText(self._mapNode.TMPChallengeTime, "00:00")
   NovaAPI.SetTMPColor(self._mapNode.TMPChallengeTime, colorWhite)
   local nHp = self.levelData:GetHp()
-  NovaAPI.SetTMPText(self._mapNode.txtHp, nHp)
+  NovaAPI.SetTMPText(self._mapNode.txtCurHp, nHp)
   local nCount = self.levelData:GetItem(AllEnum.CoinItemId.SoldierCurrency)
   NovaAPI.SetTMPText(self._mapNode.txtCoin, tostring(nCount))
   local nStage, nNodexIndex = PlayerData.SoldierData:GetCurChallengeState()
@@ -149,6 +192,19 @@ function SoldierRoomInfoCtrl:OpenUI(nFloorId)
   self:ApplyViewState()
   self._mapNode.btnAutoBattleOpen.gameObject:SetActive(false)
   self._mapNode.btnAutoBattleClose.gameObject:SetActive(true)
+  local bSpeed = LocalData.GetPlayerLocalData("Soldier_RoomInfo_SpeedUp") or false
+  self:SetTimeScale(bSpeed)
+  self:UpdateSpeedIcon()
+end
+
+function SoldierRoomInfoCtrl:InitDpsCheckUI()
+  self._mapNode.goSurvivalTime:SetActive(self.isDpsCheckStage)
+  self._mapNode.goRating:SetActive(self.isDpsCheckStage)
+  self._mapNode.rtChallengeTime:SetActive(not self.isDpsCheckStage)
+  self._mapNode.goNodeInfo:SetActive(not self.isDpsCheckStage)
+  if self.isDpsCheckStage then
+    self:InitDpsCheckUIMsg()
+  end
 end
 
 function SoldierRoomInfoCtrl:CloseUI()
@@ -196,26 +252,22 @@ function SoldierRoomInfoCtrl:RefreshChessList()
   for _, v in ipairs(self._mapNode.goDamage) do
     v.gameObject:SetActive(false)
   end
-  for _, v in ipairs(self._mapNode.goMainChar) do
-    v.gameObject:SetActive(false)
-  end
-  for _, v in ipairs(self._mapNode.goSubChar) do
-    v.gameObject:SetActive(false)
-  end
   local tbActivePartner, tbPartner = SoldierAttrData.CalcActivePartners(self.tbChess)
   for k, v in ipairs(self.tbChess) do
     local nIndex = v.nIndex
     if v.nPositionType == GameEnum.SoldierPositionType.FightPosition then
-      self._mapNode.goMainChar[nIndex].gameObject:SetActive(v.nId > 0)
       if v.nId > 0 then
         self._mapNode.goMainChar[nIndex]:InitChar(v, self.tbChess, tbActivePartner, self)
         self._mapNode.goMainChar[nIndex]:SetTipsRoot(self._mapNode.charDetialRoot)
+      else
+        self._mapNode.goMainChar[nIndex]:SetEmpty()
       end
     elseif v.nPositionType == GameEnum.SoldierPositionType.SupportPosition then
-      self._mapNode.goSubChar[nIndex].gameObject:SetActive(v.nId > 0)
       if v.nId > 0 then
         self._mapNode.goSubChar[nIndex]:InitChar(v, self.tbChess, tbActivePartner, self)
         self._mapNode.goSubChar[nIndex]:SetTipsRoot(self._mapNode.charDetialRoot)
+      else
+        self._mapNode.goSubChar[nIndex]:SetEmpty()
       end
     end
   end
@@ -441,7 +493,7 @@ function SoldierRoomInfoCtrl:OnEnable()
   self._tbCharInst = {}
   self._bPartnerBuilt = false
   self._bCharBuilt = false
-  GamepadUIManager.AddGamepadUINode("BattleMenu", self:GetGamepadUINode())
+  self:SetBossTemplateMsg()
 end
 
 function SoldierRoomInfoCtrl:OnDisable()
@@ -510,6 +562,8 @@ end
 
 function SoldierRoomInfoCtrl:OnEvent_OpenUI(nFloorId)
   self:OpenUI(nFloorId)
+  NovaAPI.SetTMPText(self._mapNode.txtProgress, string.format("%.f %%", 100))
+  NovaAPI.SetImageFillAmount(self._mapNode.imgProgress, 1)
   self.isStartReady = false
 end
 
@@ -533,11 +587,15 @@ function SoldierRoomInfoCtrl:OnEvent_RefreshChessDamage(nId, nDamage)
 end
 
 function SoldierRoomInfoCtrl:OnEvent_RefreshTime(nTime)
-  self._mapNode.rtChallengeTime.gameObject:SetActive(true)
-  if self.nRemainTime < 0 then
-    return
+  if not self.isDpsCheckStage then
+    self._mapNode.rtChallengeTime.gameObject:SetActive(true)
+    if self.nRemainTime < 0 then
+      return
+    end
+    self:SetTime(nTime)
+  else
+    self:SetDpsCheckTime(nTime)
   end
-  self:SetTime(nTime)
 end
 
 function SoldierRoomInfoCtrl:OnEvent_RefreshProgress(nTotalHp, nHp)
@@ -592,6 +650,145 @@ end
 
 function SoldierRoomInfoCtrl:OnEvent_IsStartReady(isReady)
   self.isStartReady = isReady
+end
+
+function SoldierRoomInfoCtrl:OnEvent_IsStartOk()
+  if not PlayerData.Guide:CheckGuideFinishById(506) then
+    EventManager.Hit("Guide_PassiveCheck_Msg", "Guide_Solider_506")
+  end
+end
+
+function SoldierRoomInfoCtrl:OnBtnClick_ChangeSpeed()
+  self:SetTimeScale(not self.bSpeedUp)
+  self:UpdateSpeedIcon()
+end
+
+function SoldierRoomInfoCtrl:SetTimeScale(bSpeedUp)
+  self.bSpeedUp = bSpeedUp
+  LocalData.SetPlayerLocalData("Soldier_RoomInfo_SpeedUp", bSpeedUp)
+  if self.bSpeedUp then
+    CS.AdventureModuleHelper.TowerDefense_SetTimeScale(150)
+  else
+    CS.AdventureModuleHelper.TowerDefense_SetTimeScale(100)
+  end
+end
+
+function SoldierRoomInfoCtrl:UpdateSpeedIcon()
+  self._mapNode.go_X1:SetActive(not self.bSpeedUp)
+  self._mapNode.go_X2:SetActive(self.bSpeedUp)
+end
+
+function SoldierRoomInfoCtrl:InitDpsCheckUIMsg()
+  local curGradeChallengeId = PlayerData.SoldierData:GetCurGradeChallengeId()
+  local config = ConfigTable.GetData("SoldierGradeChallenge", curGradeChallengeId)
+  local addGroupId = config.CheckStageGroupId
+  self.tabStageAddScore = {}
+  self.objStageAddScore = {}
+  
+  local function foreach_Base(baseData)
+    if baseData.Group == addGroupId then
+      self.tabStageAddScore[baseData.Index] = baseData
+    end
+  end
+  
+  ForEachTableLine(DataTable.SoldierCheckStageAddScore, foreach_Base)
+  self:SetDpsCheckTime(0)
+  for i = 1, 3 do
+    local obj = self._mapNode.TimeItem[i].gameObject
+    local Imagebg = obj.transform:Find("Imagebg").gameObject
+    local Imagecert = obj.transform:Find("Imagecert").gameObject
+    local txtTime = Imagebg.transform:Find("txtTime"):GetComponent("TMP_Text")
+    local txtcertTime = Imagecert.transform:Find("txtcertTime"):GetComponent("TMP_Text")
+    local tmpMsg = self.tabStageAddScore[i]
+    if tmpMsg ~= nil then
+      local prevScore = self.tabStageAddScore[i - 1] and self.tabStageAddScore[i - 1].TankingAddScore or 0
+      local addScore = tmpMsg.TankingAddScore - prevScore
+      local nMin = math.floor(tmpMsg.Duration / 60)
+      local nSec = math.fmod(tmpMsg.Duration, 60)
+      NovaAPI.SetTMPText(txtTime, orderedFormat(ConfigTable.GetUIText("Solider_SurvivalTimeScore"), string.format("%02d:%02d", nMin, nSec), addScore))
+      NovaAPI.SetTMPText(txtcertTime, orderedFormat(ConfigTable.GetUIText("Solider_SurvivalTimeScore"), string.format("%02d:%02d", nMin, nSec), addScore))
+    end
+    local tabObj = {}
+    tabObj.Imagebg = Imagebg
+    tabObj.Imagecert = Imagecert
+    self.objStageAddScore[i] = tabObj
+    Imagebg:SetActive(true)
+    Imagecert:SetActive(false)
+  end
+  self:OnEvent_SetDPSMsg(0)
+  for i = 1, 3 do
+    local tmpMsg = self.tabStageAddScore[i]
+    if tmpMsg ~= nil then
+      local prevScore = self.tabStageAddScore[i - 1] and self.tabStageAddScore[i - 1].DPSAddScore or 0
+      local addScore = tmpMsg.DPSAddScore - prevScore
+      NovaAPI.SetTMPText(self._mapNode.txtHp[i], "+" .. addScore)
+    end
+  end
+end
+
+function SoldierRoomInfoCtrl:SetDpsCheckTime(nTime)
+  local nMin = math.floor(nTime / 60)
+  local nSec = math.fmod(nTime, 60)
+  NovaAPI.SetTMPText(self._mapNode.txtSurvivalTime, orderedFormat(ConfigTable.GetUIText("Solider_SurvivalTime"), string.format("%02d:%02d", nMin, nSec)))
+  for i = 1, 3 do
+    if nTime >= self.tabStageAddScore[i].Duration then
+      self.objStageAddScore[i].Imagebg:SetActive(false)
+      self.objStageAddScore[i].Imagecert:SetActive(true)
+    end
+  end
+end
+
+function SoldierRoomInfoCtrl:OnEvent_SetDPSMsg(totalDPS)
+  NovaAPI.SetTMPText(self._mapNode.txtProgressRating, orderedFormat(ConfigTable.GetUIText("Solider_TotalDamage"), totalDPS))
+  local nScore = 0
+  for i = 3, 1, -1 do
+    local msg = self.tabStageAddScore[i]
+    if msg ~= nil and totalDPS >= msg.DPS then
+      nScore = msg.DPSAddScore
+      break
+    end
+  end
+  NovaAPI.SetTMPText(self._mapNode.txtNodeRating, orderedFormat(ConfigTable.GetUIText("Solider_TotalScore"), nScore))
+  if self.tabStageAddScore[3] == nil or 0 >= self.tabStageAddScore[3].DPS then
+    NovaAPI.SetImageFillAmount(self._mapNode.imgProgressRating, 0)
+    return
+  end
+  if totalDPS <= self.tabStageAddScore[1].DPS then
+    NovaAPI.SetImageFillAmount(self._mapNode.imgProgressRating, totalDPS / self.tabStageAddScore[1].DPS * 0.33)
+  elseif totalDPS > self.tabStageAddScore[1].DPS and totalDPS <= self.tabStageAddScore[2].DPS then
+    NovaAPI.SetImageFillAmount(self._mapNode.imgProgressRating, 0.33 + (totalDPS - self.tabStageAddScore[1].DPS) / (self.tabStageAddScore[2].DPS - self.tabStageAddScore[1].DPS) * 0.33)
+  elseif totalDPS > self.tabStageAddScore[2].DPS and totalDPS <= self.tabStageAddScore[3].DPS then
+    NovaAPI.SetImageFillAmount(self._mapNode.imgProgressRating, 0.66 + (totalDPS - self.tabStageAddScore[2].DPS) / (self.tabStageAddScore[3].DPS - self.tabStageAddScore[2].DPS) * 0.33)
+  else
+    NovaAPI.SetImageFillAmount(self._mapNode.imgProgressRating, 1)
+  end
+end
+
+function SoldierRoomInfoCtrl:SetBossTemplateMsg()
+  if self.levelData then
+    local tId = self.levelData:GetBossTemplateId()
+    local mapCfg = ConfigTable.GetData("SoldierBossTemplate", tId)
+    if mapCfg then
+      if mapCfg == GameEnum.SoldierRoleSkillType.SoldierRoleSkillType_3 or mapCfg == GameEnum.SoldierRoleSkillType.SoldierRoleSkillType_4 then
+        self:SetPngSprite(self._mapNode.imgSkill, mapCfg.SoldierRoleSkillIcon)
+        local nSkillType = mapCfg.SoldierRoleSkillType
+        self._mapNode.imgSkillPassive.gameObject:SetActive(nSkillType == GameEnum.SoldierRoleSkillType.SoldierRoleSkillType_1 or nSkillType == GameEnum.SoldierRoleSkillType.SoldierRoleSkillType_3)
+        self._mapNode.imgSkillInitiative.gameObject:SetActive(nSkillType == GameEnum.SoldierRoleSkillType.SoldierRoleSkillType_2 or nSkillType == GameEnum.SoldierRoleSkillType.SoldierRoleSkillType_4)
+        NovaAPI.SetTMPText(self._mapNode.txtSkillName, mapCfg.Name)
+        self._mapNode.SkillItem:SetActive(true)
+      else
+        self._mapNode.SkillItem:SetActive(false)
+      end
+    else
+      self._mapNode.SkillItem:SetActive(false)
+    end
+  else
+    self._mapNode.SkillItem:SetActive(false)
+  end
+end
+
+function SoldierRoomInfoCtrl:OnBtnClick_SkillDetail()
+  EventManager.Hit(EventId.OpenPanel, PanelId.SoldierBossTemplateTips, self.levelData:GetBossTemplateId())
 end
 
 return SoldierRoomInfoCtrl

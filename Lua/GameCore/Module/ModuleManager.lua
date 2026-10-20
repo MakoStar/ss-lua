@@ -29,6 +29,9 @@ end
 local function OnEvent_ExitModule(moduleMgr, sExitModuleName, sEnterModuleName)
   if sExitModuleName == "AdventureModuleScene" then
     EventManager.Hit(EventId.ClosePanel, PanelId.Hud)
+    if PlayerData.Build ~= nil then
+      PlayerData.Build:ClearBattleCharSkinIds()
+    end
   end
 end
 

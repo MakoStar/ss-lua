@@ -1,5 +1,6 @@
 local LoginSkinRewardCtrl_01 = class("LoginSkinRewardCtrl_01", BaseCtrl)
 local ClientManager = CS.ClientManager.Instance
+local TimerManager = require("GameCore.Timer.TimerManager")
 LoginSkinRewardCtrl_01._mapNodeConfig = {
   btnDetail = {
     sNodeName = "btnActDetail",
@@ -37,18 +38,14 @@ LoginSkinRewardCtrl_01._mapEventConfig = {
   ClickLoginRewardTips = "OnEvent_ClickLoginRewardTips"
 }
 
-function LoginSkinRewardCtrl_01:UnbindCtrl()
-end
-
 function LoginSkinRewardCtrl_01:InitActData(actData)
   self.actData = actData
   self.nActId = actData:GetActId()
-  self.nNpcId = nil
-  self.bPlayVoice = false
   self:RefreshDetail()
   local canReceive = self.actData:CheckCanReceive()
   self._mapNode.btnReward.gameObject:SetActive(canReceive)
   self._mapNode.btnUnReward.gameObject:SetActive(not canReceive)
+  self._mapNode.imgEnd.gameObject:SetActive(false)
   local actCfg = self.actData:GetActCfgData()
   if actCfg.EndType == GameEnum.activityEndType.NoLimit then
     self._mapNode.goActTime.gameObject:SetActive(false)
@@ -65,11 +62,17 @@ function LoginSkinRewardCtrl_01:RefreshRemainTime()
   local endTime = self.actData:GetActEndTime()
   local curTime = ClientManager.serverTimeStamp
   local remainTime = endTime - curTime
-  self._mapNode.goActTime:SetActive(0 < remainTime)
-  self._mapNode.imgEnd:SetActive(remainTime <= 0)
+  self._mapNode.goActTime.gameObject:SetActive(0 < remainTime)
+  self._mapNode.imgEnd.gameObject:SetActive(remainTime <= 0)
   if remainTime < 0 then
-    TimerManager.Remove(self.remainTimer)
-    self.remainTimer = nil
+    if self.remainTimer then
+      TimerManager.Remove(self.remainTimer)
+      self.remainTimer = nil
+    end
+    if self._bEndPopped then
+      return
+    end
+    self._bEndPopped = true
     EventManager.Hit(EventId.OpenMessageBox, {
       nType = AllEnum.MessageBox.Alert,
       sContent = ConfigTable.GetUIText("Activity_Invalid_Tip_1"),
@@ -119,9 +122,6 @@ function LoginSkinRewardCtrl_01:RefreshDetail()
   NovaAPI.SetTMPText(self._mapNode.txtAdvanceMat, sTips)
 end
 
-function LoginSkinRewardCtrl_01:ClearActivity()
-end
-
 function LoginSkinRewardCtrl_01:OnBtnClick_Detail()
   local mapActCfg = self.actData:GetLoginRewardControlCfg()
   local msg = {
@@ -137,6 +137,7 @@ function LoginSkinRewardCtrl_01:OnBtnClick_Activity()
     self._mapNode.btnReward.gameObject:SetActive(false)
     
     local actData = PlayerData.Activity:GetActivityDataById(self.actData:GetActId())
+    PlayerData.CharSkin:TryOpenSkinShowPanel()
     self:InitActData(actData)
   end
   
@@ -145,6 +146,7 @@ function LoginSkinRewardCtrl_01:OnBtnClick_Activity()
     return
   end
   PlayerData.Activity:SendReceiveLoginRewardMsg(self.actData:GetActId(), callback)
+  RedDotManager.SetValid(RedDotDefine.Activity_Tab, self.nActId, false)
 end
 
 function LoginSkinRewardCtrl_01:OnEvent_ClickLoginRewardTips(callback, index)
@@ -155,6 +157,10 @@ function LoginSkinRewardCtrl_01:OnBtnClick_Reward()
 end
 
 function LoginSkinRewardCtrl_01:OnDisable()
+  if self.remainTimer then
+    TimerManager.Remove(self.remainTimer)
+    self.remainTimer = nil
+  end
 end
 
 return LoginSkinRewardCtrl_01

@@ -1,7 +1,6 @@
 local BaseCtrl = require("GameCore.UI.BaseCtrl")
 local LocalData = require("GameCore.Data.LocalData")
 local SwimThemeStory_11100Ctrl = class("SwimThemeStory_11100Ctrl", BaseCtrl)
-local ActivityAvgData = PlayerData.ActivityAvg
 local WwiseAudioMgr = CS.WwiseAudioManager.Instance
 SwimThemeStory_11100Ctrl._mapNodeConfig = {
   goActTime = {},
@@ -55,7 +54,9 @@ function SwimThemeStory_11100Ctrl:Awake()
   local param = self:GetPanelParam()
   if type(param) == "table" then
     self.nActId = param[1]
+    self.bReview = param[2] == true
   end
+  self.storyData = self.bReview and PlayerData.StoryReview or PlayerData.ActivityAvg
   self.storyNodePos = {27, -30}
   self.tbGridTimer = {}
   self.tbPlayedAnim = {}
@@ -78,7 +79,7 @@ function SwimThemeStory_11100Ctrl:RefreshPanel()
 end
 
 function SwimThemeStory_11100Ctrl:RefreshDate()
-  local nOpenTime, nEndTime = PlayerData.ActivityAvg:GetActivityOpenTime(self.nActId)
+  local nOpenTime, nEndTime = self.storyData:GetActivityOpenTime(self.nActId)
   local nYear = tonumber(os.date("%Y", nOpenTime))
   local nOpenMonth = tonumber(os.date("%m", nOpenTime))
   local nOpenDay = tonumber(os.date("%d", nOpenTime))
@@ -98,7 +99,7 @@ function SwimThemeStory_11100Ctrl:RefreshPersonality()
   if personalityId <= 0 then
     return
   end
-  local tbRetPercent, sTitle, sFace, tbPData, nTotalCount, sHead = PlayerData.ActivityAvg:CalcPersonality(personalityId)
+  local tbRetPercent, sTitle, sFace, tbPData, nTotalCount, sHead = self.storyData:CalcPersonality(personalityId)
   NovaAPI.SetPersonalityRing(self._mapNode.goPersonality, tbRetPercent)
   NovaAPI.SetTMPText(self._mapNode.txtPersonality, sTitle)
   local sIcon = "Icon/PlayerHead/" .. sHead
@@ -107,11 +108,11 @@ end
 
 function SwimThemeStory_11100Ctrl:RefreshStoryList()
   self.tbPlayedAnim = {}
-  self.tbAllStory, self.nChapterId = ActivityAvgData:GetStoryIdListByActivityId(self.nActId)
+  self.tbAllStory, self.nChapterId = self.storyData:GetStoryIdListByActivityId(self.nActId)
   if self.tbAllStory == nil or #self.tbAllStory <= 0 then
     return
   end
-  local recentStoryId = ActivityAvgData:GetRecentStoryId(self.nChapterId)
+  local recentStoryId = self.storyData:GetRecentStoryId(self.nChapterId)
   local recentIndex = 1
   for i = 1, #self.tbAllStory do
     if self.tbAllStory[i] == recentStoryId then
@@ -141,19 +142,23 @@ function SwimThemeStory_11100Ctrl:OnRefreshGrid(grid, index)
   local goComplete = RootNode:Find("goComplete")
   local goLock = RootNode:Find("goLock")
   local reddot = RootNode:Find("RedDot")
-  local isUnlock, tbResult = ActivityAvgData:IsUnlock(avgcfg.ConditionId)
-  local isReaded = ActivityAvgData:IsStoryReaded(storyId)
-  local bOpen, nOpenTime = ActivityAvgData:IsOpen(avgcfg.StoryId, self.nActId)
+  local isUnlock, tbResult = self.storyData:IsUnlock(avgcfg.ConditionId)
+  local isReaded = self.storyData:IsStoryReaded(storyId)
+  local bOpen, nOpenTime = self.storyData:IsOpen(avgcfg.StoryId, self.nActId)
   local isFullUnlock = isUnlock and bOpen
   goUnlock.gameObject:SetActive(isFullUnlock)
   goComplete.gameObject:SetActive(isReaded and bOpen)
   goLock.gameObject:SetActive(not isFullUnlock)
-  local _bInActGroup, nActGroupId = PlayerData.Activity:IsActivityInActivityGroup(self.nActId)
-  RedDotManager.RegisterNode(RedDotDefine.Activity_GroupNew_Avg_Group, {
-    nActGroupId,
-    self.nActId,
-    avgcfg.Id
-  }, reddot, nil, nil, true)
+  if self.bReview then
+    reddot.gameObject:SetActive(false)
+  else
+    local _bInActGroup, nActGroupId = PlayerData.Activity:IsActivityInActivityGroup(self.nActId)
+    RedDotManager.RegisterNode(RedDotDefine.Activity_GroupNew_Avg_Group, {
+      nActGroupId,
+      self.nActId,
+      avgcfg.Id
+    }, reddot, nil, nil, true)
+  end
   local imgStory = RootNode:Find("imgStory"):GetComponent("Image")
   local txtIndex = goUnlock:Find("txtIndex"):GetComponent("TMP_Text")
   local txtTitle = goUnlock:Find("txtTitle"):GetComponent("TMP_Text")
@@ -208,10 +213,10 @@ function SwimThemeStory_11100Ctrl:OnRefreshGrid(grid, index)
       local bNew = not isReaded
       self.avgId = avgcfg.StoryId
       self._mapNode.ctlAvgRoot.gameObject:SetActive(true)
-      self._mapNode.ctlAvgRoot:OpenLevelInfo(avgcfg.StoryId, self.nActId, bNew)
+      self._mapNode.ctlAvgRoot:OpenLevelInfo(avgcfg.StoryId, self.nActId, bNew, self.bReview)
       self.curIndex = gridIndex
       LocalData.SetPlayerLocalData("Act_Story_New" .. self.nActId .. avgcfg.Id, true)
-      ActivityAvgData:RefreshAvgRedDot()
+      self.storyData:RefreshAvgRedDot()
     elseif tbResult ~= nil then
       local lockTxt = ""
       for i = 1, #tbResult do
@@ -236,7 +241,7 @@ function SwimThemeStory_11100Ctrl:OnRefreshGrid(grid, index)
               for k, v in pairs(tbStoryIds) do
                 if v == false then
                   local storyData = ConfigTable.GetData("ActivityStory", k)
-                  if ActivityAvgData:IsUnlock(storyData.ConditionId) then
+                  if self.storyData:IsUnlock(storyData.ConditionId) then
                     lockTxt = orderedFormat(ConfigTable.GetUIText("Story_UnlockPreId") or "", storyData.Title)
                     break
                   end
@@ -341,6 +346,7 @@ function SwimThemeStory_11100Ctrl:OnBtn_ClickCloseLevelInfoPanel()
   self._mapNode.t_fullscreen_blur_black:SetActive(false)
   self._mapNode.ctlAvgRoot.gameObject:SetActive(false)
   self._mapNode.goChapterComplete:SetActive(false)
+  EventManager.Hit("ActivityStoryReceive_SetVisible", true)
 end
 
 function SwimThemeStory_11100Ctrl:OnEvent_StoryDialog_DialogEnd()
@@ -356,7 +362,7 @@ end
 
 function SwimThemeStory_11100Ctrl:OnEvent_SelectMainlineBattle(bConfirm)
   local function OpenPanel()
-    EventManager.Hit(EventId.OpenPanel, PanelId.RegionBossFormation, AllEnum.RegionBossFormationType.ActivityStory, 0, self.avgId, self.nActId)
+    EventManager.Hit(EventId.OpenPanel, PanelId.RegionBossFormation, AllEnum.RegionBossFormationType.ActivityStory, 0, self.avgId, self.nActId, self.bReview)
   end
   
   if bConfirm then
@@ -368,6 +374,7 @@ function SwimThemeStory_11100Ctrl:OnEvent_Activity_Story_RewardClosed()
   self.bCantClick = false
   if self.curIndex == #self.tbAllStory then
     self._mapNode.goChapterComplete:SetActive(true)
+    EventManager.Hit("ActivityStoryReceive_SetVisible", false)
   end
 end
 

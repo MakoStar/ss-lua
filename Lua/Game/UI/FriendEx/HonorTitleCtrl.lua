@@ -28,7 +28,7 @@ function HonorTitleCtrl:SetHonotTitle(honorTitleId, bBig, affinity_lv)
   local honorData = ConfigTable.GetData("Honor", honorTitleId)
   self:SetPngSprite(self._mapNode.imgHonorTitle, bBig and honorData.MainRes or honorData.SubRes)
   NovaAPI.SetImageNativeSize(self._mapNode.imgHonorTitle)
-  if honorData.Type ~= GameEnum.honorType.Character and honorData.Type ~= GameEnum.honorType.Levels then
+  if honorData.Type ~= GameEnum.honorType.Character and honorData.Type ~= GameEnum.honorType.Levels and honorData.Type ~= GameEnum.honorType.Dorm then
     self._mapNode.goStarBig:SetActive(false)
     self._mapNode.goStarSmall:SetActive(false)
     self._mapNode.goHeartNumSmall:SetActive(false)
@@ -41,6 +41,8 @@ function HonorTitleCtrl:SetHonotTitle(honorTitleId, bBig, affinity_lv)
     self.tbHonorTitle, maxLevel = PlayerData.Char:GetCharHonorTitleData(honorData.Params[1])
   elseif honorData.Type == GameEnum.honorType.Levels then
     self.tbHonorTitle, maxLevel = PlayerData.Base:GetLevelHonorTitleData(honorTitleId)
+  elseif honorData.Type == GameEnum.honorType.Dorm then
+    self.tbHonorTitle, maxLevel = PlayerData.PlayerDormData:GetHonorTitleData(affinity_lv)
   end
   if self.tbHonorTitle == nil then
     return

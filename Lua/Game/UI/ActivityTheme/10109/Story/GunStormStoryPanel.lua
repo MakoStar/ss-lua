@@ -1,14 +1,22 @@
 local BasePanel = require("GameCore.UI.BasePanel")
 local GunStormStoryPanel = class("GunStormStoryPanel", BasePanel)
-GunStormStoryPanel._sUIResRootPath = "UI_Activity/"
 GunStormStoryPanel._tbDefine = {
   {
-    sPrefabPath = "10109/Story/GunStormStoryPanel.prefab",
+    sPrefabPath = "ActivityStoryReview/10109/GunStormStoryPanel.prefab",
     sCtrlName = "Game.UI.ActivityTheme.10109.Story.GunStormStoryCtrl"
+  },
+  {
+    sPrefabPath = "ActivityStoryReview/ActivityStoryReceivePanel.prefab",
+    sCtrlName = "Game.UI.ActivityStoryReview.ActivityStoryReceiveCtrl"
   }
 }
 
 function GunStormStoryPanel:Awake()
+  if self._tbParam[2] ~= true then
+    self._tbDefine = {
+      self._tbDefine[1]
+    }
+  end
 end
 
 function GunStormStoryPanel:OnEnable()

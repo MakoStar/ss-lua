@@ -1,4 +1,5 @@
 local SoldierShopCtrl = class("SoldierShopCtrl", BaseCtrl)
+local GamepadUIManager = require("GameCore.Module.GamepadUIManager")
 SoldierShopCtrl._mapNodeConfig = {
   btn_CloseShop = {
     sComponentName = "UIButton",
@@ -9,10 +10,11 @@ SoldierShopCtrl._mapNodeConfig = {
     sCtrlName = "Game.UI.Soldier.Sandtable.Items.SoldierCharCardShopItemCtrl"
   },
   btnRefreshShop = {
-    sComponentName = "UIButton",
+    sComponentName = "NaviButton",
+    sAction = "SoldierRefreshShop",
     callback = "OnBtnClick_RefreshShop"
   },
-  txtBtnRefreshShop = {sComponentName = "TMP_Text"},
+  txtBtnRefreshShop = {nCount = 4, sComponentName = "TMP_Text"},
   imgBtnRefreshShopMask = {},
   goCoinRaidUnlock = {},
   txtRefreshCount = {sComponentName = "TMP_Text"},
@@ -29,18 +31,31 @@ SoldierShopCtrl._mapNodeConfig = {
   btn_Probability = {
     sComponentName = "UIButton",
     callback = "OnBtnClick_Probability"
-  }
+  },
+  goSell = {},
+  btnShopSell = {sComponentName = "UIButton"},
+  txtShopSell = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Soldier_Sandtable_ShopCell"
+  },
+  txtShopSellPrice = {sComponentName = "TMP_Text"},
+  imgShopSellIcon = {sComponentName = "Image"}
 }
 SoldierShopCtrl._mapEventConfig = {
   SoldierItemChange = "OnEvent_SoldierItemChange"
 }
 SoldierShopCtrl._mapRedDotConfig = {}
 
+function SoldierShopCtrl:Awake()
+end
+
 function SoldierShopCtrl:OnEnable()
+  self._panel:AddGamepadUINode(self:GetGamepadUINode())
   self.nFreeCount = 0
   self.nReRollPrice = 0
   self.levelData = PlayerData.SoldierData:GetCurLevelData()
   self.timer = nil
+  self._mapNode.btn_CloseShop.gameObject:SetActive(false)
 end
 
 function SoldierShopCtrl:OnDisable()
@@ -55,7 +70,26 @@ function SoldierShopCtrl:ShowShopPanel()
     self.levelData = PlayerData.SoldierData:GetCurLevelData()
   end
   self:RefreshShopData()
+  self._mapNode.goSell:SetActive(false)
   self.gameObject:SetActive(true)
+  if not PlayerData.Guide:CheckGuideFinishById(507) then
+    EventManager.Hit("Guide_PassiveCheck_Msg", "Guide_Solider_507")
+  end
+end
+
+function SoldierShopCtrl:GetSellBtnInstanceId()
+  return self._mapNode.btnShopSell.gameObject:GetInstanceID()
+end
+
+function SoldierShopCtrl:SetSellMode(bShow, nPrice)
+  self._mapNode.goSell:SetActive(bShow)
+  if bShow and nPrice ~= nil then
+    NovaAPI.SetTMPText(self._mapNode.txtShopSellPrice, tostring(nPrice))
+  end
+end
+
+function SoldierShopCtrl:IsShopOpen()
+  return self.gameObject.activeSelf
 end
 
 function SoldierShopCtrl:RefreshShopData()
@@ -94,7 +128,9 @@ function SoldierShopCtrl:RefreshRefreshBtnState()
   elseif self.nFreeCount > 0 then
     sBtn = ConfigTable.GetUIText("Soldier_Shop_Refresh_Free")
   end
-  NovaAPI.SetTMPText(self._mapNode.txtBtnRefreshShop, sBtn)
+  for _, v in ipairs(self._mapNode.txtBtnRefreshShop) do
+    NovaAPI.SetTMPText(v, sBtn)
+  end
 end
 
 function SoldierShopCtrl:RefreshGoodsData()
@@ -105,12 +141,31 @@ function SoldierShopCtrl:RefreshGoodsData()
     nil,
     nil
   }
+  local tbGuideChess = {}
+  local bHasStar2 = false
+  local bGuide = PlayerData.Guide:CheckGuideFinishById(509)
+  local nNodeIndex = self.levelData:GetNodeIndex()
   for i = 1, 5 do
     if self.tbChessData[i] ~= nil then
       local bCombine = false
       local nNextStar = 0
       if self.tbChessData[i].Id ~= 0 then
         bCombine, nNextStar = self.levelData:CheckSoldierCombine(self.tbChessData[i].Id, self.tbChessData[i].Star)
+        if not bGuide and 3 <= nNodeIndex then
+          local tbAllChess = self.levelData:GetAllChess()
+          for _, v in ipairs(tbAllChess) do
+            if v.nId == self.tbChessData[i].Id then
+              table.insert(tbGuideChess, {
+                nId = v.nId,
+                nIndex = i,
+                nCost = self.tbChessData[i].Price
+              })
+            end
+            if v.nStar >= 2 then
+              bHasStar2 = true
+            end
+          end
+        end
       end
       if nNextStar == 0 and 1 < self.tbChessData[i].Star then
         nNextStar = self.tbChessData[i].Star
@@ -127,6 +182,23 @@ function SoldierShopCtrl:RefreshGoodsData()
     self._mapNode.SoldierCharCardShopItem[i]:SetClickCallback(_, function()
       self:OnBtnClick_Char(i)
     end)
+  end
+  if not bGuide and not bHasStar2 then
+    table.sort(tbGuideChess, function(a, b)
+      if a.nCost == b.nCost then
+        return a.nIndex < b.nIndex
+      end
+      return a.nCost > b.nCost
+    end)
+    if 0 < #tbGuideChess then
+      PlayerData.SoldierData:SetGuideData(509, tbGuideChess[1].nId)
+    else
+      PlayerData.SoldierData:SetGuideData(509, nil)
+    end
+    local nGuideData = PlayerData.SoldierData:GetGuideData(509)
+    if nGuideData ~= nil then
+      EventManager.Hit("Guide_PassiveCheck_Msg", "Guide_Solider_509")
+    end
   end
 end
 

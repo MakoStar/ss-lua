@@ -3,6 +3,7 @@ local ConfigData = require("GameCore.Data.ConfigData")
 local GamepadUIManager = require("GameCore.Module.GamepadUIManager")
 local LocalSettingData = require("GameCore.Data.LocalSettingData")
 local AdventureModuleHelper = CS.AdventureModuleHelper
+local ModuleManager = require("GameCore.Module.ModuleManager")
 local nMaxHeight = 395
 PopupSkillCtrl._mapNodeConfig = {
   btnCloseScreen = {
@@ -150,6 +151,13 @@ PopupSkillCtrl._mapNodeConfig = {
 }
 PopupSkillCtrl._mapEventConfig = {}
 
+function PopupSkillCtrl:GetCharSkinId(nCharId)
+  if not self.bOutBattle and ModuleManager.GetIsAdventure() then
+    return PlayerData.Build:GetBattleCharSkinId(nCharId)
+  end
+  return PlayerData.Char:GetCharSkinId(nCharId)
+end
+
 function PopupSkillCtrl:Awake()
   self._mapNode.btnShortcutClose.gameObject:SetActive(GamepadUIManager.GetInputState())
   if GamepadUIManager.GetInputState() then
@@ -183,9 +191,12 @@ function PopupSkillCtrl:OnEnable()
   self.mapCharSkill = {}
   local bTrial = tbTrialId and 0 < #tbTrialId
   for k, nCharId in ipairs(self.tbChar) do
-    if bTrial then
+    local mapChar = self.mapCharInfo and self.mapCharInfo[nCharId]
+    if mapChar and mapChar.tbSkillAddedLvs then
+      self.mapCharSkill[nCharId] = clone(mapChar.tbSkillAddedLvs)
+    elseif bTrial then
       self.mapCharSkill[nCharId] = PlayerData.Char:GetTrialCharSkillAddedLevel(tbTrialId[k])
-    elseif self.mapCharInfo == nil then
+    elseif self.mapCharInfo == nil or next(self.mapCharInfo) == nil then
       self.mapCharSkill[nCharId] = PlayerData.Char:GetCharSkillAddedLevel(nCharId)
     else
       self.mapCharSkill[nCharId] = clone(self.mapCharInfo[nCharId].tbSkillLvs)
@@ -208,7 +219,8 @@ function PopupSkillCtrl:OnEnable()
     local mapSkillUltraSub1 = ConfigTable.GetData_Skill(mapCfgDataSub1.UltimateId)
     self:SetPngSprite(self._mapNode.imgSubSkillIcon[1], mapSkillSub1.Icon)
     self:SetPngSprite(self._mapNode.imgUltraSkillIcon[1], mapSkillUltraSub1.Icon)
-    local nCharSkinId1 = PlayerData.Char:GetCharSkinId(self.tbChar[2])
+    local mapCharSub1 = self.mapCharInfo and self.mapCharInfo[self.tbChar[2]]
+    local nCharSkinId1 = mapCharSub1 and mapCharSub1.nSkinId or self:GetCharSkinId(self.tbChar[2])
     local mapCharSkin1 = ConfigTable.GetData_CharacterSkin(nCharSkinId1)
     self:SetPngSprite(self._mapNode.imgRoleHeadIcon[1], mapCharSkin1.Icon, AllEnum.CharHeadIconSurfix.L)
     self:SetAtlasSprite(self._mapNode.type_u1, "15_battle", "skill_btn_b_type_" .. mapCfgDataSub1.EET)
@@ -243,7 +255,8 @@ function PopupSkillCtrl:OnEnable()
     local mapSkillUltraSub2 = ConfigTable.GetData_Skill(mapCfgDataSub2.UltimateId)
     self:SetPngSprite(self._mapNode.imgSubSkillIcon[2], mapSkillSub2.Icon)
     self:SetPngSprite(self._mapNode.imgUltraSkillIcon[2], mapSkillUltraSub2.Icon)
-    local nCharSkinId2 = PlayerData.Char:GetCharSkinId(self.tbChar[3])
+    local mapCharSub2 = self.mapCharInfo and self.mapCharInfo[self.tbChar[3]]
+    local nCharSkinId2 = mapCharSub2 and mapCharSub2.nSkinId or self:GetCharSkinId(self.tbChar[3])
     local mapCharSkin2 = ConfigTable.GetData_CharacterSkin(nCharSkinId2)
     self:SetPngSprite(self._mapNode.imgRoleHeadIcon[2], mapCharSkin2.Icon, AllEnum.CharHeadIconSurfix.L)
     self:SetAtlasSprite(self._mapNode.type_u2, "15_battle", "skill_btn_b_type_" .. mapCfgDataSub2.EET)

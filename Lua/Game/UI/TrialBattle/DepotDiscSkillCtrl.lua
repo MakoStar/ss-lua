@@ -67,6 +67,7 @@ function DepotDiscSkillCtrl:RefreshDiscSkill(mapNote)
       local nNoteId = tonumber(k)
       local nNoteCount = tonumber(v)
       local noteCfg = ConfigTable.GetData("SubNoteSkill", nNoteId)
+      local sIconPath = ""
       if self._panel.mapNoteNeed[nNoteId] ~= nil and self._panel.mapNoteNeed[nNoteId] > 0 then
         sIconPath = noteCfg.Icon .. AllEnum.DiscSkillIconSurfix.S_Light
       else

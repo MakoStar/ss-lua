@@ -228,7 +228,7 @@ function TravelerDuelLevelData:PlaySuccessPerform(bNewRecord, nStar, nTime)
     local sName = ConfigTable.GetData("EndSceneType", nType).EndSceneName
     local tbSkin = {}
     for _, nCharId in ipairs(tbChar) do
-      local nSkinId = PlayerData.Char:GetCharSkinId(nCharId)
+      local nSkinId = PlayerData.Build:GetBattleCharSkinId(nCharId)
       table.insert(tbSkin, nSkinId)
     end
     CS.AdventureModuleHelper.PlaySettlementPerform(sName, "", tbSkin, func_OpenResult)
@@ -266,7 +266,7 @@ function TravelerDuelLevelData:OnEvnet_Pause()
       nHard = nHard + mapAffixCfgData.Difficulty
     end
   end
-  EventManager.Hit("OpenTDPause", self.nlevelId, self.tbCharId, nHard)
+  EventManager.Hit("OpenTDPause", self.nlevelId, self.tbCharId, nHard, self.tbCharTrialId)
 end
 
 function TravelerDuelLevelData:OnEvent_UploadDodgeEvent(padMode)

@@ -17,14 +17,10 @@ ReengagementBDPreviewItemCtrl._mapNodeConfig = {
   imgCharFrame = {nCount = 3, sComponentName = "Image"},
   txtPotentialCount = {nCount = 3, sComponentName = "TMP_Text"},
   imgCharElement = {nCount = 3, sComponentName = "Image"},
-  txtChar = {
-    sComponentName = "TMP_Text",
-    sLanguageId = "StarTower_Build_Char_Title"
-  },
   imgIcon = {sComponentName = "Image"},
   txtRating = {
     sComponentName = "TMP_Text",
-    sLanguageId = "StarTower_Build_Rating"
+    sLanguageId = "Template_Score"
   }
 }
 ReengagementBDPreviewItemCtrl._mapEventConfig = {}
@@ -57,7 +53,7 @@ function ReengagementBDPreviewItemCtrl:RefreshChar()
     local mapCharData = self.mapBuildData.tbChar[i]
     local nCharTid = mapCharData ~= nil and mapCharData.nTid or 0
     local mapCharCfg = 0 < nCharTid and ConfigTable.GetData_Character(nCharTid) or nil
-    local nCharSkinId = 0 < nCharTid and PlayerData.Char:GetCharSkinId(nCharTid) or 0
+    local nCharSkinId = 0 < nCharTid and PlayerData.Build:GetBuildCharSkinId(self.mapBuildData, mapCharData) or 0
     local mapCharSkin = 0 < nCharSkinId and ConfigTable.GetData_CharacterSkin(nCharSkinId) or nil
     local bShowChar = mapCharCfg ~= nil and mapCharSkin ~= nil
     self._mapNode.imgCharIcon[i].gameObject:SetActive(bShowChar)

@@ -167,12 +167,17 @@ JointDrillLevelSelectCtrl._mapNodeConfig = {
     sComponentName = "TMP_Text",
     sLanguageId = "JointDrill_Boss_Info"
   },
+  goSkillList = {},
   btnBossSkill = {
-    nCount = 6,
+    nCount = 5,
     sComponentName = "UIButton",
     callback = "OnBtnClick_Skill"
   },
-  imgBossSkill = {nCount = 6, sComponentName = "Image"},
+  imgBossSkill = {nCount = 5, sComponentName = "Image"},
+  goSkillListsv = {},
+  sv = {
+    sComponentName = "LoopScrollView"
+  },
   btnSkillDetail = {
     sComponentName = "UIButton",
     callback = "OnBtnClick_SkillDetail"
@@ -476,15 +481,7 @@ function JointDrillLevelSelectCtrl:RefreshLevelInfo()
     end
   end
   self.tbBossSkill = mapLevelCfg.BossAffix
-  for k, v in ipairs(self._mapNode.imgBossSkill) do
-    v.gameObject:SetActive(mapLevelCfg.BossAffix[k] ~= nil)
-    if mapLevelCfg.BossAffix[k] ~= nil then
-      local mapSkillCfg = ConfigTable.GetData("JointDrillAffix", mapLevelCfg.BossAffix[k])
-      if mapSkillCfg ~= nil then
-        self:SetPngSprite(v, mapSkillCfg.Icon)
-      end
-    end
-  end
+  self:ShowSkillList()
   self:RefreshBossSkill()
   local rewardData = mapLevelCfg.RewardPreview
   self.tbReward = decodeJson(rewardData)
@@ -497,6 +494,39 @@ function JointDrillLevelSelectCtrl:RefreshLevelInfo()
       self._mapNode.goRewardItem[i]:SetItem(self.tbReward[i][1], nil, self.tbReward[i][2], nil, bReceived, self.tbReward[i][3] == 1)
     else
       self._mapNode.goRewardItem[i]:SetItem(0)
+    end
+  end
+end
+
+function JointDrillLevelSelectCtrl:ShowSkillList()
+  if self.tbBossSkill ~= nil and #self.tbBossSkill <= 5 then
+    self._mapNode.goSkillList.gameObject:SetActive(true)
+    self._mapNode.goSkillListsv.gameObject:SetActive(false)
+    for i = 1, 5 do
+      if i <= #self.tbBossSkill then
+        self._mapNode.btnBossSkill[i].gameObject:SetActive(self.tbBossSkill[i] ~= nil)
+        local mapSkillCfg = ConfigTable.GetData("JointDrillAffix", self.tbBossSkill[i])
+        if mapSkillCfg ~= nil then
+          self:SetPngSprite(self._mapNode.imgBossSkill[i], mapSkillCfg.Icon)
+        end
+      else
+        self._mapNode.btnBossSkill[i].gameObject:SetActive(false)
+      end
+    end
+  elseif self.tbBossSkill ~= nil and #self.tbBossSkill > 5 then
+    self._mapNode.goSkillList.gameObject:SetActive(false)
+    self._mapNode.goSkillListsv.gameObject:SetActive(true)
+    self._mapNode.sv:Init(#self.tbBossSkill, self, self.OnGridSkillRefresh, self.OnBtnClick_Skill_sv, false)
+  end
+end
+
+function JointDrillLevelSelectCtrl:OnGridSkillRefresh(goGrid, gridIndex)
+  local nIndex = gridIndex + 1
+  local SkillIcon = goGrid.transform:Find("btnBossSkill1/AnimRoot/imgBossSkill1"):GetComponent("Image")
+  if self.tbBossSkill[nIndex] ~= nil then
+    local mapSkillCfg = ConfigTable.GetData("JointDrillAffix", self.tbBossSkill[nIndex])
+    if mapSkillCfg ~= nil then
+      self:SetPngSprite(SkillIcon, mapSkillCfg.Icon)
     end
   end
 end
@@ -935,6 +965,17 @@ function JointDrillLevelSelectCtrl:OnBtnClick_Skill(btn, nIndex)
     if nSkillId ~= 0 then
       local mapData = {nSkillId = nSkillId, bJointDrill = true}
       EventManager.Hit(EventId.OpenPanel, PanelId.SkillTips, btn.transform, mapData)
+    end
+  end
+end
+
+function JointDrillLevelSelectCtrl:OnBtnClick_Skill_sv(grid, nIndex)
+  local Index = nIndex + 1
+  if self.tbBossSkill[Index] ~= nil then
+    local nSkillId = self.tbBossSkill[Index]
+    if nSkillId ~= 0 then
+      local mapData = {nSkillId = nSkillId, bJointDrill = true}
+      EventManager.Hit(EventId.OpenPanel, PanelId.SkillTips, grid.transform, mapData)
     end
   end
 end

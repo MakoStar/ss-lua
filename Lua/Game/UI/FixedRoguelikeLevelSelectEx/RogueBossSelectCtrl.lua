@@ -226,7 +226,10 @@ RogueBossSelectCtrl._mapNodeConfig = {
   Conditions_ = {nCount = 2},
   imgDoubleDrop = {},
   txtDoubleDrop = {sComponentName = "TMP_Text"},
-  txtDoubleDropCount = {sComponentName = "TMP_Text"}
+  txtDoubleDropCount = {sComponentName = "TMP_Text"},
+  imgReengagementDrop = {},
+  txtReengagementDoubleDrop = {sComponentName = "TMP_Text"},
+  txtReengagementDropCount = {sComponentName = "TMP_Text"}
 }
 RogueBossSelectCtrl._mapEventConfig = {
   [EventId.UIHomeConfirm] = "OnEvent_Home",
@@ -633,10 +636,20 @@ function RogueBossSelectCtrl:RefreshLevelInfo(nGroupId, nDifficult)
   self._mapNode.btnLock.gameObject:SetActive(not isUnLock)
   self._mapNode.ListConditions:SetActive(not isUnLock)
   self._mapNode.imgDoubleDrop:SetActive(false)
+  self._mapNode.imgReengagementDrop:SetActive(false)
   self.actData = PlayerData.Activity:GetActivityDataByType(GameEnum.activityType.Double)
+  local nReengagementCount = PlayerData.Reengagement:GetDoubleDropCount()
+  local bShowNormalDouble = false
   if self.actData ~= nil and self.actData:CheckActShow() and self.actData:CheckInstanceType(GameEnum.instanceType.RegionBoss) then
+    local nCurCount, nMaxCount = self.actData:GetDoubleDropsTimes()
+    bShowNormalDouble = 0 < nMaxCount - nCurCount
+  end
+  if bShowNormalDouble then
     self._mapNode.imgDoubleDrop:SetActive(isUnLock)
     self:RefreshDoubleDropCount()
+  elseif isUnLock and 0 < nReengagementCount then
+    self._mapNode.imgReengagementDrop:SetActive(true)
+    self:RefreshReengagementCount()
   end
   if not isUnLock and not isHandCoreType then
     local imgConditions_Lock_WC = self._mapNode.Conditions_[1].gameObject.transform:Find("imgConditions_Lock").gameObject
@@ -658,6 +671,14 @@ function RogueBossSelectCtrl:RefreshLevelInfo(nGroupId, nDifficult)
     self._mapNode.Conditions_[2]:SetActive(true)
   else
   end
+end
+
+function RogueBossSelectCtrl:RefreshReengagementCount()
+  local nReengagementCount = PlayerData.Reengagement:GetDoubleDropCount()
+  local str = ConfigTable.GetUIText("Reengagement_DoubleDrop_LevelTip") .. ":"
+  NovaAPI.SetTMPText(self._mapNode.txtReengagementDoubleDrop, str)
+  local nMaxCount = PlayerData.Reengagement:GetMaxDoubleDropCount()
+  NovaAPI.SetTMPText(self._mapNode.txtReengagementDropCount, string.format("%s/%s", nReengagementCount, nMaxCount))
 end
 
 function RogueBossSelectCtrl:OnBtnClick_HardTog(btn)
@@ -1010,6 +1031,7 @@ end
 
 function RogueBossSelectCtrl:OnEvent_RaidSuccess()
   self:RefreshDoubleDropCount()
+  self:RefreshReengagementCount()
 end
 
 function RogueBossSelectCtrl:OnBtnClick_BossTick(btn)

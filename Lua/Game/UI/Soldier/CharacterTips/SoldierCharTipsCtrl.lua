@@ -58,6 +58,10 @@ SoldierCharTipsCtrl._mapNodeConfig = {
   goBaseInfo = {
     sComponentName = "RectTransform"
   },
+  btnCharAttr = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_CharAttr"
+  },
   btnTabFront = {
     sComponentName = "UIButton",
     callback = "OnBtnClick_Front"
@@ -152,6 +156,7 @@ function SoldierCharTipsCtrl:Awake()
     self.tbDeployedChess = tbParam[3] or {}
     self.tbPartner = tbParam[4] or {}
     self.tbCurAttr = tbParam[5] or {}
+    self.bAddCharGrowth = tbParam[6]
   end
 end
 
@@ -342,7 +347,7 @@ function SoldierCharTipsCtrl:_SetAttr(mapCfg)
   self:_ClearPropertyItems()
   self._mapNode.goPropertyItem.gameObject:SetActive(false)
   local nStar = type(self.tbData) == "table" and self.tbData.nStar or mapCfg.MaxStar or 1
-  local tbAttrSortList, tbAttrMap = SoldierAttrData.CalcCharacterAttr(mapCfg.Id, nStar, self.tbDeployedChess, self.tbPartner)
+  local tbAttrSortList, tbAttrMap = SoldierAttrData.CalcCharacterAttr(mapCfg.Id, nStar, self.tbDeployedChess, self.tbPartner, nil, self.bAddCharGrowth)
   if type(tbAttrSortList) ~= "table" then
     return
   end
@@ -356,7 +361,7 @@ function SoldierCharTipsCtrl:_SetAttr(mapCfg)
       Recovery = "nRecoverRate",
       CritRate = "critRate",
       CritPower = "critPower",
-      AttackSpeed = "attackSpeed"
+      ATKSPD_P = "attackSpeed"
     }
     for _, mapAttr in ipairs(tbAttrSortList) do
       local curAttrKey = attrKeyMap[mapAttr.sKey]
@@ -539,6 +544,10 @@ end
 function SoldierCharTipsCtrl:OnBtnClick_CloseWord(btn)
   self._mapNode.btnCloseWordTip.gameObject:SetActive(false)
   self._mapNode.imgWordTipBg:SetActive(false)
+end
+
+function SoldierCharTipsCtrl:OnBtnClick_CharAttr()
+  EventManager.Hit(EventId.OpenPanel, PanelId.SoldierCharAttriTips, self.nId, true)
 end
 
 function SoldierCharTipsCtrl:OnEvent_ShowBg()

@@ -45,8 +45,8 @@ function TrekkerVersusData:RefreshTrekkerVersusData(nActId, msgData)
   self.tbDuelRewardIds = msgData.DuelRewardIds
   self.tbDuelHistory = msgData.Results
   self.bFirstBattlePlayed = self.nIdleRewardStartTime ~= nil and self.nIdleRewardStartTime > 0
-  self.nLastBuildId = msgData.BuildId
-  self.nCachedBuildId = msgData.BuildId
+  self.nLastBuildId = msgData.Build.BuildId
+  self.nCachedBuildId = msgData.Build.BuildId
   self.nRecord = msgData.Show.Difficult or 0
   self.nRivalCount = 0
   
@@ -78,10 +78,13 @@ function TrekkerVersusData:EnterTrekkerVersus(nActId, nLevelId, nBuildId, tbAffi
     self:EnterGame(nLevelId, nBuildId, tbAffix)
   end
   
+  local mapBuildData = PlayerData.Build:GetBuildData(nBuildId)
+  local bTrial = mapBuildData.nBuildSource == AllEnum.BuildSource.Trial or mapBuildData.nBuildSource == AllEnum.BuildSource.LimitedTrial
+  local nBuildType = bTrial and 2 or 1
   local msg = {
     ActivityId = nActId,
     LevelId = nLevelId,
-    BuildId = nBuildId,
+    Build = {Type = nBuildType, BuildId = nBuildId},
     AffixIds = tbAffix
   }
   HttpNetHandler.SendMsg(NetMsgId.Id.activity_trekker_versus_apply_req, msg, nil, callback)

@@ -283,6 +283,13 @@ function RaidRewardCtrl:OnGridRefresh(goGrid, gridIndex)
     if mapData[i] then
       self.tbGridObj[nInstanceID][i].gameObject:SetActive(true)
       self.tbGridObj[nInstanceID][i]:SetItem(mapData[i].Tid, nil, mapData[i].Qty, nil, nil, nil, nil, true, nil, nil, mapData[i].ExtraDrop == 1, mapData[i].ExtraDrop == AllEnum.RewardType.Double)
+      if mapData[i].ExtraDrop == AllEnum.RewardType.Double then
+        local goThisGrid = self.tbGridObj[nInstanceID][i].gameObject
+        local imgExtra = goThisGrid.transform:Find("AnimRoot/tc_item_02").transform:GetChild(5):GetChild(8).gameObject
+        local imgReengagement = goThisGrid.transform:Find("AnimRoot/tc_item_02").transform:GetChild(5):GetChild(9).gameObject
+        imgExtra:SetActive(true)
+        imgReengagement:SetActive(false)
+      end
     else
       self.tbGridObj[nInstanceID][i].gameObject:SetActive(false)
     end
@@ -294,6 +301,13 @@ function RaidRewardCtrl:RefreshResult()
     self._mapNode.goAllItem[i].gameObject:SetActive(false)
     if self.tbResult[i] then
       self._mapNode.goAllItem[i]:SetItem(self.tbResult[i].Tid, nil, self.tbResult[i].Qty, nil, nil, nil, nil, true, nil, nil, self.tbResult[i].ExtraDrop == 1, self.tbResult[i].ExtraDrop == AllEnum.RewardType.Double)
+      if self.tbResult[i].ExtraDrop == AllEnum.RewardType.Double then
+        local goGrid = self._mapNode.goAllItem[i].gameObject
+        local imgExtra = goGrid.transform:Find("AnimRoot/tc_item_02").transform:GetChild(5):GetChild(8).gameObject
+        local imgReengagement = goGrid.transform:Find("AnimRoot/tc_item_02").transform:GetChild(5):GetChild(9).gameObject
+        imgExtra:SetActive(true)
+        imgReengagement:SetActive(false)
+      end
     end
   end
   self._mapNode.btnReview.gameObject:SetActive(7 < #self.tbResult)

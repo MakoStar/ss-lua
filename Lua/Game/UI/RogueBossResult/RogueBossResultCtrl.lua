@@ -254,7 +254,7 @@ function RogueBossResultCtrl:OnEnable()
   for i = 1, #self._mapNode.btnDamageResult do
     self._mapNode.btnDamageResult[i].gameObject:SetActive(self.tbCharDamage ~= nil and 0 < #self.tbCharDamage)
   end
-  local buildData = PlayerData.Build._MapBuildData[buildId]
+  local buildData = PlayerData.Build:GetBuildData(buildId)
   local teamMemberid = {}
   for i, v in pairs(buildData.tbChar) do
     table.insert(teamMemberid, v.nTid)

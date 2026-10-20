@@ -107,6 +107,8 @@ function TravelerDuelRankingGrid:Refresh(mapRanking)
             break
           end
         end
+      elseif honorData.Type == GameEnum.honorType.Dorm then
+        level = PlayerData.PlayerDormData:GetHonorTitleLevel()
       end
       self._mapNode.goHonorTitle[i]:SetHonotTitle(honorData.Id, i == 1, level)
     end

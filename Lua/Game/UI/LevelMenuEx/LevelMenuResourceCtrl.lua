@@ -73,7 +73,9 @@ LevelMenuResourceCtrl._mapNodeConfig = {
   imgChooseTimes = {},
   imgChooseSkill = {},
   imgChooseRegion = {},
-  imgChooseEquipment = {}
+  imgChooseEquipment = {},
+  imgReengagementTips = {},
+  txtReengagementTips = {sComponentName = "TMP_Text"}
 }
 LevelMenuResourceCtrl._mapEventConfig = {}
 LevelMenuResourceCtrl._mapRedDotConfig = {
@@ -139,14 +141,36 @@ function LevelMenuResourceCtrl:RefreshFuncOpen()
 end
 
 function LevelMenuResourceCtrl:RefreshDropUp(actData)
-  local tbDoubleType = {}
+  self._mapNode.imgTimesDoubleDrop.gameObject:SetActive(false)
+  self._mapNode.imgRegionDoubleDrop.gameObject:SetActive(false)
+  self._mapNode.imgSkillDoubleDrop.gameObject:SetActive(false)
+  self._mapNode.imgEquipmentDoubleDrop.gameObject:SetActive(false)
+  self._mapNode.imgReengagementTips:SetActive(false)
+  local nReengagementCount = PlayerData.Reengagement:GetDoubleDropCount()
   if actData ~= nil then
+    local tbDoubleType = {}
     tbDoubleType = actData:GetDoubleFuncType()
+    self._mapNode.imgTimesDoubleDrop.gameObject:SetActive(table.indexof(tbDoubleType, GameEnum.OpenFuncType.DailyInstance) > 0)
+    self._mapNode.imgRegionDoubleDrop.gameObject:SetActive(0 < table.indexof(tbDoubleType, GameEnum.OpenFuncType.RegionBoss))
+    self._mapNode.imgSkillDoubleDrop.gameObject:SetActive(0 < table.indexof(tbDoubleType, GameEnum.OpenFuncType.SkillInstance))
+    self._mapNode.imgEquipmentDoubleDrop.gameObject:SetActive(0 < table.indexof(tbDoubleType, GameEnum.OpenFuncType.CharGemInstance))
   end
-  self._mapNode.imgTimesDoubleDrop.gameObject:SetActive(table.indexof(tbDoubleType, GameEnum.OpenFuncType.DailyInstance) > 0)
-  self._mapNode.imgRegionDoubleDrop.gameObject:SetActive(0 < table.indexof(tbDoubleType, GameEnum.OpenFuncType.RegionBoss))
-  self._mapNode.imgSkillDoubleDrop.gameObject:SetActive(0 < table.indexof(tbDoubleType, GameEnum.OpenFuncType.SkillInstance))
-  self._mapNode.imgEquipmentDoubleDrop.gameObject:SetActive(0 < table.indexof(tbDoubleType, GameEnum.OpenFuncType.CharGemInstance))
+  if 0 < nReengagementCount then
+    self._mapNode.imgReengagementTips:SetActive(true)
+    self._mapNode.imgTimesDoubleDrop.gameObject:SetActive(true)
+    self._mapNode.imgRegionDoubleDrop.gameObject:SetActive(true)
+    self._mapNode.imgSkillDoubleDrop.gameObject:SetActive(true)
+    self._mapNode.imgEquipmentDoubleDrop.gameObject:SetActive(true)
+    self:RefreshReengagementCount()
+  end
+end
+
+function LevelMenuResourceCtrl:RefreshReengagementCount()
+  local nReengagementCount = PlayerData.Reengagement:GetDoubleDropCount()
+  local nMaxCount = PlayerData.Reengagement:GetMaxDoubleDropCount()
+  local str = ConfigTable.GetUIText("Reengagement_DoubleDrop_LevelTip")
+  str = str .. ":" .. nReengagementCount .. "/" .. nMaxCount
+  NovaAPI.SetTMPText(self._mapNode.txtReengagementTips, str)
 end
 
 function LevelMenuResourceCtrl:Awake()

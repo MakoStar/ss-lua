@@ -47,6 +47,7 @@ CustomerItemCtrl._mapNodeConfig = {
     sNodeName = "txt_AddScore",
     sComponentName = "TMP_Text"
   },
+  txt_X = {},
   txt_TimesScore = {
     sNodeName = "txt_TimesScore",
     sComponentName = "TMP_Text"
@@ -144,7 +145,7 @@ function CustomerItemCtrl:ResetData()
   self._mapNode.CompleteRoot:SetActive(false)
 end
 
-function CustomerItemCtrl:SetActiveData(nInstId, nRoleId, bIsSpecial, nItemID, nMaxPatienceValue, nMaxScoop)
+function CustomerItemCtrl:SetActiveData(nInstId, nRoleId, bIsSpecial, nItemID, nMaxPatienceValue, nMaxScoop, tbUnlockSlot)
   self.nCharacterId = nInstId
   self.nRoleId = nRoleId
   self.bIsSpecial = bIsSpecial
@@ -156,7 +157,7 @@ function CustomerItemCtrl:SetActiveData(nInstId, nRoleId, bIsSpecial, nItemID, n
   end
   self:CreatSpine(self.nRoleId)
   self:RefreshSpecialState()
-  self.bGetOrder = self._mapNode.IceCreamOrder:SetNewOrder(self.nCharacterId, nMaxScoop)
+  self.bGetOrder = self._mapNode.IceCreamOrder:SetNewOrder(self.nCharacterId, nMaxScoop, tbUnlockSlot, self.bIsSpecial)
   if not self.bGetOrder then
     printError("丢失订单")
   end
@@ -378,7 +379,11 @@ function CustomerItemCtrl:_StartPatienceTween()
   self.PatienceValue = nCur
   NovaAPI.SetImageFillAmount(img, nCur / nMax)
   if nCur <= 0 then
-    EventManager.Hit("Event_CustomerLeave_False", self.nCharacterId)
+    if self.bIsSpecial then
+      EventManager.Hit("Event_SpecialPGLeave", self.nCharacterId)
+    else
+      EventManager.Hit("Event_CustomerLeave_False", self.nCharacterId)
+    end
     return
   end
   local fDur = nCur
@@ -406,7 +411,11 @@ function CustomerItemCtrl:_StartPatienceTween()
     end
     self._patienceTweener = nil
     self.PatienceValue = 0
-    EventManager.Hit("Event_CustomerLeave_False", nCharId)
+    if self.bIsSpecial then
+      EventManager.Hit("Event_SpecialPGLeave", self.nCharacterId)
+    else
+      EventManager.Hit("Event_CustomerLeave_False", self.nCharacterId)
+    end
   end)
   if self.bInFever or self.bFreezePatience then
     self._patienceTweener:Pause()
@@ -723,6 +732,9 @@ function CustomerItemCtrl:ShowCompleteRoot(BaseScore, FComboMul, FeverMul, FBuff
   local nBuffMul = FComboMul * FBuffMul
   NovaAPI.SetTMPText(self._mapNode.txt_BaseScore, sBaseScore)
   NovaAPI.SetTMPText(self._mapNode.txt_TimesScore, string.format("%.1f", nBuffMul))
+  self._mapNode.txt_BaseScore.gameObject:SetActive(not self.bIsSpecial)
+  self._mapNode.txt_TimesScore.gameObject:SetActive(not self.bIsSpecial)
+  self._mapNode.txt_X.gameObject:SetActive(not self.bIsSpecial)
   local sKey = "CompleteRoot_in1"
   if 1 <= nBuffMul and nBuffMul < 1.2 then
     sKey = "CompleteRoot_in1"

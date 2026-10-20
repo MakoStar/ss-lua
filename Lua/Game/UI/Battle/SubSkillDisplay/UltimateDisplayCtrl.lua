@@ -65,7 +65,7 @@ function UltimateDisplayCtrl:ShowSkill(nCharId, nIdx, callback)
   self.gameObject.transform.localScale = Vector3.one
   self.gameObject.transform:SetAsFirstSibling()
   self.nIdx = nIdx
-  local nSkinId = PlayerData.Char:GetCharSkinId(nCharId)
+  local nSkinId = PlayerData.Build:GetBattleCharSkinId(nCharId)
   Actor2DManager.SetActor2D_ForSubSKill(PanelId.SubSkillDisplay, self._mapNode.DisplayL2d, nCharId, nSkinId, nil, nIdx)
   Actor2DManager.PlayAnim("ultra", true, nIdx)
   self.callback = callback
@@ -140,7 +140,7 @@ function UltimateDisplayCtrl:InterrputAnim()
 end
 
 function UltimateDisplayCtrl:InitL2dRes(nCharId, nIdx)
-  local nSkinId = PlayerData.Char:GetCharSkinId(nCharId)
+  local nSkinId = PlayerData.Build:GetBattleCharSkinId(nCharId)
   local mapSkin = ConfigTable.GetData_CharacterSkin(nSkinId)
   local sBodyName = string.format("%s_001", nSkinId)
   local mapCharCfgData = ConfigTable.GetData_Character(nCharId)

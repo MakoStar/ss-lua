@@ -13,6 +13,13 @@ end
 function StoryChapterPanel:OnEnable()
 end
 
+function StoryChapterPanel:OnAfterEnter()
+  local tbParam = self:GetPanelParam()
+  if type(tbParam) == "table" and tbParam[2] == true then
+    EventManager.Hit(EventId.ClosePanel, PanelId.MainlineEx)
+  end
+end
+
 function StoryChapterPanel:OnDisable()
 end
 

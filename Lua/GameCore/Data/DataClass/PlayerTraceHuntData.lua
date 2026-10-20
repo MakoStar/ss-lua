@@ -246,7 +246,7 @@ function PlayerTraceHuntData:CacheTraceHuntInfo(mapTraceHuntInfo)
   end
   self:UpdateControlData()
   self:UpdateLevel(mapTraceHuntInfo.Level, mapTraceHuntInfo.Exp)
-  self:SetSelBuildId(mapTraceHuntInfo.BuildID)
+  self:SetSelBuildId(mapTraceHuntInfo.Build and mapTraceHuntInfo.Build.BuildId or 0)
   local bComplete = self:CheckHuntComplete()
   local bInterrupt = self:CheckHuntInterrupt()
   self:UpdateBossRewardRedDot(bComplete or bInterrupt)
@@ -852,10 +852,13 @@ function PlayerTraceHuntData:SendTraceHuntApplyReq(nOwnerUID, nBossID, nBuildId,
   local nDifficulty = self:GetDifficultyBySource(bSelfBoss)
   local mapBoss = ConfigTable.GetData("TraceHuntBoss", nBossID)
   local nFloorId = self.tbTraceHuntFloor[mapBoss.FloorGroup][nDifficulty].Id
+  local mapBuildData = PlayerData.Build:GetBuildData(nBuildId)
+  local bTrial = mapBuildData.nBuildSource == AllEnum.BuildSource.Trial or mapBuildData.nBuildSource == AllEnum.BuildSource.LimitedTrial
+  local nBuildType = bTrial and 2 or 1
   local msgData = {
     OwnerUID = nOwnerUID,
     BossID = nBossID,
-    BuildID = nBuildId,
+    Build = {Type = nBuildType, BuildId = nBuildId},
     BossCreateTime = nBossCreateTime,
     Difficulty = nDifficulty
   }
@@ -1050,10 +1053,8 @@ function PlayerTraceHuntData:UpdateTraceItemRedDot()
 end
 
 function PlayerTraceHuntData:UpdateItemEntranceRedDot()
-  local bReward = RedDotManager.GetValid(RedDotDefine.TraceHunt_Reward_Boss)
-  local bHuntMax = RedDotManager.GetValid(RedDotDefine.TraceHunt_HuntItem)
   local bTraceMax = RedDotManager.GetValid(RedDotDefine.TraceHunt_TraceItem)
-  RedDotManager.SetValid(RedDotDefine.TraceHunt_Item, nil, not bReward and (bHuntMax or bTraceMax))
+  RedDotManager.SetValid(RedDotDefine.TraceHunt_Item, nil, bTraceMax)
 end
 
 function PlayerTraceHuntData:EnterTraceHunt(nLevelId, nBuildId, nFloorId)

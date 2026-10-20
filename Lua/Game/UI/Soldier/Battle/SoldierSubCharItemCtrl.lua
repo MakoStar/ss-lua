@@ -17,7 +17,7 @@ SoldierSubCharItemCtrl._mapNodeConfig = {
     callback = "OnBtnClick_Item"
   },
   imgRarity = {sComponentName = "Image"},
-  imgIcon = {sComponentName = "Image"},
+  imgIconSoldier = {sComponentName = "Image"},
   imgStar = {nCount = 5, sComponentName = "Image"},
   rtBuff = {
     sCtrlName = "Game.UI.Hud.Buff.BuffCtrl"
@@ -25,7 +25,9 @@ SoldierSubCharItemCtrl._mapNodeConfig = {
   imgDeathMask = {},
   Fx_Charge = {},
   Fx_fish = {},
-  Fx_Death = {}
+  Fx_Death = {},
+  ItemRoot = {},
+  imgEmpty = {}
 }
 SoldierSubCharItemCtrl._mapEventConfig = {
   SoldierCharSpawn = "OnEvent_SoldierCharSpawn"
@@ -66,7 +68,7 @@ function SoldierSubCharItemCtrl:InitChar(mapData, tbChess, tbPartner, parent)
     self:SetPngSprite(self._mapNode.imgRarity, sIcon)
     local skinCfg = ConfigTable.GetData("SoldierSkin", mapCfg.Skin)
     if skinCfg then
-      self:SetPngSprite(self._mapNode.imgIcon, skinCfg.Icon .. AllEnum.SoldierChessIconSurfix.M)
+      self:SetPngSprite(self._mapNode.imgIconSoldier, skinCfg.Icon .. AllEnum.SoldierChessIconSurfix.M)
     end
     local _, color = ColorUtility.TryParseHtmlString(ImgChessRarityColor[mapCfg.Rarity])
     NovaAPI.SetImageColor(self._mapNode.imgSkillStart, color)
@@ -75,10 +77,20 @@ function SoldierSubCharItemCtrl:InitChar(mapData, tbChess, tbPartner, parent)
   for k, v in ipairs(self._mapNode.imgStar) do
     v.gameObject:SetActive(k <= mapData.nStar)
   end
+  self._mapNode.ItemRoot:SetActive(false)
+  self._mapNode.AnimRoot.gameObject:SetActive(true)
+  self._mapNode.imgEmpty:SetActive(false)
+end
+
+function SoldierSubCharItemCtrl:SetEmpty()
+  self._mapNode.AnimRoot.gameObject:SetActive(false)
+  self._mapNode.imgEmpty:SetActive(true)
 end
 
 function SoldierSubCharItemCtrl:CloseUI()
-  self:RemoveEntityEvent()
+  if self.nCharId and self.nCharId > 0 then
+    self:RemoveEntityEvent()
+  end
   self.bAddEvent = false
   self.nCharId = 0
 end
@@ -100,6 +112,9 @@ function SoldierSubCharItemCtrl:SetTipsRoot(tr)
 end
 
 function SoldierSubCharItemCtrl:OnBtnClick_Item()
+  if self.nCharId == nil or self.nCharId == 0 then
+    return
+  end
   if self.isDeath == true then
     EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Soldier_Death_Tips"))
     return

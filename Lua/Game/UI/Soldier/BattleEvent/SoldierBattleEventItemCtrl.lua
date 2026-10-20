@@ -10,17 +10,8 @@ SoldierBattleEventItemCtrl._mapNodeConfig = {
   },
   txtTakeBuff = {
     sComponentName = "TMP_Text",
-    sLanguageId = "Btn_EarnReward"
-  },
-  btnChallenge = {
-    sComponentName = "UIButton",
-    callback = "OnBtnClick_Challenge"
-  },
-  txtBtnChallenge = {
-    sComponentName = "TMP_Text",
     sLanguageId = "Soldier_BattleEventItem_Challenge"
   },
-  txtNeedPoint = {sComponentName = "TMP_Text"},
   txt_charTitle = {
     sComponentName = "TMP_Text",
     sLanguageId = "Soldier_BattleEventItem_RewardItem"
@@ -86,10 +77,6 @@ function SoldierBattleEventItemCtrl:SetItemData(tbItem)
   end
   self:SetPngSprite(self._mapNode.imgBgNormal, "Icon/SoldierOtherIcon/EventBattleQuality_0" .. cfg.LevelName)
   self:RefreshCharItems(cfg.coin, cfg.CharacterCount, cfg.StrategyCardCount)
-  local tbDicePointLevel = ConfigTable.GetConfigArray("SoldierChessEventBattle")
-  self.nNeedPoint = tonumber(tbDicePointLevel[self._nIndex]) or 0
-  local sNeedText = orderedFormat(ConfigTable.GetUIText("Soldier_Event_NeedPoint"), self.nNeedPoint)
-  NovaAPI.SetTMPText(self._mapNode.txtNeedPoint, sNeedText or "")
 end
 
 function SoldierBattleEventItemCtrl:RefreshCharItems(nCoinCount, nCharCount, nStrategyCardCount)
@@ -123,20 +110,7 @@ function SoldierBattleEventItemCtrl:RefreshCharItems(nCoinCount, nCharCount, nSt
 end
 
 function SoldierBattleEventItemCtrl:SetButtonInit()
-  self._mapNode.btnTakeBuff.gameObject:SetActive(false)
-  self._mapNode.btnChallenge.gameObject:SetActive(false)
-  self._mapNode.txtNeedPoint.gameObject:SetActive(true)
-end
-
-function SoldierBattleEventItemCtrl:SetDiceCasted(nPoint)
-  self._mapNode.txtNeedPoint.gameObject:SetActive(false)
-  if nPoint < self.nNeedPoint then
-    self._mapNode.btnTakeBuff.gameObject:SetActive(false)
-    self._mapNode.btnChallenge.gameObject:SetActive(true)
-  else
-    self._mapNode.btnTakeBuff.gameObject:SetActive(true)
-    self._mapNode.btnChallenge.gameObject:SetActive(false)
-  end
+  self._mapNode.btnTakeBuff.gameObject:SetActive(true)
 end
 
 function SoldierBattleEventItemCtrl:OnGridBtnClick(nIndex)
@@ -182,14 +156,6 @@ function SoldierBattleEventItemCtrl:_SetIcon(sIconPath)
 end
 
 function SoldierBattleEventItemCtrl:OnBtnClick_TakeBuff()
-  local function callback()
-    EventManager.Hit("SoldierSelectEventBattle")
-  end
-  
-  PlayerData.SoldierData:GetCurLevelData():SendEventBattleChoose(self._nIndex, callback)
-end
-
-function SoldierBattleEventItemCtrl:OnBtnClick_Challenge()
   local function callback()
     EventManager.Hit("SoldierSelectEventBattle")
   end

@@ -16,10 +16,16 @@ function PlayerStoryData:CacheLastStory(msgData)
   if msgData.Story ~= nil then
     self.nLastMainlineStoryId = msgData.Story.Idx
   end
-  if msgData.StorySet ~= nil then
-    self.tbRecentStoryInfo.Type = GameEnum.StoryPreviewType.StorySet
-    self.tbRecentStoryInfo.ChapterId = msgData.StorySet.ChapterId
-    self.tbRecentStoryInfo.StoryId = msgData.StorySet.SectionId
+  if msgData.Type == 1 then
+    if msgData.StorySet ~= nil then
+      self.tbRecentStoryInfo.Type = GameEnum.StoryPreviewType.StorySet
+      self.tbRecentStoryInfo.ChapterId = msgData.StorySet.ChapterId
+      self.tbRecentStoryInfo.StoryId = msgData.StorySet.SectionId
+    end
+  elseif msgData.Type == 2 and msgData.ActivityStory ~= nil then
+    self.tbRecentStoryInfo.Type = GameEnum.StoryPreviewType.ActivityStory
+    self.tbRecentStoryInfo.ChapterId = msgData.ActivityStory.ChapterId
+    self.tbRecentStoryInfo.StoryId = msgData.ActivityStory.StoryId
   end
 end
 
@@ -39,11 +45,12 @@ function PlayerStoryData:GetRecentStoryInfo()
     if self.tbRecentStoryInfo.StoryId == nil or self.tbRecentStoryInfo.ChapterId == nil then
       return false
     end
-    local config = ConfigTable.GetData("ActivityStoryChapter", self.tbRecentStoryInfo.ChapterId, "")
+    local config = CacheTable.GetData("_ActivityStoryChapter", self.tbRecentStoryInfo.ChapterId, "")
     if config == nil then
       return false
     end
-    return true
+    local title = config.Title
+    return true, self.tbRecentStoryInfo, title, config.Banner
   elseif self.tbRecentStoryInfo.Type == GameEnum.StoryPreviewType.StorySet then
     if self.tbRecentStoryInfo.ChapterId == nil then
       return false
@@ -53,6 +60,16 @@ function PlayerStoryData:GetRecentStoryInfo()
       return false
     end
     local title = ConfigTable.GetUIText("Nova_Story") .. " " .. config.Title
+    return true, self.tbRecentStoryInfo, title, config.Banner
+  elseif self.tbRecentStoryInfo.Type == GameEnum.StoryPreviewType.ActivityStory then
+    if self.tbRecentStoryInfo.ChapterId == nil then
+      return false
+    end
+    local config = CacheTable.GetData("_ActivityStoryChapter", self.tbRecentStoryInfo.ChapterId)
+    if config == nil then
+      return false
+    end
+    local title = ConfigTable.GetUIText("_ActivityStoryChapter") .. " " .. config.Title
     return true, self.tbRecentStoryInfo, title, config.Banner
   end
 end
@@ -67,8 +84,8 @@ function PlayerStoryData:SetRecentStoryInfo(type, chapterId, storyId)
       Type = 1,
       StorySet = {ChapterId = chapterId, SectionId = storyId}
     }
+    HttpNetHandler.SendMsg(NetMsgId.Id.player_last_read_update_req, msgData)
   end
-  HttpNetHandler.SendMsg(NetMsgId.Id.player_last_read_update_req, msgData)
 end
 
 return PlayerStoryData

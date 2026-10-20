@@ -1,7 +1,6 @@
 local BaseCtrl = require("GameCore.UI.BaseCtrl")
 local LocalData = require("GameCore.Data.LocalData")
 local ViewfinderStoryCtrl = class("ViewfinderStoryCtrl", BaseCtrl)
-local ActivityAvgData = PlayerData.ActivityAvg
 local WwiseAudioMgr = CS.WwiseAudioManager.Instance
 ViewfinderStoryCtrl._mapNodeConfig = {
   svStory = {
@@ -53,7 +52,9 @@ function ViewfinderStoryCtrl:Awake()
   local param = self:GetPanelParam()
   if type(param) == "table" then
     self.nActId = param[1]
+    self.bReview = param[2] == true
   end
+  self.storyData = self.bReview and PlayerData.StoryReview or PlayerData.ActivityAvg
   self.storyNodePos = {-187.2, -270.5}
   self.tbGridTimer = {}
   self.tbPlayedAnim = {}
@@ -78,11 +79,11 @@ end
 
 function ViewfinderStoryCtrl:RefreshStoryList()
   self.tbPlayedAnim = {}
-  self.tbAllStory, self.nChapterId = ActivityAvgData:GetStoryIdListByActivityId(self.nActId)
+  self.tbAllStory, self.nChapterId = self.storyData:GetStoryIdListByActivityId(self.nActId)
   if self.tbAllStory == nil or #self.tbAllStory <= 0 then
     return
   end
-  local recentStoryId = ActivityAvgData:GetRecentStoryId(self.nChapterId)
+  local recentStoryId = self.storyData:GetRecentStoryId(self.nChapterId)
   local recentIndex = 1
   for i = 1, #self.tbAllStory do
     if self.tbAllStory[i] == recentStoryId then
@@ -130,9 +131,9 @@ function ViewfinderStoryCtrl:RefreshGridInfo(grid, gridIndex, bBranch, nBranchIn
   local txtTitle = RootNode:Find("tmpGroupDone"):GetComponent("TMP_Text")
   local txtComplete = goComplete.transform:Find("imgBg/txtComplete"):GetComponent("TMP_Text")
   NovaAPI.SetTMPText(txtComplete, ConfigTable.GetUIText("RoguelikeBuild_Manage_FilterPass"))
-  local isUnlock, tbResult = ActivityAvgData:IsUnlock(avgcfg.ConditionId)
-  local isReaded = ActivityAvgData:IsStoryReaded(storyId)
-  local bOpen, nOpenTime = ActivityAvgData:IsOpen(avgcfg.StoryId, self.nActId)
+  local isUnlock, tbResult = self.storyData:IsUnlock(avgcfg.ConditionId)
+  local isReaded = self.storyData:IsStoryReaded(storyId)
+  local bOpen, nOpenTime = self.storyData:IsOpen(avgcfg.StoryId, self.nActId)
   local nIndex = 0
   if isUnlock then
     nIndex = bBranch and BRANCH_GRID_INDEX or gridIndex
@@ -184,12 +185,16 @@ function ViewfinderStoryCtrl:RefreshGridInfo(grid, gridIndex, bBranch, nBranchIn
     end, true, true, true)
     NovaAPI.SetTMPText(txtTime, strTime)
   end
-  local _bInActGroup, nActGroupId = PlayerData.Activity:IsActivityInActivityGroup(self.nActId)
-  RedDotManager.RegisterNode(RedDotDefine.Activity_GroupNew_Avg_Group, {
-    nActGroupId,
-    self.nActId,
-    avgcfg.Id
-  }, RedDot, nil, nil, true)
+  if self.bReview then
+    RedDot:SetActive(false)
+  else
+    local _bInActGroup, nActGroupId = PlayerData.Activity:IsActivityInActivityGroup(self.nActId)
+    RedDotManager.RegisterNode(RedDotDefine.Activity_GroupNew_Avg_Group, {
+      nActGroupId,
+      self.nActId,
+      avgcfg.Id
+    }, RedDot, nil, nil, true)
+  end
   
   local function clickFuc()
     if not bOpen or self.bCantClick then
@@ -199,10 +204,10 @@ function ViewfinderStoryCtrl:RefreshGridInfo(grid, gridIndex, bBranch, nBranchIn
       local bNew = not isReaded
       self.avgId = avgcfg.StoryId
       self._mapNode.ctlAvgRoot.gameObject:SetActive(true)
-      self._mapNode.ctlAvgRoot:OpenLevelInfo(avgcfg.StoryId, self.nActId, bNew)
+      self._mapNode.ctlAvgRoot:OpenLevelInfo(avgcfg.StoryId, self.nActId, bNew, self.bReview)
       self.curIndex = gridIndex
-      LocalData.SetPlayerLocalData("Act_Story_New" .. self.nActId .. avgcfg.Id, true)
-      PlayerData.ActivityAvg:RefreshAvgRedDot()
+      LocalData.SetPlayerLocalData(self.storyData:_GetLocalReadKey(self.nActId, avgcfg.Id), true)
+      self.storyData:RefreshAvgRedDot()
     elseif tbResult ~= nil then
       local lockTxt = ""
       for i = 1, #tbResult do
@@ -227,7 +232,7 @@ function ViewfinderStoryCtrl:RefreshGridInfo(grid, gridIndex, bBranch, nBranchIn
               for k, v in pairs(tbStoryIds) do
                 if v == false then
                   local storyData = ConfigTable.GetData("ActivityStory", k)
-                  if ActivityAvgData:IsUnlock(storyData.ConditionId) then
+                  if self.storyData:IsUnlock(storyData.ConditionId) then
                     lockTxt = orderedFormat(ConfigTable.GetUIText("Story_UnlockPreId") or "", storyData.Title)
                     break
                   end
@@ -369,6 +374,7 @@ function ViewfinderStoryCtrl:OnBtn_ClickCloseLevelInfoPanel()
   self._mapNode.t_fullscreen_blur_black:SetActive(false)
   self._mapNode.ctlAvgRoot.gameObject:SetActive(false)
   self._mapNode.goChapterComplete:SetActive(false)
+  EventManager.Hit("ActivityStoryReceive_SetVisible", true)
 end
 
 function ViewfinderStoryCtrl:OnEvent_StoryDialog_DialogEnd()
@@ -384,7 +390,7 @@ end
 
 function ViewfinderStoryCtrl:OnEvent_SelectMainlineBattle(bConfirm)
   local function OpenPanel()
-    EventManager.Hit(EventId.OpenPanel, PanelId.RegionBossFormation, AllEnum.RegionBossFormationType.ActivityStory, 0, self.avgId, self.nActId)
+    EventManager.Hit(EventId.OpenPanel, PanelId.RegionBossFormation, AllEnum.RegionBossFormationType.ActivityStory, 0, self.avgId, self.nActId, self.bReview)
   end
   
   if bConfirm then
@@ -396,11 +402,13 @@ function ViewfinderStoryCtrl:OnEvent_Activity_Story_RewardClosed()
   self.bCantClick = false
   if self.curIndex == #self.tbAllStory then
     self._mapNode.goChapterComplete:SetActive(true)
+    EventManager.Hit("ActivityStoryReceive_SetVisible", false)
   end
 end
 
 function ViewfinderStoryCtrl:OnBtn_ClickCloseCompete()
   self._mapNode.goChapterComplete:SetActive(false)
+  EventManager.Hit("ActivityStoryReceive_SetVisible", true)
 end
 
 return ViewfinderStoryCtrl

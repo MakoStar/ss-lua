@@ -400,6 +400,35 @@ function DepotCtrl:OnBtnClick_Use(btn)
         nEnergyValue = nEnergyValue
       }
       EventManager.Hit(EventId.OpenPanel, PanelId.EnergyBuy, AllEnum.EnergyPanelType.ItemUse, mapItem, true)
+    elseif mapItemCfgData.Stype == GameEnum.itemStype.TokenItem then
+      local mapItemCacheData = PlayerData.Item:GetItemCacheDataByID(nSelectTid)
+      local mapExpireData = mapItemCacheData and mapItemCacheData.mapExpires[self.mapSelect.nExpire]
+      if not mapExpireData or 0 >= mapExpireData.nTotalCount then
+        return
+      end
+      local nCurToken = PlayerData.StarTowerAutoPlan:GetTokenCount()
+      local nMaxToken = ConfigTable.GetConfigNumber("TowerVitaEnergyMax")
+      if nCurToken >= nMaxToken then
+        local sTip = ConfigTable.GetUIText("TokenBuy_HitLimit")
+        EventManager.Hit(EventId.OpenMessageBox, {
+          nType = AllEnum.MessageBox.Tips,
+          sContent = sTip
+        })
+        return
+      end
+      local mapUseCfg = decodeJson(mapItemCfgData.UseArgs) or {}
+      local nTokenValue = tonumber(mapUseCfg[tostring(AllEnum.CoinItemId.AutoDecisionToken)] or mapUseCfg[AllEnum.CoinItemId.AutoDecisionToken]) or 0
+      if nTokenValue <= 0 then
+        printError(string.format("Invalid token item UseArgs: itemId = [%s]", nSelectTid))
+        return
+      end
+      local mapItem = {
+        nTid = nSelectTid,
+        mapId = mapExpireData.mapId,
+        nCount = mapExpireData.nTotalCount,
+        nTokenValue = nTokenValue
+      }
+      EventManager.Hit(EventId.OpenPanel, PanelId.StarTowerTokenBuyPanel, AllEnum.TokenBuyPanelType.ItemUse, mapItem, true)
     elseif mapItemCfgData.Stype == GameEnum.itemStype.ComCYO or mapItemCfgData.Stype == GameEnum.itemStype.OutfitCYO or mapItemCfgData.Stype == GameEnum.itemStype.RandomPackage then
       EventManager.Hit(EventId.OpenPanel, PanelId.Consumable, {
         self.mapSelect.nTid

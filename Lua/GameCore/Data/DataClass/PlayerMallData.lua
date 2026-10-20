@@ -35,11 +35,15 @@ function PlayerMallData:Init()
   self._tbPackagePage = {}
   self._tbExchangeShop = {}
   self._tbPackage = {}
+  self._mapActivityProduct = {}
+  self._mapActivityCfgByActId = {}
+  self._sActivityNewId = nil
   EventManager.Add("OnSdkPaySuc", PlayerMallData, self.OnEvent_PayRespone)
   EventManager.Add("OnSdkPayFail", PlayerMallData, self.OnEvent_PayRespone)
   EventManager.Add(EventId.IsNewDay, self, self.OnEvent_NewDay)
   self:ProcessExchangeShop()
   self:ProcessPackagePage()
+  self:ProcessMallActivityCfg()
 end
 
 function PlayerMallData:UnInit()
@@ -59,6 +63,9 @@ function PlayerMallData:UnInit()
   self._tbPackagePage = nil
   self._tbExchangeShop = nil
   self._tbPackage = nil
+  self._mapActivityProduct = nil
+  self._mapActivityCfgByActId = nil
+  self._sActivityNewId = nil
   EventManager.Remove("OnSdkPaySuc", PlayerMallData, self.OnEvent_PayRespone)
   EventManager.Remove("OnSdkPayFail", PlayerMallData, self.OnEvent_PayRespone)
   EventManager.Remove(EventId.IsNewDay, self, self.OnEvent_NewDay)
@@ -70,6 +77,77 @@ end
 
 function PlayerMallData:GetPackagePage(nType)
   return self._tbPackagePage[nType] or {}
+end
+
+function PlayerMallData:GetGroupSubType(nGroupId)
+  local groupCfg = ConfigTable.GetData("MallPackagePage", nGroupId)
+  if groupCfg == nil then
+    return nil
+  end
+  return groupCfg.SubType
+end
+
+function PlayerMallData:IsFurnitureGroup(nGroupId)
+  return self:GetGroupSubType(nGroupId) == GameEnum.MallItemSubType.Furniture
+end
+
+function PlayerMallData:IsFurnitureValueGroup(nGroupId)
+  local nSubType = self:GetGroupSubType(nGroupId)
+  return nSubType == GameEnum.MallItemSubType.Furniture or nSubType == GameEnum.MallItemSubType.FurnitureSet
+end
+
+function PlayerMallData:GetPackageSubType(sId)
+  local mapCfg = ConfigTable.GetData("MallPackage", sId)
+  if mapCfg == nil then
+    return nil
+  end
+  return self:GetGroupSubType(mapCfg.GroupId)
+end
+
+function PlayerMallData:GetPackageCollectionValue(mapCfg)
+  if mapCfg == nil or mapCfg.Items == nil then
+    return 0
+  end
+  local nValue = 0
+  for sItemId in pairs(decodeJson(mapCfg.Items) or {}) do
+    local furnitureCfg = ConfigTable.GetData("DormFurniture", tonumber(sItemId))
+    if furnitureCfg ~= nil then
+      nValue = nValue + furnitureCfg.CollectionValue
+    end
+  end
+  return nValue
+end
+
+function PlayerMallData:GetFurnitureSetCollectionValue(mapCfg)
+  if mapCfg == nil or mapCfg.Items == nil then
+    return 0
+  end
+  if self:GetGroupSubType(mapCfg.GroupId) ~= GameEnum.MallItemSubType.FurnitureSet then
+    return 0
+  end
+  local nValue = 0
+  for sSetId in pairs(decodeJson(mapCfg.Items) or {}) do
+    local itemCfg = ConfigTable.GetData_Item(tonumber(sSetId))
+    if itemCfg ~= nil then
+      for sItemId in pairs(decodeJson(itemCfg.UseArgs) or {}) do
+        local furnitureCfg = ConfigTable.GetData("DormFurniture", tonumber(sItemId))
+        if furnitureCfg ~= nil then
+          nValue = nValue + furnitureCfg.CollectionValue
+        end
+      end
+    end
+  end
+  return nValue
+end
+
+function PlayerMallData:GetFurnitureValue(mapCfg)
+  if mapCfg == nil then
+    return 0
+  end
+  if self:GetGroupSubType(mapCfg.GroupId) == GameEnum.MallItemSubType.FurnitureSet then
+    return self:GetFurnitureSetCollectionValue(mapCfg)
+  end
+  return self:GetPackageCollectionValue(mapCfg)
 end
 
 function PlayerMallData:CheckOrderProcess()
@@ -120,6 +198,28 @@ function PlayerMallData:BuyPackage(sId, sStatistical)
   self:SendMallPackageOrderReq(sId, callback)
 end
 
+function PlayerMallData:BuyReengagementPackage(sId, sStatistical)
+  local tab = {}
+  table.insert(tab, {
+    "role_id",
+    tostring(PlayerData.Base._nPlayerId)
+  })
+  NovaAPI.UserEventUpload("purchase_click", tab)
+  
+  local function callback(mapData)
+    self._mapOrderId[mapData.ExtraData] = {
+      nOrderId = mapData.Id,
+      StatisticalGroup = sStatistical,
+      nType = AllEnum.RMBOrderType.Mall
+    }
+    EventManager.Hit(EventId.BlockInput, true)
+    self._nOrderIdPaying = mapData.Id
+    SDKManager:Pay(sId, mapData.NotifyUrl, mapData.ExtraData)
+  end
+  
+  self:SendMallReengagementPackageOrderReq(sId, callback)
+end
+
 function PlayerMallData:BuyMonthlyCard(sId, sStatistical)
   local tab = {}
   table.insert(tab, {
@@ -142,6 +242,50 @@ function PlayerMallData:BuyMonthlyCard(sId, sStatistical)
   self:SendMallMonthlyCardOrderReq(sId, callback)
 end
 
+function PlayerMallData:BuyWeeklyCard(sId, sStatistical)
+  local tab = {}
+  table.insert(tab, {
+    "role_id",
+    tostring(PlayerData.Base._nPlayerId)
+  })
+  NovaAPI.UserEventUpload("purchase_click", tab)
+  
+  local function callback(mapData)
+    self._mapOrderId[mapData.ExtraData] = {
+      nOrderId = mapData.Id,
+      StatisticalGroup = sStatistical,
+      nType = AllEnum.RMBOrderType.Mall
+    }
+    EventManager.Hit(EventId.BlockInput, true)
+    self._nOrderIdPaying = mapData.Id
+    SDKManager:Pay(sId, mapData.NotifyUrl, mapData.ExtraData)
+  end
+  
+  self:SendWeeklyCardOrderReq(sId, callback)
+end
+
+function PlayerMallData:BuyMallActivity(sId, sStatistical)
+  local tab = {}
+  table.insert(tab, {
+    "role_id",
+    tostring(PlayerData.Base._nPlayerId)
+  })
+  NovaAPI.UserEventUpload("purchase_click", tab)
+  
+  local function callback(mapData)
+    self._mapOrderId[mapData.ExtraData] = {
+      nOrderId = mapData.Id,
+      StatisticalGroup = sStatistical,
+      nType = AllEnum.RMBOrderType.Mall
+    }
+    EventManager.Hit(EventId.BlockInput, true)
+    self._nOrderIdPaying = mapData.Id
+    SDKManager:Pay(sId, mapData.NotifyUrl, mapData.ExtraData)
+  end
+  
+  self:SendMallActivityOrderReq(sId, callback)
+end
+
 function PlayerMallData:BuyBattlePass(nMode, nVersion, sId, sStatistical)
   local tab = {}
   table.insert(tab, {
@@ -162,46 +306,6 @@ function PlayerMallData:BuyBattlePass(nMode, nVersion, sId, sStatistical)
   end
   
   self:SendBattlePassOrderReq(nMode, nVersion, callback)
-end
-
-function PlayerMallData:TestBuyBattlePass(nMode, nVersion)
-  local function callback(mapData)
-    self:CollectEnqueue(mapData.Id, AllEnum.RMBOrderType.BattlePass)
-    
-    self:ProcessOrder()
-  end
-  
-  self:SendBattlePassOrderReq(nMode, nVersion, callback)
-end
-
-function PlayerMallData:TestBuyGemSuc(sId)
-  local function callback(mapData)
-    self:CollectEnqueue(mapData.Id, AllEnum.RMBOrderType.Mall)
-    
-    self:ProcessOrder()
-  end
-  
-  self:SendMallGemOrderReq(sId, callback)
-end
-
-function PlayerMallData:TestBuyPackageSuc(sId)
-  local function callback(mapData)
-    self:CollectEnqueue(mapData.Id, AllEnum.RMBOrderType.Mall)
-    
-    self:ProcessOrder()
-  end
-  
-  self:SendMallPackageOrderReq(sId, callback)
-end
-
-function PlayerMallData:TestBuyMonthlyCardSuc(sId)
-  local function callback(mapData)
-    self:CollectEnqueue(mapData.Id, AllEnum.RMBOrderType.Mall)
-    
-    self:ProcessOrder()
-  end
-  
-  self:SendMallMonthlyCardOrderReq(sId, callback)
 end
 
 function PlayerMallData:ProcessExchangeShop()
@@ -423,6 +527,118 @@ function PlayerMallData:UpdateNextMallPackage()
       end
     end
   end
+end
+
+function PlayerMallData:GetPackageToggle(nTag)
+  if nTag == nil then
+    return nil
+  elseif nTag == GameEnum.MallItemType.Package then
+    return AllEnum.MallToggle.Package
+  elseif nTag == GameEnum.MallItemType.Skin then
+    return AllEnum.MallToggle.Skin
+  elseif nTag == GameEnum.MallItemType.Furniture then
+    return AllEnum.MallToggle.Furniture
+  end
+  return nil
+end
+
+function PlayerMallData:ProcessMallActivityCfg()
+  self._mapActivityCfgByActId = {}
+  
+  local function func_ForEach_MallActivity(mapData)
+    local nActId = mapData.ActivityId
+    if nActId == nil or nActId == 0 then
+      return
+    end
+    local mapCur = self._mapActivityCfgByActId[nActId]
+    if mapCur == nil or tostring(mapData.Id) < tostring(mapCur.Id) then
+      self._mapActivityCfgByActId[nActId] = mapData
+    end
+  end
+  
+  ForEachTableLine(DataTable.MallActivity, func_ForEach_MallActivity)
+end
+
+function PlayerMallData:GetMallActivityCfgByActId(nActId)
+  return self._mapActivityCfgByActId[nActId]
+end
+
+function PlayerMallData:GetMallActivityProduct(sId)
+  return self._mapActivityProduct[sId]
+end
+
+function PlayerMallData:CheckMallActivityPurchased(sId)
+  local mapInfo = self._mapActivityProduct[sId]
+  return mapInfo ~= nil and mapInfo.Purchased == true
+end
+
+function PlayerMallData:GetCurMallActivityCfg()
+  local actData = PlayerData.Activity:GetMallActivityData()
+  if actData == nil then
+    return nil
+  end
+  return self:GetMallActivityCfgByActId(actData:GetActId())
+end
+
+function PlayerMallData:CheckMallActivityRedDot(actData)
+  actData = actData or PlayerData.Activity:GetMallActivityData()
+  return actData ~= nil and actData.CheckMallRedDot ~= nil and actData:CheckMallRedDot() == true
+end
+
+function PlayerMallData:UpdateMallActivityFuncRedDot(actData)
+  RedDotManager.SetValid(RedDotDefine.Mall_Activity_RedDot, {
+    AllEnum.MallToggle.Activity
+  }, self:CheckMallActivityRedDot(actData))
+end
+
+function PlayerMallData:CheckMallActivityNewRead(sId)
+  local sCheckNew = LocalData.GetPlayerLocalData("Mall_Activity_New") or ""
+  local tbCheckNew = string.split(sCheckNew, ",")
+  return table.indexof(tbCheckNew, tostring(sId)) ~= 0
+end
+
+function PlayerMallData:UpdateMallActivityRedDot()
+  local actData = PlayerData.Activity:GetMallActivityData()
+  self:UpdateMallActivityFuncRedDot(actData)
+  local mapCfg = actData ~= nil and self:GetMallActivityCfgByActId(actData:GetActId()) or nil
+  local sId = mapCfg ~= nil and tostring(mapCfg.Id) or nil
+  if self._sActivityNewId ~= nil and self._sActivityNewId ~= sId then
+    RedDotManager.SetValid(RedDotDefine.Mall_Activity_New, {
+      AllEnum.MallToggle.Activity,
+      self._sActivityNewId
+    }, false)
+    self._sActivityNewId = nil
+  end
+  if mapCfg == nil then
+    EventManager.Hit("Mall_Refresh_Reddot")
+    return
+  end
+  local bNew = mapCfg.IsNew == true and not self:CheckMallActivityNewRead(sId)
+  RedDotManager.SetValid(RedDotDefine.Mall_Activity_New, {
+    AllEnum.MallToggle.Activity,
+    sId
+  }, bNew)
+  self._sActivityNewId = bNew and sId or nil
+  EventManager.Hit("Mall_Refresh_Reddot")
+end
+
+function PlayerMallData:RemoveMallActivityNew()
+  local mapCfg = self:GetCurMallActivityCfg()
+  if mapCfg == nil then
+    return
+  end
+  local sId = tostring(mapCfg.Id)
+  RedDotManager.SetValid(RedDotDefine.Mall_Activity_New, {
+    AllEnum.MallToggle.Activity,
+    sId
+  }, false)
+  self._sActivityNewId = nil
+  local sCheckNew = LocalData.GetPlayerLocalData("Mall_Activity_New") or ""
+  local tbCheckNew = string.split(sCheckNew, ",")
+  if table.indexof(tbCheckNew, sId) == 0 then
+    LocalData.SetPlayerLocalData("Mall_Activity_New", sCheckNew .. "," .. sId)
+  end
+  EventManager.Hit("Mall_Refresh_Reddot")
 end
 
 function PlayerMallData:CacheDailyMallReward(bDailyReward)
@@ -894,6 +1110,46 @@ function PlayerMallData:SendMallMonthlyCardOrderReq(sId, callback)
   HttpNetHandler.SendMsg(NetMsgId.Id.mall_monthlyCard_order_req, mapMsg, nil, successCallback)
 end
 
+function PlayerMallData:SendMallActivityListReq(callback)
+  local function successCallback(_, mapData)
+    self._mapActivityProduct = {}
+    
+    for _, v in ipairs(mapData.List or {}) do
+      self._mapActivityProduct[v.Id] = v
+    end
+    if callback ~= nil then
+      callback(self._mapActivityProduct)
+    end
+  end
+  
+  HttpNetHandler.SendMsg(NetMsgId.Id.mall_activity_list_req, {}, nil, successCallback)
+end
+
+function PlayerMallData:SendMallActivityOrderReq(sId, callback)
+  if type(sId) == "number" then
+    sId = tostring(sId)
+  end
+  local mapMsg = {Value = sId}
+  
+  local function successCallback(_, mapData)
+    printLog("创建订单：" .. mapData.Id)
+    callback(mapData)
+  end
+  
+  HttpNetHandler.SendMsg(NetMsgId.Id.mall_activity_order_req, mapMsg, nil, successCallback)
+end
+
+function PlayerMallData:SendWeeklyCardOrderReq(sId, callback)
+  local mapMsg = {Value = sId}
+  
+  local function successCallback(_, mapData)
+    printLog("创建订单：" .. mapData.Id)
+    callback(mapData)
+  end
+  
+  HttpNetHandler.SendMsg(NetMsgId.Id.activity_returnee_card_order_req, mapMsg, nil, successCallback)
+end
+
 function PlayerMallData:CacheMallPackageList()
   local function callback(_, _)
   end
@@ -933,6 +1189,23 @@ function PlayerMallData:SendMallPackageOrderReq(sId, callback)
   end
   
   HttpNetHandler.SendMsg(NetMsgId.Id.mall_package_order_req, mapMsg, nil, successCallback)
+end
+
+function PlayerMallData:SendMallReengagementPackageOrderReq(sId, callback)
+  local mapMsg = {Value = sId}
+  
+  local function successCallback(_, mapData)
+    if mapData ~= nil then
+      printLog("创建订单：" .. mapData.Id)
+      callback(mapData)
+    else
+      UTILS.OpenReceiveByChangeInfo(mapData.Change)
+      local bMoney = false
+      EventManager.Hit("MallOrderClear", bMoney)
+    end
+  end
+  
+  HttpNetHandler.SendMsg(NetMsgId.Id.activity_returnee_pack_order_req, mapMsg, nil, successCallback)
 end
 
 function PlayerMallData:SendMallShopListReq(callback)
@@ -1001,24 +1274,20 @@ end
 
 function PlayerMallData:ResetPackageNew()
   local function foreachFunc(mapCfg)
-    local groupCfg = ConfigTable.GetData("MallPackagePage", mapCfg.GroupId)
+    local groupCfg = ConfigTable.GetData("MallPackagePage", mapCfg.GroupId, true)
     
     if groupCfg == nil then
       return
     end
-    if mapCfg.Tag == GameEnum.MallItemType.Package then
-      RedDotManager.SetValid(RedDotDefine.Mall_Package_New, {
-        AllEnum.MallToggle.Package,
-        groupCfg.Sort,
-        mapCfg.Id
-      }, false)
-    elseif mapCfg.Tag == GameEnum.MallItemType.Skin then
-      RedDotManager.SetValid(RedDotDefine.Mall_Package_New, {
-        AllEnum.MallToggle.Skin,
-        groupCfg.Sort,
-        mapCfg.Id
-      }, false)
+    local nTog = self:GetPackageToggle(mapCfg.Tag)
+    if nTog == nil then
+      return
     end
+    RedDotManager.SetValid(RedDotDefine.Mall_Package_New, {
+      nTog,
+      groupCfg.Sort,
+      mapCfg.Id
+    }, false)
   end
   
   ForEachTableLine(DataTable.MallPackage, foreachFunc)
@@ -1041,52 +1310,26 @@ function PlayerMallData:ClearDelistedSkinTrialRedDot()
   ForEachTableLine(DataTable.MallPackage, foreachFunc)
 end
 
-function PlayerMallData:RemovePackageNew(nPage, nTab)
+function PlayerMallData:RemovePackageNew(nPage, nSort)
+  if nSort == 0 then
+    return
+  end
   if #self._tbPackage == 0 then
     return
   end
-  local tbPackage = {}
-  if nPage == GameEnum.MallItemType.Package then
-    for _, v in pairs(self._tbPackage) do
-      local mapCfg = ConfigTable.GetData("MallPackage", v.sId)
-      local groupCfg = ConfigTable.GetData("MallPackagePage", mapCfg.GroupId)
-      if mapCfg.Tag == GameEnum.MallItemType.Package and groupCfg.Sort == nTab then
-        table.insert(tbPackage, v)
-      end
-    end
-  elseif nPage == GameEnum.MallItemType.Skin then
-    for _, v in pairs(self._tbPackage) do
-      local mapCfg = ConfigTable.GetData("MallPackage", v.sId)
-      local groupCfg = ConfigTable.GetData("MallPackagePage", mapCfg.GroupId)
-      if mapCfg.Tag == GameEnum.MallItemType.Skin then
-        if nTab == nil then
-          table.insert(tbPackage, v)
-        elseif groupCfg.Sort == nTab then
-          table.insert(tbPackage, v)
-        end
-      end
-    end
+  local nTog = self:GetPackageToggle(nPage)
+  if nTog == nil then
+    return
   end
-  for _, v in pairs(tbPackage) do
+  for _, v in pairs(self._tbPackage) do
     local mapCfg = ConfigTable.GetData("MallPackage", v.sId)
-    if nil ~= mapCfg then
-      local groupCfg = ConfigTable.GetData("MallPackagePage", mapCfg.GroupId)
-      if groupCfg == nil then
-        return
-      end
-      if mapCfg.Tag == GameEnum.MallItemType.Package then
-        RedDotManager.SetValid(RedDotDefine.Mall_Package_New, {
-          AllEnum.MallToggle.Package,
-          groupCfg.Sort,
-          mapCfg.Id
-        }, false)
-      elseif mapCfg.Tag == GameEnum.MallItemType.Skin then
-        RedDotManager.SetValid(RedDotDefine.Mall_Package_New, {
-          AllEnum.MallToggle.Skin,
-          groupCfg.Sort,
-          mapCfg.Id
-        }, false)
-      end
+    local groupCfg = mapCfg ~= nil and ConfigTable.GetData("MallPackagePage", mapCfg.GroupId)
+    if groupCfg and mapCfg.Tag == nPage and groupCfg.Sort == nSort then
+      RedDotManager.SetValid(RedDotDefine.Mall_Package_New, {
+        nTog,
+        groupCfg.Sort,
+        mapCfg.Id
+      }, false)
       local sCheckNew = LocalData.GetPlayerLocalData("Mall_Package_New") or ""
       local tbCheckNew = string.split(sCheckNew, ",")
       if table.indexof(tbCheckNew, mapCfg.Id) == 0 then
@@ -1111,32 +1354,14 @@ function PlayerMallData:UpdateMallPackageRedDot(tbPackageList)
       if groupCfg == nil then
         return
       end
-      if 0 < mallData.nCurStock and bPurchaseAble and not bNotNew then
-        if mapCfg.Tag == GameEnum.MallItemType.Package then
-          RedDotManager.SetValid(RedDotDefine.Mall_Package_New, {
-            AllEnum.MallToggle.Package,
-            groupCfg.Sort,
-            mallData.sId
-          }, true)
-        elseif mapCfg.Tag == GameEnum.MallItemType.Skin then
-          RedDotManager.SetValid(RedDotDefine.Mall_Package_New, {
-            AllEnum.MallToggle.Skin,
-            groupCfg.Sort,
-            mallData.sId
-          }, true)
-        end
-      elseif mapCfg.Tag == GameEnum.MallItemType.Package then
+      local nTog = self:GetPackageToggle(mapCfg.Tag)
+      if nTog ~= nil then
+        local bNew = 0 < mallData.nCurStock and bPurchaseAble and not bNotNew
         RedDotManager.SetValid(RedDotDefine.Mall_Package_New, {
-          AllEnum.MallToggle.Package,
+          nTog,
           groupCfg.Sort,
           mallData.sId
-        }, false)
-      elseif mapCfg.Tag == GameEnum.MallItemType.Skin then
-        RedDotManager.SetValid(RedDotDefine.Mall_Package_New, {
-          AllEnum.MallToggle.Skin,
-          groupCfg.Sort,
-          mallData.sId
-        }, false)
+        }, bNew)
       end
     end
   end

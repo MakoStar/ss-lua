@@ -99,10 +99,71 @@ RegionBossFormationCtrl._mapNodeConfig = {
 RegionBossFormationCtrl._mapEventConfig = {
   [EventId.UIBackConfirm] = "OnEvent_Back",
   [EventId.UIHomeConfirm] = "OnEvent_BackHome",
-  [EventId.OpenMessageBox] = "OnEvent_OpenMessageBox"
+  [EventId.OpenMessageBox] = "OnEvent_OpenMessageBox",
+  [EventId.IsNewDay] = "OnEvent_NewDay"
 }
 
+function RegionBossFormationCtrl:ClearSelectedBuild()
+  if self.nType == AllEnum.RegionBossFormationType.RegionBoss or self.nType == AllEnum.RegionBossFormationType.WeeklyCopies then
+    PlayerData.RogueBoss:SetSelBuildId(0)
+  elseif self.nType == AllEnum.RegionBossFormationType.TravelerDuel then
+    local activityLevelsData = PlayerData.Activity:GetActivityDataById(self.Other[1])
+    activityLevelsData:SetCachedBuildId(0)
+  elseif self.nType == AllEnum.RegionBossFormationType.DailyInstance then
+    PlayerData.DailyInstance:SetSelBuildId(0)
+  elseif self.nType == AllEnum.RegionBossFormationType.InfinityTower then
+    PlayerData.InfinityTower:SetSelBuildId(0, self.selLvId)
+  elseif self.nType == AllEnum.RegionBossFormationType.EquipmentInstance then
+    PlayerData.EquipmentInstance:SetSelBuildId(0)
+  elseif self.nType == AllEnum.RegionBossFormationType.Story then
+    PlayerData.Avg:SetSelBuildId(0)
+  elseif self.nType == AllEnum.RegionBossFormationType.ScoreBoss or self.nType == AllEnum.RegionBossFormationType.ScoreBoss_GM then
+    PlayerData.ScoreBoss:SetSelBuildId(0, self.selLvId)
+  elseif self.nType == AllEnum.RegionBossFormationType.TraceHunt then
+    PlayerData.TraceHunt:SetSelBuildId(0)
+  elseif self.nType == AllEnum.RegionBossFormationType.SkillInstance then
+    PlayerData.SkillInstance:SetSelBuildId(0)
+  elseif self.nType == AllEnum.RegionBossFormationType.ActivityLevels then
+    local activityLevelsData = PlayerData.Activity:GetActivityDataById(self.Other[1])
+    activityLevelsData:SetCachedSelBuildId(0, self.selLvId)
+  elseif self.nType == AllEnum.RegionBossFormationType.ActivityStory then
+    local storyData = self.bReview and PlayerData.StoryReview or PlayerData.ActivityAvg
+    storyData:SetSelBuildId(0, self.nActId)
+  end
+  self.mbuildId = 0
+  self.isHaveTeam = false
+  self._mapNode.goHaveTeam.transform.localScale = Vector3.zero
+  self._mapNode.goNoneTeam.transform.localScale = Vector3.one
+  self._mapNode.btnStartBattle.gameObject:SetActive(false)
+  self:UnbindAllChar()
+end
+
+function RegionBossFormationCtrl:CheckSelectedLimitedTrialBuild(bShowTips)
+  if self.bTrial or not self.isHaveTeam then
+    return true
+  end
+  local mapBuildData = self._mapAllBuild and self._mapAllBuild[self.mbuildId] or PlayerData.Build:GetBuildData(self.mbuildId)
+  if mapBuildData == nil or mapBuildData.nBuildSource ~= AllEnum.BuildSource.LimitedTrial then
+    return true
+  end
+  if PlayerData.Build:IsLimitedTrialBuildValid(self.mbuildId, self.nType) then
+    return true
+  end
+  self:ClearSelectedBuild()
+  if bShowTips then
+    EventManager.Hit(EventId.OpenMessageBox, {
+      nType = AllEnum.MessageBox.Tips,
+      sContent = ConfigTable.GetUIText("Reengagement_BuildInvalid")
+    })
+  end
+  return false
+end
+
 function RegionBossFormationCtrl:Refresh()
+  if not self:CheckSelectedLimitedTrialBuild(false) then
+    self._mapNode.goLoadMask:SetActive(false)
+    return
+  end
   if self.isHaveTeam then
     local function GetDataCallback(tbBuildData, mapAllBuild)
       self._mapAllBuild = mapAllBuild
@@ -115,13 +176,9 @@ function RegionBossFormationCtrl:Refresh()
         self._mapNode.btnStartBattle.gameObject:SetActive(true)
         self:RefreshChar()
       else
-        self.isHaveTeam = false
-        self._mapNode.goHaveTeam.transform.localScale = Vector3.zero
-        self._mapNode.goNoneTeam.transform.localScale = Vector3.one
-        self._mapNode.btnStartBattle.gameObject:SetActive(false)
+        self:ClearSelectedBuild()
         local sTip = ConfigTable.GetUIText("RegionBoss_Team_Delete")
         EventManager.Hit(EventId.OpenMessageBox, sTip)
-        self:UnbindAllChar()
       end
       self._mapNode.goLoadMask:SetActive(false)
     end
@@ -134,7 +191,7 @@ function RegionBossFormationCtrl:Refresh()
       }, mapAllBuild)
     else
       self._mapNode.goLoadMask:SetActive(true)
-      PlayerData.Build:GetAllBuildBriefData(GetDataCallback)
+      PlayerData.Build:GetSelectableBuildBriefData(GetDataCallback, self.nType)
     end
   else
     self._mapNode.goHaveTeam.transform.localScale = Vector3.zero
@@ -145,6 +202,9 @@ function RegionBossFormationCtrl:Refresh()
 end
 
 function RegionBossFormationCtrl:UnbindAllChar()
+  for nIndex in pairs(self._mapModelLoadRequest) do
+    self._mapModelLoadRequest[nIndex] = nil
+  end
   for i, mapModel in pairs(self.mapCurModel) do
     if mapModel.model ~= nil then
       NovaAPI.UnbindUIParallaxStageCameraControllerModel(self._mapNode.UIParallax3DStage, i - 1)
@@ -160,15 +220,22 @@ function RegionBossFormationCtrl:RefreshChar()
   end
   local mapData = self._mapAllBuild[self.mbuildId]
   for i = 1, 3 do
-    self._mapNode.goChar[i]:OnRender(mapData.tbChar, i)
+    self._mapNode.goChar[i]:OnRender(mapData.tbChar, i, mapData.nBuildSource)
     if mapData.tbChar[i] and mapData.tbChar[i] ~= 0 then
-      if self.mapCurModel[i] == nil or self.mapCurModel[i].nCharId ~= mapData.tbChar[i] then
-        self:LoadCharacter(mapData.tbChar[i].nTid, i)
+      local nCharId = mapData.tbChar[i].nTid
+      local nSkinId = PlayerData.Build:GetBuildCharSkinId(mapData, mapData.tbChar[i])
+      if self.mapCurModel[i] == nil or self.mapCurModel[i].nCharId ~= nCharId or self.mapCurModel[i].nSkinId ~= nSkinId then
+        self:LoadCharacter(nCharId, i, nSkinId)
+      else
+        self._mapModelLoadRequest[i] = nil
       end
-    elseif self.mapCurModel[i] ~= nil then
-      NovaAPI.UnbindUIParallaxStageCameraControllerModel(self._mapNode.UIParallax3DStage, i - 1)
-      destroy(self.mapCurModel[i].model)
-      self.mapCurModel[i] = nil
+    else
+      self._mapModelLoadRequest[i] = nil
+      if self.mapCurModel[i] ~= nil then
+        NovaAPI.UnbindUIParallaxStageCameraControllerModel(self._mapNode.UIParallax3DStage, i - 1)
+        destroy(self.mapCurModel[i].model)
+        self.mapCurModel[i] = nil
+      end
     end
   end
   NovaAPI.SetTMPText(self._mapNode.txtBuildScore, mapData.nScore)
@@ -194,8 +261,11 @@ function RegionBossFormationCtrl:RefreshChar()
   end
 end
 
-function RegionBossFormationCtrl:LoadCharacter(nCharId, idx)
-  local mapSkin = ConfigTable.GetData_CharacterSkin(PlayerData.Char:GetCharSkinId(nCharId))
+function RegionBossFormationCtrl:LoadCharacter(nCharId, idx, nSkinId)
+  local mapLoadRequests = self._mapModelLoadRequest
+  local mapRequest = {nCharId = nCharId, nSkinId = nSkinId}
+  mapLoadRequests[idx] = mapRequest
+  local mapSkin = ConfigTable.GetData_CharacterSkin(nSkinId)
   if not mapSkin then
     printLog("没有找到皮肤配置" .. nCharId)
     return
@@ -203,10 +273,14 @@ function RegionBossFormationCtrl:LoadCharacter(nCharId, idx)
   local sFullPath = string.format("%s.prefab", mapSkin.Model_Show)
   
   local function LoadModelCallback(obj)
-    if self._mapNode == nil then
+    if self._mapNode == nil or self._mapModelLoadRequest ~= mapLoadRequests then
       return
     end
     self._panel.nLoadProcess = self._panel.nLoadProcess - 1
+    if not self.isHaveTeam or mapLoadRequests[idx] ~= mapRequest then
+      return
+    end
+    mapLoadRequests[idx] = nil
     if 0 < idx then
       if self.mapCurModel[idx] ~= nil then
         NovaAPI.UnbindUIParallaxStageCameraControllerModel(self._mapNode.UIParallax3DStage, idx - 1)
@@ -214,8 +288,12 @@ function RegionBossFormationCtrl:LoadCharacter(nCharId, idx)
         self.mapCurModel[idx] = nil
       end
       local go = instantiate(obj, self.rtSceneOriginPos)
-      self.mapCurModel[idx] = {nCharId = nCharId, model = go}
-      NovaAPI.BindUIParallaxStageCameraControllerModel(self._mapNode.UIParallax3DStage, idx - 1, go)
+      self.mapCurModel[idx] = {
+        nCharId = nCharId,
+        nSkinId = nSkinId,
+        model = go
+      }
+      NovaAPI.BindUIParallaxStageCameraControllerModel(self._mapNode.UIParallax3DStage, idx - 1, go, true)
       if self.rtSceneOriginPos ~= nil then
         go.transform.position = self.rtSceneOriginPos.position
         go.transform.localEulerAngles = Vector3(0, 180, 0)
@@ -293,8 +371,14 @@ function RegionBossFormationCtrl:OpenRegionBoss()
         end
         
         local mapSendMsg = {}
+        local mapBuildData = PlayerData.Build:GetBuildData(self.mbuildId)
+        local bTrial = mapBuildData.nBuildSource == AllEnum.BuildSource.Trial or mapBuildData.nBuildSource == AllEnum.BuildSource.LimitedTrial
+        local nBuildType = bTrial and 2 or 1
         mapSendMsg.Id = self.selLvId
-        mapSendMsg.BuildId = self.mbuildId
+        mapSendMsg.Build = {
+          Type = nBuildType,
+          BuildId = self.mbuildId
+        }
         HttpNetHandler.SendMsg(NetMsgId.Id.region_boss_level_apply_req, mapSendMsg, nil, func_cbRegionBossLevelApplyAck)
       end
     end
@@ -334,8 +418,14 @@ function RegionBossFormationCtrl:OpenWeeklyCopies()
         end
         
         local mapSendMsg = {}
+        local mapBuildData = PlayerData.Build:GetBuildData(self.mbuildId)
+        local bTrial = mapBuildData.nBuildSource == AllEnum.BuildSource.Trial or mapBuildData.nBuildSource == AllEnum.BuildSource.LimitedTrial
+        local nBuildType = bTrial and 2 or 1
         mapSendMsg.Id = self.selLvId
-        mapSendMsg.BuildId = self.mbuildId
+        mapSendMsg.Build = {
+          Type = nBuildType,
+          BuildId = self.mbuildId
+        }
         HttpNetHandler.SendMsg(NetMsgId.Id.week_boss_apply_req, mapSendMsg, nil, func_cbRegionBossLevelApplyAck)
       end
     end
@@ -478,7 +568,8 @@ end
 function RegionBossFormationCtrl:OpenActivityStoryBattle()
   if self.isHaveTeam then
     local nBuildId = self.bTrial and 0 or self.mbuildId
-    PlayerData.ActivityAvg:SendMsg_STORY_ENTER(self.nActId, self.Other, nBuildId)
+    local storyData = self.bReview and PlayerData.StoryReview or PlayerData.ActivityAvg
+    storyData:SendMsg_STORY_ENTER(self.nActId, self.Other, nBuildId)
   end
 end
 
@@ -489,7 +580,7 @@ function RegionBossFormationCtrl:SwitchStoryType(bTrial)
   self._mapNode.btnChangeTeam.gameObject:SetActive(not bTrial)
   self._mapNode.btnTeamDetails.gameObject:SetActive(not bTrial)
   for i = 1, 3 do
-    self._mapNode.goChar[i].gameObject.transform:Find("rtInfo/goInfo/btnDetail").gameObject:SetActive(not bTrial)
+    self._mapNode.goChar[i]:RefreshDetailVisible(bTrial)
   end
 end
 
@@ -499,6 +590,7 @@ end
 
 function RegionBossFormationCtrl:OnEnable()
   self._panel.nLoadProcess = 0
+  self._mapModelLoadRequest = {}
   self.bStartBattle = false
   local tbParam = self:GetPanelParam()
   self.nType = tbParam[1]
@@ -507,6 +599,7 @@ function RegionBossFormationCtrl:OnEnable()
   if tbParam[4] ~= nil then
     self.nActId = tbParam[4]
   end
+  self.bReview = tbParam[5] == true
   self._mapNode.goLoadMask:SetActive(true)
   self._mapNode.btnSwitch.gameObject:SetActive(false)
   self:SwitchStoryType(false)
@@ -693,7 +786,8 @@ function RegionBossFormationCtrl:OnEnable()
       self.isHaveTeam = true
     end
   elseif self.nType == AllEnum.RegionBossFormationType.ActivityStory then
-    local mapStoryCfg = PlayerData.ActivityAvg:GetStoryCfgData(self.Other)
+    local storyData = self.bReview and PlayerData.StoryReview or PlayerData.ActivityAvg
+    local mapStoryCfg = storyData:GetStoryCfgData(self.Other)
     local bHasTrial = 0 < mapStoryCfg.TrialBuild
     self.bTrial = LocalData.GetPlayerLocalData("StoryTrialModel")
     if self.bTrial == nil then
@@ -713,7 +807,7 @@ function RegionBossFormationCtrl:OnEnable()
         self.mbuildId = self.mapTrialBuild.nBuildId
       end
     else
-      self.mbuildId = PlayerData.ActivityAvg:GetCachedBuildId()
+      self.mbuildId = storyData:GetCachedBuildId(self.nActId)
     end
     if self.mbuildId and self.mbuildId ~= 0 then
       self.isHaveTeam = true
@@ -789,14 +883,14 @@ function RegionBossFormationCtrl:OnBtnClick_AddBuild()
   if self._panel.nLoadProcess ~= nil and self._panel.nLoadProcess > 1 then
     return
   end
-  EventManager.Hit(EventId.OpenPanel, PanelId.RogueBossBuildBrief, self.nType, self.selLvId, 1, self.Other)
+  EventManager.Hit(EventId.OpenPanel, PanelId.RogueBossBuildBrief, self.nType, self.selLvId, 1, self.Other, self.nActId, self.bReview)
 end
 
 function RegionBossFormationCtrl:OnBtnClick_ChangeTeam()
   if self._panel.nLoadProcess ~= nil and self._panel.nLoadProcess > 1 then
     return
   end
-  EventManager.Hit(EventId.OpenPanel, PanelId.RogueBossBuildBrief, self.nType, self.selLvId, 1, self.Other)
+  EventManager.Hit(EventId.OpenPanel, PanelId.RogueBossBuildBrief, self.nType, self.selLvId, 1, self.Other, self.nActId, self.bReview)
 end
 
 function RegionBossFormationCtrl:OnBtnClick_TeamDetails()
@@ -828,7 +922,8 @@ function RegionBossFormationCtrl:OnBtnClick_StorySwitch()
     if self.nType == AllEnum.RegionBossFormationType.Story then
       mapStoryCfg = PlayerData.Avg:GetStoryCfgData(self.Other)
     elseif self.nType == AllEnum.RegionBossFormationType.ActivityStory then
-      mapStoryCfg = PlayerData.ActivityAvg:GetStoryCfgData(self.Other)
+      local storyData = self.bReview and PlayerData.StoryReview or PlayerData.ActivityAvg
+      mapStoryCfg = storyData:GetStoryCfgData(self.Other)
     end
     if mapStoryCfg then
       self.mapTrialBuild = PlayerData.Build:CreateTrialBuild(mapStoryCfg.TrialBuild)
@@ -839,7 +934,8 @@ function RegionBossFormationCtrl:OnBtnClick_StorySwitch()
   elseif self.nType == AllEnum.RegionBossFormationType.Story then
     self.mbuildId = PlayerData.Avg:GetCachedBuildId()
   else
-    self.mbuildId = PlayerData.ActivityAvg:GetCachedBuildId()
+    local storyData = self.bReview and PlayerData.StoryReview or PlayerData.ActivityAvg
+    self.mbuildId = storyData:GetCachedBuildId(self.nActId)
   end
   if self.mbuildId and self.mbuildId ~= 0 then
     self.isHaveTeam = true
@@ -854,6 +950,12 @@ function RegionBossFormationCtrl:OnBtnClick_Start(btn)
     return
   end
   if self.bStartBattle == true then
+    return
+  end
+  if not self:CheckSelectedLimitedTrialBuild(true) then
+    return
+  end
+  if not self.isHaveTeam or self.mbuildId == nil or self.mbuildId == 0 then
     return
   end
   self.bStartBattle = true
@@ -947,6 +1049,12 @@ function RegionBossFormationCtrl:OnEvent_BackHome(nPanelId)
   end
   
   EventManager.Hit(EventId.SetTransition, 5, OpenCallback)
+end
+
+function RegionBossFormationCtrl:OnEvent_NewDay()
+  if not self.bStartBattle then
+    self:CheckSelectedLimitedTrialBuild(true)
+  end
 end
 
 function RegionBossFormationCtrl:OnEvent_OpenMessageBox()

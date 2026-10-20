@@ -1,4 +1,12 @@
 local AdventureModuleHelper = CS.AdventureModuleHelper
+local LocalSettingData = require("GameCore.Data.LocalSettingData")
+local ClientManager = CS.ClientManager.Instance
+local Time = CS.UnityEngine.Time
+local HudSourceGroup = {
+  None = 0,
+  Master = 1,
+  Assist = 2
+}
 local HudMainCtrl = class("HudMainCtrl", BaseCtrl)
 HudMainCtrl._mapNodeConfig = {
   Root = {sNodeName = "Root"},
@@ -27,7 +35,8 @@ HudMainCtrl._mapEventConfig = {
   CacheInstanceHud = "OnEvent_CacheInstanceHud",
   SpecialHudShow = "OnEvent_HuoChuiBossShow",
   ToughnessStateChangedForGlobal = "OnEvent_ToughnessStateChangedForGlobal",
-  ADVENTURE_BATTLE_MONSTER_DECLARE_DIED = "OnEvent_MonsterDeclareDied"
+  ADVENTURE_BATTLE_MONSTER_DECLARE_DIED = "OnEvent_MonsterDeclareDied",
+  [EventId.SettingsBattleClose] = "OnEvent_SettingsChanged"
 }
 
 function HudMainCtrl:Awake()
@@ -35,6 +44,9 @@ end
 
 function HudMainCtrl:OnEnable()
   self.resistanceTipInterval = ConfigTable.GetConfigNumber("HudResistanceTipInterval")
+  self.hudMergeInterval = ConfigTable.GetConfigNumber("HudDamageMergeInterval", true) or 1
+  self.nHudDamageMode = self:GetHudDamageMode()
+  self.mergeHuds = {}
   self.hudId = 0
   self.playerHuds = {}
   self.tbPlayerBloodState = {}
@@ -61,15 +73,19 @@ function HudMainCtrl:OnEnable()
   self.wordHudPrefab = self:LoadAsset("UI/HUD/WordHud_UI.prefab")
   self.npcHudPrefab = self:LoadAsset("UI/HUD/NpcHud.prefab")
   self.breakOutHudPrefab = self:LoadAsset("UI/HUD/BreakOutHUDNumber_UI.prefab")
+  self.damageMergeMasterPrefab = self:LoadAsset("UI/HUD/DamageHUDNumber_UI_Merge_Master.prefab")
+  self.damageMergeAssistPrefab = self:LoadAsset("UI/HUD/DamageHUDNumber_UI_Merge_Assist.prefab")
   self.critDamageHudPrefab_Vampire = self:LoadAsset("UI/HUD/CritDamageHUDNumber_UI_Vampire.prefab")
   self.minDamageHUDNumber_Vampire = self:LoadAsset("UI/HUD/MinDamageHUDNumber_UI_Vampire.prefab")
   self.damageHudPrefab_Vampire = self:LoadAsset("UI/HUD/DamageHUDNumber_UI_Vampire.prefab")
+  self.critDamageHudPrefab_Soldier = self:LoadAsset("UI/HUD/CritDamageHUDNumber_UI_Soldier.prefab")
   self.toughnessDamageHUD = self:LoadAsset("UI/HUD/ToughnessDamageHUD_UI.prefab")
   self.TEST_VISIBLE_HUD_DAMAGE = true
   local tbParam = self:GetPanelParam()
   self.isVampireInstance = tbParam[1] or false
   local bNotAdventureEnter = tbParam[2]
   self.jointDrillType = tbParam[3]
+  self.isSoldierType = tbParam[4] or false
   if not bNotAdventureEnter then
     self._mapNode.BattleTarget.gameObject:SetActive(true)
   end
@@ -83,6 +99,8 @@ function HudMainCtrl:OnDisable()
   self.critDamageHudPrefab = nil
   self.dotDamageHudPrefab = nil
   self.damageHudPrefab = nil
+  self.damageMergeMasterPrefab = nil
+  self.damageMergeAssistPrefab = nil
   self.minDamageHUDNumber = nil
   self.healHudPrefab = nil
   self.wordHudPrefab = nil
@@ -91,6 +109,7 @@ function HudMainCtrl:OnDisable()
   self.critDamageHudPrefab_Vampire = nil
   self.minDamageHUDNumber_Vampire = nil
   self.damageHudPrefab_Vampire = nil
+  self.critDamageHudPrefab_Soldier = nil
   self.toughnessDamageHUD = nil
 end
 
@@ -130,6 +149,7 @@ function HudMainCtrl:Clear()
   self.tabToughnessEntity = {}
   self.tabToughnessEntityVal = {}
   self.tabToughnessHudId = {}
+  self.mergeHuds = {}
 end
 
 function HudMainCtrl:MonsterShowChanged(id, showed, nType, nDataId)
@@ -176,6 +196,84 @@ function HudMainCtrl:MonsterAdvShowChanged(id, showed, nType, nDataId)
   elseif monsterHud ~= nil then
     self:DespawnPrefabInstance(monsterHud, "HUD")
     self.monsterAdvHuds[id] = nil
+  end
+end
+
+function HudMainCtrl:GetHudDamageMode()
+  local nMode = LocalSettingData.GetLocalSettingData("HudDamageShow")
+  return nMode
+end
+
+function HudMainCtrl:IsHudDamageClosed()
+  return self.nHudDamageMode == AllEnum.BattleHudDamageSetting.Close
+end
+
+function HudMainCtrl:IsHudDamageMerged()
+  return self.nHudDamageMode == AllEnum.BattleHudDamageSetting.Merge
+end
+
+function HudMainCtrl:GetMergeKey(nEntityId, nFromId)
+  local nGroup = AdventureModuleHelper.GetHudDamageSourceGroup(nFromId or 0)
+  if nGroup == HudSourceGroup.None then
+    return nil, nGroup
+  end
+  return string.format("%s_%s", tostring(nEntityId), tostring(nGroup)), nGroup
+end
+
+function HudMainCtrl:GetMergePrefab(nGroup)
+  if nGroup == HudSourceGroup.Assist then
+    return self.damageMergeAssistPrefab
+  end
+  return self.damageMergeMasterPrefab
+end
+
+function HudMainCtrl:TryMergeDamage(sKey, nValue, nHudColorIndex)
+  local tbMerge = self.mergeHuds[sKey]
+  if tbMerge == nil then
+    return false
+  end
+  local hud = self.numberHuds[tbMerge.nHudId]
+  if hud == nil then
+    self.mergeHuds[sKey] = nil
+    return false
+  end
+  if Time.time - tbMerge.nLastTS > self.hudMergeInterval then
+    self.mergeHuds[sKey] = nil
+    return false
+  end
+  tbMerge.nValue = tbMerge.nValue + nValue
+  tbMerge.nLastTS = Time.time
+  AdventureModuleHelper.RefreshHudValue(hud.gameObject, tbMerge.nValue, nHudColorIndex)
+  return true
+end
+
+function HudMainCtrl:RecordMergeHud(sKey, nHudId, nValue)
+  if sKey == nil then
+    return
+  end
+  self.mergeHuds[sKey] = {
+    nHudId = nHudId,
+    nValue = nValue,
+    nLastTS = Time.time
+  }
+end
+
+function HudMainCtrl:RemoveMergeHudById(nHudId)
+  if self.mergeHuds == nil then
+    return
+  end
+  for sKey, tbMerge in pairs(self.mergeHuds) do
+    if tbMerge.nHudId == nHudId then
+      self.mergeHuds[sKey] = nil
+    end
+  end
+end
+
+function HudMainCtrl:OnEvent_SettingsChanged()
+  local nMode = self:GetHudDamageMode()
+  if nMode ~= self.nHudDamageMode then
+    self.nHudDamageMode = nMode
+    self.mergeHuds = {}
   end
 end
 
@@ -228,7 +326,6 @@ function HudMainCtrl:OnEvent_PlayerShowChanged(id, showed)
 end
 
 function HudMainCtrl:OnEvent_PlayerBloodShow(id, showed)
-  printLog("HudMainCtrl:OnEvent_PlayerBloodShow id=" .. tostring(id) .. " showed=" .. tostring(showed))
   if id == 0 then
     return
   end
@@ -261,6 +358,7 @@ function HudMainCtrl:OnEvent_HudDestroyed(id)
     self:DespawnPrefabInstance(hud, "HUD")
     self.numberHuds[id] = nil
   end
+  self:RemoveMergeHudById(id)
 end
 
 function HudMainCtrl:OnEvent_HudDamaged(id, value, isCrit, hitDamageConfig, formId, isMark, fromElementType, hudColorIndex)
@@ -268,8 +366,21 @@ function HudMainCtrl:OnEvent_HudDamaged(id, value, isCrit, hitDamageConfig, form
     self:SetToughnessValue(id, value)
     return
   end
+  if self:IsHudDamageClosed() then
+    return
+  end
+  local sMergeKey, nMergeGroup
+  if self:IsHudDamageMerged() then
+    sMergeKey, nMergeGroup = self:GetMergeKey(id, formId)
+    if sMergeKey ~= nil and self:TryMergeDamage(sMergeKey, value, hudColorIndex or 4) then
+      self:CheckGreyResistanceTip(id, hudColorIndex)
+      return
+    end
+  end
   local hud
-  if hitDamageConfig and hitDamageConfig.IsDenseType then
+  if sMergeKey ~= nil then
+    hud = self:SpawnPrefabInstance(self:GetMergePrefab(nMergeGroup), "Game.UI.Hud.HudNumberCtrl", "HUD", self._mapNode.DamageNumberRoot)
+  elseif hitDamageConfig and hitDamageConfig.IsDenseType then
     if self.isVampireInstance then
       if isCrit then
         hud = self:SpawnPrefabInstance(self.critDamageHudPrefab_Vampire, "Game.UI.Hud.HudNumberCtrl", "HUD", self._mapNode.DamageNumberRoot)
@@ -277,7 +388,15 @@ function HudMainCtrl:OnEvent_HudDamaged(id, value, isCrit, hitDamageConfig, form
         hud = self:SpawnPrefabInstance(self.minDamageHUDNumber_Vampire, "Game.UI.Hud.HudNumberCtrl", "HUD", self._mapNode.DamageNumberRoot)
       end
     elseif isCrit then
-      hud = self:SpawnPrefabInstance(self.critDamageHudPrefab, "Game.UI.Hud.HudNumberCtrl", "HUD", self._mapNode.DamageNumberRoot)
+      if self.isSoldierType then
+        hud = self:SpawnPrefabInstance(self.critDamageHudPrefab_Soldier, "Game.UI.Hud.HudNumberCtrl", "HUD", self._mapNode.DamageNumberRoot)
+        local CritImage_Color2 = hud.gameObject.transform:Find("text/CritImage_Color2").gameObject
+        local CritImage_Color3 = hud.gameObject.transform:Find("text/CritImage_Color3").gameObject
+        CritImage_Color2:SetActive(hudColorIndex == 2)
+        CritImage_Color3:SetActive(hudColorIndex == 3)
+      else
+        hud = self:SpawnPrefabInstance(self.critDamageHudPrefab, "Game.UI.Hud.HudNumberCtrl", "HUD", self._mapNode.DamageNumberRoot)
+      end
     else
       hud = self:SpawnPrefabInstance(self.minDamageHUDNumber, "Game.UI.Hud.HudNumberCtrl", "HUD", self._mapNode.DamageNumberRoot)
     end
@@ -288,7 +407,15 @@ function HudMainCtrl:OnEvent_HudDamaged(id, value, isCrit, hitDamageConfig, form
       hud = self:SpawnPrefabInstance(self.damageHudPrefab_Vampire, "Game.UI.Hud.HudNumberCtrl", "HUD", self._mapNode.DamageNumberRoot)
     end
   elseif isCrit then
-    hud = self:SpawnPrefabInstance(self.critDamageHudPrefab, "Game.UI.Hud.HudNumberCtrl", "HUD", self._mapNode.DamageNumberRoot)
+    if self.isSoldierType then
+      hud = self:SpawnPrefabInstance(self.critDamageHudPrefab_Soldier, "Game.UI.Hud.HudNumberCtrl", "HUD", self._mapNode.DamageNumberRoot)
+      local CritImage_Color2 = hud.gameObject.transform:Find("text/CritImage_Color2").gameObject
+      local CritImage_Color3 = hud.gameObject.transform:Find("text/CritImage_Color3").gameObject
+      CritImage_Color2:SetActive(hudColorIndex == 2)
+      CritImage_Color3:SetActive(hudColorIndex == 3)
+    else
+      hud = self:SpawnPrefabInstance(self.critDamageHudPrefab, "Game.UI.Hud.HudNumberCtrl", "HUD", self._mapNode.DamageNumberRoot)
+    end
   else
     hud = self:SpawnPrefabInstance(self.damageHudPrefab, "Game.UI.Hud.HudNumberCtrl", "HUD", self._mapNode.DamageNumberRoot)
   end
@@ -305,11 +432,25 @@ function HudMainCtrl:OnEvent_HudDamaged(id, value, isCrit, hitDamageConfig, form
   if hudColorIndex ~= nil then
     _hudColorIndex = hudColorIndex
   end
-  AdventureModuleHelper.SetHudValue(hud.gameObject, id, self.hudId, value, false, hitDamageConfig, _formId, isCrit, false, _fromElementType, _hudColorIndex)
+  local hudHitDamage = hitDamageConfig
+  local bHudCrit = isCrit
+  if sMergeKey ~= nil then
+    hudHitDamage = nil
+    bHudCrit = false
+  end
+  AdventureModuleHelper.SetHudValue(hud.gameObject, id, self.hudId, value, false, hudHitDamage, _formId, bHudCrit, false, _fromElementType, _hudColorIndex)
   self.numberHuds[self.hudId] = hud
   hud.gameObject.transform:SetAsLastSibling()
-  if hudColorIndex ~= nil and hudColorIndex == 5 and (self.nTypeGreyResistanceTime[id] == nil or self.nTypeGreyResistanceTime[id] + self.resistanceTipInterval <= CS.ClientManager.Instance.serverTimeStampWithTimeZone) then
-    self.nTypeGreyResistanceTime[id] = CS.ClientManager.Instance.serverTimeStampWithTimeZone
+  self:RecordMergeHud(sMergeKey, self.hudId, value)
+  self:CheckGreyResistanceTip(id, hudColorIndex)
+end
+
+function HudMainCtrl:CheckGreyResistanceTip(id, hudColorIndex)
+  if hudColorIndex == nil or hudColorIndex ~= 5 then
+    return
+  end
+  if self.nTypeGreyResistanceTime[id] == nil or self.nTypeGreyResistanceTime[id] + self.resistanceTipInterval <= ClientManager.serverTimeStampWithTimeZone then
+    self.nTypeGreyResistanceTime[id] = ClientManager.serverTimeStampWithTimeZone
     self:OnEvent_HudDefenced(id, 3)
   end
 end
@@ -319,7 +460,22 @@ function HudMainCtrl:OnEvent_HudDotDamage(id, value, isCrit, hitDamageConfig, fo
     self:SetToughnessValue(id, value)
     return
   end
-  local hud = self:SpawnPrefabInstance(self.dotDamageHudPrefab, "Game.UI.Hud.HudNumberCtrl", "HUD", self._mapNode.DamageNumberRoot)
+  if self:IsHudDamageClosed() then
+    return
+  end
+  local sMergeKey, nMergeGroup
+  if self:IsHudDamageMerged() then
+    sMergeKey, nMergeGroup = self:GetMergeKey(id, formId)
+    if sMergeKey ~= nil and self:TryMergeDamage(sMergeKey, value, hudColorIndex or 4) then
+      return
+    end
+  end
+  local bMerge = sMergeKey ~= nil
+  local hudPrefab = self.dotDamageHudPrefab
+  if bMerge then
+    hudPrefab = self:GetMergePrefab(nMergeGroup)
+  end
+  local hud = self:SpawnPrefabInstance(hudPrefab, "Game.UI.Hud.HudNumberCtrl", "HUD", self._mapNode.DamageNumberRoot)
   self.hudId = self.hudId + 1
   local _formId = formId
   if formId == nil then
@@ -329,12 +485,22 @@ function HudMainCtrl:OnEvent_HudDotDamage(id, value, isCrit, hitDamageConfig, fo
   if fromElementType ~= nil then
     _fromElementType = fromElementType
   end
-  AdventureModuleHelper.SetHudValue(hud.gameObject, id, self.hudId, value, false, hitDamageConfig, _formId, isCrit, true, _fromElementType, hudColorIndex)
+  local hudHitDamage = hitDamageConfig
+  local bHudCrit = isCrit
+  if bMerge then
+    hudHitDamage = nil
+    bHudCrit = false
+  end
+  AdventureModuleHelper.SetHudValue(hud.gameObject, id, self.hudId, value, false, hudHitDamage, _formId, bHudCrit, not bMerge, _fromElementType, hudColorIndex)
   self.numberHuds[self.hudId] = hud
   hud.gameObject.transform:SetAsLastSibling()
+  self:RecordMergeHud(sMergeKey, self.hudId, value)
 end
 
 function HudMainCtrl:OnEvent_HudHealed(id, value)
+  if self:IsHudDamageClosed() then
+    return
+  end
   local hud = self:SpawnPrefabInstance(self.healHudPrefab, "Game.UI.Hud.HudNumberCtrl", "HUD", self._mapNode.DamageNumberRoot)
   self.hudId = self.hudId + 1
   AdventureModuleHelper.SetHudValue(hud.gameObject, id, self.hudId, value, true, nil, 0, false, false)
@@ -353,6 +519,9 @@ function HudMainCtrl:OnEvent_HudBreakOutScore(id, value)
 end
 
 function HudMainCtrl:OnEvent_HudDefenced(id, valueType)
+  if self:IsHudDamageClosed() then
+    return
+  end
   local nWordType
   local hud = self:SpawnPrefabInstance(self.wordHudPrefab, "Game.UI.Hud.HudNumberCtrl", "HUD", self._mapNode.DamageWordRoot)
   self.hudId = self.hudId + 1

@@ -78,6 +78,11 @@ function HttpNetHandlerPlus.gacha_guarantee_reward_receive_succeed_ack(mapMsgDat
   HttpNetHandler.ProcChangeInfo(mapDecodedChangeInfo)
 end
 
+function HttpNetHandlerPlus.gacha_reward_get_succeed_ack(mapMsgData)
+  local mapDecodedChangeInfo = UTILS.DecodeChangeInfo(mapMsgData)
+  HttpNetHandler.ProcChangeInfo(mapDecodedChangeInfo)
+end
+
 function HttpNetHandlerPlus.gacha_newbie_obtain_succeed_ack(mapMsgData)
   local mapDecodedChangeInfo = UTILS.DecodeChangeInfo(mapMsgData)
   HttpNetHandler.ProcChangeInfo(mapDecodedChangeInfo)
@@ -152,6 +157,39 @@ function HttpNetHandlerPlus.story_set_state_notify(mapMsgData)
 end
 
 function HttpNetHandlerPlus.unlock_activity_story_notify(mapMsgData)
+  if mapMsgData == nil or mapMsgData.Stories == nil then
+    return
+  end
+  local nStoryId
+  for _, story in pairs(mapMsgData.Stories) do
+    if story ~= nil and story.Id ~= nil and story.Id ~= 0 then
+      nStoryId = story.Id
+      break
+    end
+  end
+  if nStoryId == nil then
+    return
+  end
+  local storyCfg = ConfigTable.GetData("ActivityStory", nStoryId)
+  if storyCfg == nil then
+    printError("unlock_activity_story_notify story cfg missing:" .. tostring(nStoryId))
+    return
+  end
+  local nChapterId = mapMsgData.ChapterId or storyCfg.ChapterId
+  local chapterCfg = CacheTable.GetData("_ActivityStoryChapter", nChapterId)
+  if chapterCfg == nil then
+    chapterCfg = PlayerData.ActivityAvg:GetActivityChapterConfigByChapterId(nChapterId)
+  end
+  local nActivityId = chapterCfg and chapterCfg.Id or 0
+  if nActivityId == 0 then
+    printError("unlock_activity_story_notify activity id missing, chapter:" .. tostring(nChapterId))
+    return
+  end
+  PlayerData.ActivityAvg:CacheAvgData(mapMsgData, nActivityId)
+  PlayerData.ActivityAvg:RefreshAvgRedDot()
+  PlayerData.StoryReview:CacheAvgData(mapMsgData, nActivityId)
+  PlayerData.StoryReview.mapLoadedChapterIds[nChapterId] = true
+  EventManager.Hit("Story_Done", false)
 end
 
 function HttpNetHandlerPlus.clear_story_set_notify(mapMsgData)
@@ -235,6 +273,16 @@ function HttpNetHandlerPlus.build_convert_group_reward_receive_succeed_ack(mapMs
   HttpNetHandler.ProcChangeInfo(mapDecodedChangeInfo)
 end
 
+function HttpNetHandlerPlus.star_tower_build_note_modify_succeed_ack(mapMsgData)
+  local mapDecodedChangeInfo = UTILS.DecodeChangeInfo(mapMsgData.Change)
+  HttpNetHandler.ProcChangeInfo(mapDecodedChangeInfo)
+end
+
+function HttpNetHandlerPlus.star_tower_build_potential_modify_succeed_ack(mapMsgData)
+  local mapDecodedChangeInfo = UTILS.DecodeChangeInfo(mapMsgData.Change)
+  HttpNetHandler.ProcChangeInfo(mapDecodedChangeInfo)
+end
+
 function HttpNetHandlerPlus.item_expired_change_notify(mapMsgData)
   EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Item_Change_Expired_Tips"))
 end
@@ -302,6 +350,11 @@ function HttpNetHandlerPlus.activity_history_story_settle_succeed_ack(mapMsgData
   HttpNetHandler.ProcChangeInfo(mapDecodedChangeInfo)
 end
 
+function HttpNetHandlerPlus.activity_archive_story_settle_succeed_ack(mapMsgData)
+  local mapDecodedChangeInfo = UTILS.DecodeChangeInfo(mapMsgData)
+  HttpNetHandler.ProcChangeInfo(mapDecodedChangeInfo)
+end
+
 function HttpNetHandlerPlus.milkout_settle_succeed_ack(mapMsgData)
   local mapDecodedChangeInfo = UTILS.DecodeChangeInfo(mapMsgData)
   HttpNetHandler.ProcChangeInfo(mapDecodedChangeInfo)
@@ -357,6 +410,10 @@ function HttpNetHandlerPlus.activity_double_reward_times_notify(mapMsgData)
   if actData ~= nil then
     actData:UpdateDoubleCount(mapMsgData.UseTimes)
     EventManager.Hit("UpdateInstanceDoubleCount")
+  end
+  local bReengagement = PlayerData.Reengagement:GetActIsOpen()
+  if bReengagement then
+    PlayerData.Reengagement:UpdateDoubleCount(mapMsgData.ReturneeTimes)
   end
 end
 
@@ -442,13 +499,104 @@ function HttpNetHandlerPlus.sd_item_change_notify(mapMsgData)
   PlayerData.SoldierData:OnItemChangeNotify(mapMsgData)
 end
 
-function HttpNetHandlerPlus.sd_buff_card_add_notify(mapMsgData)
-  PlayerData.SoldierData:OnBuffCardAddNotify(mapMsgData)
+function HttpNetHandlerPlus.sd_buff_notify(mapMsgData)
+  PlayerData.SoldierData:OnBuffAddNotify(mapMsgData)
+end
+
+function HttpNetHandlerPlus.soldier_season_reward_receive_succeed_ack(mapMsgData)
+  local mapDecodedChangeInfo = UTILS.DecodeChangeInfo(mapMsgData.Change)
+  HttpNetHandler.ProcChangeInfo(mapDecodedChangeInfo)
 end
 
 function HttpNetHandlerPlus.score_boss_reset_score_notify()
   PlayerData.ScoreBoss.isGetScInfo = false
   PlayerData.ScoreBoss:GetScoreBossInstanceData(nil)
+end
+
+function HttpNetHandlerPlus.dorm_layout_reward_receive_succeed_ack(mapMsgData)
+  local mapDecodedChangeInfo = UTILS.DecodeChangeInfo(mapMsgData)
+  HttpNetHandler.ProcChangeInfo(mapDecodedChangeInfo)
+end
+
+function HttpNetHandlerPlus.dorm_reward_receive_succeed_ack(mapMsgData)
+  local mapDecodedChangeInfo = UTILS.DecodeChangeInfo(mapMsgData)
+  HttpNetHandler.ProcChangeInfo(mapDecodedChangeInfo)
+end
+
+function HttpNetHandlerPlus.dorm_affinity_gift_send_succeed_ack(mapMsgData)
+  local mapDecodedChangeInfo = UTILS.DecodeChangeInfo(mapMsgData.Change)
+  HttpNetHandler.ProcChangeInfo(mapDecodedChangeInfo)
+  PlayerData.Char:ChangeCharAffinityValue(mapMsgData.Info)
+end
+
+function HttpNetHandlerPlus.dorm_room_unlock_notify(mapMsgData)
+  local mapDecodedChangeInfo = UTILS.DecodeChangeInfo(mapMsgData.ChangeInfo)
+  HttpNetHandler.ProcChangeInfo(mapDecodedChangeInfo)
+  PlayerData.PlayerDormData:UnlockRoom(mapMsgData.DormRoomId)
+  if mapMsgData.DormRoomId == 701001 then
+    local tbHonorChange = {
+      {NewId = 140001, Level = 0}
+    }
+    PlayerData.Base:ChangeHonorTitle(tbHonorChange)
+  end
+  EventManager.Hit("DormNewRoomUnlock", mapMsgData.DormRoomId)
+end
+
+function HttpNetHandlerPlus.dorm_role_interaction_succeed_ack(mapMsgData)
+  local mapDecodedChangeInfo = UTILS.DecodeChangeInfo(mapMsgData.Change)
+  HttpNetHandler.ProcChangeInfo(mapDecodedChangeInfo)
+  for _, AffinityInfo in ipairs(mapMsgData.InfoList) do
+    PlayerData.Char:ChangeCharAffinityValue(AffinityInfo.AffinityInfo)
+  end
+end
+
+function HttpNetHandlerPlus.quest_dorm_reward_receive_succeed_ack(mapMsgData)
+  local mapDecodedChangeInfo = UTILS.DecodeChangeInfo(mapMsgData.change_info)
+  HttpNetHandler.ProcChangeInfo(mapDecodedChangeInfo)
+  PlayerData.PlayerDormData:UpdateGroup(mapMsgData.TaskGroup)
+end
+
+function HttpNetHandlerPlus.dorm_achievement_reward_receive_succeed_ack(mapMsgData)
+  local mapDecodedChangeInfo = UTILS.DecodeChangeInfo(mapMsgData.ChangeInfo)
+  HttpNetHandler.ProcChangeInfo(mapDecodedChangeInfo)
+end
+
+function HttpNetHandlerPlus.dorm_blocks_convert_succeed_ack(mapMsgData)
+  local mapDecodedChangeInfo = UTILS.DecodeChangeInfo(mapMsgData)
+  HttpNetHandler.ProcChangeInfo(mapDecodedChangeInfo)
+end
+
+function HttpNetHandlerPlus.activity_returnee_state_notify(mapMsgData)
+  PlayerData.Reengagement:OnStateNotify(mapMsgData)
+end
+
+function HttpNetHandlerPlus.activity_returnee_quest_change_notify(mapMsgData)
+  PlayerData.Reengagement:OnQuestChangeNotify(mapMsgData)
+end
+
+function HttpNetHandlerPlus.activity_math_parkour_level_settle_succeed_ack(mapMsgData)
+  local mapDecodedChangeInfo = UTILS.DecodeChangeInfo(mapMsgData.Change)
+  HttpNetHandler.ProcChangeInfo(mapDecodedChangeInfo)
+end
+
+function HttpNetHandlerPlus.clear_all_activity_mathParkour_levels_notify(mapMsgData)
+  EventManager.Hit("ClearAllMathParkourLevels", mapMsgData)
+end
+
+function HttpNetHandlerPlus.activity_malllogin_reward_receive_succeed_ack(mapMsgData)
+  local tbDecodeChange = UTILS.DecodeChangeInfo(mapMsgData)
+  HttpNetHandler.ProcChangeInfo(tbDecodeChange)
+end
+
+function HttpNetHandlerPlus.activity_mail_bind_reward_receive_succeed_ack(mapMsgData)
+  local mapDecodedChangeInfo = UTILS.DecodeChangeInfo(mapMsgData)
+  HttpNetHandler.ProcChangeInfo(mapDecodedChangeInfo)
+end
+
+function HttpNetHandlerPlus.handbook_complete_notify(mapMsgData)
+  for _, v in pairs(mapMsgData.Handbook) do
+    PlayerData.Handbook:UpdateHandbook(v)
+  end
 end
 
 return HttpNetHandlerPlus

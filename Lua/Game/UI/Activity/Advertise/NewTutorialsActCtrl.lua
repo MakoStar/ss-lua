@@ -1,5 +1,5 @@
 local TimerManager = require("GameCore.Timer.TimerManager")
-NewTutorialsActCtrl = class("NewTutorialsActCtrl", BaseCtrl)
+local NewTutorialsActCtrl = class("NewTutorialsActCtrl", BaseCtrl)
 NewTutorialsActCtrl._mapNodeConfig = {
   goBaseGuide = {},
   goAdvanceGuide = {},
@@ -268,7 +268,7 @@ function NewTutorialsActCtrl:RefreshGuideQuset()
   self._mapNode.btn_GoGuideQusetPanel.gameObject:SetActive(bPlayCond)
   self._mapNode.txt_Locked1.gameObject:SetActive(not bPlayCond)
   local mapLockCfgData = ConfigTable.GetData("OpenFunc", GameEnum.OpenFuncType.Quest) or {}
-  sLockTip = UTILS.ParseParamDesc(mapLockCfgData.Tips, mapLockCfgData)
+  local sLockTip = UTILS.ParseParamDesc(mapLockCfgData.Tips, mapLockCfgData)
   NovaAPI.SetTMPText(self._mapNode.txt_Locked1, sLockTip)
   if not bPlayCond then
     return
@@ -296,7 +296,7 @@ function NewTutorialsActCtrl:RefreshTutorial()
   self._mapNode.btn_GoTutorialPanel.gameObject:SetActive(bPlayCond)
   self._mapNode.txt_Locked2.gameObject:SetActive(not bPlayCond)
   local mapLockCfgData = ConfigTable.GetData("OpenFunc", GameEnum.OpenFuncType.TutorialLevel) or {}
-  sLockTip = UTILS.ParseParamDesc(mapLockCfgData.Tips, mapLockCfgData)
+  local sLockTip = UTILS.ParseParamDesc(mapLockCfgData.Tips, mapLockCfgData)
   NovaAPI.SetTMPText(self._mapNode.txt_Locked2, sLockTip)
   if not bPlayCond then
     return
@@ -322,7 +322,7 @@ function NewTutorialsActCtrl:RefreshTeamFormation()
   self._mapNode.btn_GoTeamFormationPanel.gameObject:SetActive(bPlayCond)
   self._mapNode.txt_Locked3.gameObject:SetActive(not bPlayCond)
   local mapLockCfgData = ConfigTable.GetData("OpenFunc", GameEnum.OpenFuncType.QuestNewbie) or {}
-  sLockTip = UTILS.ParseParamDesc(mapLockCfgData.Tips, mapLockCfgData)
+  local sLockTip = UTILS.ParseParamDesc(mapLockCfgData.Tips, mapLockCfgData)
   NovaAPI.SetTMPText(self._mapNode.txt_Locked3, sLockTip)
   if not bPlayCond then
     return
@@ -355,7 +355,7 @@ function NewTutorialsActCtrl:RefreshWeekBoss()
   self._mapNode.btn_GoWeekBossPanel.gameObject:SetActive(bPlayCond)
   self._mapNode.goCountDown3.gameObject:SetActive(bPlayCond)
   local mapLockCfgData = ConfigTable.GetData("OpenFunc", GameEnum.OpenFuncType.WeeklyCopies) or {}
-  sLockTip = UTILS.ParseParamDesc(mapLockCfgData.Tips, mapLockCfgData)
+  local sLockTip = UTILS.ParseParamDesc(mapLockCfgData.Tips, mapLockCfgData)
   self._mapNode.txt_AdvanceLocked3.gameObject:SetActive(not bPlayCond)
   NovaAPI.SetTMPText(self._mapNode.txt_AdvanceLocked3, sLockTip)
   if not bPlayCond then
@@ -379,7 +379,7 @@ function NewTutorialsActCtrl:RefreshVampireSurvivor()
   self._mapNode.goCountDown1.gameObject:SetActive(bPlayCond)
   self._mapNode.goProgress1.gameObject:SetActive(bPlayCond)
   local mapLockCfgData = ConfigTable.GetData("OpenFunc", GameEnum.OpenFuncType.VampireSurvivor) or {}
-  sLockTip = UTILS.ParseParamDesc(mapLockCfgData.Tips, mapLockCfgData)
+  local sLockTip = UTILS.ParseParamDesc(mapLockCfgData.Tips, mapLockCfgData)
   self._mapNode.txt_AdvanceLocked1.gameObject:SetActive(not bPlayCond)
   NovaAPI.SetTMPText(self._mapNode.txt_AdvanceLocked1, sLockTip)
   if not bPlayCond then
@@ -430,7 +430,7 @@ function NewTutorialsActCtrl:RefreshScoreBoss()
   self._mapNode.goProgress2.gameObject:SetActive(bPlayCond)
   self._mapNode.txt_AdvanceLocked2.gameObject:SetActive(not bPlayCond)
   local mapLockCfgData = ConfigTable.GetData("OpenFunc", GameEnum.OpenFuncType.ScoreBoss) or {}
-  sLockTip = UTILS.ParseParamDesc(mapLockCfgData.Tips, mapLockCfgData)
+  local sLockTip = UTILS.ParseParamDesc(mapLockCfgData.Tips, mapLockCfgData)
   NovaAPI.SetTMPText(self._mapNode.txt_AdvanceLocked2, sLockTip)
   if not bPlayCond then
     return

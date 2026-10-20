@@ -34,6 +34,13 @@ function PlayerStateData:CacheStateData(mapMsgData)
     PlayerData.Activity:UpdateActivityState(mapMsgData.Activities)
     PlayerData.StorySet:UpdateStorySetState(mapMsgData.StorySet)
     PlayerData.TraceHunt:UpdateBossRewardRedDot(mapMsgData.TraceHunt.BossRewardCanReceive)
+    if mapMsgData.Soldier ~= nil then
+      PlayerData.SoldierData:UpdateSoldierState(mapMsgData.Soldier)
+    end
+    if mapMsgData.GuideMission ~= nil then
+      RedDotManager.SetValid(RedDotDefine.GuideMission_Server, nil, mapMsgData.GuideMission.New)
+    end
+    RedDotManager.SetValid(RedDotDefine.DormServer, nil, mapMsgData.DormStateFlag > 0)
     self.nVampireId = mapMsgData.VampireSurvivorId
   else
     self.bMailState = false
@@ -124,16 +131,37 @@ function PlayerStateData:GetCanPickedAdvanceRewards(nCharId, nMaxAdvance)
   end
 end
 
-function PlayerStateData:CheckState()
-  if self.mapStarTowerState.BuildId ~= 0 then
-    print("正在保存的BuildId" .. self.mapStarTowerState.BuildId)
-    
-    local function buildDetailcallback(mapBuild)
-      EventManager.Hit(EventId.OpenPanel, PanelId.StarTowerBuildSave, false, mapBuild)
-      self.mapStarTowerState.BuildId = 0
+function PlayerStateData:HasPendingStarTowerBuild()
+  return self.mapStarTowerState ~= nil and self.mapStarTowerState.BuildId ~= 0
+end
+
+function PlayerStateData:OpenStarTowerBuildSave(callback)
+  if not self:HasPendingStarTowerBuild() then
+    if callback ~= nil then
+      callback()
     end
-    
-    PlayerData.Build:GetBuildDetailData(buildDetailcallback, self.mapStarTowerState.BuildId)
+    return
+  end
+  local nBuildId = self.mapStarTowerState.BuildId
+  print("正在保存的BuildId" .. nBuildId)
+  self.mapStarTowerState.BuildId = 0
+  
+  local function buildDetailcallback(mapBuild)
+    if type(mapBuild) ~= "table" then
+      if callback ~= nil then
+        callback()
+      end
+      return
+    end
+    EventManager.Hit(EventId.OpenPanel, PanelId.StarTowerBuildSave, false, mapBuild, callback)
+  end
+  
+  PlayerData.Build:GetBuildDetailData(buildDetailcallback, nBuildId)
+end
+
+function PlayerStateData:CheckState()
+  if self:HasPendingStarTowerBuild() then
+    self:OpenStarTowerBuildSave()
     return true
   end
   return false

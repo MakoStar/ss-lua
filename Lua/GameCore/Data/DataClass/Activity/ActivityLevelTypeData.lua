@@ -71,16 +71,16 @@ function ActivityLevelTypeData:RefreshActivityLevelGameActData(actId, msgData)
         if tmpData.Type == GameEnum.ActivityLevelType.Explore then
           if self.levelTabExplore[v.Id] then
             self.levelTabExplore[v.Id].Star = v.Star
-            self.levelTabExplore[v.Id].BuildId = v.BuildId
+            self.levelTabExplore[v.Id].BuildId = v.Build.BuildId
           end
         elseif tmpData.Type == GameEnum.ActivityLevelType.Adventure then
           if self.levelTabAdventure[v.Id] then
             self.levelTabAdventure[v.Id].Star = v.Star
-            self.levelTabAdventure[v.Id].BuildId = v.BuildId
+            self.levelTabAdventure[v.Id].BuildId = v.Build.BuildId
           end
         elseif tmpData.Type == GameEnum.ActivityLevelType.HARD and self.levelTabHard[v.Id] then
           self.levelTabHard[v.Id].Star = v.Star
-          self.levelTabHard[v.Id].BuildId = v.BuildId
+          self.levelTabHard[v.Id].BuildId = v.Build.BuildId
         end
       end
     end
@@ -469,10 +469,13 @@ function ActivityLevelTypeData:SendEnterActivityLevelsApplyReq(nActivityId, nLev
   end
   self.entryLevelId = nLevelId
   self.entryBuildId = nBuildId
+  local mapBuildData = PlayerData.Build:GetBuildData(nBuildId)
+  local bTrial = mapBuildData.nBuildSource == AllEnum.BuildSource.Trial or mapBuildData.nBuildSource == AllEnum.BuildSource.LimitedTrial
+  local nBuildType = bTrial and 2 or 1
   local msg = {}
   msg.ActivityId = nActivityId
   msg.LevelId = nLevelId
-  msg.BuildId = nBuildId
+  msg.Build = {Type = nBuildType, BuildId = nBuildId}
   self._EntryTime = CS.ClientManager.Instance.serverTimeStampWithTimeZone
   
   local function msgCallback(_, msgData)

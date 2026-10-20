@@ -22,7 +22,7 @@ function BuffGridCtrl:FadeOut()
 end
 
 function BuffGridCtrl:OnEnable()
-  self.compRtAnim = self.gameObject:GetComponent("HpBarRectTransform")
+  self.compRtAnim = self.gameObject:GetComponent(typeof(CS.HpBarRectTransform))
   self.rootAnim = self.gameObject:GetComponent("Animator")
   self.rtRoot = self.gameObject:GetComponent("RectTransform")
   self.timer = nil

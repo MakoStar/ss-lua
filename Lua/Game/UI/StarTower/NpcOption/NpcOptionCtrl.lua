@@ -108,7 +108,9 @@ NpcOptionCtrl._mapNodeConfig = {
 NpcOptionCtrl._mapEventConfig = {
   RefreshStarTowerCoin = "OnEvent_SetCoin",
   GamepadUIChange = "OnEvent_GamepadUIChange",
-  GamepadUIReopen = "OnEvent_Reopen"
+  GamepadUIReopen = "OnEvent_Reopen",
+  StarTowerAutoSelectEvent = "OnEvent_AutoSelectEvent",
+  StarTowerAutoDisplayEvent = "OnEvent_AutoDisplayEvent"
 }
 NpcOptionCtrl._mapRedDotConfig = {}
 
@@ -116,6 +118,7 @@ function NpcOptionCtrl:Awake()
   self.PanelOffset = Vector3.zero
   self.tbGamepadUINode = self:GetGamepadUINode()
   self.nCoin = 0
+  self._nAutoDisplaySerial = 0
   self:SetSprite_Coin(self._mapNode.imgCoin, AllEnum.CoinItemId.FixedRogCurrency)
   NovaAPI.SetTMPText(self._mapNode.txtCoinCount, self.nCoin)
 end
@@ -160,6 +163,7 @@ function NpcOptionCtrl:OnEnable()
     self.nStarTowerId = tbParams[13]
     self.tbNote = tbParams[14]
     self.tbDisc = tbParams[15]
+    self.mapAutoDisplay = tbParams[16]
     NovaAPI.SetTMPText(self._mapNode.txtCoinCount, self:ThousandsNumber(self.nCoin))
     self._mapNode.imgMask.gameObject:SetActive(false)
     self._mapNode.goContent.gameObject:SetActive(false)
@@ -180,6 +184,7 @@ function NpcOptionCtrl:OnEnable()
       else
         self:RefreshHighDanger(nEventId, nNpcSkinId, nTalkId)
       end
+      self:SetAutoDisplay(self.mapAutoDisplay)
     end
     
     cs_coroutine.start(wait)
@@ -664,13 +669,13 @@ end
 function NpcOptionCtrl:OnRelease()
 end
 
-function NpcOptionCtrl:ClosePanel(bOnlyTalk, nSelectIdx, nEventId)
+function NpcOptionCtrl:ClosePanel(bOnlyTalk, nSelectIdx, nEventId, bAuto)
   local function callback()
     GamepadUIManager.DisableGamepadUI("NpcOptionCtrl")
     
     PanelManager.InputEnable()
     if self.callback ~= nil and not bOnlyTalk then
-      self.callback(nSelectIdx, nEventId)
+      self.callback(nSelectIdx, nEventId, false, bAuto == true)
     end
     EventManager.Hit(EventId.ClosePanel, PanelId.NpcOptionPanel)
   end
@@ -723,6 +728,95 @@ function NpcOptionCtrl:OnBtnClick_Select(btn)
     return
   end
   self:ClosePanel(false, nIdx, self.nEventId)
+end
+
+function NpcOptionCtrl:PreviewAutoSelect(nIndex)
+  local btnChoose = self._mapNode.btnChoose[nIndex]
+  if btnChoose == nil or not btnChoose.interactable then
+    return false
+  end
+  local nReadyDelay = 0
+  if self.bSelectTalk then
+    nReadyDelay = self:OnBtnClick_Talk() or 0
+  end
+  for k, selectNode in ipairs(self._mapNode.Select) do
+    selectNode:SetActive(k == nIndex)
+  end
+  self.nSelectIdx = nIndex
+  GamepadUIManager.SetSelectedUI(btnChoose.gameObject)
+  return true, nReadyDelay
+end
+
+function NpcOptionCtrl:SetAutoDisplay(mapAutoDisplay)
+  if type(mapAutoDisplay) ~= "table" then
+    return
+  end
+  self.mapAutoDisplay = mapAutoDisplay
+  self._nAutoDisplaySerial = self._nAutoDisplaySerial + 1
+  self:StartAutoDisplay(self._nAutoDisplaySerial)
+end
+
+function NpcOptionCtrl:StartAutoDisplay(nSerial)
+  local mapAutoDisplay = self.mapAutoDisplay
+  
+  local function IsAutoDisplayEnabled()
+    if nSerial ~= self._nAutoDisplaySerial then
+      return false
+    end
+    return type(mapAutoDisplay.isEnabledCallback) ~= "function" or mapAutoDisplay.isEnabledCallback()
+  end
+  
+  local function PreviewAndReady()
+    if not IsAutoDisplayEnabled() then
+      return
+    end
+    local bPreviewSuccess, nReadyDelay = self:PreviewAutoSelect(mapAutoDisplay.nTargetIndex)
+    if not bPreviewSuccess or type(mapAutoDisplay.readyCallback) ~= "function" then
+      return
+    end
+    
+    local function Ready()
+      if IsAutoDisplayEnabled() then
+        mapAutoDisplay.readyCallback()
+      end
+    end
+    
+    if 0 < nReadyDelay then
+      self:AddTimer(1, nReadyDelay, Ready, true, true, true)
+    else
+      Ready()
+    end
+  end
+  
+  if not self.bSelectTalk then
+    PreviewAndReady()
+    return
+  end
+  self:AddTimer(1, 2, function()
+    if not IsAutoDisplayEnabled() then
+      return
+    end
+    local nAnimLen = self.bSelectTalk and (self:OnBtnClick_Talk() or 0) or 0
+    if 0 < nAnimLen then
+      self:AddTimer(1, nAnimLen, PreviewAndReady, true, true, true)
+    else
+      PreviewAndReady()
+    end
+  end, true, true, true)
+end
+
+function NpcOptionCtrl:OnEvent_AutoDisplayEvent(nEventId, mapAutoDisplay)
+  if self.bOnlyTalk or self.nEventId ~= nEventId then
+    return
+  end
+  self:SetAutoDisplay(mapAutoDisplay)
+end
+
+function NpcOptionCtrl:OnEvent_AutoSelectEvent(nEventId, nIndex)
+  if self.nEventId ~= nEventId or not self:PreviewAutoSelect(nIndex) then
+    return
+  end
+  self:ClosePanel(false, nIndex, nEventId, true)
 end
 
 function NpcOptionCtrl:OnBtnSelect_Select(btn, nIndex)
@@ -780,6 +874,7 @@ function NpcOptionCtrl:OnBtnClick_Talk(btn)
   end
   self:SetCoinActive(true)
   self:SelectChoose()
+  return nAnimLen
 end
 
 function NpcOptionCtrl:LoadOffset(sPath)

@@ -224,7 +224,7 @@ function VampireLevelSelectCtrl:OnEvent_ClickLevelGrid(mapData, bNoAnim)
       self.animator:Play("VampireLevelSelectPanel_in1")
     end
   else
-    PlayerData.Build:GetAllBuildBriefData(GetBuildCallback)
+    PlayerData.Build:GetSelectableBuildBriefData(GetBuildCallback, AllEnum.RegionBossFormationType.Vampire)
   end
   NovaAPI.SetTMPText(self._mapNode.TMPRemainTimeQuest, ConfigTable.GetUIText("Vampire_Season_ScoreTime") .. PlayerData.VampireSurvivor:GetRefreshTiem())
 end
@@ -303,7 +303,7 @@ function VampireLevelSelectCtrl:OnEvent_VampireSurvivorChangeBuild()
     self._panel.nLevelId = nId
     self._mapNode.rtLevelInfo:Refresh(nId, nil, nil)
   else
-    PlayerData.Build:GetAllBuildBriefData(GetBuildCallback)
+    PlayerData.Build:GetSelectableBuildBriefData(GetBuildCallback, AllEnum.RegionBossFormationType.Vampire)
   end
 end
 

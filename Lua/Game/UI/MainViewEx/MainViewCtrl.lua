@@ -2,6 +2,7 @@ local MainViewCtrl = class("MainViewCtrl", BaseCtrl)
 local PlayerBoardData = PlayerData.Board
 local PlayerVoiceData = PlayerData.Voice
 local AvgData = PlayerData.Avg
+local AvgManager = require("GameCore.Module.AvgManager")
 local LocalData = require("GameCore.Data.LocalData")
 local Actor2DManager = require("Game.Actor2D.Actor2DManager")
 local TimerManager = require("GameCore.Timer.TimerManager")
@@ -129,6 +130,19 @@ MainViewCtrl._mapNodeConfig = {
   },
   rtEventReminderTime = {},
   tmpEventReminderTime = {sComponentName = "TMP_Text"},
+  btnReengagement = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_Reengagement"
+  },
+  txtReengagement = {
+    nCount = 2,
+    sComponentName = "TMP_Text",
+    sLanguageId = "MainView_Reengagement"
+  },
+  redDotReengagement = {},
+  LockReengagement = {sComponentName = "Image"},
+  tmpReengagementTime = {sComponentName = "TMP_Text"},
+  rtReengagementTime = {},
   btnNotice = {
     sComponentName = "UIButton",
     callback = "OnBtnClick_Notice"
@@ -172,7 +186,7 @@ MainViewCtrl._mapNodeConfig = {
   goBannerDot = {
     sComponentName = "RectTransform"
   },
-  imgPointBg = {nCount = 10},
+  imgPointBg = {},
   txt_ShowUI = {
     sComponentName = "TMP_Text",
     sLanguageId = "MainView_ShowUI"
@@ -249,6 +263,27 @@ MainViewCtrl._mapNodeConfig = {
   imgActivityFastBg = {nCount = 3, sComponentName = "Image"},
   goActivityFastRedDot = {nCount = 3},
   goActivityFastRedDotNew = {nCount = 3},
+  btnDorm = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_Dorm"
+  },
+  txtDorm = {
+    nCount = 2,
+    sComponentName = "TMP_Text",
+    sLanguageId = "Dorm_MainViewBtnName"
+  },
+  txtDormBeta = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Dorm_MainViewBtnNameBeta"
+  },
+  btnGuideMission = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_GuideMission"
+  },
+  imgTopBtnListBg = {
+    sComponentName = "RectTransform"
+  },
+  point3 = {},
   btnRecruit = {
     sComponentName = "UIButton",
     callback = "OnBtnClick_Recruit"
@@ -308,8 +343,14 @@ MainViewCtrl._mapNodeConfig = {
     sNodeName = "imgContentBg",
     sComponentName = "LayoutElement"
   },
+  btnActivitySubEntrance = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_ActivitySubEntrance"
+  },
   redDotActivity = {},
   redDotActivityNew = {},
+  redDotActivityEntrance = {},
+  redDotActivityEntranceNew = {},
   redDotBattlePass = {},
   redDotNotice = {},
   redDotMall = {},
@@ -328,7 +369,11 @@ MainViewCtrl._mapNodeConfig = {
   redDotShop = {},
   redDotMap = {},
   redDotMainline = {},
+  redDotDorm = {},
+  redDotGuideMission = {},
+  redDotRecruit = {},
   goRedDotActivity = {},
+  goRedDotActivityEntrance = {},
   goRedDotTask = {},
   goRedDotQuestNewbie = {},
   goRedDotPhone = {},
@@ -344,7 +389,8 @@ MainViewCtrl._mapNodeConfig = {
   LockPhone = {},
   LockDispatch = {},
   LockActivity = {},
-  LockBattlePass = {}
+  LockBattlePass = {},
+  LockDorm = {}
 }
 MainViewCtrl._mapEventConfig = {
   [EventId.AfterEnterMain] = "OnEvent_AfterEnterMainMenuModuleScene",
@@ -355,16 +401,21 @@ MainViewCtrl._mapEventConfig = {
   [EventId.ShowBubbleVoiceText] = "OnEvent_ShowBubbleVoiceText",
   [EventId.ActivityDataChange] = "OnEvent_ActivityDataChange",
   MainViewCheckOpenPanel = "OnEvent_MainViewCheckOpenPanel",
+  UnlockMainViewInput = "OnEvent_UnlockMainViewInput",
   [EventId.TransAnimOutClear] = "OnEvent_TransAnimOutClear",
   AfterCloseNPCReceive = "OnEvent_AfterCloseNPCReceive",
-  RefreshActivityGroupRedDot = "OnEvent_RefreshActivityGroupRedDot"
+  RefreshActivityGroupRedDot = "OnEvent_RefreshActivityGroupRedDot",
+  Mall_Refresh_Reddot = "RefreshRedDot",
+  Mall_UpdateMallPackageRedDot = "RefreshRedDot"
 }
 MainViewCtrl._mapRedDotConfig = {
-  [RedDotDefine.Activity] = {
-    sNodeName = "redDotActivity"
+  [RedDotDefine.Activity_Entrance] = {
+    sNodeName = "redDotActivity",
+    param = 0
   },
-  [RedDotDefine.Activity_New] = {
-    sNodeName = "redDotActivityNew"
+  [RedDotDefine.Activity_Entrance_New] = {
+    sNodeName = "redDotActivityNew",
+    param = 0
   },
   [RedDotDefine.BattlePass] = {
     sNodeName = "redDotBattlePass"
@@ -399,7 +450,14 @@ MainViewCtrl._mapRedDotConfig = {
   [RedDotDefine.Map] = {sNodeName = "redDotMap"},
   [RedDotDefine.Map_MainLine] = {
     sNodeName = "redDotMainline"
-  }
+  },
+  [RedDotDefine.GuideMission] = {
+    sNodeName = "redDotGuideMission"
+  },
+  [RedDotDefine.Gacha_MainView] = {
+    sNodeName = "redDotRecruit"
+  },
+  [RedDotDefine.Dorm] = {sNodeName = "redDotDorm"}
 }
 local view_state = {
   init = 0,
@@ -427,11 +485,11 @@ function MainViewCtrl:RefreshShow()
   self:RefreshActor2D()
   self:RefreshNewbieQuestState()
   self:RefreshLeftActivityList()
+  self:RefreshActivitySubEntrance()
   PlayerData.Activity:RefreshActivityRedDot()
   PlayerData.Dispatch:CheckReddot()
   PlayerData.Achievement:CheckReddot()
   self:SetBanner()
-  PlayerData.SideBanner:TryOpenSideBanner()
   
   local function RefreshFastBtn()
     self:RefreshActivityFastEntrance()
@@ -440,6 +498,7 @@ function MainViewCtrl:RefreshShow()
   
   PlayerData.Activity:SendActivityDetailMsg(RefreshFastBtn)
   self:RefreshEventReminder()
+  self:RefreshReengagement()
   self:RefreshRedDot()
   self:RefreshBattleReminderTime()
 end
@@ -550,6 +609,29 @@ function MainViewCtrl:RefreshEventReminder()
   end
 end
 
+function MainViewCtrl:RefreshReengagement()
+  local nMinRemainTime = PlayerData.Reengagement:GetReengagementRemainTime()
+  if nMinRemainTime == nil then
+    self._mapNode.rtReengagementTime.gameObject:SetActive(false)
+    NovaAPI.SetTMPText(self._mapNode.tmpReengagementTime, "")
+    return
+  end
+  if 0 < nMinRemainTime then
+    self._mapNode.rtReengagementTime.gameObject:SetActive(true)
+    if 86400 <= nMinRemainTime then
+      sTipStr = math.floor(nMinRemainTime / 86400) .. ConfigTable.GetUIText("Depot_Item_LeftTime_Day")
+    elseif 3600 <= nMinRemainTime then
+      sTipStr = math.floor(nMinRemainTime / 3600) .. ConfigTable.GetUIText("Depot_Item_LeftTime_Hour")
+    else
+      local nMin = math.max(math.floor(nMinRemainTime / 60), 1)
+      sTipStr = nMin .. ConfigTable.GetUIText("Depot_LeftTime_Min")
+    end
+    NovaAPI.SetTMPText(self._mapNode.tmpReengagementTime, sTipStr)
+  else
+    self._mapNode.rtReengagementTime.gameObject:SetActive(false)
+  end
+end
+
 function MainViewCtrl:RefreshBtnBattlePass()
   if not PlayerData.Base:CheckFunctionUnlock(GameEnum.OpenFuncType.BattlePass) then
     return
@@ -629,7 +711,7 @@ function MainViewCtrl:RefreshActor2D()
       local nDiscId = curBoardData:GetDiscId()
       local bUseL2D = PlayerData.Disc:CheckDiscL2D(nDiscId)
       Actor2DManager.SetDisc2D(nDiscId, self._mapNode.rawImgActor2D, bUseL2D)
-    elseif curBoardData:GetType() == GameEnum.handbookType.PLOT or curBoardData:GetType() == GameEnum.handbookType.StorySet then
+    elseif curBoardData:GetType() == GameEnum.handbookType.PLOT or curBoardData:GetType() == GameEnum.handbookType.StorySet or curBoardData:GetType() == GameEnum.handbookType.StoryReview then
       local nCgId = curBoardData:GetId()
       if curBoardData:CheckPlotL2d() then
         self._mapNode.rawImgActor2D.gameObject:SetActive(true)
@@ -660,7 +742,7 @@ function MainViewCtrl:ChangeActorFinish(nTime)
     self.timerCheck:Cancel()
     self.timerCheck = nil
   end
-  local nInTime = self.nViewState == view_state.init and 0.7 or 0.4
+  self._nEntranceWait = (self._nEntranceWait or 0) + 1
   if 0 < nTime then
     if self.nViewState == view_state.init then
       self:ChangeViewState(view_state.fullScene_login, true)
@@ -674,8 +756,7 @@ function MainViewCtrl:ChangeActorFinish(nTime)
     elseif self.nViewState == view_state.fullScene_normal then
       self:ChangeViewState(view_state.show_normal, true)
     end
-    EventManager.Hit(EventId.TemporaryBlockInput, nInTime)
-    self.timerCheck = self:AddTimer(1, nInTime, "OnTimer_AnimCheck", true, true)
+    self:_WaitEntranceThenCheck(true)
   end
   if nTime == 0 then
     if self.nViewState == view_state.init or self.nViewState == view_state.show_login then
@@ -702,6 +783,15 @@ function MainViewCtrl:PlayMainViewOpenVoice()
   end
 end
 
+function MainViewCtrl:_EnsureBannerDotPool(nCount)
+  for i = 1, nCount do
+    if self.tbBannerDots[i] == nil then
+      local goClone = instantiate(self._mapNode.imgPointBg, self._mapNode.goBannerDot)
+      self.tbBannerDots[i] = goClone
+    end
+  end
+end
+
 function MainViewCtrl:SetBanner()
   self.bannerRefreshTimer = nil
   self.tbBannerList = {}
@@ -712,13 +802,14 @@ function MainViewCtrl:SetBanner()
     self._mapNode.goActivityBanner.gameObject:SetActive(false)
   else
     self._mapNode.goActivityBanner:SetActive(true)
-    for _, v in ipairs(self._mapNode.imgPointBg) do
+    self:_EnsureBannerDotPool(#self.tbBannerList)
+    for _, v in ipairs(self.tbBannerDots) do
       v.gameObject:SetActive(false)
     end
     for k, v in ipairs(self.tbBannerList) do
-      if nil ~= self._mapNode.imgPointBg[k] then
-        self._mapNode.imgPointBg[k]:SetActive(true)
-        self._mapNode.imgPointBg[k].transform:Find("imgPoint").gameObject:SetActive(false)
+      if nil ~= self.tbBannerDots[k] then
+        self.tbBannerDots[k]:SetActive(true)
+        self.tbBannerDots[k].transform:Find("imgPoint").gameObject:SetActive(false)
       end
     end
     self.nActBannerIdx = 1
@@ -986,9 +1077,15 @@ function MainViewCtrl:RefreshActivityBanner()
       end
     end
   end
-  self._mapNode.imgPointBg[self.nLastActBannerIdx].transform:Find("imgPoint").gameObject:SetActive(false)
-  self.nLastActBannerIdx = self.nActBannerIdx
-  self._mapNode.imgPointBg[self.nActBannerIdx].transform:Find("imgPoint").gameObject:SetActive(true)
+  if self.tbBannerDots ~= nil then
+    if self.tbBannerDots[self.nLastActBannerIdx] ~= nil then
+      self.tbBannerDots[self.nLastActBannerIdx].transform:Find("imgPoint").gameObject:SetActive(false)
+    end
+    self.nLastActBannerIdx = self.nActBannerIdx
+    if self.tbBannerDots[self.nActBannerIdx] ~= nil then
+      self.tbBannerDots[self.nActBannerIdx].transform:Find("imgPoint").gameObject:SetActive(true)
+    end
+  end
 end
 
 function MainViewCtrl:StartActBannerTimer()
@@ -1037,11 +1134,24 @@ function MainViewCtrl:InitData()
   self.bannerList = {}
 end
 
+function MainViewCtrl:EnqueueLoginSequenceOnce()
+  if self._bLoginSeqArmed then
+    return
+  end
+  self._bLoginSeqArmed = true
+  local bPendingBuild = PlayerData.State:HasPendingStarTowerBuild()
+  if bPendingBuild then
+    PopUpManager.PopUpEnQueue(GameEnum.PopUpSeqType.StarTowerBuildSave, true, true)
+  end
+  PopUpManager.PopUpEnQueue(GameEnum.PopUpSeqType.MainViewGuide, true, true)
+end
+
 function MainViewCtrl:CheckOpenPanel()
   local bInPopUp = PopUpManager.CheckInPopUpQueue()
   if bInPopUp then
     return
   end
+  self:EnqueueLoginSequenceOnce()
   self.timerCheck = nil
   self.bNeedCheckState = nil
   NovaAPI.SetCanvasGroupBlocksRaycasts(self._mapNode.cgRoot, false)
@@ -1053,6 +1163,7 @@ function MainViewCtrl:CheckOpenPanel()
       PlayerVoiceData:PlayMainViewOpenVoice()
       self:ChangeViewState(view_state.show_normal)
     end
+    PlayerData.SideBanner:TryOpenSideBanner()
   end
   
   PopUpManager.StartShowPopUp(callbackFunc)
@@ -1094,6 +1205,33 @@ function MainViewCtrl:PlayViewAnim(sTriggerName)
   self.sLastTriggerAnim = sTriggerName
 end
 
+function MainViewCtrl:_WaitEntranceThenCheck(bBlockInput)
+  self._nEntranceWait = (self._nEntranceWait or 0) + 1
+  local nToken = self._nEntranceWait
+  
+  local function wait()
+    for _ = 1, 2 do
+      coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
+      if nToken ~= self._nEntranceWait then
+        return
+      end
+      if self._mapNode == nil or self._mapNode.aniMainView == nil then
+        return
+      end
+    end
+    if nToken ~= self._nEntranceWait or self._mapNode == nil or self._mapNode.aniMainView == nil then
+      return
+    end
+    local nTime = self._mapNode.aniMainView:GetCurrentAnimatorStateInfo(0).length
+    if bBlockInput then
+      EventManager.Hit(EventId.TemporaryBlockInput, nTime)
+    end
+    self.timerCheck = self:AddTimer(1, nTime, "OnTimer_AnimCheck", true, true)
+  end
+  
+  cs_coroutine.start(wait)
+end
+
 function MainViewCtrl:ChangeViewState(nState, bPlayAnim)
   if bPlayAnim then
     local nLastAnimName = view_state_anim[self.nViewState]
@@ -1126,13 +1264,27 @@ function MainViewCtrl:RefreshFuncLock()
   self._mapNode.LockDispatch:SetActive(not PlayerData.Base:CheckFunctionUnlock(GameEnum.OpenFuncType.Agent))
   self._mapNode.LockActivity:SetActive(not PlayerData.Base:CheckFunctionUnlock(GameEnum.OpenFuncType.Activity))
   self._mapNode.LockBattlePass:SetActive(not PlayerData.Base:CheckFunctionUnlock(GameEnum.OpenFuncType.BattlePass))
+  self._mapNode.LockDorm:SetActive(not PlayerData.Base:CheckFunctionUnlock(GameEnum.OpenFuncType.Dorm))
+  self._mapNode.txtDorm[2].gameObject:SetActive(not PlayerData.Base:CheckFunctionUnlock(GameEnum.OpenFuncType.Dorm))
   self._mapNode.BattlePassReminderTime:SetActive(PlayerData.Base:CheckFunctionUnlock(GameEnum.OpenFuncType.BattlePass))
   self._mapNode.btnEventReminder.gameObject:SetActive(PlayerData.Base:CheckFunctionUnlock(GameEnum.OpenFuncType.EventReminder))
   self._mapNode.goRedDotActivity:SetActive(PlayerData.Base:CheckFunctionUnlock(GameEnum.OpenFuncType.Activity))
+  self._mapNode.goRedDotActivityEntrance:SetActive(PlayerData.Base:CheckFunctionUnlock(GameEnum.OpenFuncType.Activity))
   self._mapNode.goRedDotPhone:SetActive(PlayerData.Base:CheckFunctionUnlock(GameEnum.OpenFuncType.Phone))
   self._mapNode.goRedDotTask:SetActive(PlayerData.Base:CheckFunctionUnlock(GameEnum.OpenFuncType.Quest))
   self._mapNode.goRedDotQuestNewbie:SetActive(PlayerData.Base:CheckFunctionUnlock(GameEnum.OpenFuncType.QuestNewbie))
   self._mapNode.goRedDotDispatch:SetActive(PlayerData.Base:CheckFunctionUnlock(GameEnum.OpenFuncType.Agent))
+  local bGuideMissionUnlock = PlayerData.Base:CheckFunctionUnlock(GameEnum.OpenFuncType.GuideMission)
+  self._mapNode.btnGuideMission.gameObject:SetActive(bGuideMissionUnlock)
+  self._mapNode.point3:SetActive(bGuideMissionUnlock)
+  self._mapNode.imgTopBtnListBg.sizeDelta = Vector2(bGuideMissionUnlock and 535.68 or 416, self._mapNode.imgTopBtnListBg.sizeDelta.y)
+  local bReengagementOpen = PlayerData.Reengagement:GetActIsOpen()
+  self._mapNode.btnReengagement.gameObject:SetActive(bReengagementOpen)
+  if bReengagementOpen then
+    RedDotManager.RegisterNode(RedDotDefine.Activity_Reengagement, PlayerData.Reengagement:GetActId(), self._mapNode.redDotReengagement)
+  else
+    self._mapNode.redDotReengagement.gameObject:SetActive(false)
+  end
 end
 
 function MainViewCtrl:SetHintLayout(bEnabled)
@@ -1141,6 +1293,10 @@ function MainViewCtrl:SetHintLayout(bEnabled)
 end
 
 function MainViewCtrl:RefreshLeftActivityList()
+  local tbBtn = self._mapNode and self._mapNode.btnActivityPrepare
+  if tbBtn == nil or tbBtn[1] == nil then
+    return
+  end
   local tbActGroupList = PlayerData.Activity:GetMainviewShowActivityGroup()
   if self.tbActivityPrepareShowList ~= nil then
     for index, actData in ipairs(self.tbActivityPrepareShowList) do
@@ -1310,10 +1466,91 @@ function MainViewCtrl:RefreshActivityFastEntrance()
         RedDotManager.RegisterNode(RedDotDefine.Activity_GroupNew, actCfg.MidGroupId, self._mapNode.goActivityFastRedDotNew[k], nil, nil, true)
       end
       if nActType == GameEnum.activityType.Soldier then
-        RedDotManager.RegisterNode(RedDotDefine.Solider, v:GetActId(), self._mapNode.goActivityFastRedDotNew[k], nil, nil, true)
       end
     end
   end
+end
+
+function MainViewCtrl:RefreshActivitySubEntrance()
+  self.nActivitySubEntranceId = 0
+  local expireTimer = self.activitySubEntranceExpireTimer
+  if expireTimer ~= nil then
+    expireTimer:Cancel(false)
+    self.activitySubEntranceExpireTimer = nil
+  end
+  local btnTrans = self._mapNode.btnActivitySubEntrance
+  local nEntranceId = PlayerData.Activity:GetActivitySubEntranceId()
+  local mapEntranceCfg
+  if 0 < nEntranceId then
+    mapEntranceCfg = ConfigTable.GetData("ActivityEntrance", nEntranceId)
+    if mapEntranceCfg == nil then
+      printError(string.format("ActivityEntrance表里找不到入口id：%d", nEntranceId))
+    end
+  end
+  if mapEntranceCfg == nil then
+    btnTrans.gameObject:SetActive(false)
+    self:RefreshActivitySubEntranceRes(nil)
+    return
+  end
+  local nCurTime = CS.ClientManager.Instance.serverTimeStamp
+  
+  local function toTimeStamp(sTime, nDefault)
+    if sTime == nil or sTime == "" then
+      return nDefault
+    end
+    return CS.ClientManager.Instance:ISO8601StrToTimeStamp(sTime)
+  end
+  
+  local nStartTime = toTimeStamp(mapEntranceCfg.StartTime, nCurTime)
+  local nEndTime = toTimeStamp(mapEntranceCfg.EndTime, 0)
+  if nCurTime < nStartTime or 0 < nEndTime and nCurTime >= nEndTime then
+    btnTrans.gameObject:SetActive(false)
+    self:RefreshActivitySubEntranceRes(nil)
+    return
+  end
+  self.nActivitySubEntranceId = nEntranceId
+  btnTrans.gameObject:SetActive(true)
+  RedDotManager.RegisterNode(RedDotDefine.Activity_Entrance, nEntranceId, self._mapNode.redDotActivityEntrance, nil, nil, true)
+  RedDotManager.RegisterNode(RedDotDefine.Activity_Entrance_New, nEntranceId, self._mapNode.redDotActivityEntranceNew, nil, nil, true)
+  self:RefreshActivitySubEntranceRes(mapEntranceCfg.EnterRes)
+  if 0 < nEndTime then
+    self.activitySubEntranceExpireTimer = self:AddTimer(1, nEndTime - nCurTime + 1, function()
+      self.activitySubEntranceExpireTimer = nil
+      self.nActivitySubEntranceId = 0
+      btnTrans.gameObject:SetActive(false)
+      self:RefreshActivitySubEntranceRes(nil)
+    end, true, true, false)
+  end
+end
+
+function MainViewCtrl:RefreshActivitySubEntranceRes(sEnterRes)
+  local sPrefabPath
+  if sEnterRes ~= nil and sEnterRes ~= "" then
+    sPrefabPath = string.format("UI_Activity/%s.prefab", sEnterRes)
+  end
+  if self.sActivitySubEntranceResPath == sPrefabPath and not IsNull(self.goActivitySubEntranceRes) then
+    return
+  end
+  if self.sActivitySubEntranceResPath ~= nil then
+    self:DestroyPrefabInstance(self.sActivitySubEntranceResPath)
+    self.sActivitySubEntranceResPath = nil
+    self.goActivitySubEntranceRes = nil
+  end
+  if sPrefabPath == nil then
+    return
+  end
+  local trOpenBg = self._mapNode.btnActivitySubEntrance.transform:Find("AnimRoot/Open/imgBg")
+  if trOpenBg == nil then
+    printError("btnActivitySubEntrance 下找不到 AnimRoot/Open/imgBg 节点")
+    return
+  end
+  local goIns = self:CreatePrefabInstance(sPrefabPath, trOpenBg)
+  if IsNull(goIns) then
+    printError(string.format("活动入口预制体加载失败：%s", sPrefabPath))
+    return
+  end
+  self.sActivitySubEntranceResPath = sPrefabPath
+  self.goActivitySubEntranceRes = goIns
 end
 
 function MainViewCtrl:RefreshTimeout(remainTime)
@@ -1404,6 +1641,7 @@ function MainViewCtrl:Awake()
   self.nCurCharIdx = nil
   self.nActorShowType = nil
   self.bNeedCheckState = true
+  self._bLoginSeqArmed = false
   self.nDragStartPosX = nil
   self.nDragThreshold = PlayerBoardData:GetBoardDragThreshold()
   self.nCurBubbleIndex = 0
@@ -1418,7 +1656,10 @@ function MainViewCtrl:Awake()
 end
 
 function MainViewCtrl:OnEnable()
+  self.tbBannerDots = {}
+  self._mapNode.imgPointBg.gameObject:SetActive(false)
   self.bInTransition = false
+  self._bLoginSeqArmed = false
   EventManager.Add("OnEscCallback", self, self.OnEvent_OnEscCallback)
   if PanelManager.GetMainViewSkipAnimIn() == false then
     self:ChangeViewState(view_state.fullScene)
@@ -1467,6 +1708,9 @@ function MainViewCtrl:OnEnable()
   local bHasBattlePass = PlayerData.BattlePass:GetHasBattlePass()
   self._mapNode.btnBattlePass.gameObject:SetActive(bHasBattlePass)
   PlayerData.PotentialPreselection:SendGetPreselectionList()
+  PlayerData.SoldierData:SetCurSelectSeasonId(1)
+  PlayerData.SoldierData:RequestSoldierSeasonInfo()
+  PlayerData.SoldierData:SendSoldierTechDetailReq()
 end
 
 function MainViewCtrl:OnDisable()
@@ -1479,7 +1723,11 @@ function MainViewCtrl:OnDisable()
   Actor2DManager.UnSetCg2D()
   PlayerVoiceData:ClearTimer()
   PlayerVoiceData:StopCharVoice()
-  BubbleVoiceManager.StopBubbleAnim()
+  BubbleVoiceManager.StopBubbleAnim(true)
+  for _, v in ipairs(self.tbBannerDots) do
+    destroy(v.gameObject)
+  end
+  self.tbBannerDots = {}
 end
 
 function MainViewCtrl:OnDestroy()
@@ -1651,7 +1899,7 @@ function MainViewCtrl:OnBtnClick_BoardChange()
         BubbleVoiceManager.StopBubbleAnim()
         PlayerVoiceData:StopCharVoice()
       end
-    elseif curBoardData:GetType() == GameEnum.handbookType.PLOT or curBoardData:GetType() == GameEnum.handbookType.StorySet then
+    elseif curBoardData:GetType() == GameEnum.handbookType.PLOT or curBoardData:GetType() == GameEnum.handbookType.StorySet or curBoardData:GetType() == GameEnum.handbookType.StoryReview then
       EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Board_No_CG"))
     end
   end
@@ -1845,6 +2093,26 @@ function MainViewCtrl:OnBtnClick_Task(btn)
   PlayerData.Base:CheckFunctionBtn(GameEnum.OpenFuncType.Quest, callback)
 end
 
+function MainViewCtrl:OnBtnClick_Dorm(btn)
+  local function openCallback()
+    PlayerData.PlayerDormData:EnterDorm()
+  end
+  
+  PlayerData.Base:CheckFunctionBtn(GameEnum.OpenFuncType.Dorm, openCallback)
+end
+
+function MainViewCtrl:OnBtnClick_GuideMission(btn)
+  local function callback()
+    local function func()
+      EventManager.Hit(EventId.OpenPanel, PanelId.GuideMission)
+    end
+    
+    self:PlayTransition(5, func)
+  end
+  
+  PlayerData.Base:CheckFunctionBtn(GameEnum.OpenFuncType.GuideMission, callback)
+end
+
 function MainViewCtrl:OnBtnClick_QuestNewbie(btn)
   local function callback()
     local function func()
@@ -1902,6 +2170,19 @@ function MainViewCtrl:OnBtnClick_Activity()
   PlayerData.Base:CheckFunctionBtn(GameEnum.OpenFuncType.Activity, callback)
 end
 
+function MainViewCtrl:OnBtnClick_ActivitySubEntrance()
+  local nEntranceId = self.nActivitySubEntranceId or 0
+  if nEntranceId <= 0 then
+    return
+  end
+  
+  local function callback()
+    PlayerData.Activity:OpenActivityPanel(nil, nEntranceId)
+  end
+  
+  PlayerData.Base:CheckFunctionBtn(GameEnum.OpenFuncType.Activity, callback)
+end
+
 function MainViewCtrl:OnBtnClick_Depot(btn)
   local function func()
     EventManager.Hit(EventId.OpenPanel, PanelId.DepotPanel)
@@ -1920,6 +2201,13 @@ end
 
 function MainViewCtrl:OnBtnClick_EventReminder(btn)
   EventManager.Hit(EventId.OpenPanel, PanelId.EventReminderPanel)
+end
+
+function MainViewCtrl:OnBtnClick_Reengagement(btn)
+  if not PlayerData.Reengagement:GetActIsOpen() then
+    return
+  end
+  EventManager.Hit(EventId.OpenPanel, PanelId.ReengagementPanel)
 end
 
 function MainViewCtrl:OnBtnClick_Shop(btn)
@@ -2085,6 +2373,10 @@ function MainViewCtrl:OnEvent_NewDay()
   end
 end
 
+function MainViewCtrl:OnEvent_UnlockMainViewInput()
+  NovaAPI.SetCanvasGroupBlocksRaycasts(self._mapNode.cgRoot, true)
+end
+
 function MainViewCtrl:OnTimer_CGL2D(timer)
   if self.timerCheck ~= nil then
     self.timerCheck:Cancel()
@@ -2092,8 +2384,7 @@ function MainViewCtrl:OnTimer_CGL2D(timer)
   end
   local nState = self.nViewState == view_state.fullScene_login and view_state.show_login or view_state.show_normal
   self:ChangeViewState(nState, true)
-  local nTime = self.nViewState == view_state.show_login and 0.7 or 0.4
-  self.timerCheck = self:AddTimer(1, nTime, "OnTimer_AnimCheck", true, true)
+  self:_WaitEntranceThenCheck(false)
   self.timerCGL2D = nil
 end
 
@@ -2132,6 +2423,9 @@ function MainViewCtrl:OnEvent_MainViewCheckOpenPanel()
 end
 
 function MainViewCtrl:OnEvent_OnEscCallback()
+  if AvgManager.CheckInAvg() then
+    return
+  end
   local msg = {
     nType = AllEnum.MessageBox.Confirm,
     sContent = ConfigTable.GetUIText("Login_QuitTips"),

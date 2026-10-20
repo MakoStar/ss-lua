@@ -298,6 +298,9 @@ function PhoneDatingCtrl:FadeOut()
 end
 
 function PhoneDatingCtrl:OnEnable()
+  local ModuleManager = require("GameCore.Module.ModuleManager")
+  local sCurModule = ModuleManager.GetCurModuleName()
+  self._mapNode.btnCharDetail.gameObject:SetActive(sCurModule ~= "DormModuleScene")
 end
 
 function PhoneDatingCtrl:OnDisable()
@@ -322,7 +325,7 @@ end
 
 function PhoneDatingCtrl:OnBtnClick_StartDating()
   local nCount, nAllCount = PlayerData.Dating:GetDatingCount()
-  if nAllCount <= nCount then
+  if not PlayerData.Dating:IsFreeDating() and nAllCount <= nCount then
     EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Dating_Day_Count_Max"))
     return
   end

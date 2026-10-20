@@ -61,7 +61,9 @@ ReceivePropsCtrl._mapNodeConfig = {
   imgTitleHolder1 = {},
   imgTitleHolder2 = {}
 }
-ReceivePropsCtrl._mapEventConfig = {}
+ReceivePropsCtrl._mapEventConfig = {
+  StarTowerAutoCloseReward = "OnEvent_AutoCloseReward"
+}
 
 function ReceivePropsCtrl:RefreshList()
   if self.nRewardCount <= 8 then
@@ -88,6 +90,12 @@ function ReceivePropsCtrl:RefreshNormal()
         ctrlObj:SetChar(nItemId, v.count, nil, v.rewardType)
       else
         ctrlObj:SetItem(nItemId, mapCfg.Rarity, v.count, nil, nil, v.rewardType and v.rewardType == AllEnum.RewardType.First, v.rewardType and v.rewardType == AllEnum.RewardType.Three, true, false, false, v.rewardType and v.rewardType == AllEnum.RewardType.Extra, v.rewardType and v.rewardType == AllEnum.RewardType.Double)
+        if v.rewardType == AllEnum.RewardType.Double then
+          local imgExtra = goItem.transform:Find("AnimRoot/aniGrid/goItem").transform:GetChild(5):GetChild(8).gameObject
+          local imgReengagement = goItem.transform:Find("AnimRoot/aniGrid/goItem").transform:GetChild(5):GetChild(9).gameObject
+          imgExtra:SetActive(true)
+          imgReengagement:SetActive(false)
+        end
       end
     end
     local btnGrid = goItem:GetComponent("UIButton")
@@ -162,6 +170,10 @@ function ReceivePropsCtrl:CloseSkip()
   end
   self._mapNode.btnSkip.gameObject:SetActive(false)
   self._mapNode.btnClose.interactable = true
+  if self._bAutoClosePending and (self._isAutoEnabledCallback == nil or self._isAutoEnabledCallback()) then
+    self:OnBtnClick_CloseReward()
+    return
+  end
   self._mapNode.txtTips:DOFade(1, 0.167):SetUpdate(true)
   self._mapNode.txtTips2:DOFade(1, 0.167):SetUpdate(true)
   self._mapNode.txtTips1:DOFade(1, 0.167):SetUpdate(true)
@@ -295,7 +307,23 @@ end
 function ReceivePropsCtrl:OnDestroy()
 end
 
+function ReceivePropsCtrl:OnEvent_AutoCloseReward(callback, isAutoEnabledCallback)
+  if not PlayerData.State:GetStarTowerSweepState() or self.callback ~= callback then
+    return
+  end
+  self._bAutoClosePending = true
+  self._isAutoEnabledCallback = isAutoEnabledCallback
+  if self._mapNode.btnClose.interactable then
+    self:OnBtnClick_CloseReward()
+  end
+end
+
 function ReceivePropsCtrl:OnBtnClick_CloseReward(btn)
+  if self._bClosing then
+    return
+  end
+  self._bClosing = true
+  self._bAutoClosePending = false
   EventManager.Hit(EventId.ClosePanel, PanelId.ReceivePropsTips)
   
   local function wait()

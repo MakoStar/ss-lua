@@ -11,9 +11,10 @@ ReengagementTaskGroupCtrl._mapNodeConfig = {
 }
 ReengagementTaskGroupCtrl._mapEventConfig = {}
 
-function ReengagementTaskGroupCtrl:Init(nActId, nGroup, nCurGroup)
+function ReengagementTaskGroupCtrl:Init(nActId, nGroup, nCurGroup, bAllReceived)
   self.nActId = nActId
   self.nGroup = nGroup
+  self.nGroupId = 100 < nGroup and nGroup or nGroup + 100
   for _, v in ipairs(self._mapNode.txt_Group) do
     NovaAPI.SetTMPText(v, self.nGroup)
   end
@@ -24,15 +25,18 @@ function ReengagementTaskGroupCtrl:Init(nActId, nGroup, nCurGroup)
   self._mapNode.redDotGroup.gameObject:SetActive(false)
   self.bUnlock = nGroup <= nCurGroup
   self:SetSelect(false)
+  self._mapNode.imgComplete.gameObject:SetActive(bAllReceived)
   self._mapNode.goNormal.gameObject:SetActive(nGroup <= nCurGroup)
   self._mapNode.goLock.gameObject:SetActive(nCurGroup < nGroup)
-  self:RegisterRedDot()
+  if nGroup <= nCurGroup then
+    self:RegisterRedDot()
+  end
 end
 
 function ReengagementTaskGroupCtrl:RegisterRedDot()
   RedDotManager.RegisterNode(RedDotDefine.Activity_Reengagement_Task_Group, {
     self.nActId,
-    self.nGroup
+    self.nGroupId
   }, self._mapNode.redDotGroup)
 end
 
@@ -48,7 +52,7 @@ function ReengagementTaskGroupCtrl:SetSelect(bSelect)
 end
 
 function ReengagementTaskGroupCtrl:RefreshStatus(bAllReceived)
-  self._mapNode.imgComplete.gameObject:SetActive(bAllReceived and self.bUnlock)
+  self._mapNode.imgComplete.gameObject:SetActive(bAllReceived)
 end
 
 function ReengagementTaskGroupCtrl:Awake()

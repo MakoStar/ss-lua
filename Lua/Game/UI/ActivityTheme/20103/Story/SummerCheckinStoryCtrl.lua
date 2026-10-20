@@ -1,7 +1,6 @@
 local BaseCtrl = require("GameCore.UI.BaseCtrl")
 local LocalData = require("GameCore.Data.LocalData")
 local SummerCheckinStoryCtrl = class("SummerCheckinStoryCtrl", BaseCtrl)
-local ActivityAvgData = PlayerData.ActivityAvg
 SummerCheckinStoryCtrl._mapNodeConfig = {
   svStory = {
     sComponentName = "LoopScrollView"
@@ -80,7 +79,9 @@ function SummerCheckinStoryCtrl:Awake()
   local param = self:GetPanelParam()
   if type(param) == "table" then
     self.nActId = param[1]
+    self.bReview = param[2] == true
   end
+  self.storyData = self.bReview and PlayerData.StoryReview or PlayerData.ActivityAvg
   self.storyNodePos = {0, -66.1}
   self.tbGridTimer = {}
   self.tbPlayedAnim = {}
@@ -125,7 +126,7 @@ function SummerCheckinStoryCtrl:RefreshPersonality()
   if personalityId <= 0 then
     return
   end
-  local tbRetPercent, sTitle, sFace, tbPData, nTotalCount, sHead = PlayerData.ActivityAvg:CalcPersonality(personalityId, self.nChapterId)
+  local tbRetPercent, sTitle, sFace, tbPData, nTotalCount, sHead = self.storyData:CalcPersonality(personalityId, self.nChapterId)
   NovaAPI.SetPersonalityRing(self._mapNode.goPersonality, tbRetPercent)
   NovaAPI.SetTMPText(self._mapNode.txtCharName, sTitle)
   NovaAPI.SetTMPText(self._mapNode.txtPersonalityPercent[1], math.floor(tbRetPercent[1] * 100) .. "%")
@@ -137,11 +138,11 @@ end
 
 function SummerCheckinStoryCtrl:RefreshStoryList()
   self.tbPlayedAnim = {}
-  self.tbAllStory, self.nChapterId = ActivityAvgData:GetStoryIdListByActivityId(self.nActId)
+  self.tbAllStory, self.nChapterId = self.storyData:GetStoryIdListByActivityId(self.nActId)
   if self.tbAllStory == nil or #self.tbAllStory <= 0 then
     return
   end
-  local recentStoryId = ActivityAvgData:GetRecentStoryId(self.nChapterId)
+  local recentStoryId = self.storyData:GetRecentStoryId(self.nChapterId)
   local recentIndex = 1
   for i = 1, #self.tbAllStory do
     if self.tbAllStory[i] == recentStoryId then
@@ -194,9 +195,9 @@ function SummerCheckinStoryCtrl:RefreshGridInfo(grid, gridIndex, bBranch, nBranc
   local goLockBg = RootNode:Find("goNotOpen/goLockBg")
   local goimgCheck = avgcfg.IsBattle and RootNode:Find("imgBattleTitle/imgCheck").gameObject or RootNode:Find("imgStoryTitle/imgCheck").gameObject
   NovaAPI.SetTMPText(txtComplete, ConfigTable.GetUIText("RoguelikeBuild_Manage_FilterPass"))
-  local isUnlock, tbResult = ActivityAvgData:IsUnlock(avgcfg.ConditionId)
-  local isReaded = ActivityAvgData:IsStoryReaded(storyId)
-  local bOpen, nOpenTime = ActivityAvgData:IsOpen(avgcfg.StoryId, self.nActId)
+  local isUnlock, tbResult = self.storyData:IsUnlock(avgcfg.ConditionId)
+  local isReaded = self.storyData:IsStoryReaded(storyId)
+  local bOpen, nOpenTime = self.storyData:IsOpen(avgcfg.StoryId, self.nActId)
   local nIndex = 0
   if isUnlock then
     nIndex = bBranch and BRANCH_GRID_INDEX or gridIndex
@@ -240,15 +241,19 @@ function SummerCheckinStoryCtrl:RefreshGridInfo(grid, gridIndex, bBranch, nBranc
     end, true, true, true)
     NovaAPI.SetTMPText(txtTime, strTime)
   end
-  local _bInActGroup, nActGroupId = PlayerData.Activity:IsActivityInActivityGroup(self.nActId)
-  if _bInActGroup then
-    RedDotManager.RegisterNode(RedDotDefine.Activity_GroupNew_Avg_Group, {
-      nActGroupId,
-      self.nActId,
-      avgcfg.Id
-    }, RedDot, nil, nil, true)
+  if self.bReview then
+    RedDot:SetActive(false)
   else
-    RedDot.gameObject:SetActive(false)
+    local _bInActGroup, nActGroupId = PlayerData.Activity:IsActivityInActivityGroup(self.nActId)
+    if _bInActGroup then
+      RedDotManager.RegisterNode(RedDotDefine.Activity_GroupNew_Avg_Group, {
+        nActGroupId,
+        self.nActId,
+        avgcfg.Id
+      }, RedDot, nil, nil, true)
+    else
+      RedDot.gameObject:SetActive(false)
+    end
   end
   
   local function clickFuc()
@@ -259,10 +264,10 @@ function SummerCheckinStoryCtrl:RefreshGridInfo(grid, gridIndex, bBranch, nBranc
       local bNew = not isReaded
       self.avgId = avgcfg.StoryId
       self._mapNode.ctlAvgRoot.gameObject:SetActive(true)
-      self._mapNode.ctlAvgRoot:OpenLevelInfo(avgcfg.StoryId, self.nActId, bNew)
+      self._mapNode.ctlAvgRoot:OpenLevelInfo(avgcfg.StoryId, self.nActId, bNew, self.bReview)
       self.curIndex = gridIndex
-      LocalData.SetPlayerLocalData("Act_Story_New" .. self.nActId .. avgcfg.Id, true)
-      PlayerData.ActivityAvg:RefreshAvgRedDot()
+      LocalData.SetPlayerLocalData(self.storyData:_GetLocalReadKey(self.nActId, avgcfg.Id), true)
+      self.storyData:RefreshAvgRedDot()
     elseif tbResult ~= nil then
       local lockTxt = ""
       for i = 1, #tbResult do
@@ -287,7 +292,7 @@ function SummerCheckinStoryCtrl:RefreshGridInfo(grid, gridIndex, bBranch, nBranc
               for k, v in pairs(tbStoryIds) do
                 if v == false then
                   local storyData = ConfigTable.GetData("ActivityStory", k)
-                  if ActivityAvgData:IsUnlock(storyData.ConditionId) then
+                  if self.storyData:IsUnlock(storyData.ConditionId) then
                     lockTxt = orderedFormat(ConfigTable.GetUIText("Story_UnlockPreId") or "", storyData.Title)
                     break
                   end
@@ -412,6 +417,7 @@ function SummerCheckinStoryCtrl:OnBtn_ClickCloseLevelInfoPanel()
   self._mapNode.t_fullscreen_blur_black:SetActive(false)
   self._mapNode.ctlAvgRoot.gameObject:SetActive(false)
   self._mapNode.goChapterComplete:SetActive(false)
+  EventManager.Hit("ActivityStoryReceive_SetVisible", true)
 end
 
 function SummerCheckinStoryCtrl:OnEvent_Story_Done(bHasReward)
@@ -423,7 +429,7 @@ end
 
 function SummerCheckinStoryCtrl:OnEvent_SelectMainlineBattle(bConfirm)
   local function OpenPanel()
-    EventManager.Hit(EventId.OpenPanel, PanelId.RegionBossFormation, AllEnum.RegionBossFormationType.ActivityStory, 0, self.avgId, self.nActId)
+    EventManager.Hit(EventId.OpenPanel, PanelId.RegionBossFormation, AllEnum.RegionBossFormationType.ActivityStory, 0, self.avgId, self.nActId, self.bReview)
   end
   
   if bConfirm then
@@ -435,11 +441,13 @@ function SummerCheckinStoryCtrl:OnEvent_Activity_Story_RewardClosed()
   self.bCantClick = false
   if self.curIndex == #self.tbAllStory then
     self._mapNode.goChapterComplete:SetActive(true)
+    EventManager.Hit("ActivityStoryReceive_SetVisible", false)
   end
 end
 
 function SummerCheckinStoryCtrl:OnBtn_ClickCloseCompete()
   self._mapNode.goChapterComplete:SetActive(false)
+  EventManager.Hit("ActivityStoryReceive_SetVisible", true)
 end
 
 return SummerCheckinStoryCtrl

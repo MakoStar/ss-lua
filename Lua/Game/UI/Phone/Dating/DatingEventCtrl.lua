@@ -30,6 +30,10 @@ DatingEventCtrl._mapNodeConfig = {
   goEventEndItem = {
     sComponentName = "RectTransform"
   },
+  animEventEndItem = {
+    sNodeName = "goEventEndItem",
+    sComponentName = "Animator"
+  },
   goEventSelectionItem = {},
   endItemLayoutElement = {
     sNodeName = "goEventEndItem",
@@ -72,6 +76,7 @@ DatingEventCtrl._mapEventConfig = {
 }
 
 function DatingEventCtrl:SetEventList(tbEvent, tbEventId)
+  self:ReleaseSkipInputBlock()
   self.tbEventId = {}
   for i = 1, #tbEventId do
     table.insert(self.tbEventId, tbEventId[i])
@@ -221,7 +226,12 @@ function DatingEventCtrl:OnEnable()
   self._mapNode.imgAutoPlay2.gameObject:SetActive(false)
 end
 
+function DatingEventCtrl:OnPreExit()
+  self:ReleaseSkipInputBlock()
+end
+
 function DatingEventCtrl:OnDisable()
+  self:ReleaseSkipInputBlock()
   for nInstanceId, objCtrl in pairs(self.tbEventItemCtrl) do
     self:UnbindCtrlByNode(objCtrl)
     self.tbEventItemCtrl[nInstanceId] = nil
@@ -254,6 +264,16 @@ end
 
 function DatingEventCtrl:OnBtnClick_Skip()
   if self.nCurIndex <= #self.tbEventItemCtrl then
+    if not self._bSkipInputBlocked then
+      self._bSkipInputBlocked = true
+      EventManager.Hit(EventId.BlockInput, true)
+      self._objSkipInputTimeoutTimer = self:AddTimer(1, 10, function()
+        printWarn("DatingEventCtrl: skip input block timed out")
+        self:ReleaseSkipInputBlock()
+      end, true, true, true)
+    end
+    self._bSkipLayoutReady = false
+    self._bSkipEndAnimFinished = false
     self.bSkip = true
     self.tbEventItemCtrl[self.nCurIndex]:SkipTimer()
     for i = self.nCurIndex, #self.tbEventItemCtrl do
@@ -262,20 +282,63 @@ function DatingEventCtrl:OnBtnClick_Skip()
     end
     self._mapNode.btnNextEvent.gameObject:SetActive(false)
     self.tbEventItemCtrl[#self.tbEventItemCtrl]:SkipTimer()
+    local objSkipInputTimer = self._objSkipInputTimeoutTimer
     
     local function wait()
       coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
+      if not self._bSkipInputBlocked or self._objSkipInputTimeoutTimer ~= objSkipInputTimer then
+        return
+      end
+      CS.UnityEngine.Canvas.ForceUpdateCanvases()
+      CS.UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(self._mapNode.goContent)
       NovaAPI.SetVerticalNormalizedPosition(self._mapNode.eventListSV, 0)
+      self._bSkipLayoutReady = true
+      self:TryReleaseSkipInputBlock()
     end
     
     cs_coroutine.start(wait)
-    EventManager.Hit(EventId.TemporaryBlockInput, 3)
     if self.tbEventId[#self.tbEventId].nType == GameEnum.DatingEventType.End then
       self._mapNode.goEventEndItem:SetParent(self._mapNode.goContent)
       self._mapNode.btnNextEvent.gameObject:SetActive(false)
       self._mapNode.goEventEndItem.gameObject:SetActive(true)
       EventManager.Hit("DatingEventFinish")
+      if self._objSkipEndAnimTimer == nil then
+        do
+          local nAnimLength = NovaAPI.GetAnimClipLength(self._mapNode.animEventEndItem, {
+            "DatingPanel_EventEndItem_in"
+          })
+          if 0 < nAnimLength then
+            self._objSkipEndAnimTimer = self:AddTimer(1, nAnimLength, function()
+              self._bSkipEndAnimFinished = true
+              self:TryReleaseSkipInputBlock()
+            end, true, true, true)
+          end
+        end
+      end
     end
+  end
+end
+
+function DatingEventCtrl:TryReleaseSkipInputBlock()
+  if self._bSkipInputBlocked and self._bSkipLayoutReady and self._bSkipEndAnimFinished then
+    self:ReleaseSkipInputBlock()
+  end
+end
+
+function DatingEventCtrl:ReleaseSkipInputBlock()
+  if self._objSkipEndAnimTimer ~= nil then
+    self._objSkipEndAnimTimer:Cancel()
+    self._objSkipEndAnimTimer = nil
+  end
+  if self._objSkipInputTimeoutTimer ~= nil then
+    self._objSkipInputTimeoutTimer:Cancel()
+    self._objSkipInputTimeoutTimer = nil
+  end
+  self._bSkipLayoutReady = false
+  self._bSkipEndAnimFinished = false
+  if self._bSkipInputBlocked then
+    self._bSkipInputBlocked = false
+    EventManager.Hit(EventId.BlockInput, false)
   end
 end
 

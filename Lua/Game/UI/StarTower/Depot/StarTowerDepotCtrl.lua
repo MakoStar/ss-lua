@@ -253,7 +253,11 @@ function StarTowerDepotCtrl:OnEvent_SelectDepotTog(nTog)
 end
 
 function StarTowerDepotCtrl:OnBtnClick_Dictionary()
-  EventManager.Hit(EventId.OpenPanel, PanelId.DictionaryFR, self:GetPanelId() == PanelId.StarTowerFastBattle)
+  if self:GetPanelId() == PanelId.StarTowerFastBattle then
+    self._panel:OpenDepotDetailPanel(PanelId.DictionaryFR, true)
+    return
+  end
+  EventManager.Hit(EventId.OpenPanel, PanelId.DictionaryFR, false)
 end
 
 return StarTowerDepotCtrl

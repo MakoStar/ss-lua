@@ -4,6 +4,7 @@ local AvgManager = {}
 local objAvgPanel, objAvgBubblePanel
 local nTransitionType = 0
 local bInAvg = false
+local bKeepEndTransition = false
 
 local function OnEvent_AvgBBEnd(_)
   if objAvgBubblePanel ~= nil then
@@ -33,8 +34,9 @@ local function OnEvent_AvgBBStart(_, sAvgId, sGroupId, sLanguage, sVoLan)
   objAvgBubblePanel:_Enter()
 end
 
-local function OnEvent_AvgSTStart(_, sAvgId, sLanguage, sVoLan, sGroupId, nStartCMDID, sTransStyle)
+local function OnEvent_AvgSTStart(_, sAvgId, sLanguage, sVoLan, sGroupId, nStartCMDID, sTransStyle, bKeepTransitionOnEnd)
   local nStyle = 11
+  bKeepEndTransition = bKeepTransitionOnEnd == true
   if type(sTransStyle) == "string" and sTransStyle ~= "" then
     local sStyle = string.gsub(sTransStyle, "style_", "")
     local _n = tonumber(sStyle)
@@ -107,7 +109,10 @@ local function OnEvent_AvgSTEnd(_)
   end
   
   local function func_OnEvent_TransAnimInClear()
-    EventManager.Hit(EventId.SetTransition)
+    if bKeepEndTransition ~= true then
+      EventManager.Hit(EventId.SetTransition)
+    end
+    bKeepEndTransition = false
     func_DoEnd()
     func_AvgSTEnd()
   end
@@ -116,6 +121,7 @@ local function OnEvent_AvgSTEnd(_)
     EventManager.Hit(EventId.SetTransition, nTransitionType, func_OnEvent_TransAnimInClear)
     nTransitionType = 0
   else
+    bKeepEndTransition = false
     func_DoEnd()
     func_AvgSTEnd()
   end
@@ -131,6 +137,7 @@ function AvgManager.ForceCloseAll(_)
   OnEvent_AvgBBEnd(_)
   bInAvg = false
   nTransitionType = 0
+  bKeepEndTransition = false
   NovaAPI.SetScreenSleepTimeout(false)
 end
 

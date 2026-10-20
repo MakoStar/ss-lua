@@ -208,7 +208,9 @@ function PenguinCardCtrl:QuitState_Settlement(nNextState)
     if self._panel.mapLevel.bRestoreSnapshot then
       self._mapNode.Flip:PlayRoundBackAni()
     else
-      self._mapNode.Flip:PlayRoundAni()
+      self:AddTimer(1, 0.65, function()
+        self._mapNode.Flip:PlayRoundAni()
+      end, true, true, true)
     end
   elseif nNextState == PenguinCardUtils.GameState.Complete then
     self._mapNode.Slot:PlayOutAni()

@@ -25,8 +25,6 @@ function SoldierBattlePanel:Awake()
   self.BattleType = GameEnum.worldLevelType.Dynamic
   self.DynamicType = GameEnum.dynamicLevelType.SoldierChess
   self.trUIRoot = GameObject.Find("---- UI ----").transform
-  GamepadUIManager.EnterAdventure()
-  GamepadUIManager.EnableGamepadUI("BattleMenu", {}, nil, true)
   self.tbChess = self._tbParam[1]
   self.tbPartner = self._tbParam[2]
   self.nTotalTime = self._tbParam[3]
@@ -36,7 +34,7 @@ function SoldierBattlePanel:OnEnable()
   local function wait()
     coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
     
-    EventManager.Hit(EventId.OpenPanel, PanelId.Hud, false, false)
+    EventManager.Hit(EventId.OpenPanel, PanelId.Hud, false, false, false, true)
     coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
   end
   
@@ -49,8 +47,6 @@ function SoldierBattlePanel:OnAfterEnter()
 end
 
 function SoldierBattlePanel:OnDisable()
-  GamepadUIManager.DisableGamepadUI("BattleMenu")
-  GamepadUIManager.QuitAdventure()
 end
 
 return SoldierBattlePanel

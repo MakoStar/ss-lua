@@ -103,7 +103,8 @@ FormationCtrl._mapEventConfig = {
   [EventId.UIBackConfirm] = "OnEvent_Back",
   [EventId.UIHomeConfirm] = "OnEvent_BackHome",
   OnEvent_CloseTeamList = "OnEvent_CloseList",
-  OnEvent_ChangeTeamModel = "OnEvent_ChangeTeamModel"
+  OnEvent_ChangeTeamModel = "OnEvent_ChangeTeamModel",
+  UpdateFormationInfoSuc = "OnEvent_UpdateFormationInfoSuc"
 }
 
 function FormationCtrl:Refresh(nDirection)
@@ -457,7 +458,7 @@ function FormationCtrl:LoadCharacter(nCharId, bOpen)
       local go = instantiate(obj, self.rtSceneOriginPos)
       NovaAPI.ChangeAnimatorDefaultState(go.transform)
       self.mapCurModel[idx] = {nCharId = nCharId, model = go}
-      NovaAPI.BindUIParallaxStageCameraControllerModel(self._mapNode.UIParallax3DStage, idx - 1, go)
+      NovaAPI.BindUIParallaxStageCameraControllerModel(self._mapNode.UIParallax3DStage, idx - 1, go, true)
       if self.rtSceneOriginPos ~= nil then
         go.transform.position = self.rtSceneOriginPos.position
         go.transform.localEulerAngles = Vector3(0, 180, 0)
@@ -1046,6 +1047,13 @@ function FormationCtrl:OnEvent_OpenSwapChar(nIdx)
   NovaAPI.SetCanvasGroupAlpha(self._mapNode.charCanvasGroup, 0)
   self._mapNode.SwapCharPanel:ShowSwapChar(self.curTeam, nCurSelectChar, callback)
   self._mapNode.SwapBlock:SetActive(true)
+end
+
+function FormationCtrl:OnEvent_UpdateFormationInfoSuc(nTeamIdx)
+  if nTeamIdx == self._panel.nTeamIndex then
+    self.nPreselectionId = PlayerData.Team:GetTeamPreselectionId(self._panel.nTeamIndex)
+    self:RefreshPreselection()
+  end
 end
 
 return FormationCtrl

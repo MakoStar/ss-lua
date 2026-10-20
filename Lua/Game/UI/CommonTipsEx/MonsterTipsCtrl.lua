@@ -8,6 +8,10 @@ MonsterTipsCtrl._mapNodeConfig = {
   rtContent = {
     sComponentName = "RectTransform"
   },
+  rtContentCanvasGroup = {
+    sNodeName = "rtContent",
+    sComponentName = "CanvasGroup"
+  },
   safeAreaRoot = {
     sNodeName = "----SafeAreaRoot----",
     sComponentName = "RectTransform"
@@ -40,6 +44,7 @@ MonsterTipsCtrl._mapNodeConfig = {
 MonsterTipsCtrl._mapEventConfig = {}
 
 function MonsterTipsCtrl:Awake()
+  NovaAPI.SetCanvasGroupAlpha(self._mapNode.rtContentCanvasGroup, 0)
   local tbParam = self:GetPanelParam()
   if type(tbParam) == "table" then
     self.rtTarget = tbParam[1]
@@ -61,6 +66,7 @@ function MonsterTipsCtrl:OnEnable()
     coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
     coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
     self:SetTipsPosition(self.rtTarget, self._mapNode.rtContent, self._mapNode.safeAreaRoot)
+    NovaAPI.SetCanvasGroupAlpha(self._mapNode.rtContentCanvasGroup, 1)
   end
   
   cs_coroutine.start(wait)

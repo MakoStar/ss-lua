@@ -83,6 +83,7 @@ function PenguinLevel:ParseLevelData(nFloorId)
   self.nBuyLimit = mapLevelCfg.InitialBuyLimit
   self.nWeightGroupId = mapLevelCfg.WeightGroup
   self.sLevelDesc = mapLevelCfg.Floortips
+  self.sSubLevelDesc = mapLevelCfg.FloorDesc
   self.mapBaseCardPool = {
     tbId = {},
     tbWeight = {}
@@ -529,6 +530,26 @@ function PenguinLevel:CheckUpgradePenguinCard(mapSelectCard)
       nFirstEmpty = i
     end
     if v ~= 0 and v.nLevel < v.nMaxLevel and v.nGroupId == mapSelectCard.nGroupId then
+      bUpgrade = true
+      nAimIndex = i
+      break
+    end
+  end
+  if not bUpgrade then
+    nAimIndex = nFirstEmpty
+  end
+  return bUpgrade, nAimIndex
+end
+
+function PenguinLevel:CheckUpgradePenguinCardByGroup(nGroupId)
+  local bUpgrade = false
+  local nFirstEmpty = 0
+  local nAimIndex = 0
+  for i, v in ipairs(self.tbPenguinCard) do
+    if v == 0 and nFirstEmpty == 0 then
+      nFirstEmpty = i
+    end
+    if v ~= 0 and v.nLevel < v.nMaxLevel and v.nGroupId == nGroupId then
       bUpgrade = true
       nAimIndex = i
       break

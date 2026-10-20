@@ -1,17 +1,275 @@
 local JumpUtil = {}
+local ModuleManager = require("GameCore.Module.ModuleManager")
 local LocalData = require("GameCore.Data.LocalData")
 
 function JumpUtil.JumpTo(jumpId, ...)
   if jumpId == nil then
     return
   end
+  local args = {
+    ...
+  }
+  
+  local function checkCallback(bNeedOpenPanel, bNeedTransition, nTransitionId, nTransitionType)
+    local sCurModule = ModuleManager.GetCurModuleName()
+    if sCurModule == "DormModuleScene" then
+      if not bNeedOpenPanel then
+        JumpUtil.DoJump(jumpId, table.unpack(args))
+        return
+      end
+      local nUseTransitionId = nTransitionId == 0 and 6 or nTransitionId
+      
+      local function transitionOpenCallback()
+        PanelManager.Home()
+        
+        local function OnEventAfterEnterMain()
+          EventManager.Remove(EventId.AfterEnterMain, JumpUtil, OnEventAfterEnterMain)
+          PanelManager.IGNORE_CS_TRANS_EVENT = false
+          
+          local function wait()
+            coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
+            coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
+            JumpUtil.DoJump(jumpId, table.unpack(args))
+            if not bNeedTransition then
+              EventManager.Hit(EventId.SetTransition)
+            end
+          end
+          
+          cs_coroutine.start(wait)
+        end
+        
+        local function OnEventDormLevelFinish()
+          EventManager.Remove("DORM_LEVEL_FINISH", JumpUtil, OnEventDormLevelFinish)
+          PanelManager.IGNORE_CS_TRANS_EVENT = true
+          NovaAPI.EnterModule("MainMenuModuleScene", true)
+        end
+        
+        EventManager.Add("DORM_LEVEL_FINISH", JumpUtil, OnEventDormLevelFinish)
+        EventManager.Add(EventId.AfterEnterMain, JumpUtil, OnEventAfterEnterMain)
+        NovaAPI.DispatchEventWithData("DORM_LEVEL_STATE_CHANGED", nil, {true, 0})
+      end
+      
+      EventManager.Hit(EventId.SetTransition, nUseTransitionId, transitionOpenCallback, AllEnum.MainViewCorner.Dorm)
+    else
+      local function transitionOpenCallback()
+        JumpUtil.DoJump(jumpId, table.unpack(args))
+      end
+      
+      if bNeedTransition then
+        EventManager.Hit(EventId.SetTransition, nTransitionId, transitionOpenCallback, nTransitionType)
+      else
+        transitionOpenCallback()
+      end
+    end
+  end
+  
+  JumpUtil.JumpCheckAndTransition(jumpId, checkCallback, ...)
+end
+
+function JumpUtil.JumpCheckAndTransition(jumpId, callback, ...)
   local unLock, mapJumpTo = JumpUtil.CheckJumpUnLock(jumpId, true)
   if not unLock then
+    callback(false, false, 0)
     return
   end
   if mapJumpTo == nil then
     printError("未配置此跳转Id, JumpId: " .. jumpId)
+    callback(false, false, 0)
     return
+  end
+  local nType = mapJumpTo.Type
+  if nType == GameEnum.jumpType.Shop then
+    callback(true, true, 5)
+  elseif nType == GameEnum.jumpType.Mall then
+    if PanelManager.CheckPanelOpen(PanelId.Mall) or PanelManager.CheckPanelOpen(PanelId.MallPopup) then
+      callback(false, false, 0)
+    else
+      local nState = ConfigTable.GetConfigNumber("IsShowComBtn")
+      if nState == 1 then
+        callback(true, true, 5)
+      else
+        callback(false, false, 0)
+      end
+    end
+  elseif nType == GameEnum.jumpType.Gacha then
+    local function getInfoCallback()
+      callback(true, true, 6)
+    end
+    
+    PlayerData.Gacha:GetGachaInfomation(getInfoCallback)
+  elseif nType == GameEnum.jumpType.TravelerDuelLevel then
+    local function checkCallback()
+      local trekkerVersusData
+      
+      local tbActList = PlayerData.Activity:GetActivityList()
+      for nId, v in pairs(tbActList) do
+        local nActType = v:GetActType()
+        if nActType == GameEnum.activityType.TrekkerVersus then
+          trekkerVersusData = v
+          break
+        end
+      end
+      if trekkerVersusData ~= nil then
+        local nActEndTime = trekkerVersusData:GetChallengeEndTime()
+        local nCurTime = CS.ClientManager.Instance.serverTimeStamp
+        if nActEndTime < nCurTime then
+          EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Activity_Invalid_Tip_3"))
+          return
+        end
+        callback(true, true, 30)
+      end
+    end
+    
+    PlayerData.Activity:SendActivityDetailMsg(checkCallback)
+  elseif nType == GameEnum.jumpType.Crafting then
+    if PanelManager.CheckPanelOpen(PanelId.CraftingTip) then
+      callback(false, false, 0)
+    elseif PanelManager.CheckPanelOpen(PanelId.Crafting) then
+      callback(false, false, 0)
+    else
+      callback(true, false, 0)
+    end
+  elseif nType == GameEnum.jumpType.StarTower then
+    local bState = PlayerData.State:CheckStarTowerState()
+    if bState then
+      return
+    end
+    local nStarTowerId = mapJumpTo.Param[1]
+    local mapStarTower = ConfigTable.GetData("StarTower", nStarTowerId)
+    if mapStarTower == nil then
+      return
+    end
+    callback(true, false, 0)
+  elseif nType == GameEnum.jumpType.StarTowerGroup then
+    local bState = PlayerData.State:CheckStarTowerState()
+    if bState then
+      return
+    end
+    callback(true, false, 0)
+  elseif nType == GameEnum.jumpType.StarTowerPanel then
+    local bState = PlayerData.State:CheckStarTowerState()
+    if bState then
+      return
+    end
+    callback(true, false, 0)
+  elseif nType == GameEnum.jumpType.InfinityTower then
+    callback(true, true, 0)
+  elseif nType == GameEnum.jumpType.Phone then
+    local function openCallback()
+      callback(true, false, 0)
+    end
+    
+    PlayerData.Base:CheckFunctionBtn(GameEnum.OpenFuncType.Phone, openCallback)
+  elseif nType == GameEnum.jumpType.Vampire then
+    local function stateCallback(bReEnter)
+      if not bReEnter then
+        local function success(bSuccess)
+          EventManager.Remove("GetTalentDataVampire", JumpUtil, success)
+          
+          if bSuccess then
+            callback(true, true, 13)
+          end
+        end
+        
+        EventManager.Add("GetTalentDataVampire", JumpUtil, success)
+        local ret, _, _ = PlayerData.VampireSurvivor:GetTalentData()
+        if ret ~= nil then
+          success(true)
+        end
+      end
+    end
+    
+    local function callbackCheck()
+      PlayerData.State:CheckVampireState(stateCallback)
+    end
+    
+    PlayerData.Base:CheckFunctionBtn(GameEnum.OpenFuncType.VampireSurvivor, callbackCheck, "ui_systerm_locked")
+  elseif nType == GameEnum.jumpType.ComCYO then
+    callback(false, false, 0)
+  elseif nType == GameEnum.jumpType.ScoreBoss then
+    local function openSC()
+      callback(true, false, 0)
+    end
+    
+    if not PlayerData.ScoreBoss:GetInitInfoState() then
+      PlayerData.ScoreBoss:GetScoreBossInstanceData(openSC)
+    else
+      openSC()
+    end
+  elseif nType == GameEnum.jumpType.StorySet then
+    PlayerData.StorySet:TryOpenStorySetPanel(function()
+      callback(true, false, 0)
+    end)
+  elseif nType == GameEnum.jumpType.StarTowerGrowth then
+    local function checkCallback()
+      callback(true, false, 0)
+    end
+    
+    PlayerData.StarTower:SendTowerGrowthDetailReq(checkCallback)
+  elseif nType == GameEnum.jumpType.ActivityTask then
+    local nActId = mapJumpTo.Param[1]
+    if PlayerData.Activity:IsActivityInActivityGroup(nActId) then
+      local actGroupId = ConfigTable.GetData("Activity", nActId).MidGroupId
+      if actGroupId == 0 then
+        return
+      end
+      local actGroupData = PlayerData.Activity:GetActivityGroupDataById(actGroupId)
+      local taskActId = actGroupData:GetActivityDataByIndex(AllEnum.ActivityThemeFuncIndex.Task).ActivityId
+      local taskActData = PlayerData.Activity:GetActivityDataById(taskActId)
+      if taskActData ~= nil and taskActData:CheckActivityOpen() then
+        callback(true, false, 0)
+        return
+      end
+      EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Activity_End_Notice"))
+    end
+  elseif nType == GameEnum.jumpType.QuestNewbie then
+    if PanelManager.GetCurPanelId() == PanelId.QuestNewbie then
+      callback(false, false, 0)
+    else
+      callback(true, false, 0)
+    end
+  elseif nType == GameEnum.jumpType.TraceHunt then
+    local function afterReq()
+      if PlayerData.TraceHunt:GetControlLeftTime() <= 0 then
+        EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("TraceHunt_Tips_ControlInterrupt"))
+        
+        callback(false, false, 0)
+        return
+      end
+      callback(true, true, 49)
+    end
+    
+    PlayerData.TraceHunt:SendTraceHuntInfoReq(afterReq)
+  elseif nType == GameEnum.jumpType.Dorm then
+    if ModuleManager.GetCurModuleName() == "DormModuleScene" then
+      return
+    end
+    
+    local function GetRoomInfoCallback(mapDormRoomInfo, mapDormBaseInfo)
+      if next(mapDormRoomInfo) == nil then
+        return
+      end
+      callback(true, true, 6, AllEnum.MainViewCorner.Dorm)
+    end
+    
+    local function GetBagInfoCallback()
+      PlayerData.PlayerDormData:GetRoomInfo(GetRoomInfoCallback)
+    end
+    
+    PlayerData.PlayerDormData:GetBagInfo(GetBagInfoCallback)
+  else
+    callback(true, false, 0)
+  end
+end
+
+function JumpUtil.DoJump(jumpId, ...)
+  local unLock, mapJumpTo = JumpUtil.CheckJumpUnLock(jumpId, true)
+  if not unLock then
+    return false
+  end
+  if mapJumpTo == nil then
+    printError("未配置此跳转Id, JumpId: " .. jumpId)
+    return false
   end
   PanelManager.CloseAllDisposablePanel()
   local nType = mapJumpTo.Type
@@ -38,12 +296,7 @@ function JumpUtil.JumpTo(jumpId, ...)
     EventManager.Hit(EventId.OpenPanel, PanelId.LevelMenu)
   elseif nType == GameEnum.jumpType.Shop then
     local nTabIndex = mapJumpTo.Param[1]
-    
-    local function func()
-      EventManager.Hit(EventId.OpenPanel, PanelId.ShopPanel, nTabIndex)
-    end
-    
-    EventManager.Hit(EventId.SetTransition, 5, func)
+    EventManager.Hit(EventId.OpenPanel, PanelId.ShopPanel, nTabIndex)
   elseif nType == GameEnum.jumpType.Mall then
     local nTabIndex1 = mapJumpTo.Param[1]
     local nTabIndex2 = mapJumpTo.Param[2]
@@ -53,32 +306,17 @@ function JumpUtil.JumpTo(jumpId, ...)
       EventManager.Hit(EventId.ClosePanel, PanelId.MallPopup)
       EventManager.Hit("OpenMallTog", nTabIndex1)
     else
-      do
-        local nState = ConfigTable.GetConfigNumber("IsShowComBtn")
-        if nState == 1 then
-          local function func()
-            EventManager.Hit(EventId.OpenPanel, PanelId.Mall, nTabIndex1, nTabIndex2)
-          end
-          
-          EventManager.Hit(EventId.SetTransition, 5, func)
-        else
-          local sContent = ConfigTable.GetUIText("Function_NotAvailable")
-          EventManager.Hit(EventId.OpenMessageBox, sContent)
-        end
+      local nState = ConfigTable.GetConfigNumber("IsShowComBtn")
+      if nState == 1 then
+        EventManager.Hit(EventId.OpenPanel, PanelId.Mall, nTabIndex1, nTabIndex2)
+      else
+        local sContent = ConfigTable.GetUIText("Function_NotAvailable")
+        EventManager.Hit(EventId.OpenMessageBox, sContent)
       end
     end
   elseif nType == GameEnum.jumpType.Gacha then
     local nPoolId = mapJumpTo.Param[1]
-    
-    local function getInfoCallback()
-      local function func()
-        EventManager.Hit(EventId.OpenPanel, PanelId.GachaSpin, nPoolId)
-      end
-      
-      EventManager.Hit(EventId.SetTransition, 6, func, AllEnum.MainViewCorner.Recruit)
-    end
-    
-    PlayerData.Gacha:GetGachaInfomation(getInfoCallback)
+    EventManager.Hit(EventId.OpenPanel, PanelId.GachaSpin, nPoolId)
   elseif nType == GameEnum.jumpType.DailyInstanceLevel then
     local nHard = mapJumpTo.Param[1]
     local nDailyType = mapJumpTo.Param[2]
@@ -178,12 +416,7 @@ function JumpUtil.JumpTo(jumpId, ...)
     EventManager.Hit(EventId.OpenPanel, PanelId.StoryChapter)
   elseif nType == GameEnum.jumpType.InfinityTower then
     CS.WwiseAudioManager.Instance:PlaySound("ui_level_select")
-    
-    local function func()
-      EventManager.Hit(EventId.OpenPanel, PanelId.InfinityTowerSelectTower)
-    end
-    
-    EventManager.Hit(EventId.SetTransition, 8, func)
+    EventManager.Hit(EventId.OpenPanel, PanelId.InfinityTowerSelectTower)
   elseif nType == GameEnum.jumpType.InfinityTowerGroup then
     local nStarTowerId = mapJumpTo.Param[1]
     EventManager.Hit(EventId.OpenPanel, PanelId.InfinityTowerSelectTower, nStarTowerId)
@@ -193,42 +426,9 @@ function JumpUtil.JumpTo(jumpId, ...)
     CS.WwiseAudioManager.Instance:PlaySound("ui_level_select")
   elseif nType == GameEnum.jumpType.Phone then
     local nTog = mapJumpTo.Param[1]
-    
-    local function openCallback()
-      PlayerData.Phone:OpenPhonePanel(nil, nTog)
-    end
-    
-    PlayerData.Base:CheckFunctionBtn(GameEnum.OpenFuncType.Phone, openCallback)
+    PlayerData.Phone:OpenPhonePanel(nil, nTog)
   elseif nType == GameEnum.jumpType.Vampire then
-    local function stateCallback(bReEnter)
-      if not bReEnter then
-        local function success(bSuccess)
-          EventManager.Remove("GetTalentDataVampire", JumpUtil, success)
-          
-          if bSuccess then
-            local function OpenTransCallback()
-              EventManager.Hit(EventId.OpenPanel, PanelId.VampireSurvivorLevelSelectPanel)
-            end
-            
-            EventManager.Hit(EventId.SetTransition, 13, OpenTransCallback)
-          else
-            EventManager.Hit(EventId.SetTransition)
-          end
-        end
-        
-        EventManager.Add("GetTalentDataVampire", JumpUtil, success)
-        local ret, _, _ = PlayerData.VampireSurvivor:GetTalentData()
-        if ret ~= nil then
-          success(true)
-        end
-      end
-    end
-    
-    local function callbackCheck()
-      PlayerData.State:CheckVampireState(stateCallback)
-    end
-    
-    PlayerData.Base:CheckFunctionBtn(GameEnum.OpenFuncType.VampireSurvivor, callbackCheck, "ui_systerm_locked")
+    EventManager.Hit(EventId.OpenPanel, PanelId.VampireSurvivorLevelSelectPanel)
   elseif nType == GameEnum.jumpType.ComCYO then
     EventManager.Hit(EventId.OpenPanel, PanelId.Consumable, select(1, ...), select(2, ...), select(3, ...))
   elseif nType == GameEnum.jumpType.Quest then
@@ -240,27 +440,13 @@ function JumpUtil.JumpTo(jumpId, ...)
     local nGroup = mapJumpTo.Param[1]
     EventManager.Hit(EventId.OpenPanel, PanelId.SkillInstanceLevelSelect, 0, nGroup, true)
   elseif nType == GameEnum.jumpType.ScoreBoss then
-    local function openSC()
-      EventManager.Hit(EventId.OpenPanel, PanelId.ScoreBossSelectPanel)
-    end
-    
-    if not PlayerData.ScoreBoss:GetInitInfoState() then
-      PlayerData.ScoreBoss:GetScoreBossInstanceData(openSC)
-    else
-      openSC()
-    end
+    EventManager.Hit(EventId.OpenPanel, PanelId.ScoreBossSelectPanel)
   elseif nType == GameEnum.jumpType.WeeklyCopies then
     EventManager.Hit(EventId.OpenPanel, PanelId.WeeklyCopiesPanel, mapJumpTo.Param[1])
   elseif nType == GameEnum.jumpType.StorySet then
-    PlayerData.StorySet:TryOpenStorySetPanel(function()
-      EventManager.Hit(EventId.OpenPanel, PanelId.StorySet, true)
-    end)
+    EventManager.Hit(EventId.OpenPanel, PanelId.StorySet, true)
   elseif nType == GameEnum.jumpType.StarTowerGrowth then
-    local function callback()
-      EventManager.Hit(EventId.OpenPanel, PanelId.StarTowerGrowth)
-    end
-    
-    PlayerData.StarTower:SendTowerGrowthDetailReq(callback)
+    EventManager.Hit(EventId.OpenPanel, PanelId.StarTowerGrowth)
   elseif nType == GameEnum.jumpType.ActivityTask then
     local nActId = mapJumpTo.Param[1]
     local panelId = mapJumpTo.Param[2]
@@ -272,12 +458,7 @@ function JumpUtil.JumpTo(jumpId, ...)
       end
       local actGroupData = PlayerData.Activity:GetActivityGroupDataById(actGroupId)
       local taskActId = actGroupData:GetActivityDataByIndex(AllEnum.ActivityThemeFuncIndex.Task).ActivityId
-      local taskActData = PlayerData.Activity:GetActivityDataById(taskActId)
-      if taskActData ~= nil and taskActData:CheckActivityOpen() then
-        EventManager.Hit(EventId.OpenPanel, panelId, taskActId, tabId)
-        return
-      end
-      EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Activity_End_Notice"))
+      EventManager.Hit(EventId.OpenPanel, panelId, taskActId, tabId)
     end
   elseif nType == GameEnum.jumpType.MainLineStoryChapter then
     local chapterIndex = mapJumpTo.Param[1]
@@ -307,6 +488,12 @@ function JumpUtil.JumpTo(jumpId, ...)
     }
     local nCharInfoPanelId = tbCharInfoPanelId[nModuleType] or PanelId.CharInfo
     EventManager.Hit(EventId.OpenPanel, PanelId.CharBgPanel, nCharInfoPanelId, nCharId, {nCharId})
+  elseif nType == GameEnum.jumpType.TraceHunt then
+    EventManager.Hit(EventId.OpenPanel, PanelId.TraceHunt)
+  elseif nType == GameEnum.jumpType.Soldier then
+    EventManager.Hit(EventId.OpenPanel, PanelId.SoldierMainViewPanel)
+  elseif nType == GameEnum.jumpType.Dorm then
+    EventManager.Hit(EventId.OpenPanel, PanelId.DormPanel)
   end
 end
 
@@ -351,6 +538,9 @@ function JumpUtil.CheckJumpUnLock(jumpId, showTips)
     local nProductionId = mapJumpTo.Param[1]
     bOpen = PlayerData.Crafting:CheckProductionUnlock(nProductionId)
     sLockTip = ConfigTable.GetUIText("Crafting_Lock_Tip")
+  elseif nType == GameEnum.jumpType.Shop then
+    local nShopId = mapJumpTo.Param[1]
+    bOpen, sLockTip = PlayerData.Shop:CheckShopJumpAble(nShopId)
   elseif nType == GameEnum.jumpType.StarTower then
     local nStarTowerId = mapJumpTo.Param[1]
     bOpen = PlayerData.StarTower:IsStarTowerUnlock(nStarTowerId)
@@ -424,21 +614,14 @@ function JumpUtil.CheckJumpUnLock(jumpId, showTips)
       bOpen = true
     end
   elseif nType == GameEnum.jumpType.TraceHunt then
-    local function callback()
-      if PlayerData.TraceHunt:GetControlLeftTime() <= 0 then
-        EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("TraceHunt_Tips_ControlInterrupt"))
-        
-        return
-      end
-      
-      local function func()
-        EventManager.Hit(EventId.OpenPanel, PanelId.TraceHunt)
-      end
-      
-      EventManager.Hit(EventId.SetTransition, 49, func)
-    end
-    
-    PlayerData.TraceHunt:SendTraceHuntInfoReq(callback)
+    bFuncUnlock = PlayerData.Base:CheckFunctionUnlock(GameEnum.OpenFuncType.TraceHunt, true)
+    showTips = false
+  elseif nType == GameEnum.jumpType.Soldier then
+    bFuncUnlock = PlayerData.Base:CheckFunctionUnlock(GameEnum.OpenFuncType.Soldier, true)
+    showTips = false
+  elseif nType == GameEnum.jumpType.Dorm then
+    bFuncUnlock = PlayerData.Base:CheckFunctionUnlock(GameEnum.OpenFuncType.Dorm, true)
+    showTips = false
   end
   bOpen = bFuncUnlock and bOpen
   if not bOpen and showTips then
@@ -481,13 +664,17 @@ end
 function JumpUtil.JumpToActivity(tbJumpData)
   if tbJumpData[1] == GameEnum.jumpType.MainLineStoryChapter then
     local chapterIndex = tbJumpData[2]
+    local panelId = PanelId.MainlineEx
+    if chapterIndex == 11 then
+      panelId = PanelId.DustDawnStory
+    end
     local isUnlock = PlayerData.Avg:IsStoryChapterUnlock(chapterIndex)
     if isUnlock then
-      EventManager.Hit(EventId.OpenPanel, PanelId.MainlineEx, chapterIndex)
+      EventManager.Hit(EventId.OpenPanel, panelId, chapterIndex)
     else
       local sLockReadTipsKey = "Mainline_Preview_Lock_Read_" .. chapterIndex
       if LocalData.GetPlayerLocalData(sLockReadTipsKey) then
-        EventManager.Hit(EventId.OpenPanel, PanelId.MainlineEx, chapterIndex)
+        EventManager.Hit(EventId.OpenPanel, panelId, chapterIndex)
         return
       end
       local sTip = ConfigTable.GetUIText("Mainline_Preview_Lock_Read")
@@ -496,7 +683,7 @@ function JumpUtil.JumpToActivity(tbJumpData)
         sContent = sTip,
         callbackConfirm = function()
           LocalData.SetPlayerLocalData(sLockReadTipsKey, true)
-          EventManager.Hit(EventId.OpenPanel, PanelId.MainlineEx, chapterIndex)
+          EventManager.Hit(EventId.OpenPanel, panelId, chapterIndex)
         end
       }
       EventManager.Hit(EventId.OpenMessageBox, msg)

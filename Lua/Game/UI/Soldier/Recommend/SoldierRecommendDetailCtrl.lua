@@ -16,9 +16,8 @@ SoldierRecommendDetailCtrl._mapNodeConfig = {
     nCount = 3,
     sCtrlName = "Game.UI.Soldier.Template.Character.SoldierCharSupportCardItemCtrl"
   },
-  BackChar = {
-    nCount = 6,
-    sCtrlName = "Game.UI.Soldier.Template.Character.SoldierCharSupportCardItemCtrl"
+  sv_backChar = {
+    sComponentName = "LoopScrollView"
   },
   txt_title = {sComponentName = "TMP_Text"},
   txt_buildTitle = {
@@ -35,7 +34,6 @@ SoldierRecommendDetailCtrl._mapNodeConfig = {
     sNodeName = "PartnerRoot",
     sCtrlName = "Game.UI.Soldier.Recommend.SpliderRecommendPartnerCtrl"
   },
-  starterCard = {},
   strategyCardPrefab = {},
   buffList = {
     sNodeName = "BuffListRoot"
@@ -57,25 +55,58 @@ SoldierRecommendDetailCtrl._mapNodeConfig = {
     sLanguageId = "Soldier_Recommend_Cancel"
   },
   charDetialRoot = {sComponentName = "Transform"},
-  parnterDetialRoot = {sComponentName = "Transform"}
+  parnterDetialRoot = {sComponentName = "Transform"},
+  txtPersonality1 = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Personality_Instinct"
+  },
+  txtPersonality2 = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Personality_Analyze"
+  },
+  txtPersonality3 = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Personality_Chaos"
+  },
+  imgPersonalityPercent = {nCount = 3, sComponentName = "Image"},
+  txtCharName = {sComponentName = "TMP_Text"},
+  imgCharHead = {sComponentName = "Image"},
+  imgSkill = {sComponentName = "Image"},
+  txtSkillPassive = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Soldier_BossSkill_Passive"
+  },
+  txtSkillInitiative = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Soldier_BossSkill_Active"
+  },
+  imgSkillInitiative = {},
+  imgSkillPassive = {},
+  btnDelete = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_Delete"
+  },
+  btn_BossSkill = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_SkillDetail"
+  }
 }
 SoldierRecommendDetailCtrl._mapEventConfig = {}
 SoldierRecommendDetailCtrl._mapRedDotConfig = {}
 
 function SoldierRecommendDetailCtrl:Awake()
+  self.tbBackCharData = {}
+  self.mapBackCharCtrl = {}
   local param = self:GetPanelParam()
   if type(param) == "table" then
     self.mapRecommendData = param[1]
     self.bInSoldier = param[2]
   end
-  self.nRecommendId = self.mapRecommendData.nRecommendId
   if self.mapRecommendData == nil then
     return
   end
-  self.recommendCfg = ConfigTable.GetData("SoldierRecommendBuilds", self.nRecommendId)
-  if self.recommendCfg == nil then
-    return
-  end
+  self.nRecommendId = self.mapRecommendData.nRecommendId
+  self:RefreshBossTemplate()
   self:RefreshUI()
   self:SetApplyStatus()
 end
@@ -90,29 +121,20 @@ function SoldierRecommendDetailCtrl:OnEnable()
   cs_coroutine.start(wait)
 end
 
+function SoldierRecommendDetailCtrl:OnDisable()
+  for _, objCharCard in pairs(self.mapBackCharCtrl) do
+    self:UnbindCtrlByNode(objCharCard)
+  end
+  self.mapBackCharCtrl = {}
+end
+
 function SoldierRecommendDetailCtrl:RefreshUI()
-  NovaAPI.SetTMPText(self._mapNode.txt_title, self.recommendCfg.Title)
-  NovaAPI.SetTMPText(self._mapNode.txt_desc, self.recommendCfg.Desc)
-  for i = 1, 3 do
-    local charData = self.mapRecommendData.charList[i]
-    if charData then
-      self._mapNode.MainChar[i]:SetItemData(charData.nId)
-      self._mapNode.MainChar[i]:SetStar(charData.nStar)
-      do
-        local function callback(obj, nCharId)
-          local chessData = {
-            nId = charData.nId,
-            
-            nStar = charData.nStar
-          }
-          EventManager.Hit(EventId.OpenPanel, PanelId.SoldierCharCardTips, self._mapNode.charDetialRoot, chessData)
-          EventManager.Hit("OnSetTipsPosition", self._mapNode.charDetialRoot:GetChild(0).position, self._mapNode.charDetialRoot:GetChild(1).position, self._mapNode.charDetialRoot:GetChild(2).position)
-          EventManager.Hit("SoldierCharTips_ShowBg")
-        end
-        
-        self._mapNode.MainChar[i]:SetClickCallback(_, callback)
-      end
-    end
+  self._mapNode.btnDelete.gameObject:SetActive(not self.mapRecommendData.bSystemRecommend)
+  NovaAPI.SetTMPText(self._mapNode.txt_title, self.mapRecommendData.sTitle)
+  NovaAPI.SetTMPText(self._mapNode.txt_desc, self.mapRecommendData.sDesc)
+  local tbCharList = self.mapRecommendData.charList or {}
+  for nIndex = 1, #self._mapNode.MainChar do
+    self:RefreshCharCard(self._mapNode.MainChar[nIndex], tbCharList[nIndex])
   end
   for i = 1, 3 do
     local img_pos = self._mapNode.img_pos[i]
@@ -122,80 +144,109 @@ function SoldierRecommendDetailCtrl:RefreshUI()
       self:SetPngSprite(img_pos, iconPath2 .. cfg.Icon)
     end
   end
-  for i = 4, 9 do
-    local charData = self.mapRecommendData.charList[i]
-    if charData then
-      self._mapNode.BackChar[i - 3]:SetItemData(charData.nId)
-      self._mapNode.BackChar[i - 3]:SetStar(charData.nStar)
-      
-      local function callback(obj, nCharId)
-        local chessData = {
-          nId = charData.nId,
-          nStar = charData.nStar,
-          nPositionType = nPositionType
-        }
-        EventManager.Hit(EventId.OpenPanel, PanelId.SoldierCharCardTips, self._mapNode.charDetialRoot, chessData)
-        EventManager.Hit("OnSetTipsPosition", self._mapNode.charDetialRoot:GetChild(0).position, self._mapNode.charDetialRoot:GetChild(1).position, self._mapNode.charDetialRoot:GetChild(2).position)
-        EventManager.Hit("SoldierCharTips_ShowBg")
-      end
-      
-      self._mapNode.BackChar[i - 3]:SetClickCallback(_, callback)
-    else
-      self._mapNode.BackChar[i - 3]:SetItemData(nil)
-    end
-  end
-  local img_starterCardIcon = self._mapNode.starterCard.transform:Find("img_iconBg/img_icon"):GetComponent("Image")
-  local txt_name = self._mapNode.starterCard.transform:Find("txt_name"):GetComponent("TMP_Text")
-  local starterCardConfig = ConfigTable.GetData("SoldierStarterCard", self.recommendCfg.StarterCard)
-  if starterCardConfig then
-    self:SetPngSprite(img_starterCardIcon, iconPath .. starterCardConfig.Icon)
-    NovaAPI.SetTMPText(txt_name, starterCardConfig.Name)
-    local btn_detail = self._mapNode.starterCard.transform:Find("btn_detail"):GetComponent("UIButton")
-    btn_detail.onClick:RemoveAllListeners()
-    btn_detail.onClick:AddListener(function()
-      EventManager.Hit(EventId.OpenPanel, PanelId.SoldierSelectStarterCardItem, self.recommendCfg.StarterCard)
-    end)
-  end
+  self:RefreshBackCharList(tbCharList)
+  self._mapNode.strategyCardPrefab:SetActive(false)
   local tr = self._mapNode.buffList.transform
   for i = tr.childCount, 1, -1 do
     GameObject.Destroy(tr:GetChild(i - 1).gameObject)
   end
-  for _, buffId in ipairs(self.recommendCfg.StrategyCard) do
+  for _, buffId in ipairs(self.mapRecommendData.tbStrategyCardId or {}) do
     local buffConfig = ConfigTable.GetData("SoldierStrategyCard", buffId)
     if buffConfig then
       local go_buff = instantiate(self._mapNode.strategyCardPrefab, tr)
       go_buff.transform:SetParent(tr)
       go_buff.transform.localScale = Vector3.one
-      local img_icon = go_buff.transform:Find("img_iconBg/img_icon"):GetComponent("Image")
-      local img_bg = go_buff.transform:Find("img_iconBg"):GetComponent("Image")
-      local txt_name = go_buff.transform:Find("txt_name"):GetComponent("TMP_Text")
-      local btn_detail = go_buff.transform:Find("btn_detail"):GetComponent("UIButton")
+      local img_icon = go_buff.transform:Find("SmallBuff/AnimRoot/imgIcon"):GetComponent("Image")
+      local img_bg = go_buff.transform:Find("SmallBuff/AnimRoot/imgBg"):GetComponent("Image")
+      local btn_detail = go_buff:GetComponent("UIButton")
       btn_detail.onClick:RemoveAllListeners()
       btn_detail.onClick:AddListener(function()
-        EventManager.Hit(EventId.OpenPanel, PanelId.SoldierSelectStrategyCardItem, buffId)
+        EventManager.Hit(EventId.OpenPanel, PanelId.SoldierCardTips, buffId)
       end)
       self:SetPngSprite(img_icon, iconPath .. buffConfig.Icon)
       if buffConfig.Rarity ~= 0 then
         self:SetPngSprite(img_bg, iconPath2 .. AllEnum.SoldierStrategyCardRarityIcon[buffConfig.Rarity] .. AllEnum.SoldierChessIconSurfix.S)
       end
-      NovaAPI.SetTMPText(txt_name, buffConfig.Name)
       go_buff:SetActive(true)
     end
   end
-  local tbPartnerAdd = decodeJson(self.recommendCfg.PartnerAdd)
-  local mapExtraPartner = {}
-  for k, v in pairs(tbPartnerAdd) do
-    mapExtraPartner[tonumber(k)] = tonumber(v)
-  end
-  local tbExPartner = {}
-  for partnerId, addLevel in pairs(mapExtraPartner) do
-    local partnerCfg = ConfigTable.GetData("SoldierPartner", partnerId)
-    if partnerCfg then
-      tbExPartner[partnerCfg.PartnerType] = addLevel
+  self._mapNode.partnerCtrl:RefreshPartner(tbCharList, self.mapRecommendData.tbExtraPartner or {})
+  self._mapNode.partnerCtrl:SetPartnerDetailRoot(self._mapNode.parnterDetialRoot)
+end
+
+function SoldierRecommendDetailCtrl:RefreshBackCharList(tbCharList)
+  self.tbBackCharData = {}
+  for nIndex = #self._mapNode.MainChar + 1, math.min(#tbCharList, 13) do
+    local mapCharData = tbCharList[nIndex]
+    if mapCharData.nId ~= nil and mapCharData.nId ~= 0 then
+      table.insert(self.tbBackCharData, mapCharData)
     end
   end
-  self._mapNode.partnerCtrl:RefreshPartner(self.mapRecommendData.charList, tbExPartner)
-  self._mapNode.partnerCtrl:SetPartnerDetailRoot(self._mapNode.parnterDetialRoot)
+  local bHasBackChar = #self.tbBackCharData > 0
+  self._mapNode.sv_backChar.gameObject:SetActive(bHasBackChar)
+  if bHasBackChar then
+    self._mapNode.sv_backChar:Init(#self.tbBackCharData, self, self.OnBackCharRefreshGrid)
+  end
+  for _, objCharCard in pairs(self.mapBackCharCtrl) do
+    if not bHasBackChar or not objCharCard.gameObject.activeSelf then
+      self:RefreshCharCard(objCharCard, nil)
+    end
+  end
+end
+
+function SoldierRecommendDetailCtrl:OnBackCharRefreshGrid(goGrid, nGridIndex)
+  local nIndex = nGridIndex + 1
+  local nInstanceId = goGrid:GetInstanceID()
+  local objCharCard = self.mapBackCharCtrl[nInstanceId]
+  if objCharCard == nil then
+    objCharCard = self:BindCtrlByNode(goGrid, "Game.UI.Soldier.Template.Character.SoldierCharSupportCardItemCtrl")
+    self.mapBackCharCtrl[nInstanceId] = objCharCard
+  end
+  self:RefreshCharCard(objCharCard, self.tbBackCharData[nIndex])
+end
+
+function SoldierRecommendDetailCtrl:RefreshCharCard(objCharCard, mapCharData)
+  objCharCard:_RemoveAllTimer()
+  objCharCard.nStar = nil
+  if mapCharData == nil or mapCharData.nId == nil or mapCharData.nId == 0 then
+    objCharCard:SetItemData(nil)
+    objCharCard:SetStar(0)
+    objCharCard:SetChessPosition(nil)
+    objCharCard._mapNode.Fx_warrior.gameObject:SetActive(false)
+    objCharCard:SetClickCallback(nil, nil)
+    return
+  end
+  objCharCard:SetItemData(mapCharData.nId)
+  objCharCard:SetStar(mapCharData.nStar)
+  objCharCard.nStar = mapCharData.nStar or 0
+  objCharCard:SetClickCallback(self, function()
+    local mapChessData = {
+      nId = mapCharData.nId,
+      nStar = mapCharData.nStar,
+      nPositionType = mapCharData.nPositionType
+    }
+    EventManager.Hit(EventId.OpenPanel, PanelId.SoldierCharCardTips, self._mapNode.charDetialRoot, mapChessData)
+    EventManager.Hit("OnSetTipsPosition", self._mapNode.charDetialRoot:GetChild(0).position, self._mapNode.charDetialRoot:GetChild(1).position, self._mapNode.charDetialRoot:GetChild(2).position)
+    EventManager.Hit("SoldierCharTips_ShowBg")
+  end)
+end
+
+function SoldierRecommendDetailCtrl:RefreshBossTemplate()
+  local mapCfg = ConfigTable.GetData("SoldierBossTemplate", self.mapRecommendData.nBossTemplateId or 0)
+  if mapCfg ~= nil then
+    local sIntGrade = AllEnum.SoldierPersonalityLevelIconByEnum[mapCfg.Personality_Intuition]
+    self:SetPngSprite(self._mapNode.imgPersonalityPercent[1], sIntGrade)
+    local sAnalyzeGrade = AllEnum.SoldierPersonalityLevelIconByEnum[mapCfg.Personality_Analysis]
+    self:SetPngSprite(self._mapNode.imgPersonalityPercent[2], sAnalyzeGrade)
+    local sChaosGrade = AllEnum.SoldierPersonalityLevelIconByEnum[mapCfg.Personality_Chaos]
+    self:SetPngSprite(self._mapNode.imgPersonalityPercent[3], sChaosGrade)
+    self:SetPngSprite(self._mapNode.imgCharHead, mapCfg.SoldierPlayerHead)
+    NovaAPI.SetTMPText(self._mapNode.txtCharName, mapCfg.Name or "")
+    self:SetPngSprite(self._mapNode.imgSkill, mapCfg.SoldierRoleSkillIcon)
+    local nSkillType = mapCfg.SoldierRoleSkillType
+    self._mapNode.imgSkillPassive.gameObject:SetActive(nSkillType == GameEnum.SoldierRoleSkillType.SoldierRoleSkillType_1 or nSkillType == GameEnum.SoldierRoleSkillType.SoldierRoleSkillType_3)
+    self._mapNode.imgSkillInitiative.gameObject:SetActive(nSkillType == GameEnum.SoldierRoleSkillType.SoldierRoleSkillType_2 or nSkillType == GameEnum.SoldierRoleSkillType.SoldierRoleSkillType_4)
+  end
 end
 
 function SoldierRecommendDetailCtrl:SetApplyStatus()
@@ -209,9 +260,6 @@ function SoldierRecommendDetailCtrl:SetApplyStatus()
   self._mapNode.img_Use.gameObject:SetActive(bApply)
 end
 
-function SoldierRecommendDetailCtrl:OnDestroy()
-end
-
 function SoldierRecommendDetailCtrl:OnBtnClick_Apply()
   PlayerData.SoldierData:SetRecommendData(self.mapRecommendData.nRecommendId, self.bInSoldier)
   self:SetApplyStatus()
@@ -222,12 +270,29 @@ function SoldierRecommendDetailCtrl:OnBtnClick_Cancel()
   self:SetApplyStatus()
 end
 
-function SoldierRecommendDetailCtrl:OnBtnClick_StarterCard()
-  EventManager.Hit(EventId.OpenPanel, PanelId.SoldierSelectStarterCardItem, self.recommendCfg.StarterCard)
+function SoldierRecommendDetailCtrl:OnBtnClick_RcmdSquare()
 end
 
-function SoldierRecommendDetailCtrl:OnBtnClick_StrategyCard()
-  EventManager.Hit(EventId.OpenPanel, PanelId.SoldierStrategyCardTips, self.gameObject.transform, nBuffId)
+function SoldierRecommendDetailCtrl:OnBtnClick_Delete()
+  if self.mapRecommendData == nil or self.mapRecommendData.bSystemRecommend then
+    return
+  end
+  PlayerData.SoldierData:SendUnfavoriteRecommend(self.mapRecommendData.nRecommendId, function()
+    PlayerData.SoldierData:RequestRecommendList(function()
+      EventManager.Hit(EventId.ClosePanel, PanelId.SoldierRecommendDetailPanel)
+      EventManager.Hit("RefreshSoldierRecommendList")
+    end)
+  end)
+end
+
+function SoldierRecommendDetailCtrl:OnBtnClick_SkillDetail()
+  if self.mapRecommendData.nBossTemplateId ~= 0 then
+    local mapData = {
+      nSkillId = self.mapRecommendData.nBossTemplateId,
+      bSoldier = true
+    }
+    EventManager.Hit(EventId.OpenPanel, PanelId.SkillTips, self._mapNode.btn_BossSkill.transform, mapData)
+  end
 end
 
 return SoldierRecommendDetailCtrl

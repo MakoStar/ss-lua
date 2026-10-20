@@ -159,6 +159,7 @@ function AvgData:Init()
     EventManager.Add("StoryDialog_DialogEnd", self, self.OnEvent_AvgSTEnd)
   end
   self.bSkip = false
+  self.nJustReadStoryId = 0
 end
 
 function AvgData:UnInit()
@@ -166,6 +167,7 @@ function AvgData:UnInit()
   if AVG_EDITOR == true then
     EventManager.Remove("StoryDialog_DialogEnd", self, self.OnEvent_AvgSTEnd)
   end
+  self.nJustReadStoryId = 0
 end
 
 function AvgData:ClearTempData()
@@ -224,14 +226,14 @@ function AvgData:CacheAvgData(StoryInfo)
   if StoryInfo == nil then
     return
   end
-  if StoryInfo.BuildId then
-    self:SetSelBuildId(StoryInfo.BuildId)
+  if StoryInfo.Build then
+    self:SetSelBuildId(StoryInfo.Build.BuildId or 0)
   end
   for i, nEvId in ipairs(StoryInfo.Evidences) do
     local cfgData_Evidence = ConfigTable.GetData("StoryEvidence", nEvId)
     if cfgData_Evidence ~= nil then
       local sEvid = cfgData_Evidence.EvId
-      if table.indexof(self.tbEvIds, sEvid) <= 0 then
+      if 0 >= table.indexof(self.tbEvIds, sEvid) then
         table.insert(self.tbEvIds, sEvid)
       end
     end
@@ -308,8 +310,8 @@ function AvgData:AvgLuaNameToStoryId(sAvgId)
 end
 
 function AvgData:CheckIfTrue(bIsMajor, sAvgId, nGroupId, nIndex, nCheckount)
-  if self.IsActivityAvg == true then
-    return PlayerData.ActivityAvg:CheckIfTrue(bIsMajor, sAvgId, nGroupId, nIndex, nCheckount)
+  if self.storySource ~= nil then
+    return self.storySource:CheckIfTrue(bIsMajor, sAvgId, nGroupId, nIndex, nCheckount)
   end
   local n, sCheckTarget = self:AvgLuaNameToStoryId(sAvgId)
   if table.indexof(self.tbTempStoryIds, sCheckTarget) > 0 then
@@ -366,8 +368,8 @@ function AvgData:CheckIfTrue_Client(bIsMajor, sAvgId, nGroupId, nIndex, nCheckou
 end
 
 function AvgData:IsUnlock(sConditionId, avgId)
-  if self.IsActivityAvg == true then
-    return PlayerData.ActivityAvg:IsUnlock(sConditionId)
+  if self.storySource ~= nil then
+    return self.storySource:IsUnlock(sConditionId)
   end
   if type(sConditionId) == "string" and sConditionId == "" then
     return true
@@ -519,8 +521,8 @@ function AvgData:GetLockReasonText(tbResult, bHasAchievementData)
 end
 
 function AvgData:MarkStoryId(sAvgId)
-  if self.IsActivityAvg == true then
-    PlayerData.ActivityAvg:MarkStoryId(sAvgId)
+  if self.storySource ~= nil then
+    self.storySource:MarkStoryId(sAvgId)
     return
   end
   if AVG_EDITOR == true then
@@ -542,8 +544,8 @@ function AvgData:MarkStoryId(sAvgId)
 end
 
 function AvgData:MarkEvId(sId)
-  if self.IsActivityAvg == true then
-    PlayerData.ActivityAvg:MarkEvId(sId)
+  if self.storySource ~= nil then
+    self.storySource:MarkEvId(sId)
     return
   end
   if table.indexof(self.tbTempEvIds, sId) <= 0 and 0 >= table.indexof(self.tbEvIds, sId) then
@@ -552,8 +554,8 @@ function AvgData:MarkEvId(sId)
 end
 
 function AvgData:IsChosen(sAvgId, nGroupId, nIndex)
-  if self.IsActivityAvg == true then
-    return PlayerData.ActivityAvg:IsChosen(sAvgId, nGroupId, nIndex)
+  if self.storySource ~= nil then
+    return self.storySource:IsChosen(sAvgId, nGroupId, nIndex)
   end
   if self.mapChosen[sAvgId] == nil then
     return false
@@ -574,8 +576,8 @@ function AvgData:IsChosen(sAvgId, nGroupId, nIndex)
 end
 
 function AvgData:MarkChosen(sAvgId, nGroupId, nIndex)
-  if self.IsActivityAvg == true then
-    PlayerData.ActivityAvg:MarkChosen(sAvgId, nGroupId, nIndex)
+  if self.storySource ~= nil then
+    self.storySource:MarkChosen(sAvgId, nGroupId, nIndex)
     return
   end
   if self.mapTempCL[sAvgId] == nil then
@@ -633,13 +635,27 @@ function AvgData:IsChapterAllRead(nChapterId)
   return true
 end
 
+function AvgData:IsChapterLastStoryRead(nChapterId)
+  local chapterStoryIds = self.CFG_ChapterStoryNumIds[nChapterId]
+  if chapterStoryIds == nil or #chapterStoryIds == 0 then
+    return false
+  end
+  for _, nStoryId in ipairs(chapterStoryIds) do
+    local mapStoryCfg = ConfigTable.GetData_Story(nStoryId)
+    if mapStoryCfg ~= nil and mapStoryCfg.IsLast == true then
+      return self:IsStoryReaded(nStoryId)
+    end
+  end
+  return self:IsStoryReaded(chapterStoryIds[#chapterStoryIds])
+end
+
 function AvgData:MarkSkip(_bSkip)
   self.bSkip = _bSkip == true
 end
 
 function AvgData:GetHistoryChoosedPersonality(sAvgId, nGroupId)
-  if self.IsActivityAvg == true then
-    return PlayerData.ActivityAvg:GetHistoryChoosedPersonality(sAvgId, nGroupId)
+  if self.storySource ~= nil then
+    return self.storySource:GetHistoryChoosedPersonality(sAvgId, nGroupId)
   end
   if self.mapPersonality[sAvgId] == nil then
     return nil
@@ -658,8 +674,8 @@ function AvgData:GetHistoryChoosedPersonality(sAvgId, nGroupId)
 end
 
 function AvgData:MarkChoosedPersonality(sAvgId, nGroupId, nIndex, nFactor)
-  if self.IsActivityAvg == true then
-    PlayerData.ActivityAvg:MarkChoosedPersonality(sAvgId, nGroupId, nIndex, nFactor)
+  if self.storySource ~= nil then
+    self.storySource:MarkChoosedPersonality(sAvgId, nGroupId, nIndex, nFactor)
     return
   end
   if self.mapTempPersonality[sAvgId] == nil then
@@ -762,22 +778,12 @@ function AvgData:CalcPersonality(nId)
   for i, v in ipairs(tbPData) do
     tbPData[i].nPercent = tbPData[i].nCount / nTotalCount
   end
-  local tbRetPercent = {
-    tbPData[1].nPercent,
-    tbPData[2].nPercent,
-    tbPData[3].nPercent
-  }
   local sTitle, sFace, sHead
   table.sort(tbPData, function(a, b)
     return a.nCount > b.nCount
   end)
   if self.TempLocalData ~= nil then
     tbPData = self.TempLocalData
-    tbRetPercent = {
-      tbPData[1].nPercent,
-      tbPData[2].nPercent,
-      tbPData[3].nPercent
-    }
     table.sort(tbPData, function(a, b)
       return a.nPercent > b.nPercent
     end)
@@ -990,7 +996,15 @@ function AvgData:SendMsg_STORY_ENTER(nStoryId, nBuildId, bNewestStory)
     end
   end
   
-  HttpNetHandler.SendMsg(NetMsgId.Id.story_apply_req, {Idx = nStoryId, BuildId = nBuildId}, nil, func_cb)
+  local nBuildType = 0
+  local buildPackge
+  local mapBuildData = PlayerData.Build:GetBuildData(nBuildId)
+  if mapBuildData ~= nil then
+    local bTrial = mapBuildData.nBuildSource == AllEnum.BuildSource.Trial or mapBuildData.nBuildSource == AllEnum.BuildSource.LimitedTrial
+    nBuildType = bTrial and 2 or 1
+    buildPackge = {Type = nBuildType, BuildId = nBuildId}
+  end
+  HttpNetHandler.SendMsg(NetMsgId.Id.story_apply_req, {Idx = nStoryId, Build = buildPackge}, nil, func_cb)
 end
 
 function AvgData:SendMsg_STORY_DONE(callBack, tbBattleEvents)
@@ -1124,8 +1138,8 @@ function AvgData:SendMsg_STORY_DONE(callBack, tbBattleEvents)
       PlayerData.Base:UserEventUpload_PC("pc_mainstory_2_clear")
     end
     if 1 < #self.tbTempStoryIds then
-      local nRecentChapterId = self.CFG_Story[self.tbTempStoryIds[#self.tbTempStoryIds]]
-      self:SetRecentStoryId(nRecentChapterId)
+      local nRecentStoryId = self.CFG_Story[self.tbTempStoryIds[#self.tbTempStoryIds]]
+      self:SetRecentStoryId(nRecentStoryId)
     end
     if self.tbLastEndStoryIds ~= nil then
       for _, nLastEndStoryId in ipairs(self.tbLastEndStoryIds) do
@@ -1227,6 +1241,7 @@ function AvgData:SendMsg_STORY_DONE(callBack, tbBattleEvents)
   end
   
   printLog("发送通关消息")
+  self.nJustReadStoryId = self.CURRENT_STORY_ID
   HttpNetHandler.SendMsg(NetMsgId.Id.story_settle_req, mapSendMsgData, nil, func_succ)
   self.CURRENT_STORY_ID = 0
 end
@@ -1290,21 +1305,23 @@ end
 function AvgData:GetRecentStoryId(nChapterId)
   local nStoryId = self.mapRecentStoryId[tostring(nChapterId)]
   if nStoryId == nil then
-    local tbChapterList = self.CFG_ChapterStoryNumIds[nChapterId]
-    if tbChapterList ~= nil then
-      table.sort(tbChapterList, function(a, b)
+    local tbStoryNumId = self.CFG_ChapterStoryNumIds[nChapterId]
+    if tbStoryNumId ~= nil then
+      table.sort(tbStoryNumId, function(a, b)
         return a < b
       end)
-      for i = #tbChapterList, 1, -1 do
-        local v = tbChapterList[i]
+      for i = #tbStoryNumId, 1, -1 do
+        local v = tbStoryNumId[i]
         if self.tbStoryIds[v] then
           nStoryId = v
           break
         end
       end
-      local chapterConfig = ConfigTable.GetData("StoryChapter", nChapterId)
-      nStoryId = chapterConfig.UnlockShowStoryId
     end
+  end
+  if nStoryId == nil then
+    local chapterConfig = ConfigTable.GetData("StoryChapter", nChapterId)
+    nStoryId = chapterConfig.UnlockShowStoryId
   end
   return nStoryId
 end
@@ -1314,19 +1331,8 @@ function AvgData:SetRecentStoryId(nStoryId)
   if cfgData ~= nil then
     self.mapRecentStoryId[tostring(cfgData.Chapter)] = nStoryId
     local sJson = RapidJson.encode(self.mapRecentStoryId)
-    printLog(sJson)
     LocalData.SetPlayerLocalData("RecentStoryId", sJson)
   end
-end
-
-function AvgData:GetRecentChapterId()
-  local nRecentChapterId = 1
-  for k, v in pairs(self.mapRecentStoryId) do
-    if nRecentChapterId < tonumber(k) then
-      nRecentChapterId = tonumber(k)
-    end
-  end
-  return nRecentChapterId
 end
 
 function AvgData:CheckNewStoryRedDot()
@@ -1342,7 +1348,12 @@ function AvgData:CheckNewStoryRedDot()
         end
       end
     end
-    RedDotManager.SetValid(RedDotDefine.Map_MainLine_Chapter, v.Id, bHasNew)
+    local nChapterId = v.Id
+    local cfg = ConfigTable.GetData("StoryChapter", nChapterId)
+    RedDotManager.SetValid(RedDotDefine.Map_MainLine_Chapter, {
+      cfg.StoryLineId,
+      nChapterId
+    }, bHasNew)
   end
 end
 
@@ -1384,15 +1395,30 @@ function AvgData:SetLastEndState(nStoryId)
   if storyConifg == nil then
     return
   end
+  if self.tbLastEndStateMap == nil then
+    self.tbLastEndStateMap = {}
+  end
   local isUnlock = self:IsUnlock(storyConifg.ConditionId, storyConifg.StoryId)
   if isUnlock then
     local isReaded = self:IsStoryReaded(nStoryId)
+    local nState = AllEnum.MainlineLastEndState.Unlock
     if isReaded then
-      self.LastEndState = AllEnum.MainlineLastEndState.Fobidden
-    else
-      self.LastEndState = AllEnum.MainlineLastEndState.Unlock
+      nState = AllEnum.MainlineLastEndState.Fobidden
+      local nResetChapterId = ConfigTable.GetConfigNumber("StoryLastEnd_UnlockCondition_Chapter" .. tostring(storyConifg.Chapter))
+      if nResetChapterId ~= nil and 0 < nResetChapterId and self:IsChapterLastStoryRead(nResetChapterId) then
+        nState = AllEnum.MainlineLastEndState.Unlock
+      end
+    end
+    self.tbLastEndStateMap[nStoryId] = nState
+    self.LastEndState = nState
+    for _, nSt in pairs(self.tbLastEndStateMap) do
+      if nSt == AllEnum.MainlineLastEndState.Fobidden then
+        self.LastEndState = AllEnum.MainlineLastEndState.Fobidden
+        break
+      end
     end
   else
+    self.tbLastEndStateMap[nStoryId] = nil
     local chapterId = storyConifg.Chapter
     local allReaded = true
     local map = self.CFG_ChapterStoryNumIds[chapterId]
@@ -1418,8 +1444,8 @@ function AvgData:GetLastEndState()
   return self.LastEndState
 end
 
-function AvgData:ChangeActivityAvgState(IsActivityAvg)
-  self.IsActivityAvg = IsActivityAvg
+function AvgData:SetStorySource(dataObj)
+  self.storySource = dataObj
 end
 
 function AvgData:AvgEditorTempData(sConditionIds, bAdd)

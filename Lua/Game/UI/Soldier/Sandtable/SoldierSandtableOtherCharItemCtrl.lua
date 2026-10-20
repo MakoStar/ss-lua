@@ -44,13 +44,20 @@ function SoldierSandtableOtherCharItemCtrl:OnDisable()
 end
 
 function SoldierSandtableOtherCharItemCtrl:SetData(otherChessData, nIndex)
+  if otherChessData == nil or otherChessData.nId == 0 then
+    self.gameObject:SetActive(false)
+    return
+  end
+  self.gameObject:SetActive(true)
   self.levelData = PlayerData.SoldierData:GetCurLevelData()
   self.otherChessData = otherChessData
   self.nIndex = nIndex
   self._mapNode.trSortItem.localPosition = Vector3(0, 0, 0)
   self._mapNode.charCtrl:SetItemData(self.otherChessData.nId)
   self._mapNode.charCtrl:SetCharLevel(self.otherChessData.nStar or 1)
-  self.itemCanvas = self.gameObject:GetComponent("Canvas")
+  if self.itemCanvas == nil then
+    self.itemCanvas = self.gameObject:GetComponent("Canvas")
+  end
   NovaAPI.SetCanvasOverrideSorting(self.itemCanvas, false)
   self._mapNode.rayDragEvent.gameObject:SetActive(false)
 end
@@ -69,6 +76,11 @@ end
 
 function SoldierSandtableOtherCharItemCtrl:InitSortingOrder(nSortOrder)
   self.nInitSortingOrder = nSortOrder
+  if self.itemCanvas == nil then
+    self.itemCanvas = self.gameObject:GetComponent("Canvas")
+  end
+  NovaAPI.SetCanvasSortingOrder(self.itemCanvas, self.nInitSortingOrder)
+  NovaAPI.SetCanvasOverrideSorting(self.itemCanvas, false)
 end
 
 function SoldierSandtableOtherCharItemCtrl:CheckLimitAction()

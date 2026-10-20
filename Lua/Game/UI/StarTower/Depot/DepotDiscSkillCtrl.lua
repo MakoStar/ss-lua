@@ -61,13 +61,14 @@ function DepotDiscSkillCtrl:RefreshDiscSkill(mapNote, tbActiveSecondaryIds)
   for i = 1, 9 do
     self._mapNode.imgNote[i].gameObject:SetActive(false)
   end
-  for nIdx, nNoteId in ipairs(self._panel.tbShowNote) do
+  for nIdx, sNoteId in ipairs(self._panel.tbShowNote) do
     if nIdx <= #self._mapNode.imgNote then
       self._mapNode.imgNote[nIdx].gameObject:SetActive(true)
-      nNoteId = tonumber(nNoteId)
+      local nNoteId = tonumber(sNoteId)
       local nNoteCount = mapNote[nNoteId] == nil and 0 or mapNote[nNoteId]
       local noteCfg = ConfigTable.GetData("SubNoteSkill", nNoteId)
       local nNoteNeed = self._panel.mapNoteNeed[nNoteId]
+      local sIconPath = ""
       if nNoteNeed ~= nil and 0 < nNoteNeed then
         sIconPath = noteCfg.Icon .. AllEnum.DiscSkillIconSurfix.S_Light
       else
@@ -164,6 +165,10 @@ function DepotDiscSkillCtrl:OnEvent_SelectDepotDiscSkill(nDiscId, nMainSkillId, 
 end
 
 function DepotDiscSkillCtrl:OnBtnClick_DiscDetail()
+  if self:GetPanelId() == PanelId.StarTowerFastBattle then
+    self._panel:OpenDepotDetailPanel(PanelId.DiscSkill, self._panel.tbDisc, self.tbMapNote, self._panel.mapDiscData)
+    return
+  end
   EventManager.Hit(EventId.OpenPanel, PanelId.DiscSkill, self._panel.tbDisc, self.tbMapNote, self._panel.mapDiscData)
 end
 

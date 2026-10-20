@@ -37,7 +37,12 @@ SoldierCharCardShopItemCtrl._mapNodeConfig = {
   },
   SynergyTemplate = {},
   animRoot = {sNodeName = "AnimRoot", sComponentName = "Animator"},
-  FxCard_Random = {sComponentName = "Animator"}
+  FxCard_Random = {sComponentName = "Animator"},
+  imgTrial = {},
+  txtTrial = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "Soldier_Shop_Card_Trial"
+  }
 }
 SoldierCharCardShopItemCtrl._mapEventConfig = {
   SoldierCharCardShopItemClicked = "OnEvent_SoldierCharCardShopItemClicked",
@@ -111,6 +116,7 @@ function SoldierCharCardShopItemCtrl:SetData(nCharId, nCost, nStar, bDisablePurc
     self:SetCost(sCost)
   end
   self:RefreshSynergy()
+  self:RefreshTrial(mapChar)
 end
 
 function SoldierCharCardShopItemCtrl:SetEmpty()
@@ -314,6 +320,15 @@ function SoldierCharCardShopItemCtrl:_ClearSynergyItems()
   end
   self._tbSynergyItemCtrl = {}
   self._tbSynergyItemGo = {}
+end
+
+function SoldierCharCardShopItemCtrl:RefreshTrial(mapCfg)
+  local bShow = false
+  if mapCfg.CharacterType == GameEnum.SoldierCharacterType.Actor and mapCfg.CharacterId ~= 0 then
+    local mapChar = PlayerData.Char:GetCharDataByTid(mapCfg.CharacterId)
+    bShow = mapChar == nil
+  end
+  self._mapNode.imgTrial.gameObject:SetActive(bShow)
 end
 
 function SoldierCharCardShopItemCtrl:SetNodeActive(node, bActive)

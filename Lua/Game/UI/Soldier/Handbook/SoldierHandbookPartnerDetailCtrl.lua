@@ -2,22 +2,42 @@ local SoldierHandbookPartnerDetailCtrl = class("SoldierHandbookPartnerDetailCtrl
 local SoldierAttrData = require("GameCore.Data.DataClass.Soldier.SoldierAttrData")
 local RootPath = "Icon/SoldierOtherIcon/"
 local iconPath = "Icon/SoldierPartner/"
+local tabType = {Camp = 1, Sect = 2}
+local replace_Harvest = "==HARVEST=="
 SoldierHandbookPartnerDetailCtrl._mapNodeConfig = {
-  blur = {},
-  root = {
-    sNodeName = "----SafeAreaRoot---"
+  TopBar = {
+    sNodeName = "TopBarPanel",
+    sCtrlName = "Game.UI.TopBarEx.TopBarCtrl"
   },
-  btn_Close = {
+  btn_tabcamp = {
     sComponentName = "UIButton",
-    callback = "OnBtnClick_Close"
+    callback = "OnBtnClick_TabCamp"
   },
-  btnClose = {
-    sComponentName = "UIButton",
-    callback = "OnBtnClick_Close"
-  },
-  txtWindowTitle = {
+  txt_camp = {
+    nCount = 2,
     sComponentName = "TMP_Text",
-    sLanguageId = "Soldier_Handbook_PartnerDetail"
+    sLanguageId = "Soldier_Handbook_Partner_Camp"
+  },
+  go_camp_on = {sNodeName = "tab_campOn"},
+  go_camp_off = {
+    sNodeName = "tab_campOff"
+  },
+  btn_tabsect = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_TabSect"
+  },
+  txt_sect = {
+    nCount = 2,
+    sComponentName = "TMP_Text",
+    sLanguageId = "Soldier_Handbook_Partner_Sect"
+  },
+  go_sect_on = {sNodeName = "tab_sectOn"},
+  go_sect_off = {
+    sNodeName = "tab_sectOff"
+  },
+  parnerLoop = {
+    sNodeName = "PartnerDetailTab",
+    sComponentName = "LoopScrollView"
   },
   txt_name = {sComponentName = "TMP_Text"},
   img_partnerIcon = {sComponentName = "Image"},
@@ -35,57 +55,132 @@ SoldierHandbookPartnerDetailCtrl._mapNodeConfig = {
   sv_char = {
     sComponentName = "LoopScrollView"
   },
-  charDetialRoot = {sComponentName = "Transform"}
+  charDetialRoot = {sComponentName = "Transform"},
+  detailAnimator = {
+    sNodeName = "PartnerDetail",
+    sComponentName = "Animator"
+  },
+  content = {
+    sNodeName = "Scroll View",
+    sComponentName = "RectTransform"
+  }
 }
 SoldierHandbookPartnerDetailCtrl._mapEventConfig = {}
 SoldierHandbookPartnerDetailCtrl._mapRedDotConfig = {}
 
 function SoldierHandbookPartnerDetailCtrl:Awake()
-  self._mapNode.blur:SetActive(true)
-  self._mapNode.root:SetActive(false)
-  self.animator = self._mapNode.root.transform:Find("AnimRoot"):GetComponent("Animator")
-  
-  local function wait()
-    coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
-    self._mapNode.root:SetActive(true)
-    self.animator:Play("t_window_04_t_in")
-    EventManager.Hit(EventId.TemporaryBlockInput, 0.3)
-  end
-  
-  cs_coroutine.start(wait)
   local param = self:GetPanelParam()
   if type(param) == "table" then
-    self.nPartnerType = param[1]
+    self.nPartnerGroupId = param[1]
   end
-  local mapPartnerGroupData = CacheTable.GetData("_SoldierPartnerGroup", self.nPartnerType)
-  if mapPartnerGroupData == nil then
-    return
-  end
-  self.mapPartnerGroupData = mapPartnerGroupData
-  self:Init()
+  self.mapPartnerGroupData = ConfigTable.GetData("SoldierPartnerGroup", self.nPartnerGroupId)
+  self.tbPartnerItemCtrl = {}
+  self.tbCharItemCtrl = {}
+  self:SelectTab(self.mapPartnerGroupData.PartnerCatalogue)
 end
 
 function SoldierHandbookPartnerDetailCtrl:OnDestroy()
-  for _, v in ipairs(self.tbCharItemCtrl) do
-    self:UnbindCtrlByNode(v)
+  if self.tbCharItemCtrl ~= nil then
+    for _, v in ipairs(self.tbCharItemCtrl) do
+      self:UnbindCtrlByNode(v)
+    end
+    self.tbCharItemCtrl = nil
   end
-  self.tbCharItemCtrl = nil
+  if self.tbPartnerItemCtrl ~= nil then
+    for _, v in ipairs(self.tbPartnerItemCtrl) do
+      self:UnbindCtrlByNode(v)
+    end
+    self.tbPartnerItemCtrl = nil
+  end
 end
 
-function SoldierHandbookPartnerDetailCtrl:Init()
-  self.tbCharItemCtrl = {}
+function SoldierHandbookPartnerDetailCtrl:InitTab()
+  self._mapNode.go_camp_on.gameObject:SetActive(self.nCurrentTab == tabType.Camp)
+  self._mapNode.go_sect_on.gameObject:SetActive(self.nCurrentTab == tabType.Sect)
+  self._mapNode.go_camp_off.gameObject:SetActive(self.nCurrentTab ~= tabType.Camp)
+  self._mapNode.go_sect_off.gameObject:SetActive(self.nCurrentTab ~= tabType.Sect)
+end
+
+function SoldierHandbookPartnerDetailCtrl:SelectTab(nTab)
+  if self.nCurrentTab == nTab then
+    return
+  end
+  self.nCurrentTab = nTab
+  self.tbCurPartnerGroup = {}
+  self:InitTab()
+  self:InitPartnerGroup()
+  self:InitPartnerGroupList()
+  self:InitDetail()
+end
+
+function SoldierHandbookPartnerDetailCtrl:InitPartnerGroup()
+  self.tbPartnerGroup = {}
+  
+  local function func_ForEach_PartnerGroup(mapPartnerGroup)
+    if self.tbPartnerGroup[mapPartnerGroup.PartnerCatalogue] == nil then
+      self.tbPartnerGroup[mapPartnerGroup.PartnerCatalogue] = {}
+    end
+    table.insert(self.tbPartnerGroup[mapPartnerGroup.PartnerCatalogue], mapPartnerGroup)
+    if mapPartnerGroup.Id == self.nPartnerGroupId then
+      nIndex = #self.tbPartnerGroup[mapPartnerGroup.PartnerCatalogue]
+    end
+  end
+  
+  ForEachTableLine(DataTable.SoldierPartnerGroup, func_ForEach_PartnerGroup)
+end
+
+function SoldierHandbookPartnerDetailCtrl:InitPartnerGroupList()
+  self.tbCurPartnerGroup = self.tbPartnerGroup[self.nCurrentTab]
+  local nIndex = 0
+  for i, v in ipairs(self.tbCurPartnerGroup) do
+    if v.Id == self.nPartnerGroupId then
+      nIndex = i
+      break
+    end
+  end
+  self._mapNode.parnerLoop:Init(#self.tbCurPartnerGroup, self, self.OnPartnerGroupRefreshGrid, self.OnPartnerGroupBtnClick, false)
+  if 0 < nIndex then
+    self._mapNode.parnerLoop:SetScrollGridPos(nIndex - 1, 0.5, 0)
+  else
+    self.nPartnerGroupId = self.tbCurPartnerGroup[1].Id
+    self.mapPartnerGroupData = self.tbCurPartnerGroup[1]
+    EventManager.Hit("SoldierHandbookPartnerSelect", self.nPartnerGroupId)
+  end
+end
+
+function SoldierHandbookPartnerDetailCtrl:OnPartnerGroupRefreshGrid(goGrid, gridIndex)
+  local nIndex = gridIndex + 1
+  local partnerGroup = self.tbCurPartnerGroup[nIndex]
+  local nInstanceId = goGrid:GetInstanceID()
+  if not self.tbPartnerItemCtrl[nInstanceId] then
+    self.tbPartnerItemCtrl[nInstanceId] = self:BindCtrlByNode(goGrid, "Game.UI.Soldier.Handbook.SoldierHandbookParnerListItem")
+  end
+  self.tbPartnerItemCtrl[nInstanceId]:SetPartnerGroup(partnerGroup, self.nPartnerGroupId == partnerGroup.Id)
+end
+
+function SoldierHandbookPartnerDetailCtrl:OnPartnerGroupBtnClick(goGrid, gridIndex)
+  local nIndex = gridIndex + 1
+  local partnerGroup = self.tbCurPartnerGroup[nIndex]
+  self.nPartnerGroupId = partnerGroup.Id
+  self.mapPartnerGroupData = partnerGroup
+  EventManager.Hit("SoldierHandbookPartnerSelect", self.nPartnerGroupId)
+  self:InitDetail()
+end
+
+function SoldierHandbookPartnerDetailCtrl:InitDetail()
   if self.mapPartnerGroupData == nil then
     return
   end
-  NovaAPI.SetTMPText(self._mapNode.txtName, self.mapPartnerGroupData.Name)
-  NovaAPI.SetTMPText(self._mapNode.txtDesc, self.mapPartnerGroupData.Des)
+  self._mapNode.detailAnimator:Play("SoldierHandbookPartnerDetail_in")
+  self:SetPngSprite(self._mapNode.img_partnerIcon, iconPath .. self.mapPartnerGroupData.Icon .. AllEnum.SoldierChessIconSurfix.M)
+  NovaAPI.SetTMPText(self._mapNode.txt_name, self.mapPartnerGroupData.Name)
+  local sDesc = UTILS.ParseDesc(self.mapPartnerGroupData)
+  sDesc = string.gsub(sDesc, replace_Harvest, 0)
+  NovaAPI.SetTMPText(self._mapNode.txt_PartnerDesc, sDesc)
   for i = 1, 6 do
     self._mapNode.partner_desc[i]:SetActive(false)
   end
-  self:SetPngSprite(self._mapNode.img_partnerIcon, iconPath .. self.mapPartnerGroupData.Icon .. AllEnum.SoldierChessIconSurfix.M)
-  NovaAPI.SetTMPText(self._mapNode.txt_name, self.mapPartnerGroupData.Name)
-  NovaAPI.SetTMPText(self._mapNode.txt_PartnerDesc, UTILS.ParseDesc(self.mapPartnerGroupData))
-  local tbAttrData = SoldierAttrData.GetPartnerLevelsByType(self.nPartnerType)
+  local tbAttrData = SoldierAttrData.GetPartnerLevelsByType(self.mapPartnerGroupData.PartnerType)
   for i, v in ipairs(tbAttrData) do
     local mapCfg = ConfigTable.GetData("SoldierPartner", v.nConfigId)
     if mapCfg ~= nil then
@@ -103,12 +198,44 @@ function SoldierHandbookPartnerDetailCtrl:Init()
       self._mapNode.partner_desc[i]:SetActive(true)
     end
   end
-  self._mapNode.sv_char:Init(#self.mapPartnerGroupData.ChessCharacterIds, self, self.OnCharRefreshGrid, self.OnCharBtnClick, false)
+  self.tbCharIds = self.mapPartnerGroupData.ChessCharacterIds
+  table.sort(self.tbCharIds, function(a, b)
+    local aCfg = ConfigTable.GetData("SoldierCharacter", a)
+    local bCfg = ConfigTable.GetData("SoldierCharacter", b)
+    if aCfg == nil or bCfg == nil then
+      return false
+    end
+    if aCfg.Rarity ~= bCfg.Rarity then
+      return aCfg.Rarity > bCfg.Rarity
+    end
+    return aCfg.Id < bCfg.Id
+  end)
+  
+  local function wait()
+    coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
+    self._mapNode.sv_char:Init(#self.mapPartnerGroupData.ChessCharacterIds, self, self.OnCharRefreshGrid, self.OnCharBtnClick, false)
+  end
+  
+  cs_coroutine.start(wait)
+end
+
+function SoldierHandbookPartnerDetailCtrl:OnBtnClick_TabSect()
+  if self.nCurrentTab == tabType.Sect then
+    return
+  end
+  self:SelectTab(tabType.Sect)
+end
+
+function SoldierHandbookPartnerDetailCtrl:OnBtnClick_TabCamp()
+  if self.nCurrentTab == tabType.Camp then
+    return
+  end
+  self:SelectTab(tabType.Camp)
 end
 
 function SoldierHandbookPartnerDetailCtrl:OnCharRefreshGrid(goGrid, gridIndex)
   local nIndex = gridIndex + 1
-  local charId = self.mapPartnerGroupData.ChessCharacterIds[nIndex]
+  local charId = self.tbCharIds[nIndex]
   local go_char = goGrid.transform:Find("tc_char_small")
   local nInstanceId = go_char:GetInstanceID()
   if not self.tbCharItemCtrl[nInstanceId] then
@@ -120,23 +247,12 @@ end
 
 function SoldierHandbookPartnerDetailCtrl:OnCharBtnClick(goGrid, gridIndex)
   local nIndex = gridIndex + 1
-  local charId = self.mapPartnerGroupData.ChessCharacterIds[nIndex]
+  local charId = self.tbCharIds[nIndex]
   local chessData = {nId = charId, nStar = 1}
   EventManager.Hit(EventId.OpenPanel, PanelId.SoldierCharCardTips, self._mapNode.charDetialRoot, chessData)
   local tr = self._mapNode.charDetialRoot
   EventManager.Hit("OnSetTipsPosition", tr:GetChild(0).position, tr:GetChild(1).position, tr:GetChild(2).position)
   EventManager.Hit("SoldierCharTips_ShowBg")
-end
-
-function SoldierHandbookPartnerDetailCtrl:OnBtnClick_Close()
-  self.animator:Play("t_window_04_t_out")
-  
-  local function callback()
-    EventManager.Hit(EventId.ClosePanel, PanelId.SoldierHandbookPartnerDetailPanel)
-  end
-  
-  self:AddTimer(1, 0.3, callback, true, true, true)
-  EventManager.Hit(EventId.TemporaryBlockInput, 0.3)
 end
 
 function SoldierHandbookPartnerDetailCtrl:OnLinkClick_Word(link, sWordId)

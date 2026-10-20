@@ -120,6 +120,76 @@ function PlayerDiscData:GetDiscSkillScore(nId, tbNote)
   return nScore
 end
 
+function PlayerDiscData:GetDiscSkill(tbDisc, tbHasNote)
+  local mapSkill = {}
+  for _, nDiscId in pairs(tbDisc) do
+    local mapData = self:GetDiscById(nDiscId)
+    if mapData == nil then
+      return {}
+    end
+    for _, nSubSkillGroupId in pairs(mapData.tbSubSkillGroupId) do
+      local tbGroup = CacheTable.GetData("_SecondarySkill", nSubSkillGroupId)
+      if tbGroup then
+        local nCurLayer = 0
+        local nMaxLayer = #tbGroup
+        for i = nMaxLayer, 1, -1 do
+          if tbGroup[i] then
+            local bActive = mapData:CheckSubSkillActive(tbHasNote, tbGroup[i])
+            if bActive then
+              nCurLayer = i
+              break
+            end
+          end
+        end
+        local nNextLayer = nCurLayer == nMaxLayer and nMaxLayer or nCurLayer + 1
+        if tbGroup[nNextLayer] then
+          local nSubSkillId = tbGroup[nNextLayer].Id
+          local tbActiveNote = CacheTable.GetData("_SecondarySkillNeedNotes", nSubSkillId)
+          if tbActiveNote == nil then
+            local mapJsonData = decodeJson(tbGroup[nNextLayer].NeedSubNoteSkills)
+            tbActiveNote = {}
+            for key, nCount in pairs(mapJsonData) do
+              local nId = tonumber(key)
+              table.insert(tbActiveNote, {nId, nCount})
+            end
+            
+            local function sort(a, b)
+              return a[1] < b[1]
+            end
+            
+            table.sort(tbActiveNote, sort)
+            CacheTable.SetData("_SecondarySkillNeedNotes", nSubSkillId, tbActiveNote)
+          end
+          local tbMaxLayerActiveNote = CacheTable.GetData("_SecondarySkillNeedNotes", tbGroup[nMaxLayer].Id)
+          if tbMaxLayerActiveNote == nil then
+            local mapJsonData = decodeJson(tbGroup[nMaxLayer].NeedSubNoteSkills)
+            tbMaxLayerActiveNote = {}
+            for key, nCount in pairs(mapJsonData) do
+              local nId = tonumber(key)
+              table.insert(tbMaxLayerActiveNote, {nId, nCount})
+            end
+            
+            local function sort(a, b)
+              return a[1] < b[1]
+            end
+            
+            table.sort(tbMaxLayerActiveNote, sort)
+            CacheTable.SetData("_SecondarySkillNeedNotes", tbGroup[nMaxLayer].Id, tbMaxLayerActiveNote)
+          end
+          mapSkill[tbGroup[nNextLayer].GroupId] = {
+            nCurLevel = nCurLayer,
+            nId = nSubSkillId,
+            tbNote = tbActiveNote,
+            tbMaxLayerActiveNote = tbMaxLayerActiveNote,
+            nDiscId = nDiscId
+          }
+        end
+      end
+    end
+  end
+  return mapSkill
+end
+
 function PlayerDiscData:GetDiscSkillByNote(tbDisc, tbHasNote, nNeedNote)
   local tbSkill = {}
   local sNote = tostring(nNeedNote)

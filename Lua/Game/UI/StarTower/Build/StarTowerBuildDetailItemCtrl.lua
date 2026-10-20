@@ -62,14 +62,15 @@ StarTowerBuildDetailItemCtrl._mapRedDotConfig = {}
 
 function StarTowerBuildDetailItemCtrl:Refresh(mapData)
   self.mapBuild = mapData
-  if self.mapBuild.bTrial == true then
-    self._mapNode.btnLeader.interactable = false
-    for k, v in pairs(self._mapNode.btnSub) do
-      v.interactable = false
-    end
-    for k, v in pairs(self._mapNode.btnDiscItem) do
-      v.interactable = false
-    end
+  local nBuildSource = PlayerData.Build:GetBuildSourceByData(mapData)
+  self.bTrialBuild = nBuildSource == AllEnum.BuildSource.Trial or nBuildSource == AllEnum.BuildSource.LimitedTrial or mapData.bTrial == true
+  local bInteractable = self.mapBuild.bTrial ~= true
+  self._mapNode.btnLeader.interactable = not self.bTrialBuild
+  for _, btnSub in pairs(self._mapNode.btnSub) do
+    btnSub.interactable = not self.bTrialBuild
+  end
+  for _, btnDiscItem in pairs(self._mapNode.btnDiscItem) do
+    btnDiscItem.interactable = bInteractable
   end
   self:RefreshInfo()
   self:RefreshChar()
@@ -95,7 +96,7 @@ function StarTowerBuildDetailItemCtrl:RefreshChar()
     local nCharTid = self.mapBuild.tbChar[i].nTid
     local mapCharCfg = ConfigTable.GetData_Character(nCharTid)
     if mapCharCfg ~= nil then
-      local nCharSkinId = PlayerData.Char:GetCharSkinId(nCharTid)
+      local nCharSkinId = PlayerData.Build:GetBuildCharSkinId(self.mapBuild, self.mapBuild.tbChar[i])
       if self.mapBuild.bRankPreview then
         nCharSkinId = mapCharCfg.DefaultSkinId
       end
@@ -151,97 +152,59 @@ end
 
 function StarTowerBuildDetailItemCtrl:OnBtnClick_Disc(btn, nIndex)
   local nDiscId = self.mapBuild.tbDisc[nIndex]
+  if nDiscId == nil or nDiscId == 0 then
+    return
+  end
   if self.mapBuild.bRankPreview == true then
     EventManager.Hit(EventId.OpenPanel, PanelId.DiscSample, nDiscId)
-  elseif self.mapBuild.bTrial == true then
-    local mapDiscData = PlayerData.Disc:GetDiscById(nDiscId)
-    if mapDiscData == nil then
-      EventManager.Hit(EventId.OpenPanel, PanelId.DiscSample, nDiscId)
-    else
-      EventManager.Hit(EventId.OpenPanel, PanelId.Disc, nDiscId, {nDiscId})
-    end
+  elseif self.bTrialBuild then
+    self:OnBtnClick_DiscDetail(btn, nIndex)
+  elseif PlayerData.Disc:GetDiscById(nDiscId) ~= nil then
+    EventManager.Hit(EventId.OpenPanel, PanelId.Disc, nDiscId, self.mapBuild.tbDisc)
+  end
+end
+
+function StarTowerBuildDetailItemCtrl:OpenCharDetail(nIndex)
+  if self.bTrialBuild then
+    return
+  end
+  local nCharTid = self.mapBuild.tbChar[nIndex].nTid
+  if self.mapBuild.bRankPreview == true then
+    EventManager.Hit(EventId.OpenPanel, PanelId.CharBgTrialPanel, PanelId.CharInfoTrial, nCharTid)
   else
-    local nIdx = 0
-    local nDiscId = 0
-    local tbAllDisc = {}
-    for _, nId in ipairs(self.mapBuild.tbDisc) do
-      nIdx = nIdx + 1
-      if nIdx == nIndex then
-        nDiscId = nId
-      end
-      table.insert(tbAllDisc, nId)
+    local tbCharId = {}
+    for _, mapChar in ipairs(self.mapBuild.tbChar) do
+      table.insert(tbCharId, mapChar.nTid)
     end
-    if nDiscId ~= 0 then
-      local mapDisc = PlayerData.Disc:GetDiscById(nDiscId)
-      if mapDisc ~= nil then
-        EventManager.Hit(EventId.OpenPanel, PanelId.Disc, nDiscId, tbAllDisc)
-      end
-    end
+    EventManager.Hit(EventId.OpenPanel, PanelId.CharBgPanel, PanelId.CharInfo, nCharTid, tbCharId, true)
   end
 end
 
 function StarTowerBuildDetailItemCtrl:OnBtnClick_Leader()
-  local nCharTid = self.mapBuild.tbChar[1].nTid
-  if self.mapBuild.bRankPreview == true then
-    EventManager.Hit(EventId.OpenPanel, PanelId.CharBgTrialPanel, PanelId.CharInfoTrial, nCharTid)
-  elseif self.mapBuild.bTrial == true then
-    local mapCharCfg = PlayerData.Char:GetCharDataByTid(nCharTid)
-    if mapCharCfg == nil then
-      EventManager.Hit(EventId.OpenPanel, PanelId.CharBgTrialPanel, PanelId.CharInfoTrial, nCharTid)
-    else
-      EventManager.Hit(EventId.OpenPanel, PanelId.CharBgPanel, PanelId.CharInfo, nCharTid, {nCharTid})
-    end
-  else
-    local tbCharId = {}
-    for _, v in ipairs(self.mapBuild.tbChar) do
-      table.insert(tbCharId, v.nTid)
-    end
-    EventManager.Hit(EventId.OpenPanel, PanelId.CharBgPanel, PanelId.CharInfo, tbCharId[1], tbCharId, true)
-  end
+  self:OpenCharDetail(1)
 end
 
 function StarTowerBuildDetailItemCtrl:OnBtnClick_Sub(btn, nIndex)
-  local nCharTid = self.mapBuild.tbChar[nIndex + 1].nTid
-  if self.mapBuild.bRankPreview == true then
-    EventManager.Hit(EventId.OpenPanel, PanelId.CharBgTrialPanel, PanelId.CharInfoTrial, nCharTid)
-  elseif self.mapBuild.bTrial == true then
-    local mapCharCfg = PlayerData.Char:GetCharDataByTid(nCharTid)
-    if mapCharCfg == nil then
-      EventManager.Hit(EventId.OpenPanel, PanelId.CharBgTrialPanel, PanelId.CharInfoTrial, nCharTid)
-    else
-      EventManager.Hit(EventId.OpenPanel, PanelId.CharBgPanel, PanelId.CharInfo, nCharTid, {nCharTid})
-    end
-  else
-    local tbCharId = {}
-    for _, v in ipairs(self.mapBuild.tbChar) do
-      table.insert(tbCharId, v.nTid)
-    end
-    EventManager.Hit(EventId.OpenPanel, PanelId.CharBgPanel, PanelId.CharInfo, tbCharId[nIndex + 1], tbCharId, true)
-  end
+  self:OpenCharDetail(nIndex + 1)
 end
 
 function StarTowerBuildDetailItemCtrl:OnBtnClick_DiscDetail(btn, nIndex)
-  if self.mapBuild.bTrial == true then
-    local nDiscId = self.mapBuild.tbDisc[nIndex]
-    EventManager.Hit(EventId.OpenPanel, PanelId.DiscSample, nDiscId)
-    return
-  end
   local tbDisc = {}
   local mapDiscData = {}
-  for i = 1, 6 do
-    tbDisc[i] = self.mapBuild.tbDisc[i] or 0
-    if 0 ~= tbDisc[i] then
-      local mapDisc = PlayerData.Disc:GetDiscById(tbDisc[i])
+  for nDiscIndex = 1, 6 do
+    local nDiscId = self.mapBuild.tbDisc[nDiscIndex] or 0
+    tbDisc[nDiscIndex] = nDiscId
+    if nDiscId ~= 0 then
+      local mapDisc = PlayerData.Build:GetBuildDiscByData(self.mapBuild, nDiscId)
       if mapDisc == nil then
-        mapDisc = PlayerData.Disc:GetTrialDiscById(tbDisc[i])
+        printError("Build disc data missing: " .. tostring(self.mapBuild.nBuildId) .. ", " .. nDiscId)
+        return
       end
-      if mapDisc == nil then
-        mapDisc = PlayerData.Disc:GetRankDetailDisc(tbDisc[i])
-      end
-      mapDiscData[tbDisc[i]] = mapDisc
+      mapDiscData[nDiscId] = mapDisc
     end
   end
-  EventManager.Hit(EventId.OpenPanel, PanelId.DiscSkill, tbDisc, self.mapBuild.tbNotes, mapDiscData)
+  local nSelectedDiscId = nIndex and tbDisc[nIndex] or nil
+  EventManager.Hit(EventId.OpenPanel, PanelId.DiscSkill, tbDisc, self.mapBuild.tbNotes, mapDiscData, nSelectedDiscId)
 end
 
 return StarTowerBuildDetailItemCtrl

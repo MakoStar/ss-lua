@@ -302,7 +302,7 @@ local function PreExitCurrent()
   end
 end
 
-local function OnOpenPanel(listener, nPanelId, ...)
+local function OpenPanel(nPanelId, mapOpenContext, ...)
   if objNextPanel ~= nil then
     printError("[界面切换] 打开界面：" .. GetPanelName(nPanelId) .. " 失败，上一次界面切换流程尚未完成，正在处理：" .. GetPanelName(objNextPanel._nPanelId))
     return
@@ -325,6 +325,9 @@ local function OnOpenPanel(listener, nPanelId, ...)
     nIndex = objCurPanel._nIndex + 1
   end
   local objTempPanel = luaClass.new(nIndex, nPanelId, tbParameter)
+  if mapOpenContext ~= nil then
+    objTempPanel._nSortingOrderBase = mapOpenContext.nSortingOrderBase
+  end
   if objTempPanel._bIsMainPanel == true then
     objNextPanel = objTempPanel
     if objNextPanel._bAddToBackHistory == true then
@@ -356,6 +359,14 @@ local function OnOpenPanel(listener, nPanelId, ...)
     printLog("[界面切换] 打开非主 Panel：" .. GetPanelName(nPanelId) .. "成功。")
   end
   CheckThresholdCount()
+end
+
+local function OnOpenPanel(listener, nPanelId, ...)
+  OpenPanel(nPanelId, nil, ...)
+end
+
+function PanelManager.OpenPanelWithContext(nPanelId, mapOpenContext, ...)
+  OpenPanel(nPanelId, mapOpenContext, ...)
 end
 
 local function OnOpenLoading(listener, objTarget, callbackUpdate, callbackDone)
@@ -496,6 +507,7 @@ local function RegisterTextGetContentFun()
 end
 
 function PanelManager.Init()
+  PanelManager.IGNORE_CS_TRANS_EVENT = false
   local goUIRoot = GameObject.Find("==== UI ROOT ====")
   if goUIRoot ~= nil then
     mapUIRootTransform = {}

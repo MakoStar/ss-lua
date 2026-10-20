@@ -69,11 +69,19 @@ function PlayerVampireSurvivorData:EnterVampireSurvivor(nLevelId, nBuildId1, nBu
     end
   end
   
-  local BuildIds = {nBuildId1}
+  local Builds = {
+    {
+      Type = PlayerData.Build:IsUseTrialRuntime(nBuildId1) and 2 or 1,
+      BuildId = nBuildId1
+    }
+  }
   if 0 < nBuildId2 then
-    table.insert(BuildIds, nBuildId2)
+    table.insert(Builds, {
+      Type = PlayerData.Build:IsUseTrialRuntime(nBuildId2) and 2 or 1,
+      BuildId = nBuildId2
+    })
   end
-  local msg = {Id = nLevelId, BuildIds = BuildIds}
+  local msg = {Id = nLevelId, Builds = Builds}
   HttpNetHandler.SendMsg(NetMsgId.Id.vampire_survivor_apply_req, msg, nil, NetCallback)
 end
 
@@ -92,11 +100,13 @@ function PlayerVampireSurvivorData:ReEnterVampireSurvivor(nVampireId)
     local nBuildId2 = 0
     local mapSceneFirst
     for _, mapScene in ipairs(netMsg.Scenes) do
-      if mapScene.SceneType == 2 then
-        nBuildId2 = mapScene.BuildId
+      if mapScene.SceneType == 2 and mapScene.Build ~= nil then
+        nBuildId2 = mapScene.Build.BuildId or 0
       end
       if mapScene.SceneType == 1 then
-        nBuildId1 = mapScene.BuildId
+        if mapScene.Build ~= nil then
+          nBuildId1 = mapScene.Build.BuildId or 0
+        end
         mapSceneFirst = mapScene
       end
     end
@@ -142,7 +152,7 @@ function PlayerVampireSurvivorData:ReEnterVampireSurvivor(nVampireId)
       end
     end
     
-    PlayerData.Build:GetAllBuildBriefData(GetAllBuildCallback)
+    PlayerData.Build:GetSelectableBuildBriefData(GetAllBuildCallback, AllEnum.RegionBossFormationType.Vampire)
   end
   
   HttpNetHandler.SendMsg(NetMsgId.Id.vampire_survivor_info_req, {}, nil, NetCallback)

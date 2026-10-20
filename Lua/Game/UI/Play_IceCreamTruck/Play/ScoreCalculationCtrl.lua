@@ -169,6 +169,14 @@ function ScoreCalculationCtrl:CalcOrderScore(nBaseScore)
   return nFinal, tbDetail
 end
 
+function ScoreCalculationCtrl:CalcFeedPGScore(nBaseScore)
+  local fComboMul = self:GetComboMultiplier()
+  local fBuffMul = self.fBuffMultiplier
+  local fFeverMul = self.bInFeverMode and 2 or 1
+  local nFinal = math.floor(nBaseScore * fComboMul * fBuffMul * fFeverMul)
+  return nFinal
+end
+
 function ScoreCalculationCtrl:GetCombo()
   return self.nCombo
 end

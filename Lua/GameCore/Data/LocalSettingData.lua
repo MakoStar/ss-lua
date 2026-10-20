@@ -53,6 +53,7 @@ local function LoadBattleData()
   else
     LocalSettingData.mapData.BattleHUD = LoadLocalData("BattleHUD", AllEnum.BattleHudType.Sector)
   end
+  LocalSettingData.mapData.HudDamageShow = LoadLocalData("HudDamageShow", AllEnum.BattleHudDamageSetting.Default)
 end
 
 local function LoadNotificationData()

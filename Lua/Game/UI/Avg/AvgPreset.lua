@@ -77,15 +77,18 @@ local AvgPreset = {
     "field_room_inside_daylight",
     "field_room_inside_daylight_winter",
     "field_town_daylight",
+    "field_town_night",
     "flatlands_daylight",
     "flatlands_dusk",
     "flatlands_floralsea_daylight",
+    "flatlands_floralsea_night",
     "flatlands_night",
     "flavio_city_livehouse_a",
     "flavio_city_livehouse_b",
     "flavio_city_street",
     "flavio_city_street_2",
     "forest",
+    "forest_burn",
     "forest_camp_rain",
     "forest_daylight_2",
     "forest_daylight_2_a",
@@ -95,6 +98,8 @@ local AvgPreset = {
     "forest_rain",
     "forest_room_daylight_a",
     "forest_room_daylight_b",
+    "forest_volcano_daylight",
+    "forest_volcano_eruption",
     "forest_winter",
     "grocery_store",
     "guard_outside_daylight",
@@ -304,6 +309,7 @@ local AvgPreset = {
   },
   CgResName = {
     "4013_B",
+    "story_character_112",
     "story_character_141",
     "story_event_01_001",
     "story_event_01_002",
@@ -368,6 +374,14 @@ local AvgPreset = {
     "story_event_11_003",
     "story_event_12_001",
     "story_event_12_002",
+    "story_event_13_001",
+    "story_event_13_001_a",
+    "story_event_13_002",
+    "story_event_14_001",
+    "story_event_14_002_a_FP",
+    "story_event_14_002_a_MP",
+    "story_event_14_002_FP",
+    "story_event_14_002_MP",
     "story_main_00_001",
     "story_main_00_002",
     "story_main_00_003_FP",
@@ -617,10 +631,29 @@ local AvgPreset = {
     "story_main_09_013_MP",
     "story_main_09_014",
     "story_main_10001_001",
+    "story_main_10001_001_a",
+    "story_main_10001_001_b",
+    "story_main_10001_001_c",
+    "story_main_10001_001_d",
+    "story_main_10001_001_e",
+    "story_main_10001_001_f",
+    "story_main_10001_001_g",
+    "story_main_10001_001_h",
+    "story_main_10001_001_i",
+    "story_main_10001_001_j",
+    "story_main_10001_001_k",
+    "story_main_10001_001_l",
+    "story_main_10001_001_m",
+    "story_main_10001_001_n",
+    "story_main_10001_001_o",
     "story_main_10001_002_01",
     "story_main_10001_002_02",
     "story_main_10001_003",
+    "story_main_10001_003_a",
+    "story_main_10001_003_b",
+    "story_main_10001_003_c",
     "story_main_10001_004_01",
+    "story_main_10001_004_01_a",
     "story_main_10001_004_02",
     "story_main_10001_004_03",
     "story_main_10001_004_04",
@@ -633,18 +666,26 @@ local AvgPreset = {
     "story_main_10001_004_11",
     "story_main_10001_004_12",
     "story_main_10001_005",
-    "story_main_10001_005_a",
     "story_main_10001_005_b",
     "story_main_10001_006",
+    "story_main_10001_006_a",
+    "story_main_10001_006_b",
+    "story_main_10001_006_c",
+    "story_main_10001_006_d",
     "story_main_10001_007",
+    "story_main_10001_007_a",
+    "story_main_10001_007_b",
     "story_main_10001_008_01",
     "story_main_10001_008_02",
+    "story_main_10001_008_02_a",
     "story_main_10001_009_01_FP",
     "story_main_10001_009_01_MP",
     "story_main_10001_009_02_FP",
     "story_main_10001_009_02_MP",
     "story_main_10001_009_03_FP",
     "story_main_10001_009_03_MP",
+    "story_main_10001_010",
+    "story_main_10001_010_a",
     "story_main_10001_011",
     "story_main_be_01_001_FP",
     "story_main_be_01_001_MP",
@@ -668,8 +709,6 @@ local AvgPreset = {
     "story_main_be_09_001",
     "story_main_be_09_002",
     "story_main_be_09_003",
-    "story_mpast_01_010",
-    "story_mpast_01_010_a",
     "story_tales_01_001",
     "story_tales_02_001",
     "story_tales_03_001",
@@ -712,6 +751,15 @@ local AvgPreset = {
     "story_main_08_003_a",
     "story_main_08_003_b",
     "story_main_09_015",
+    "story_main_10001_004_11_a",
+    "story_main_10001_004_11_b",
+    "story_main_10001_004_11_c",
+    "story_main_10001_004_11_d",
+    "story_main_10001_008_01_a",
+    "story_main_10001_011_a",
+    "story_main_10001_011_b",
+    "story_main_10001_012",
+    "story_main_10001_012_a",
     "story_tales_13_001_a",
     "story_tales_13_001_b",
     "story_tales_13_001_c"
@@ -740,7 +788,8 @@ local AvgPreset = {
     "4055_B",
     "4057_B",
     "4059_B",
-    "4061_B"
+    "4061_B",
+    "4066_B"
   },
   BgEffectResName = {
     "0",
@@ -2292,6 +2341,66 @@ local AvgPreset = {
           }
         },
         false
+      }
+    },
+    {
+      "loopHeng",
+      {
+        {
+          {
+            3.0,
+            0.0,
+            0.0
+          },
+          {
+            0.2,
+            0.2,
+            0.0
+          },
+          {
+            1.0,
+            1.0,
+            0.0
+          },
+          {
+            0.5,
+            0.5,
+            0.5
+          },
+          {
+            1,
+            1,
+            1
+          }
+        },
+        {
+          {
+            0.0,
+            0.0,
+            0.0
+          },
+          {
+            0.2,
+            0.2,
+            0.2
+          },
+          {
+            1.0,
+            1.0,
+            1.0
+          },
+          {
+            1,
+            1,
+            1
+          },
+          {
+            1,
+            1,
+            1
+          }
+        },
+        true
       }
     }
   },
@@ -5428,6 +5537,66 @@ local AvgPreset = {
         },
         true
       }
+    },
+    {
+      "paishou",
+      {
+        {
+          {
+            0.0,
+            -50.0,
+            0.0
+          },
+          {
+            0.4,
+            0.4,
+            0.0
+          },
+          {
+            3.0,
+            3.0,
+            0.0
+          },
+          {
+            0,
+            0,
+            0
+          },
+          {
+            1,
+            1,
+            1
+          }
+        },
+        {
+          {
+            0.0,
+            0.0,
+            0.0
+          },
+          {
+            0.4,
+            0.4,
+            0.4
+          },
+          {
+            3.0,
+            3.0,
+            3.0
+          },
+          {
+            0,
+            0,
+            0
+          },
+          {
+            1,
+            1,
+            1
+          }
+        },
+        false
+      }
     }
   },
   CharEnter = {
@@ -6222,6 +6391,46 @@ local AvgPreset = {
     },
     {
       "fx_avg_shock_wave",
+      ""
+    },
+    {
+      "fx_avg_fire_dragon",
+      ""
+    },
+    {
+      "fx_avg_fire_magic",
+      ""
+    },
+    {
+      "fx_avg_fire_dust",
+      ""
+    },
+    {
+      "fx_avg_silver_silk_hang",
+      ""
+    },
+    {
+      "fx_avg_silver_silk_hang_1",
+      ""
+    },
+    {
+      "fx_avg_gloden_ratio",
+      ""
+    },
+    {
+      "fx_avg_silver_silk",
+      ""
+    },
+    {
+      "fx_avg_counterspell",
+      ""
+    },
+    {
+      "fx_avg_story_018",
+      ""
+    },
+    {
+      "fx_avg_story_019",
       ""
     },
     {

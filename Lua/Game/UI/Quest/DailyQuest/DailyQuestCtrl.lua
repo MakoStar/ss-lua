@@ -307,8 +307,8 @@ function DailyQuestCtrl:OnBtnClick_NodeItem(btn, nIndex)
   elseif self.tbQuestActive[nIndex] ~= nil then
     local sTip = orderedFormat(ConfigTable.GetUIText("Daily_Quest_Reward_Tip"), self.tbQuestActive[nIndex].Active)
     local tbItem = {}
-    for i = 1, 2 do
-      if self.tbQuestActive[nIndex]["ItemTid" .. i] ~= 0 then
+    for i = 1, 3 do
+      if self.tbQuestActive[nIndex]["ItemTid" .. i] ~= nil and self.tbQuestActive[nIndex]["ItemTid" .. i] ~= 0 then
         table.insert(tbItem, {
           nTid = self.tbQuestActive[nIndex]["ItemTid" .. i],
           nCount = self.tbQuestActive[nIndex]["Number" .. i],

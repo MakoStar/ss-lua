@@ -1,4 +1,5 @@
 local StarTowerFastBattleCtrl = class("StarTowerFastBattleCtrl", BaseCtrl)
+local StarTowerSettingGate = require("Game.Adventure.StarTower.StarTowerSettingGate")
 local LocalSettingData = require("GameCore.Data.LocalSettingData")
 local Actor2DManager = require("Game.Actor2D.Actor2DManager")
 local GamepadUIManager = require("GameCore.Module.GamepadUIManager")
@@ -124,7 +125,12 @@ StarTowerFastBattleCtrl._mapEventConfig = {
   RefreshNoteCount = "OnEvent_RefreshNoteCount",
   TryCloseStarTowerLastShop = "OnEvent_TryCloseStarTowerLastShop",
   ShowNPCAffinity = "OnEvent_AffinityTips",
-  LeaveStarTowerFastBattle = "OnEvent_Leave"
+  LeaveStarTowerFastBattle = "OnEvent_Leave",
+  StarTowerFastBattleLeaveForRecharge = "OnEvent_LeaveForRecharge",
+  StarTowerAutoDecisionStateChanged = "OnEvent_AutoDecisionStateChanged",
+  StarTowerAutoDecisionRequestManual = "OnEvent_AutoDecisionRequestManual",
+  StarTowerAutoDecisionRequestFailed = "OnEvent_AutoDecisionRequestFailed",
+  StarTowerFastBattleOptionReady = "OnEvent_StarTowerFastBattleOptionReady"
 }
 StarTowerFastBattleCtrl._mapRedDotConfig = {}
 local theme_sprite_path = "UI/big_sprites/"
@@ -141,7 +147,7 @@ local room_bg = {
 function StarTowerFastBattleCtrl:Awake()
   self.bHandleOver = false
   self.bOpenOption = false
-  self.bAuto = true
+  self.bAutoAdvance = true
   self.bPause = false
   self.nNextCaseId = -1
   self.nNextRoomType = -1
@@ -168,6 +174,11 @@ function StarTowerFastBattleCtrl:FadeOut()
 end
 
 function StarTowerFastBattleCtrl:OnEnable()
+  StarTowerSettingGate.Begin()
+  StarTowerSettingGate.Transition(self, 1.3)
+  self.bAutoAdvance = true
+  self.bPause = false
+  self:RefreshPauseStatus()
   self:InitGroupTheme()
   self:RefreshRoomFloor()
   self:RefreshRoomBg()
@@ -184,6 +195,8 @@ function StarTowerFastBattleCtrl:OnEnable()
 end
 
 function StarTowerFastBattleCtrl:OnDisable()
+  StarTowerSettingGate.Clear(self)
+  self._panel.LevelData:SetAutoDecisionEnabled(false)
   self.nNextCaseId = -1
   self.nNextRoomType = -1
   self.tbHistoryLog = nil
@@ -191,6 +204,16 @@ function StarTowerFastBattleCtrl:OnDisable()
 end
 
 function StarTowerFastBattleCtrl:OnDestroy()
+  local func_OpenRecharge = self._func_OpenRechargeAfterLeave
+  self._func_OpenRechargeAfterLeave = nil
+  if type(func_OpenRecharge) == "function" then
+    cs_coroutine.start(function()
+      coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
+      if PanelManager.GetCurPanelId() == PanelId.MainView and not PanelManager.CheckPanelOpen(PanelId.StarTowerFastBattle) and not PanelManager.CheckNextPanelOpening() then
+        func_OpenRecharge()
+      end
+    end)
+  end
 end
 
 function StarTowerFastBattleCtrl:OnRelease()
@@ -218,6 +241,10 @@ function StarTowerFastBattleCtrl:Init()
 end
 
 function StarTowerFastBattleCtrl:StartFastBattle()
+  StarTowerSettingGate.Begin()
+  StarTowerSettingGate.Transition(self, NovaAPI.GetAnimClipLength(self.Animator, {
+    "StarTowerFastBattlePanel_open"
+  }))
   EventManager.Hit("InitStarTowerNote", self._panel.LevelData._mapNote)
   self.Animator:Play("StarTowerFastBattlePanel_open")
   CS.WwiseAudioManager.Instance:PlaySound("ui_startower_fastBattle_elevator_door")
@@ -227,8 +254,9 @@ function StarTowerFastBattleCtrl:StartFastBattle()
 end
 
 function StarTowerFastBattleCtrl:EnterRoom()
-  self.bHandleOver = false
-  self._panel.LevelData:EnterRoom(self.nNextCaseId, self.nNextRoomType)
+  if self._panel.LevelData:EnterRoom(self.nNextCaseId, self.nNextRoomType) then
+    self.bHandleOver = false
+  end
 end
 
 function StarTowerFastBattleCtrl:InitGroupTheme()
@@ -329,6 +357,7 @@ function StarTowerFastBattleCtrl:RefreshBuildScore()
   local nLastScore = tonumber(NovaAPI.GetTMPText(self._mapNode.textBulidScoreNum))
   local nAfterScore = self._panel.LevelData:CalBuildScore()
   if nAfterScore ~= nLastScore then
+    StarTowerSettingGate.Transition(self, 1)
     local twCoin = DOTween.To(function()
       return nLastScore
     end, function(score)
@@ -429,22 +458,30 @@ function StarTowerFastBattleCtrl:GetTeamNeedExpByLevel(nGroupId, nLevel)
 end
 
 function StarTowerFastBattleCtrl:LeaveStarTower(callback)
+  if self._panel.LevelData.bEnd then
+    return
+  end
   local msg = {
     nType = AllEnum.MessageBox.Confirm,
     sContent = ConfigTable.GetUIText("StarTower_Sweep_BackTips_Content"),
     sConfirm = ConfigTable.GetUIText("StarTower_Sweep_Leave_Btn"),
     sCancel = ConfigTable.GetUIText("StarTower_Sweep_GiveUp_Btn"),
     callbackConfirm = function()
+      if self._panel.LevelData.bEnd then
+        return
+      end
+      self._panel.LevelData:StarTowerLeave()
       if callback ~= nil then
         callback()
       end
-      self._panel.LevelData:StarTowerLeave()
       PanelManager.Home()
     end,
     callbackCancel = function()
       local function giveUpCallBack()
+        if not self._panel.LevelData:EndExploration() then
+          return
+        end
         local mapStarTowerState = PlayerData.State:GetStarTowerState()
-        
         PlayerData.StarTower:GiveUpReconnect(mapStarTowerState.Id, mapStarTowerState.CharIds, false, function()
           local function wait()
             coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
@@ -475,23 +512,63 @@ end
 
 function StarTowerFastBattleCtrl:OnHandleCasesOver()
   local function CurHandleCasesOver()
-    self.bOpenOption = false
-    
-    self.Animator:Play("StarTowerFastBattlePanel_idle")
-    if self.bAuto and not self.bPause then
-      self:EnterRoom()
-    end
+    self:ContinueAfterShop()
   end
   
   local bShop, bMachine, nMachineCount, nDiscount, bFirstFree = self._panel.LevelData:GetShopAndMachine()
   if bShop or bMachine then
-    self.bOpenOption = true
-    local bLastShopRoom = self._panel.LevelData:CheckLastShopRoom()
-    local nItemCount = self._panel.LevelData._mapItem[AllEnum.CoinItemId.FixedRogCurrency] or 0
-    EventManager.Hit(EventId.OpenPanel, PanelId.StarTowerFastBattleOption, bShop, bMachine, nMachineCount, nItemCount, CurHandleCasesOver, nDiscount, bFirstFree, bLastShopRoom)
+    self:OpenShopOption(CurHandleCasesOver, bShop, bMachine, nMachineCount, nDiscount, bFirstFree)
   else
     CurHandleCasesOver()
   end
+end
+
+function StarTowerFastBattleCtrl:ContinueAfterShop()
+  if self._panel.LevelData.bEnd then
+    return
+  end
+  self.bOpenOption = false
+  self.Animator:Play("StarTowerFastBattlePanel_idle")
+  if self.bAutoAdvance and not self.bPause then
+    self:EnterRoom()
+  else
+    StarTowerSettingGate.Ready(self, StarTowerSettingGate.Begin())
+  end
+end
+
+function StarTowerFastBattleCtrl:OpenShopOption(closeCallback, bShop, bMachine, nMachineCount, nDiscount, bFirstFree)
+  StarTowerSettingGate.Begin()
+  self.bOpenOption = true
+  if bShop == nil then
+    bShop, bMachine, nMachineCount, nDiscount, bFirstFree = self._panel.LevelData:GetShopAndMachine()
+  end
+  if bShop or bMachine then
+    local bLastShopRoom = self._panel.LevelData:CheckLastShopRoom()
+    local nItemCount = self._panel.LevelData._mapItem[AllEnum.CoinItemId.FixedRogCurrency] or 0
+    local bAutoDisplay = self._panel.LevelData:IsAutoDecisionEnabled()
+    EventManager.Hit(EventId.OpenPanel, PanelId.StarTowerFastBattleOption, bShop, bMachine, nMachineCount, nItemCount, closeCallback, nDiscount, bFirstFree, bLastShopRoom, bAutoDisplay)
+  end
+end
+
+function StarTowerFastBattleCtrl:TryResumeAutoShopOption()
+  if not self.bOpenOption or not self._panel.LevelData:IsAutoDecisionEnabled() then
+    return false
+  end
+  if self._panel.LevelData:IsAutoDecisionBusy() then
+    return true
+  end
+  return self._panel.LevelData:TryAutoShopEntry(function()
+    local bPanelOpen, bPanelActive = PanelManager.CheckPanelOpen(PanelId.StarTowerFastBattleOption)
+    if bPanelOpen and bPanelActive then
+      EventManager.Hit(EventId.ClosePanel, PanelId.StarTowerFastBattleOption)
+    else
+      self:ContinueAfterShop()
+    end
+  end)
+end
+
+function StarTowerFastBattleCtrl:OnEvent_StarTowerFastBattleOptionReady()
+  self:TryResumeAutoShopOption()
 end
 
 function StarTowerFastBattleCtrl:OnBackButtonClick()
@@ -533,9 +610,20 @@ function StarTowerFastBattleCtrl:OnNoteDetailsButtonClick()
 end
 
 function StarTowerFastBattleCtrl:OnFastBattleButtonClick()
+  if self.bPause and PanelManager.CheckPanelOpen(PanelId.StarTowerAutoDecisionSettingPanel) then
+    return
+  end
   self.bPause = not self.bPause
+  self._panel.LevelData:SetAutoDecisionPaused(self.bPause)
   self:RefreshPauseStatus(true)
+  if self.bPause and self.bHandleOver and not self.bOpenOption then
+    StarTowerSettingGate.Ready(self, StarTowerSettingGate.Begin())
+  end
   if not self.bHandleOver or self.bPause then
+    return
+  end
+  if self.bOpenOption then
+    self:TryResumeAutoShopOption()
     return
   end
   if self.nNextCaseId < 0 or 0 > self.nNextRoomType then
@@ -545,6 +633,10 @@ function StarTowerFastBattleCtrl:OnFastBattleButtonClick()
 end
 
 function StarTowerFastBattleCtrl:OnEvent_InitRoom()
+  StarTowerSettingGate.Begin()
+  StarTowerSettingGate.Transition(self, 0.1 + math.max(1, NovaAPI.GetAnimClipLength(self.Animator, {
+    "StarTowerFastBattlePanel_up"
+  })))
   self.Animator:Play("StarTowerFastBattlePanel_close")
   self:AddTimer(1, 0.1, function()
     CS.WwiseAudioManager.Instance:PlaySound("ui_startower_fastBattle_elevator")
@@ -565,21 +657,23 @@ function StarTowerFastBattleCtrl:OnEvent_InitRoom()
 end
 
 function StarTowerFastBattleCtrl:OnEvent_EventHandleOver()
-  if self.bOpenOption then
-    return
-  end
   self.bHandleOver = true
   self.nNextCaseId, self.nNextRoomType = self._panel.LevelData:GetDoorCase()
+  if self.bOpenOption then
+    self:TryResumeAutoShopOption()
+    return
+  end
   self:OnHandleCasesOver()
 end
 
 function StarTowerFastBattleCtrl:OnEvent_EnterDangerRoom(nCaseId, nRoomType)
-  if self.bOpenOption then
-    return
-  end
   self.bHandleOver = true
   self.nNextCaseId = nCaseId
   self.nNextRoomType = nRoomType
+  if self.bOpenOption then
+    self:TryResumeAutoShopOption()
+    return
+  end
   self:OnHandleCasesOver()
 end
 
@@ -638,21 +732,21 @@ function StarTowerFastBattleCtrl:OnEvent_RefreshFastBattleInfo(tbChangeFateCard,
   end
 end
 
-function StarTowerFastBattleCtrl:OnEvent_StarTowerFastBattleOpenShop()
+function StarTowerFastBattleCtrl:OnEvent_StarTowerFastBattleOpenShop(bAuto)
   if not self.bOpenOption then
     return
   end
-  local bSuccess = self._panel.LevelData:OpenShop()
+  local bSuccess = self._panel.LevelData:OpenShop(bAuto)
   if not bSuccess then
     printError("打开商店界面失败")
   end
 end
 
-function StarTowerFastBattleCtrl:OnEvent_StarTowerFastBattleOpenMachine()
+function StarTowerFastBattleCtrl:OnEvent_StarTowerFastBattleOpenMachine(bAuto)
   if not self.bOpenOption then
     return
   end
-  local bSuccess = self._panel.LevelData:OpenStrengthMachine()
+  local bSuccess = self._panel.LevelData:OpenStrengthMachine(bAuto)
   if not bSuccess then
     printError("打开强化界面失败")
   end
@@ -710,6 +804,62 @@ end
 
 function StarTowerFastBattleCtrl:OnEvent_Leave(callback)
   self:LeaveStarTower(callback)
+end
+
+function StarTowerFastBattleCtrl:OnEvent_LeaveForRecharge(callback)
+  self._panel.LevelData:StarTowerLeave()
+  self._func_OpenRechargeAfterLeave = callback
+  PanelManager.Home()
+end
+
+function StarTowerFastBattleCtrl:OnEvent_AutoDecisionStateChanged(mapState)
+  if self._panel.LevelData.bEnd then
+    return
+  end
+  if type(mapState) ~= "table" or mapState.bEnabled ~= true or mapState.bPaused == true then
+    return
+  end
+  if self.bAutoAdvance and not self.bPause then
+    return
+  end
+  self.bAutoAdvance = true
+  self.bPause = false
+  self:RefreshPauseStatus()
+end
+
+function StarTowerFastBattleCtrl:OnEvent_AutoDecisionRequestFailed(objLevelData)
+  if self._panel.LevelData ~= objLevelData or objLevelData.bEnd then
+    return
+  end
+  self.bPause = true
+  self:RefreshPauseStatus()
+  if not objLevelData:HasPendingCases() then
+    local bShop, bMachine = objLevelData:GetShopAndMachine()
+    if bShop or bMachine then
+      self:OnEvent_AutoDecisionRequestManual()
+    end
+  end
+end
+
+function StarTowerFastBattleCtrl:OnEvent_AutoDecisionRequestManual()
+  local bNpcOptionOpen = PanelManager.CheckPanelOpen(PanelId.NpcOptionPanel)
+  if bNpcOptionOpen then
+    return
+  end
+  if self._panel.LevelData:HasPendingCases() then
+    self._panel.LevelData:HandleCases()
+    return
+  end
+  local bShop, bMachine = self._panel.LevelData:GetShopAndMachine()
+  if bShop or bMachine then
+    if not self.bOpenOption then
+      self:OpenShopOption(function()
+        self:ContinueAfterShop()
+      end)
+    end
+    return
+  end
+  self._panel.LevelData:HandleCases()
 end
 
 return StarTowerFastBattleCtrl

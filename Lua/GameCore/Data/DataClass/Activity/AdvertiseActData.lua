@@ -4,7 +4,8 @@ local AdvertiseActData = class("AdvertiseActData", ActivityDataBase)
 function AdvertiseActData:Init()
   self.nStatus = 0
   self.jointDrillActCfg = nil
-  self.bIsMove = ConfigTable.GetData("AdControl", self.actCfg.Id).IsMove
+  self.adCfg = ConfigTable.GetData("AdControl", self.actCfg.Id)
+  self.bIsMove = self.adCfg.IsMove
   self:InitConfig()
 end
 
@@ -22,6 +23,26 @@ function AdvertiseActData:CheckHideFromActList()
     return self.actCfg.HideFromActivityList
   end
   return true
+end
+
+function AdvertiseActData:GetActivityRedDot()
+  if self.bRedDot then
+    return true
+  end
+  if self.adCfg == nil or self.bCheckIncludeRedDot then
+    return false
+  end
+  self.bCheckIncludeRedDot = true
+  local bRedDot = false
+  for _, nActId in ipairs(self.adCfg.IncludeAct or {}) do
+    local actData = PlayerData.Activity:GetActivityDataById(nActId)
+    if actData ~= nil and actData:CheckActShow() and actData:GetActivityRedDot() then
+      bRedDot = true
+      break
+    end
+  end
+  self.bCheckIncludeRedDot = false
+  return bRedDot
 end
 
 function AdvertiseActData:CheckShowBanner()

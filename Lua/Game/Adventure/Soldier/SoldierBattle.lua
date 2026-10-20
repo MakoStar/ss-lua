@@ -16,7 +16,8 @@ local mapEventConfig = {
   SoldierLevel_AddItem = "OnEvent_AddItem",
   Soldier_CastSkill = "OnEvent_CastSkill",
   SoldierActor_Spawn = "OnEvent_ActorSpawn",
-  Soldier_DamageValue = "OnEvent_Damage"
+  Soldier_DamageValue = "OnEvent_Damage",
+  SoldierHarvestSkill = "OnEvent_SoldierHarvestSkill"
 }
 
 function SoldierBattle:EnterLevel()
@@ -29,19 +30,28 @@ function SoldierBattle:EnterLevel()
     v.nDamage = 0
   end
   local sJson = self:GetSoldierLevelMsg()
+  local nShopLevel = self.parent:GetShopLevel()
   AdventureModuleHelper.EnterDynamic(self.nFloorId, {}, GameEnum.dynamicLevelType.SoldierChess, {
     tostring(self.nTemplateId),
-    sJson
+    tostring(self.nAdjustmentGrade),
+    tostring(self.nStageId),
+    tostring(self.nBossTemplateId),
+    sJson,
+    tostring(nShopLevel)
   })
 end
 
-function SoldierBattle:Init(parent, tbChess, nFloorId, nTemplateId)
+function SoldierBattle:Init(parent, tbChess, nFloorId, nStageId, nTemplateId, nAdjustmentGrade, nBossTemplateId)
   self:BindEvent()
   self.parent = parent
   self.tbChess = tbChess
   self.nFloorId = nFloorId
+  self.nStageId = nStageId
   self.nTemplateId = nTemplateId
+  self.nAdjustmentGrade = nAdjustmentGrade
+  self.nBossTemplateId = nBossTemplateId
   self.tbCharDamage = {}
+  self.nHarvestSkillCount = 0
   self.tbPartner = SoldierAttrData.CalcActivePartners(tbChess)
   self:EnterLevel()
   NovaAPI.EnterModule("AdventureModuleScene", true, 17)
@@ -91,11 +101,17 @@ function SoldierBattle:GetSoldierLevelMsg()
     end
     soldierLevelMsg.SoldierData:Add(CS.SoldierLevelController.SoldierMsg(v.nId, bMain, nIndex, v.nStar, mapAttr))
   end
-  for _, nId in pairs(self.tbPartner) do
-    if 0 < nId then
-      soldierLevelMsg.PartnerArr:Add(nId)
+  for _, info in ipairs(self.tbPartner) do
+    if info.nId and info.nId > 0 then
+      soldierLevelMsg:AddPartner(info.nId, info.tbSoldiers)
     end
   end
+  local tbTechBuffs = PlayerData.SoldierData:GetClientBattleBuffList()
+  for _, nBuffId in ipairs(tbTechBuffs) do
+    soldierLevelMsg.buffEffectList:Add(nBuffId)
+  end
+  local nHarvestCount = self.parent:GetClientHarvestCount()
+  soldierLevelMsg.nHarvestCount = nHarvestCount
   return soldierLevelMsg:ToJson()
 end
 
@@ -115,43 +131,54 @@ end
 
 function SoldierBattle:OnEvent_Result(bResult)
   local tbDamage = {}
-  for nId, nValue in pairs(self.tbCharDamage) do
-    local nStar = 0
-    for _, v in ipairs(self.tbChess) do
-      if v.nId == nId then
-        nStar = v.nStar
-        break
+  local nAllDamage = 0
+  for _, v in ipairs(self.tbChess) do
+    if v.nId ~= 0 then
+      local nDamage = 0
+      if self.tbCharDamage[v.nId] ~= nil then
+        nDamage = self.tbCharDamage[v.nId]
       end
+      tbDamage[v.nId] = {
+        nStar = v.nStar,
+        nDamage = nDamage
+      }
+      nAllDamage = nAllDamage + nDamage
     end
-    tbDamage[nId] = {nStar = nStar, nDamage = nValue}
   end
   local nCoin = self.tbItems[AllEnum.CoinItemId.SoldierCurrency] or 0
   nCoin = math.min(nCoin, ConfigTable.GetConfigNumber("SoldierSkillCoinMax"))
   self.parent:BattleEnd(bResult, {
     nTime = self.nBattleTime,
     tbDamage = tbDamage,
-    nCoin = nCoin
+    nCoin = nCoin,
+    nHarvest = self.nHarvestSkillCount,
+    nAllDamage = nAllDamage
   })
 end
 
 function SoldierBattle:OnEvent_SettleSoldierBattle()
   local tbDamage = {}
-  for nId, nValue in pairs(self.tbCharDamage) do
-    local nStar = 0
-    for _, v in ipairs(self.tbChess) do
-      if v.nId == nId then
-        nStar = v.nStar
-        break
+  local nAllDamage = 0
+  for _, v in ipairs(self.tbChess) do
+    if v.nId ~= 0 then
+      local nDamage = 0
+      if self.tbCharDamage[v.nId] ~= nil then
+        nDamage = self.tbCharDamage[v.nId]
       end
+      tbDamage[v.nId] = {
+        nStar = v.nStar,
+        nDamage = nDamage
+      }
+      nAllDamage = nAllDamage + nDamage
     end
-    tbDamage[nId] = {nStar = nStar, nDamage = nValue}
   end
   local nCoin = self.tbItems[AllEnum.CoinItemId.SoldierCurrency] or 0
   nCoin = math.min(nCoin, ConfigTable.GetConfigNumber("SoldierSkillCoinMax"))
   self.parent:BattleEnd(false, {
     nTime = self.nBattleTime,
     tbDamage = tbDamage,
-    nCoin = nCoin
+    nCoin = nCoin,
+    nHarvest = self.nHarvestSkillCount
   })
 end
 
@@ -198,6 +225,10 @@ function SoldierBattle:OnEvent_Damage(nUId, nDamage)
   end
 end
 
+function SoldierBattle:OnEvent_SoldierHarvestSkill()
+  self.nHarvestSkillCount = self.nHarvestSkillCount + 1
+end
+
 function SoldierBattle:OnEvent_GamePlayTime(nTime)
   self.nBattleTime = nTime
   if 0 < nTime then
@@ -220,7 +251,6 @@ function SoldierBattle:OnEvent_AddItem(nId, nCount)
   local nCount = self.tbItems[AllEnum.CoinItemId.SoldierCurrency] or 0
   EventManager.Hit("RefreshSoldierCoin", nCount)
   if nId == AllEnum.CoinItemId.SoldierCurrency then
-    printError("[Soldier]战斗内技能获得金币数量：" .. nCount)
   end
 end
 

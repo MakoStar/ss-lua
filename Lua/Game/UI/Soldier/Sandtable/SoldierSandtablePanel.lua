@@ -1,5 +1,6 @@
 local SoldierSandtablePanel = class("SoldierSandtablePanel", BasePanel)
 SoldierSandtablePanel._bIsMainPanel = true
+local GamepadUIManager = require("GameCore.Module.GamepadUIManager")
 SoldierSandtablePanel._tbDefine = {
   {
     sPrefabPath = "Soldier/Level/SoldierSandtablePanel.prefab",
@@ -13,6 +14,13 @@ function SoldierSandtablePanel:Awake()
   self.WaitingChessList = {}
   self.OtherChessList = {}
   self.bFirstRefreshed = false
+  self.tbGamepadUINode = {}
+end
+
+function SoldierSandtablePanel:AddGamepadUINode(tbNode)
+  for _, v in ipairs(tbNode) do
+    table.insert(self.tbGamepadUINode, v)
+  end
 end
 
 function SoldierSandtablePanel:InitChessList()
@@ -20,6 +28,7 @@ function SoldierSandtablePanel:InitChessList()
     self.MainChessList[i] = {
       nId = 0,
       nStar = 0,
+      nUid = 0,
       nPositionType = GameEnum.SoldierPositionType.FightPosition,
       nIndex = i
     }
@@ -28,6 +37,7 @@ function SoldierSandtablePanel:InitChessList()
     self.SupportChessList[i] = {
       nId = 0,
       nStar = 0,
+      nUid = 0,
       nPositionType = GameEnum.SoldierPositionType.SupportPosition,
       nIndex = i
     }
@@ -36,6 +46,7 @@ function SoldierSandtablePanel:InitChessList()
     self.WaitingChessList[i] = {
       nId = 0,
       nStar = 0,
+      nUid = 0,
       nPositionType = 3,
       nIndex = i
     }
@@ -43,9 +54,14 @@ function SoldierSandtablePanel:InitChessList()
 end
 
 function SoldierSandtablePanel:OnEnable()
+  GamepadUIManager.EnterAdventure(true)
+  GamepadUIManager.EnableGamepadUI("SoldierSandtable", self.tbGamepadUINode, nil, true)
 end
 
 function SoldierSandtablePanel:OnDisable()
+  GamepadUIManager.DisableGamepadUI("SoldierSandtable")
+  GamepadUIManager.QuitAdventure()
+  self.tbGamepadUINode = {}
 end
 
 function SoldierSandtablePanel:OnDestroy()

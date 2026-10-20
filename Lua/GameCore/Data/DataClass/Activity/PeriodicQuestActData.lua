@@ -189,7 +189,20 @@ function PeriodicQuestActData:GetQuestProgress()
 end
 
 function PeriodicQuestActData:CheckFinalReward()
-  return self.bFinalStatus
+  local bHasFinalReward = false
+  if self.perQuestActCfg ~= nil then
+    for i = 1, 3 do
+      if self.perQuestActCfg["FinalReward" .. i] ~= 0 then
+        bHasFinalReward = true
+        break
+      end
+    end
+  end
+  if bHasFinalReward then
+    return self.bFinalStatus
+  else
+    return true
+  end
 end
 
 function PeriodicQuestActData:CheckAllQuestComplete()
@@ -227,7 +240,7 @@ function PeriodicQuestActData:RefreshRedDot()
       }, 0 < v and bOpen)
     end
     local nCur, nAll = self:GetQuestProgress()
-    local bFinalReward = nAll <= nCur and not self.bFinalStatus
+    local bFinalReward = nAll <= nCur and not self:CheckFinalReward()
     RedDotManager.SetValid(RedDotDefine.Activity_Periodic_Final_Reward, self.nActId, bFinalReward and bOpen)
     RedDotManager.SetValid(RedDotDefine.Activity_Tab, self.nActId, (bQuestReward or bFinalReward) and bOpen)
   end

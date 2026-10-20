@@ -48,7 +48,7 @@ function FRIndicators:OnEvent_SetIndicator(nType, rtTransform, v3Offset, sIconPa
   end
   if nType == 1 then
     local go = instantiate(self._mapNode.TemplateBoxIndicator, self._mapNode.IndictorArea)
-    local comp = go:GetComponent("FRIndicator")
+    local comp = go:GetComponent(typeof(CS.FRIndicator))
     go:SetActive(true)
     if comp ~= nil then
       comp:SetFollowTarget(rtTransform, v3Offset)
@@ -56,7 +56,7 @@ function FRIndicators:OnEvent_SetIndicator(nType, rtTransform, v3Offset, sIconPa
     table.insert(self.tbIndicators, go)
   elseif nType == 2 then
     local go = instantiate(self._mapNode.TemplateTeleportIndicator, self._mapNode.IndictorArea)
-    local comp = go:GetComponent("FRIndicator")
+    local comp = go:GetComponent(typeof(CS.FRIndicator))
     go:SetActive(true)
     if comp ~= nil then
       comp:SetFollowTarget(rtTransform, v3Offset)
@@ -64,7 +64,7 @@ function FRIndicators:OnEvent_SetIndicator(nType, rtTransform, v3Offset, sIconPa
     table.insert(self.tbIndicators, go)
   elseif nType == 3 and sIconPath ~= nil and sIconPath ~= "" then
     local go = instantiate(self._mapNode.TemplateNPCIndicator, self._mapNode.IndictorArea)
-    local comp = go:GetComponent("FRIndicator")
+    local comp = go:GetComponent(typeof(CS.FRIndicator))
     go:SetActive(true)
     if comp ~= nil then
       comp:SetFollowTarget(rtTransform, v3Offset)

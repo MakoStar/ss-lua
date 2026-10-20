@@ -7,9 +7,21 @@ local sCurUIName
 local tbHistory = {}
 local mapGamepadUI = {}
 local mapMouseConfig = {}
+local mapUIOrder = {}
 local bEnableInput = false
 local bBlockUI = false
 local bFirstInputEnable = false
+local bVirtualMouseStickEnable = true
+
+local function ApplyVirtualMouseStickEnableDelay()
+  local function wait()
+    coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
+    
+    InputManager.Instance:SetVirtualMouseStickEnable(bVirtualMouseStickEnable)
+  end
+  
+  cs_coroutine.start(wait)
+end
 
 local function SetGamepadIcon(img, sAction, sIconType)
   local sIcon
@@ -105,6 +117,15 @@ local function RefreshCurTypeUINode(v)
   end
 end
 
+local function FindHistoryInsertIndex(nOrder)
+  for i = #tbHistory, 1, -1 do
+    if nOrder >= mapUIOrder[tbHistory[i]] then
+      return i + 1
+    end
+  end
+  return 1
+end
+
 local function RefreshCurTypeUI()
   if not sCurUIName then
     return
@@ -160,6 +181,7 @@ local function OnEvent_LastInputDeviceChange(_, nType)
     nAfterType = AllEnum.GamepadUIType.Other
   end
   ChangeUIType(nAfterType)
+  ApplyVirtualMouseStickEnableDelay()
 end
 
 local function GetUITypeByInputDevice()
@@ -221,7 +243,7 @@ local function EnableNode(sCtrlName)
     printLog("GamepadUIManager：Enable UI " .. sCtrlName)
   end
   local tbNode = mapGamepadUI[sCtrlName]
-  if (tbNode == nil or next(tbNode) == nil) and mapMouseConfig[sCurUIName] == nil then
+  if (tbNode == nil or next(tbNode) == nil) and mapMouseConfig[sCtrlName] == nil then
     printWarn("GamepadUIManager：当前UI内节点打开失败，可能该UI从来没有打开过：" .. sCtrlName)
     return
   end
@@ -250,7 +272,7 @@ local function DisableNode(sCtrlName)
     printLog("GamepadUIManager：Disable UI " .. sCtrlName)
   end
   local tbNode = mapGamepadUI[sCtrlName]
-  if (tbNode == nil or next(tbNode) == nil) and mapMouseConfig[sCurUIName] == nil then
+  if (tbNode == nil or next(tbNode) == nil) and mapMouseConfig[sCtrlName] == nil then
     printWarn("GamepadUIManager：当前UI内节点关闭失败，可能该UI从来没有打开过：" .. sCtrlName)
     return
   end
@@ -295,7 +317,7 @@ local function OnEvent_OpenBuiltinAlert(_, bOpen, _okBtn, _confirmBtn, _cancelBt
         sAction = "buttonEast"
       }
     }
-    GamepadUIManager.EnableGamepadUI("BuiltinUI", tbGamepadUINode)
+    GamepadUIManager.EnableGamepadUI("BuiltinUI", tbGamepadUINode, nil, nil, nil, AllEnum.UI_SORTING_ORDER.BuiltIn_Alert)
     NovaAPI.SetNaviButtonAction(_okBtn, true)
     NovaAPI.SetNaviButtonAction(_confirmBtn, true)
     NovaAPI.SetNaviButtonAction(_cancelBtn, true)
@@ -323,9 +345,30 @@ function GamepadUIManager.Init()
   EventManager.Add(EventId.CSLuaManagerShutdown, GamepadUIManager, Uninit)
 end
 
-function GamepadUIManager.EnableGamepadUI(sCtrlName, tbNode, goDefaultSelected, bEnableVirtualMouse, bBlockCursor)
+function GamepadUIManager.EnableGamepadUI(sCtrlName, tbNode, goDefaultSelected, bEnableVirtualMouse, bBlockCursor, nPanelIndex)
   if sCurUIName == sCtrlName then
     printWarn("GamepadUIManager：重复打开Gamepad UI：" .. sCtrlName)
+    return
+  end
+  mapGamepadUI[sCtrlName] = clone(tbNode)
+  if not mapMouseConfig[sCtrlName] then
+    mapMouseConfig[sCtrlName] = {}
+  end
+  mapMouseConfig[sCtrlName].VirtualMouse = bEnableVirtualMouse == true
+  mapMouseConfig[sCtrlName].BlockCursor = bBlockCursor == true
+  nPanelIndex = nPanelIndex or 0
+  mapUIOrder[sCtrlName] = nPanelIndex
+  local nOldIndex = table.indexof(tbHistory, sCtrlName)
+  if nOldIndex ~= 0 then
+    table.remove(tbHistory, nOldIndex)
+  end
+  local nIndex = FindHistoryInsertIndex(nPanelIndex)
+  table.insert(tbHistory, nIndex, sCtrlName)
+  if nIndex ~= #tbHistory then
+    if NovaAPI.IsEditorPlatform() then
+      printLog(string.format("GamepadUIManager：%s 层级(%s)低于当前 %s(%s)，不抢焦点，等上层关闭后唤醒", sCtrlName, tostring(nPanelIndex), tostring(sCurUIName), tostring(mapUIOrder[sCurUIName])))
+    end
+    DisableNode(sCtrlName)
     return
   end
   NovaAPI.ClearSelectedUI()
@@ -340,13 +383,6 @@ function GamepadUIManager.EnableGamepadUI(sCtrlName, tbNode, goDefaultSelected, 
     bSwitch = true
   end
   sCurUIName = sCtrlName
-  mapGamepadUI[sCurUIName] = clone(tbNode)
-  if not mapMouseConfig[sCurUIName] then
-    mapMouseConfig[sCurUIName] = {}
-  end
-  mapMouseConfig[sCurUIName].VirtualMouse = bEnableVirtualMouse == true
-  mapMouseConfig[sCurUIName].BlockCursor = bBlockCursor == true
-  table.insert(tbHistory, sCurUIName)
   RefreshCurTypeUI()
   if bSwitch then
     local function wait()
@@ -370,6 +406,7 @@ function GamepadUIManager.DisableGamepadUI(sCtrlName)
     DisableNode(sCtrlName)
     mapGamepadUI[sCtrlName] = nil
     mapMouseConfig[sCtrlName] = nil
+    mapUIOrder[sCtrlName] = nil
     table.remove(tbHistory, nIndex)
     sCurUIName = nil
     if next(tbHistory) ~= nil then
@@ -399,6 +436,7 @@ function GamepadUIManager.DisableGamepadUI(sCtrlName)
   else
     mapGamepadUI[sCtrlName] = nil
     mapMouseConfig[sCtrlName] = nil
+    mapUIOrder[sCtrlName] = nil
     table.remove(tbHistory, nIndex)
   end
 end
@@ -469,6 +507,7 @@ function GamepadUIManager.EnterAdventure(bSkipFirstInputEnable)
   tbHistory = {}
   mapGamepadUI = {}
   mapMouseConfig = {}
+  mapUIOrder = {}
   bEnableInput = true
   bFirstInputEnable = bSkipFirstInputEnable
 end
@@ -481,8 +520,14 @@ function GamepadUIManager.QuitAdventure()
   tbHistory = {}
   mapGamepadUI = {}
   mapMouseConfig = {}
+  mapUIOrder = {}
   bEnableInput = false
   bFirstInputEnable = false
+end
+
+function GamepadUIManager.SetVirtualMouseStickEnable(bEnable)
+  bVirtualMouseStickEnable = bEnable ~= false
+  InputManager.Instance:SetVirtualMouseStickEnable(bVirtualMouseStickEnable)
 end
 
 function GamepadUIManager.GetInputName(mapInput)

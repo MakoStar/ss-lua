@@ -41,14 +41,14 @@ ReengagementSigninCtrl._mapNodeConfig = {
 ReengagementSigninCtrl._mapEventConfig = {}
 
 function ReengagementSigninCtrl:Refresh(nCurTog)
-  if nCurTog ~= AllEnum.ReengagementTog.ShopMall then
+  if nCurTog ~= AllEnum.ReengagementTog.Signin then
     return
   end
   self:InitActData()
 end
 
 function ReengagementSigninCtrl:RefreshRemainTime()
-  local endTime = self.actData:GetActEndTime()
+  local endTime = PlayerData.Reengagement:GetReengagementCloseTime()
   local curTime = ClientManager.serverTimeStamp
   local remainTime = endTime - curTime
   if remainTime < 0 then
@@ -58,7 +58,7 @@ function ReengagementSigninCtrl:RefreshRemainTime()
       nType = AllEnum.MessageBox.Alert,
       sContent = ConfigTable.GetUIText("Activity_Invalid_Tip_1"),
       callbackConfirm = function()
-        EventManager.Hit(EventId.ClosePanel, PanelId.ActivityList)
+        EventManager.Hit(EventId.ClosePanel, PanelId.ReengagementPanel)
       end
     })
     return
@@ -96,17 +96,44 @@ function ReengagementSigninCtrl:RefreshRemainTime()
 end
 
 function ReengagementSigninCtrl:RefreshRewardList()
+  local canReceive = self.mapLoginRewardData.Receive > self.mapLoginRewardData.Actual
+  self._mapNode.btnActivity.gameObject:SetActive(canReceive)
+  self.nLoginRewardGroup = 0
   self.tbRewardList = {}
-  local tbRewardList = self.actData:GetActLoginRewardList()
+  local tbRewardList = {}
+  local mapDataLoginRewardCtrl = ConfigTable.GetData("ActivityReturneeLoginRewardControl", PlayerData.Reengagement:GetActId())
+  if mapDataLoginRewardCtrl ~= nil then
+    self.nLoginRewardGroup = mapDataLoginRewardCtrl.RewardsGroup
+  end
+  
+  local function foreachfunc(mapData)
+    if mapData ~= nil and mapData.RewardGroupId == self.nLoginRewardGroup then
+      table.insert(tbRewardList, mapData)
+    end
+  end
+  
+  ForEachTableLine(ConfigTable.Get("ActivityReturneeLoginRewardGroup"), foreachfunc)
+  table.sort(tbRewardList, function(a, b)
+    return a.Order < b.Order
+  end)
   if nil ~= tbRewardList then
     local nMaxDay = #tbRewardList
-    local nReceiveDay = self.actData:GetCanReceive()
-    local nActual = self.actData:GetReceived()
+    local nReceiveDay = self.mapLoginRewardData.Receive
+    local nActual = self.mapLoginRewardData.Actual
     for k, v in ipairs(self._mapNode.goRewardItem) do
       self.tbRewardList[k] = {}
       local mapReward = tbRewardList[k]
       v.gameObject:SetActive(mapReward ~= nil)
       if mapReward ~= nil then
+        local Status = 0
+        if k <= nReceiveDay and k > nActual then
+          Status = 1
+        elseif k <= nReceiveDay and k <= nActual then
+          Status = 2
+        elseif k > nReceiveDay then
+          Status = 0
+        end
+        mapReward.Status = Status
         v:SetRewardItem(k, mapReward, k == nMaxDay, nReceiveDay == nActual and k == nActual + 1)
         for i = 1, 3 do
           local nTid = mapReward["RewardId" .. i]
@@ -121,12 +148,9 @@ function ReengagementSigninCtrl:RefreshRewardList()
 end
 
 function ReengagementSigninCtrl:InitActData()
-  local actData = {}
-  self.actData = actData
-  self:RefreshRewardList()
-  local canReceive = self.actData:CheckCanReceive()
-  self._mapNode.btnActivity.gameObject:SetActive(canReceive)
+  self.mapLoginRewardData = PlayerData.Reengagement:GetActLoginRewardList()
   self._mapNode.imgRemaineTime.gameObject:SetActive(true)
+  self:RefreshRewardList()
   self:RefreshRemainTime()
   if nil == self.remainTimer then
     self.remainTimer = self:AddTimer(0, 1, "RefreshRemainTime", true, true, false)
@@ -146,48 +170,58 @@ function ReengagementSigninCtrl:OnDestroy()
 end
 
 function ReengagementSigninCtrl:OnBtnClick_Detail()
-  local mapActCfg = self.actData:GetLoginRewardControlCfg()
+  local mapActData = ConfigTable.GetData("ActivityReturneeReunionReward", PlayerData.Reengagement:GetActId())
+  if mapActData == nil then
+    return
+  end
+  local tbRewards = {}
+  for i = 1, 3 do
+    local nId = mapActData["Reward" .. i .. "Tid"]
+    local nQty = mapActData["Reward" .. i .. "Qty"]
+    if 0 < nId then
+      table.insert(tbRewards, {
+        nId = nId,
+        nCount = nQty,
+        bReceived = true
+      })
+    end
+  end
   local msg = {
-    nType = AllEnum.MessageBox.Desc,
-    sContent = mapActCfg.DesText,
-    sTitle = ConfigTable.GetUIText("Activity_Btn_Detail")
+    nType = AllEnum.MessageBox.ItemList,
+    tbItem = tbRewards,
+    bBlur = true
   }
   EventManager.Hit(EventId.OpenMessageBox, msg)
 end
 
 function ReengagementSigninCtrl:OnBtnClick_Item(btn, nIndex)
   if self.tbRewardList[nIndex] ~= nil then
-    if #self.tbRewardList[nIndex] == 1 then
+    if nIndex < self.mapLoginRewardData.Actual or self.mapLoginRewardData.Actual == self.mapLoginRewardData.Receive then
       local nTid = self.tbRewardList[nIndex][1].nTid
       UTILS.ClickItemGridWithTips(nTid, btn.gameObject.transform, true, true, false)
     else
-      local tbReward = {}
-      for _, v in ipairs(self.tbRewardList[nIndex]) do
-        local rewardData = {
-          [1] = v.nTid,
-          [5] = v.nCount
-        }
-        table.insert(tbReward, rewardData)
-      end
-      EventManager.Hit("ShowActRewardList", tbReward)
+      PlayerData.Reengagement:RequestReceiveLoginReward(function()
+        self:RefreshRewardList()
+      end)
     end
   end
 end
 
 function ReengagementSigninCtrl:OnBtnClick_Activity()
-  local function callback()
-    self._mapNode.btnActivity.gameObject:SetActive(false)
-    
-    local actData = PlayerData.Activity:GetActivityDataById(self.actData:GetActId())
-    self:InitActData(actData)
+  if self.mapLoginRewardData.Actual < self.mapLoginRewardData.Receive then
+    PlayerData.Reengagement:RequestReceiveLoginReward(function()
+      self:RefreshRewardList()
+    end)
   end
-  
-  local canReceive = self.actData:CheckCanReceive()
-  if not canReceive then
-    callback()
-    return
+end
+
+function ReengagementSigninCtrl:OnBtnClick_Play()
+  local mapActData = ConfigTable.GetData("ActivityReturnee", PlayerData.Reengagement:GetActId())
+  local sAvgId
+  if mapActData ~= nil and mapActData.AVG ~= nil then
+    sAvgId = mapActData.AVG
   end
-  PlayerData.Activity:SendReceiveLoginRewardMsg(self.actData:GetActId(), callback)
+  EventManager.Hit("StoryDialog_DialogStart", sAvgId, Settings.sCurrentTxtLanguage, Settings.sCurrentVoLanguage)
 end
 
 return ReengagementSigninCtrl

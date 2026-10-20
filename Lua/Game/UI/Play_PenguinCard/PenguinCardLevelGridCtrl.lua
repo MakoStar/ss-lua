@@ -168,29 +168,53 @@ function PenguinCardLevelGridCtrl:EnterLevel()
     EventManager.Hit("PenguinCard_EnterLevel", callback)
   end
   
-  local mapLevelData = self.actData:GetLevelData(self.nLevelId)
-  if mapLevelData.sData ~= "" then
+  local function checkLevelData()
+    local mapLevelData = self.actData:GetLevelData(self.nLevelId)
+    if mapLevelData.sData ~= "" then
+      local msg = {
+        nType = AllEnum.MessageBox.Confirm,
+        sContent = ConfigTable.GetUIText("PenguinCard_Endless_LevelHasData"),
+        sConfirm = ConfigTable.GetUIText("PenguinCard_Btn_ReconnectConfirm"),
+        sCancel = ConfigTable.GetUIText("PenguinCard_Btn_ReconnectCancel"),
+        callbackConfirm = enter,
+        callbackCancel = function()
+          local nStar, nScore, nDifficulty = self.actData:GetLevelDataBySave(mapLevelData.sData)
+          
+          local function callback()
+            self:RefreshEndless(self.actData, self.nLevelId)
+          end
+          
+          self.actData:SendActivityPenguinCardSettleReq(self.nLevelId, nStar, nScore, nDifficulty, callback)
+        end,
+        bCloseNoHandler = true,
+        bRedCancel = true
+      }
+      EventManager.Hit(EventId.OpenMessageBox, msg)
+    else
+      enter()
+    end
+  end
+  
+  local bSkipAble = self.actData:CheckLevelSkipAble(self.nLevelId)
+  if bSkipAble then
+    local mapCfg = ConfigTable.GetData("ActivityPenguinCardLevel", self.nLevelId)
     local msg = {
       nType = AllEnum.MessageBox.Confirm,
-      sContent = ConfigTable.GetUIText("PenguinCard_Endless_LevelHasData"),
-      sConfirm = ConfigTable.GetUIText("PenguinCard_Btn_ReconnectConfirm"),
-      sCancel = ConfigTable.GetUIText("PenguinCard_Btn_ReconnectCancel"),
-      callbackConfirm = enter,
+      sContent = ConfigTable.GetUIText("PenguinCard_SkipTipsDesc"),
+      sContentSub = orderedFormat(ConfigTable.GetUIText("PenguinCard_SkipTipsSubDesc"), mapCfg.Name or ""),
+      sConfirm = ConfigTable.GetUIText("PenguinCard_Btn_DontSkip"),
+      sCancel = ConfigTable.GetUIText("PenguinCard_Btn_SkipLevel"),
+      callbackConfirm = checkLevelData,
       callbackCancel = function()
-        local nStar, nScore, nDifficulty = self.actData:GetLevelDataBySave(mapLevelData.sData)
-        
-        local function callback()
-          self:RefreshEndless(self.actData, self.nLevelId)
-        end
-        
-        self.actData:SendActivityPenguinCardSettleReq(self.nLevelId, nStar, nScore, nDifficulty, callback)
+        self.actData:SendSkipLevelReq(self.nLevelId, function()
+          EventManager.Hit("ActivityPenguinCardSkipLevel")
+        end)
       end,
-      bCloseNoHandler = true,
-      bRedCancel = true
+      bCloseNoHandler = true
     }
     EventManager.Hit(EventId.OpenMessageBox, msg)
   else
-    enter()
+    checkLevelData()
   end
 end
 

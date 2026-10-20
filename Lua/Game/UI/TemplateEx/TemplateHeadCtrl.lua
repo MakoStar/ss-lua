@@ -44,4 +44,11 @@ function TemplateHeadCtrl:_SwitchType(enumType)
   self._mapNode.Monster:SetActive(enumType == HeadType.Monster)
 end
 
+function TemplateHeadCtrl:SetCharHead(nSkinId)
+  local mapSkinCfg = ConfigTable.GetData("CharacterSkin", nSkinId)
+  if mapSkinCfg ~= nil then
+    self:SetPngSprite(self._mapNode.imgIcon, mapSkinCfg.Icon .. AllEnum.CharHeadIconSurfix.XXL)
+  end
+end
+
 return TemplateHeadCtrl

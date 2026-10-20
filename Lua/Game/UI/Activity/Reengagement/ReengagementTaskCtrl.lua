@@ -34,14 +34,6 @@ ReengagementTaskCtrl._mapNodeConfig = {
     sComponentName = "TMP_Text",
     sLanguageId = "Activity_Btn_Detail"
   },
-  btnQuickRec = {
-    sComponentName = "UIButton",
-    callback = "OnBtnClick_QuickRec"
-  },
-  txtBtnQuickRec = {
-    sComponentName = "TMP_Text",
-    sLanguageId = "Activity_Btn_Quick_Receive"
-  },
   goActTime = {},
   txtActivityTime = {sComponentName = "TMP_Text"},
   txtActValue = {sComponentName = "TMP_Text"},
@@ -52,19 +44,29 @@ ReengagementTaskCtrl._mapNodeConfig = {
     nCount = 7,
     sComponentName = "UIButton",
     callback = "OnBtnClick_NodeItem"
+  },
+  item = {
+    nCount = 7,
+    sCtrlName = "Game.UI.TemplateEx.TemplateItemCtrl"
   }
 }
-ReengagementTaskCtrl._mapEventConfig = {}
+ReengagementTaskCtrl._mapEventConfig = {
+  RefreshReengagementQuest = "RefreshQuestList",
+  RefreshReengagementQuestPoint = "RefreshActivityNode",
+  RefreshReengagementGroup = "OnRefreshGroup"
+}
 
 function ReengagementTaskCtrl:Refresh(nCurTog)
   if nCurTog ~= AllEnum.ReengagementTog.Task then
     return
   end
+  self:InitActData()
   self:RefreshQuestList()
+  self:RefreshActivityNode()
 end
 
 function ReengagementTaskCtrl:RefreshRemainTime()
-  local endTime = self.actData:GetActEndTime()
+  local endTime = PlayerData.Reengagement:GetReengagementCloseTime()
   local curTime = CS.ClientManager.Instance.serverTimeStamp
   local remainTime = endTime - curTime
   if remainTime < 0 then
@@ -74,7 +76,7 @@ function ReengagementTaskCtrl:RefreshRemainTime()
       nType = AllEnum.MessageBox.Alert,
       sContent = ConfigTable.GetUIText("Activity_Invalid_Tip_1"),
       callbackConfirm = function()
-        EventManager.Hit(EventId.ClosePanel, PanelId.ActivityList)
+        EventManager.Hit(EventId.ClosePanel, PanelId.ReengagementPanel)
       end
     })
     return
@@ -111,34 +113,38 @@ function ReengagementTaskCtrl:RefreshRemainTime()
   NovaAPI.SetTMPText(self._mapNode.txtActivityTime, orderedFormat(ConfigTable.GetUIText("PerActivity_Remain_Time") or "", sTimeStr))
 end
 
+local tbConvertStatus = {
+  [0] = 1,
+  [1] = 0,
+  [2] = 2
+}
+
 function ReengagementTaskCtrl:RefreshQuestList()
-  self.tbAllQuestList = self.actData:GetQuestListByGroup()
-  if nil == self.tbAllQuestList[self._panel.nSelectGroup] then
-    printLog(string.format("任务列表为空！！！actId = %s, group = %s", self.nActId, self._panel.nSelectGroup))
-    return
-  end
-  self.tbQuestList = self.tbAllQuestList[self._panel.nSelectGroup]
-  table.sort(self.tbQuestList, function(a, b)
-    if a.nStatus == b.nStatus then
+  local nGroupId = 100 + (self._panel.nSelectGroup or 1)
+  self.tbQuestList = PlayerData.Reengagement:GetQuestListByGroup(nGroupId)
+  self.tbQuestData = PlayerData.Reengagement:GetQuestConfigDataByGroup(nGroupId)
+  table.sort(self.tbQuestData, function(a, b)
+    if not self.tbQuestList[a.Id] or not self.tbQuestList[b.Id] then
       return a.Id < b.Id
     end
-    return a.nStatus < b.nStatus
+    if self.tbQuestList[a.Id].nStatus == self.tbQuestList[b.Id].nStatus then
+      return a.Id < b.Id
+    end
+    return tbConvertStatus[self.tbQuestList[a.Id].nStatus] < tbConvertStatus[self.tbQuestList[b.Id].nStatus]
   end)
   for k, v in pairs(self.tbGridCtrl) do
     self:UnbindCtrlByNode(v)
     self.tbGridCtrl[k] = nil
   end
-  if nil ~= self.tbQuestList then
+  if #self.tbQuestData > 0 then
     self.nPageCount = 0
     self._mapNode.loopSv:SetAnim(0.06)
-    self._mapNode.loopSv:Init(#self.tbQuestList, self, self.OnGridRefresh, nil, false, self.GetGridPageCount)
+    self._mapNode.loopSv:Init(#self.tbQuestData, self, self.OnGridRefresh, nil, false, self.GetGridPageCount)
     EventManager.Hit(EventId.TemporaryBlockInput, 0.2)
   end
-  local _, _, canReceive = self.actData:GetQuestProgress()
-  self._mapNode.btnQuickRec.gameObject:SetActive(0 < canReceive)
   for k, v in ipairs(self._mapNode.PerActGroupItem) do
-    local nAllQuest, nReceivedQuest = self.actData:GetDayQuestStatus(k)
-    v:RefreshStatus(nAllQuest <= nReceivedQuest and 0 < nReceivedQuest)
+    local bAllReceived = PlayerData.Reengagement:IsQuestGroupAllReceived(k)
+    v:RefreshStatus(bAllReceived)
   end
 end
 
@@ -147,32 +153,48 @@ function ReengagementTaskCtrl:GetGridPageCount(pageCount)
 end
 
 function ReengagementTaskCtrl:InitGroupList()
-  local nCurDay = self.actData:GetCurOpenDay()
   self.nMaxOpenGroup = 0
+  self.tbGroupList = {}
+  
+  local function foreachtabelline(mapData)
+    if mapData.ReturneeId == self.nActId then
+      table.insert(self.tbGroupList, mapData)
+    end
+  end
+  
+  ForEachTableLine(ConfigTable.Get("ActivityReturneeQuestGroup"), foreachtabelline)
   local tbNextOpenGroupList = {}
-  if nil ~= CacheTable.GetData("_PeriodicQuestGroup", self.nActId) then
-    local tbGroup = CacheTable.GetData("_PeriodicQuestGroup", self.nActId)[nCurDay]
-    if nil ~= tbGroup then
-      for _, v in ipairs(tbGroup) do
-        if v > self.nMaxOpenGroup then
-          self.nMaxOpenGroup = v
-        end
-      end
-    end
-    if nil ~= CacheTable.GetData("_PeriodicQuestGroup", self.nActId)[nCurDay + 1] then
-      for _, v in ipairs(CacheTable.GetData("_PeriodicQuestGroup", self.nActId)[nCurDay + 1]) do
-        tbNextOpenGroupList[v] = 1
-      end
+  local nEventOpenTime = PlayerData.Reengagement:GetReengagementOpenTime()
+  local nCurTime = CS.ClientManager.Instance.serverTimeStamp
+  self.nCurDay = 0
+  if nil ~= nEventOpenTime and 0 < nEventOpenTime and nEventOpenTime < nCurTime then
+    local nOpenDayStartTime = CS.ClientManager.Instance:GetNextRefreshTime(nEventOpenTime) - 86400
+    self.nCurDay = math.floor((nCurTime - nOpenDayStartTime) / 86400)
+  end
+  for _, v in ipairs(self.tbGroupList) do
+    local nOpenDay = v.DayOpen
+    if nOpenDay <= self.nCurDay then
+      self.nMaxOpenGroup = math.max(self.nMaxOpenGroup, v.Id - 100)
+    elseif nOpenDay == self.nCurDay + 1 then
+      tbNextOpenGroupList[v.Id] = 1
     end
   end
-  local nSelectGroup = self.actData:GetCanReceiveRewardGroup()
-  if 0 == nSelectGroup then
-    nSelectGroup = self.nMaxOpenGroup
+  local nRedDotGroup = 0
+  for _, mapGroup in ipairs(self.tbGroupList) do
+    if mapGroup.DayOpen <= self.nCurDay and RedDotManager.GetValid(RedDotDefine.Activity_Reengagement_Task_Group, {
+      self.nActId,
+      mapGroup.Id
+    }) then
+      nRedDotGroup = math.max(nRedDotGroup, mapGroup.Id - 100)
+    end
   end
+  local nSelectGroup = 0 < nRedDotGroup and nRedDotGroup or math.max(1, self.nMaxOpenGroup)
   for k, v in ipairs(self._mapNode.PerActGroupItem) do
-    v:Init(self.nActId, k, self.nMaxOpenGroup)
-    if nil ~= tbNextOpenGroupList[k] then
-      local nHour = self.actData:GetNextDayOpenTime()
+    local bAllReceived = PlayerData.Reengagement:IsQuestGroupAllReceived(k)
+    v:Init(self.nActId, k, self.nMaxOpenGroup, bAllReceived)
+    if nil ~= tbNextOpenGroupList[k + 100] then
+      local nNextRefreshTime = CS.ClientManager.Instance:GetNextRefreshTime(nCurTime)
+      local nHour = math.floor((nNextRefreshTime - nCurTime) / 3600)
       if nHour < 1 then
         v:SetTime(orderedFormat(ConfigTable.GetUIText("PerActivity_Quest_Open_Time_2") or "", 1))
       else
@@ -180,19 +202,21 @@ function ReengagementTaskCtrl:InitGroupList()
       end
     end
   end
-  if nil == self._panel.nSelectGroup then
+  if nil == self._panel.nSelectGroup or 0 >= self._panel.nSelectGroup or self._panel.nSelectGroup > self.nMaxOpenGroup then
     self._panel.nSelectGroup = nSelectGroup
   end
-  self._mapNode.PerActGroupItem[self._panel.nSelectGroup]:SetSelect(true)
+  if nil ~= self._mapNode.PerActGroupItem[self._panel.nSelectGroup] then
+    self._mapNode.PerActGroupItem[self._panel.nSelectGroup]:SetSelect(true)
+  end
 end
 
 function ReengagementTaskCtrl:OnGridRefresh(goGrid, gridIndex)
   local nIndex = gridIndex + 1
   local nInstanceId = goGrid:GetInstanceID()
   if not self.tbGridCtrl[nInstanceId] then
-    self.tbGridCtrl[nInstanceId] = self:BindCtrlByNode(goGrid, "Game.UI.Activity.PeriodicQuest.PeriodicQuestItemCtrl")
+    self.tbGridCtrl[nInstanceId] = self:BindCtrlByNode(goGrid, "Game.UI.Activity.Reengagement.ReengagementQuestItemCtrl")
   end
-  self.tbGridCtrl[nInstanceId]:SetData(self.nActId, self.tbQuestList[nIndex])
+  self.tbGridCtrl[nInstanceId]:SetData(self.nActId, self.tbQuestData[nIndex])
 end
 
 local totalLength = 816
@@ -201,42 +225,44 @@ local actNodeItemHeight = 152
 local totalHeight = 20
 
 function ReengagementTaskCtrl:RefreshActivityNode()
-  NovaAPI.SetTMPText(self._mapNode.txtActValue, self.nActiveCount)
-  local bAllComplete = self.nActiveCount >= self.nTotalActiveCount
   self.tbQuestActive = {}
+  self.nTotalActiveCount = 0
   
   local function ForeachActivity(mapData)
-    table.insert(self.tbQuestActive, mapData)
+    if mapData.ReturneeId == self.nActId then
+      table.insert(self.tbQuestActive, mapData)
+    end
   end
   
-  ForEachTableLine(ConfigTable.Get("DailyQuestActive"), ForeachActivity)
+  ForEachTableLine(ConfigTable.Get("ActivityReturneeQuestPoint"), ForeachActivity)
   table.sort(self.tbQuestActive, function(a, b)
-    return a.Active < b.Active
+    return a.Point < b.Point
   end)
-  local nMaxAct = self.tbQuestActive[#self.tbQuestActive].Active
-  self.tbCanReceiveAct = {}
+  local nMaxAct = self.tbQuestActive[#self.tbQuestActive].Point
+  self.nTotalActiveCount = nMaxAct
+  self.nActiveCount = PlayerData.Reengagement:GetQuestPointInfo().Point or 0
+  NovaAPI.SetTMPText(self._mapNode.txtActValue, self.nActiveCount)
   for k, v in ipairs(self.tbQuestActive) do
     if self._mapNode.btnNodeItem[k] ~= nil then
+      local bReceived = PlayerData.Reengagement:CheckPointRewardReceived(v.Index)
+      self._mapNode.item[k]:SetItem(v.Reward1Tid, nil, v.Reward1Qty, nil, bReceived)
       local node = self._mapNode.btnNodeItem[k]
       local nPosX = math.min(k / #self.tbQuestActive * totalNodeLength, totalNodeLength)
-      node.transform:GetComponent("RectTransform").anchoredPosition = Vector2(nPosX, actNodeItemHeight)
       node.gameObject:SetActive(true)
-      local txtNodeAct = node.transform:Find("AnimRoot/goNodeItem/txtNodeAct"):GetComponent("TMP_Text")
-      NovaAPI.SetTMPText(txtNodeAct, v.Active)
+      local imgNodeAct1 = node.transform:Find("AnimRoot/goNodeItem/imgNumNml")
+      local imgNodeAct2 = node.transform:Find("AnimRoot/goNodeItem/imgNumSel")
+      local txtNodeAct1 = node.transform:Find("AnimRoot/goNodeItem/imgNumNml/txtNmlValue"):GetComponent("TMP_Text")
+      local txtNodeAct2 = node.transform:Find("AnimRoot/goNodeItem/imgNumSel/txtSelValue"):GetComponent("TMP_Text")
+      NovaAPI.SetTMPText(txtNodeAct1, v.Point)
+      NovaAPI.SetTMPText(txtNodeAct2, v.Point)
       local anim = node.transform:Find("AnimRoot"):GetComponent("Animator")
-      local imgGift = node.transform:Find("AnimRoot/goNodeItem/imgGift")
-      local imgComplete = node.transform:Find("AnimRoot/goNodeItem/imgComplete")
       local goParticle1 = node.transform:Find("AnimRoot/goNodeItem/UIParticle1")
       local goParticle2 = node.transform:Find("AnimRoot/goNodeItem/UIParticle2")
-      local bReceived = PlayerData.Quest:CheckDailyActiveReceive(v.Id)
-      local bComplete = v.Active <= self.nActiveCount
-      imgGift.gameObject:SetActive(not bReceived)
-      imgComplete.gameObject:SetActive(bReceived)
+      local bComplete = v.Point <= self.nActiveCount and not bReceived
+      imgNodeAct1.gameObject:SetActive(not bReceived)
+      imgNodeAct2.gameObject:SetActive(bReceived)
       goParticle1.gameObject:SetActive(not bReceived and bComplete)
       goParticle2.gameObject:SetActive(not bReceived and bComplete)
-      if bComplete and not bReceived then
-        table.insert(self.tbCanReceiveAct, k)
-      end
       if not bReceived and bComplete then
         anim:Play("Quest_btnNodeComplete_loop", 0, 0)
       else
@@ -244,39 +270,28 @@ function ReengagementTaskCtrl:RefreshActivityNode()
       end
     end
   end
-  self._mapNode.btnActReceive.gameObject:SetActive(#self.tbCanReceiveAct > 0)
-  self._mapNode.txtActComplete.gameObject:SetActive(bAllComplete and not (#self.tbCanReceiveAct > 0))
-  self._mapNode.btnActReceiveGray.gameObject:SetActive(not bAllComplete and not (#self.tbCanReceiveAct > 0))
   local nWidth = math.min(self.nActiveCount / nMaxAct * totalLength, totalLength)
   self._mapNode.rtActProgressFill.sizeDelta = Vector2(nWidth, totalHeight)
 end
 
-function ReengagementTaskCtrl:InitActData(actData, bResetGroup)
-  self.actData = actData
-  if bResetGroup then
+function ReengagementTaskCtrl:InitActData(bResetGroup)
+  if bResetGroup or self._panel.nSelectGroup == nil or self._panel.nSelectGroup == 0 then
     self._panel.nSelectGroup = nil
   end
-  self.nActId = actData:GetActId()
+  self.nActId = PlayerData.Reengagement:GetActId()
   self.bQuestAnim = false
   self:InitGroupList()
-  local tbAllQuestList = self.actData:GetQuestListByGroup()
-  if nil == tbAllQuestList[self._panel.nSelectGroup] then
+  if nil == PlayerData.Reengagement:GetQuestListByGroup(self._panel.nSelectGroup + 100) then
     EventManager.Hit(EventId.OpenMessageBox, {
       nType = AllEnum.MessageBox.Tips,
       sContent = ConfigTable.GetUIText("Activity_Invalid_Tip_1")
     })
-    EventManager.Hit(EventId.ClosePanel, PanelId.ActivityList)
     return
   end
-  local actCfg = self.actData:GetActCfgData()
-  if actCfg.EndType == GameEnum.activityEndType.NoLimit then
-    self._mapNode.goActTime.gameObject:SetActive(false)
-  else
-    self._mapNode.goActTime.gameObject:SetActive(true)
-    self:RefreshRemainTime()
-    if nil == self.remainTimer then
-      self.remainTimer = self:AddTimer(0, 1, "RefreshRemainTime", true, true, false)
-    end
+  self._mapNode.goActTime.gameObject:SetActive(true)
+  self:RefreshRemainTime()
+  if nil == self.remainTimer then
+    self.remainTimer = self:AddTimer(0, 1, "RefreshRemainTime", true, true, false)
   end
 end
 
@@ -308,6 +323,11 @@ end
 function ReengagementTaskCtrl:OnRelease()
 end
 
+function ReengagementTaskCtrl:OnRefreshGroup()
+  self:InitGroupList()
+  self:RefreshRemainTime()
+end
+
 function ReengagementTaskCtrl:OnBtnClick_Group(_, nIndex)
   if self._panel.nSelectGroup == nIndex then
     return
@@ -315,7 +335,7 @@ function ReengagementTaskCtrl:OnBtnClick_Group(_, nIndex)
   if nIndex > self.nMaxOpenGroup then
     return
   end
-  if nil == self.tbAllQuestList[nIndex] or nil == next(self.tbAllQuestList[nIndex]) then
+  if nil == PlayerData.Reengagement:GetQuestConfigDataByGroup(nIndex + 100) or nil == next(PlayerData.Reengagement:GetQuestConfigDataByGroup(nIndex + 100)) then
     printError(string.format("当前任务组下没有任务!!! 活动id = %d, 任务组 = %s", self.nActId, nIndex))
     return
   end
@@ -333,7 +353,7 @@ function ReengagementTaskCtrl:OnBtnClick_GroupLock()
 end
 
 function ReengagementTaskCtrl:OnBtnClick_Detail()
-  local perQuestActCfg = self.actData:GetPerQuestCfg()
+  local perQuestActCfg = PlayerData.Reengagement:GetActDetail(AllEnum.ReengagementTog.Task)
   local msg = {
     nType = AllEnum.MessageBox.Desc,
     sContent = perQuestActCfg.DesText,
@@ -342,14 +362,17 @@ function ReengagementTaskCtrl:OnBtnClick_Detail()
   EventManager.Hit(EventId.OpenMessageBox, msg)
 end
 
-function ReengagementTaskCtrl:OnBtnClick_QuickRec()
-  local function callback()
-    EventManager.Hit("RefreshPeriodicAct", self.nActId)
-    
-    PlayerData.Base:TryOpenWorldClassUpgrade()
+function ReengagementTaskCtrl:OnBtnClick_NodeItem(btn, index)
+  if PlayerData.Reengagement:CheckPointRewardReceived(index) then
+    UTILS.ClickItemGridWithTips(self.tbQuestActive[index].Reward1Tid, btn.transform, true, true, false)
+    return
   end
-  
-  PlayerData.Activity:SendReceivePerQuest(self.nActId, 0, callback)
+  if self.nActiveCount >= self.tbQuestActive[index].Point then
+    PlayerData.Reengagement:RequestReceiveQuestPointReward(index)
+  else
+    UTILS.ClickItemGridWithTips(self.tbQuestActive[index].Reward1Tid, btn.transform, true, true, false)
+    return
+  end
 end
 
 return ReengagementTaskCtrl
