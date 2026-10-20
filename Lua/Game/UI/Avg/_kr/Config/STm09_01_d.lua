@@ -4545,7 +4545,7 @@ return {
       "",
       false,
       "",
-      "잠깐, 이상해.==W== 보스랑 앙주가 협상하기로 한 곳은 50층이지 마왕의 방이 아니잖아.==W== 애초에 같이 내려가면 다시 올라오지 않아도 되는데, 애초에 빠질 필요가 없었잖아!",
+      "잠깐, 이상해.==W== 보스랑 앙주가 협상하기로 한 곳은 50층이지 마왕의 방이 아니잖아.==W== 같이 내려가면 다시 올라오지 않아도 되는데, 애초에 빠질 필요가 없었잖아!",
       ""
     }
   },
@@ -8799,7 +8799,7 @@ return {
       "vo_STm09_07C_012",
       false,
       "",
-      "그 결말은 별의 탑이 제 눈앞에서 무너지는 것이었고요……",
+      "그 결말은, 별의 탑이 제 눈앞에서 무너져 내리는 끔찍한 광경이었습니다.",
       ""
     }
   },
@@ -8887,7 +8887,7 @@ return {
       "vo_STm09_07C_013",
       false,
       "",
-      "저는 달성 보상을 사용하여, 최후의 소원을 빌었습니다. 도망치고 싶다고, 동료를 내버리고 도망치고 싶다고요. 그렇게 10년 전…… 지금 시점으로 보면 6년 전으로 도망칠 수 있었던 겁니다.",
+      "그렇기에 저는 임무 달성 보상을 사용하여, 최후의 소원을 빌었습니다. 이 세계에서 도망치고 싶다고요. 그렇게 해서 도착한 것이, 10년 전…… 지금 시점에서는 6년 전의 세계였던 것입니다.",
       ""
     }
   },
@@ -21319,7 +21319,7 @@ return {
       "",
       false,
       "",
-      "후후, 그 금고를 열 엄두조차 없습니다. 두렵거든요…… 다시 유혹에 넘어갈까 봐요.",
+      "후후, 그 금고를 열 엄두조차 나지 않습니다. 두렵거든요…… 다시 유혹에 넘어갈까 봐요.",
       ""
     }
   },
@@ -33577,7 +33577,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.05====Off==<size=70><color=#bd3059><alpha=#FF>비록 앞길이 끊겼더라도……==RT==</color></size>==RT==<size=70><color=#bd3059><alpha=#22>희미한 빛을 찾아낼 수 있을 거야……==RT====RT====RT==",
+      "_NOT_IN_LOG_==A0.05====Off==<size=70><color=#bd3059><alpha=#FF>비록 앞길이 끊겼더라도……==RT==</color></size>==RT==<size=70><color=#bd3059><alpha=#22>희미한 빛을 찾아낼 수 있을 겁니다……==RT====RT====RT==",
       ""
     }
   },
@@ -33591,7 +33591,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.05====Off==<size=70><color=#bd3059><alpha=#EE>비록 앞길이 끊겼더라도……==RT==</color></size>==RT==<size=70><color=#bd3059><alpha=#33>희미한 빛을 찾아낼 수 있을 거야……==RT====RT====RT==",
+      "_NOT_IN_LOG_==A0.05====Off==<size=70><color=#bd3059><alpha=#EE>비록 앞길이 끊겼더라도……==RT==</color></size>==RT==<size=70><color=#bd3059><alpha=#33>희미한 빛을 찾아낼 수 있을 겁니다……==RT====RT====RT==",
       ""
     }
   },
@@ -33605,7 +33605,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.05====Off==<size=70><color=#bd3059><alpha=#DD>비록 앞길이 끊겼더라도……==RT==</color></size>==RT==<size=70><color=#bd3059><alpha=#44>희미한 빛을 찾아낼 수 있을 거야……==RT====RT====RT==",
+      "_NOT_IN_LOG_==A0.05====Off==<size=70><color=#bd3059><alpha=#DD>비록 앞길이 끊겼더라도……==RT==</color></size>==RT==<size=70><color=#bd3059><alpha=#44>희미한 빛을 찾아낼 수 있을 겁니다……==RT====RT====RT==",
       ""
     }
   },
@@ -33619,7 +33619,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.05====Off==<size=70><color=#bd3059><alpha=#CC>비록 앞길이 끊겼더라도……==RT==</color></size>==RT==<size=70><color=#bd3059><alpha=#55>희미한 빛을 찾아낼 수 있을 거야……==RT====RT====RT==",
+      "_NOT_IN_LOG_==A0.05====Off==<size=70><color=#bd3059><alpha=#CC>비록 앞길이 끊겼더라도……==RT==</color></size>==RT==<size=70><color=#bd3059><alpha=#55>희미한 빛을 찾아낼 수 있을 겁니다……==RT====RT====RT==",
       ""
     }
   },
@@ -33633,7 +33633,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.05====Off==<size=70><color=#bd3059><alpha=#BB>비록 앞길이 끊겼더라도……==RT==</color></size>==RT==<size=70><color=#bd3059><alpha=#66>희미한 빛을 찾아낼 수 있을 거야……==RT====RT====RT==",
+      "_NOT_IN_LOG_==A0.05====Off==<size=70><color=#bd3059><alpha=#BB>비록 앞길이 끊겼더라도……==RT==</color></size>==RT==<size=70><color=#bd3059><alpha=#66>희미한 빛을 찾아낼 수 있을 겁니다……==RT====RT====RT==",
       ""
     }
   },
@@ -33647,7 +33647,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.05====Off==<size=70><color=#bd3059><alpha=#AA>비록 앞길이 끊겼더라도……==RT==</color></size>==RT==<size=70><color=#bd3059><alpha=#77>희미한 빛을 찾아낼 수 있을 거야……==RT====RT====RT==",
+      "_NOT_IN_LOG_==A0.05====Off==<size=70><color=#bd3059><alpha=#AA>비록 앞길이 끊겼더라도……==RT==</color></size>==RT==<size=70><color=#bd3059><alpha=#77>희미한 빛을 찾아낼 수 있을 겁니다……==RT====RT====RT==",
       ""
     }
   },
@@ -33661,7 +33661,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.05====Off==<size=70><color=#bd3059><alpha=#99>비록 앞길이 끊겼더라도……==RT==</color></size>==RT==<size=70><color=#bd3059><alpha=#88>희미한 빛을 찾아낼 수 있을 거야……==RT====RT====RT==",
+      "_NOT_IN_LOG_==A0.05====Off==<size=70><color=#bd3059><alpha=#99>비록 앞길이 끊겼더라도……==RT==</color></size>==RT==<size=70><color=#bd3059><alpha=#88>희미한 빛을 찾아낼 수 있을 겁니다……==RT====RT====RT==",
       ""
     }
   },
@@ -33675,7 +33675,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.05====Off==<size=70><color=#bd3059><alpha=#77>비록 앞길이 끊겼더라도……==RT==</color></size>==RT==<size=70><color=#bd3059><alpha=#99>희미한 빛을 찾아낼 수 있을 거야……==RT====RT====RT==",
+      "_NOT_IN_LOG_==A0.05====Off==<size=70><color=#bd3059><alpha=#77>비록 앞길이 끊겼더라도……==RT==</color></size>==RT==<size=70><color=#bd3059><alpha=#99>희미한 빛을 찾아낼 수 있을 겁니다……==RT====RT====RT==",
       ""
     }
   },
@@ -33689,7 +33689,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.05====Off==<size=70><color=#bd3059><alpha=#88>비록 앞길이 끊겼더라도……==RT==</color></size>==RT==<size=70><color=#bd3059><alpha=#AA>희미한 빛을 찾아낼 수 있을 거야……==RT====RT====RT==",
+      "_NOT_IN_LOG_==A0.05====Off==<size=70><color=#bd3059><alpha=#88>비록 앞길이 끊겼더라도……==RT==</color></size>==RT==<size=70><color=#bd3059><alpha=#AA>희미한 빛을 찾아낼 수 있을 겁니다……==RT====RT====RT==",
       ""
     }
   },
@@ -33703,7 +33703,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.05====Off==<size=70><color=#bd3059><alpha=#66>비록 앞길이 끊겼더라도……==RT==</color></size>==RT==<size=70><color=#bd3059><alpha=#BB>희미한 빛을 찾아낼 수 있을 거야……==RT====RT====RT==",
+      "_NOT_IN_LOG_==A0.05====Off==<size=70><color=#bd3059><alpha=#66>비록 앞길이 끊겼더라도……==RT==</color></size>==RT==<size=70><color=#bd3059><alpha=#BB>희미한 빛을 찾아낼 수 있을 겁니다……==RT====RT====RT==",
       ""
     }
   },
@@ -33717,7 +33717,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.05====Off==<size=70><color=#bd3059><alpha=#55>비록 앞길이 끊겼더라도……==RT==</color></size>==RT==<size=70><color=#bd3059><alpha=#CC>희미한 빛을 찾아낼 수 있을 거야……==RT====RT====RT==",
+      "_NOT_IN_LOG_==A0.05====Off==<size=70><color=#bd3059><alpha=#55>비록 앞길이 끊겼더라도……==RT==</color></size>==RT==<size=70><color=#bd3059><alpha=#CC>희미한 빛을 찾아낼 수 있을 겁니다……==RT====RT====RT==",
       ""
     }
   },
@@ -33731,7 +33731,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.05====Off==<size=70><color=#bd3059><alpha=#44>비록 앞길이 끊겼더라도……==RT==</color></size>==RT==<size=70><color=#bd3059><alpha=#DD>희미한 빛을 찾아낼 수 있을 거야……==RT====RT====RT==",
+      "_NOT_IN_LOG_==A0.05====Off==<size=70><color=#bd3059><alpha=#44>비록 앞길이 끊겼더라도……==RT==</color></size>==RT==<size=70><color=#bd3059><alpha=#DD>희미한 빛을 찾아낼 수 있을 겁니다……==RT====RT====RT==",
       ""
     }
   },
@@ -33745,7 +33745,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.05====Off==<size=70><color=#bd3059><alpha=#33>비록 앞길이 끊겼더라도……==RT==</color></size>==RT==<size=70><color=#bd3059><alpha=#EE>희미한 빛을 찾아낼 수 있을 거야……==RT====RT====RT==",
+      "_NOT_IN_LOG_==A0.05====Off==<size=70><color=#bd3059><alpha=#33>비록 앞길이 끊겼더라도……==RT==</color></size>==RT==<size=70><color=#bd3059><alpha=#EE>희미한 빛을 찾아낼 수 있을 겁니다……==RT====RT====RT==",
       ""
     }
   },
@@ -33759,7 +33759,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.05====Off==<size=70><color=#bd3059><alpha=#22>비록 앞길이 끊겼더라도……==RT==</color></size>==RT==<size=70><color=#bd3059><alpha=#FF>희미한 빛을 찾아낼 수 있을 거야……==RT====RT====RT==",
+      "_NOT_IN_LOG_==A0.05====Off==<size=70><color=#bd3059><alpha=#22>비록 앞길이 끊겼더라도……==RT==</color></size>==RT==<size=70><color=#bd3059><alpha=#FF>희미한 빛을 찾아낼 수 있을 겁니다……==RT====RT====RT==",
       ""
     }
   },
@@ -33773,7 +33773,7 @@ return {
       "",
       false,
       "",
-      "==Off==<size=70></size><size=70><color=#bd3059><alpha=#FF>희미한 빛을 찾아낼 수 있을 거야……",
+      "==Off==<size=70></size><size=70><color=#bd3059><alpha=#FF>희미한 빛을 찾아낼 수 있을 겁니다……",
       ""
     }
   },
@@ -33804,7 +33804,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.05====Off==<size=70>==RT==</size>==RT==<size=70><color=#bd3059><alpha=#FF>희미한 빛을 찾아낼 수 있을 거야……==RT==</size></color>==RT==<size=70><color=#bd3059><alpha=#22>마왕님, 포기하지 마십시오.==RT==",
+      "_NOT_IN_LOG_==A0.05====Off==<size=70>==RT==</size>==RT==<size=70><color=#bd3059><alpha=#FF>희미한 빛을 찾아낼 수 있을 겁니다……==RT==</size></color>==RT==<size=70><color=#bd3059><alpha=#22>마왕님, 포기하지 마십시오.==RT==",
       ""
     }
   },
@@ -33818,7 +33818,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.05====Off==<size=70>==RT==</size>==RT==<size=70><color=#bd3059><alpha=#EE>희미한 빛을 찾아낼 수 있을 거야……==RT==</size></color>==RT==<size=70><color=#bd3059><alpha=#33>마왕님, 포기하지 마십시오.==RT==",
+      "_NOT_IN_LOG_==A0.05====Off==<size=70>==RT==</size>==RT==<size=70><color=#bd3059><alpha=#EE>희미한 빛을 찾아낼 수 있을 겁니다……==RT==</size></color>==RT==<size=70><color=#bd3059><alpha=#33>마왕님, 포기하지 마십시오.==RT==",
       ""
     }
   },
@@ -33832,7 +33832,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.05====Off==<size=70>==RT==</size>==RT==<size=70><color=#bd3059><alpha=#DD>희미한 빛을 찾아낼 수 있을 거야……==RT==</size></color>==RT==<size=70><color=#bd3059><alpha=#44>마왕님, 포기하지 마십시오.==RT==",
+      "_NOT_IN_LOG_==A0.05====Off==<size=70>==RT==</size>==RT==<size=70><color=#bd3059><alpha=#DD>희미한 빛을 찾아낼 수 있을 겁니다……==RT==</size></color>==RT==<size=70><color=#bd3059><alpha=#44>마왕님, 포기하지 마십시오.==RT==",
       ""
     }
   },
@@ -33846,7 +33846,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.05====Off==<size=70>==RT==</size>==RT==<size=70><color=#bd3059><alpha=#CC>희미한 빛을 찾아낼 수 있을 거야……==RT==</size></color>==RT==<size=70><color=#bd3059><alpha=#55>마왕님, 포기하지 마십시오.==RT==",
+      "_NOT_IN_LOG_==A0.05====Off==<size=70>==RT==</size>==RT==<size=70><color=#bd3059><alpha=#CC>희미한 빛을 찾아낼 수 있을 겁니다……==RT==</size></color>==RT==<size=70><color=#bd3059><alpha=#55>마왕님, 포기하지 마십시오.==RT==",
       ""
     }
   },
@@ -33860,7 +33860,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.05====Off==<size=70>==RT==</size>==RT==<size=70><color=#bd3059><alpha=#BB>희미한 빛을 찾아낼 수 있을 거야……==RT==</size></color>==RT==<size=70><color=#bd3059><alpha=#66>마왕님, 포기하지 마십시오.==RT==",
+      "_NOT_IN_LOG_==A0.05====Off==<size=70>==RT==</size>==RT==<size=70><color=#bd3059><alpha=#BB>희미한 빛을 찾아낼 수 있을 겁니다……==RT==</size></color>==RT==<size=70><color=#bd3059><alpha=#66>마왕님, 포기하지 마십시오.==RT==",
       ""
     }
   },
@@ -33874,7 +33874,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.05====Off==<size=70>==RT==</size>==RT==<size=70><color=#bd3059><alpha=#AA>희미한 빛을 찾아낼 수 있을 거야……==RT==</size></color>==RT==<size=70><color=#bd3059><alpha=#77>마왕님, 포기하지 마십시오.==RT==",
+      "_NOT_IN_LOG_==A0.05====Off==<size=70>==RT==</size>==RT==<size=70><color=#bd3059><alpha=#AA>희미한 빛을 찾아낼 수 있을 겁니다……==RT==</size></color>==RT==<size=70><color=#bd3059><alpha=#77>마왕님, 포기하지 마십시오.==RT==",
       ""
     }
   },
@@ -33888,7 +33888,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.05====Off==<size=70>==RT==</size>==RT==<size=70><color=#bd3059><alpha=#99>희미한 빛을 찾아낼 수 있을 거야……==RT==</size></color>==RT==<size=70><color=#bd3059><alpha=#88>마왕님, 포기하지 마십시오.==RT==",
+      "_NOT_IN_LOG_==A0.05====Off==<size=70>==RT==</size>==RT==<size=70><color=#bd3059><alpha=#99>희미한 빛을 찾아낼 수 있을 겁니다……==RT==</size></color>==RT==<size=70><color=#bd3059><alpha=#88>마왕님, 포기하지 마십시오.==RT==",
       ""
     }
   },
@@ -33902,7 +33902,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.05====Off==<size=70>==RT==</size>==RT==<size=70><color=#bd3059><alpha=#88>희미한 빛을 찾아낼 수 있을 거야……==RT==</size></color>==RT==<size=70><color=#bd3059><alpha=#99>마왕님, 포기하지 마십시오.==RT==",
+      "_NOT_IN_LOG_==A0.05====Off==<size=70>==RT==</size>==RT==<size=70><color=#bd3059><alpha=#88>희미한 빛을 찾아낼 수 있을 겁니다……==RT==</size></color>==RT==<size=70><color=#bd3059><alpha=#99>마왕님, 포기하지 마십시오.==RT==",
       ""
     }
   },
@@ -33916,7 +33916,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.05====Off==<size=70>==RT==</size>==RT==<size=70><color=#bd3059><alpha=#77>희미한 빛을 찾아낼 수 있을 거야……==RT==</size></color>==RT==<size=70><color=#bd3059><alpha=#AA>마왕님, 포기하지 마십시오.==RT==",
+      "_NOT_IN_LOG_==A0.05====Off==<size=70>==RT==</size>==RT==<size=70><color=#bd3059><alpha=#77>희미한 빛을 찾아낼 수 있을 겁니다……==RT==</size></color>==RT==<size=70><color=#bd3059><alpha=#AA>마왕님, 포기하지 마십시오.==RT==",
       ""
     }
   },
@@ -33930,7 +33930,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.05====Off==<size=70>==RT==</size>==RT==<size=70><color=#bd3059><alpha=#66>희미한 빛을 찾아낼 수 있을 거야……==RT==</size></color>==RT==<size=70><color=#bd3059><alpha=#BB>마왕님, 포기하지 마십시오.==RT==",
+      "_NOT_IN_LOG_==A0.05====Off==<size=70>==RT==</size>==RT==<size=70><color=#bd3059><alpha=#66>희미한 빛을 찾아낼 수 있을 겁니다……==RT==</size></color>==RT==<size=70><color=#bd3059><alpha=#BB>마왕님, 포기하지 마십시오.==RT==",
       ""
     }
   },
@@ -33944,7 +33944,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.05====Off==<size=70>==RT==</size>==RT==<size=70><color=#bd3059><alpha=#55>희미한 빛을 찾아낼 수 있을 거야……==RT==</size></color>==RT==<size=70><color=#bd3059><alpha=#CC>마왕님, 포기하지 마십시오.==RT==",
+      "_NOT_IN_LOG_==A0.05====Off==<size=70>==RT==</size>==RT==<size=70><color=#bd3059><alpha=#55>희미한 빛을 찾아낼 수 있을 겁니다……==RT==</size></color>==RT==<size=70><color=#bd3059><alpha=#CC>마왕님, 포기하지 마십시오.==RT==",
       ""
     }
   },
@@ -33958,7 +33958,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.05====Off==<size=70>==RT==</size>==RT==<size=70><color=#bd3059><alpha=#44>희미한 빛을 찾아낼 수 있을 거야……==RT==</size></color>==RT==<size=70><color=#bd3059><alpha=#DD>마왕님, 포기하지 마십시오.==RT==",
+      "_NOT_IN_LOG_==A0.05====Off==<size=70>==RT==</size>==RT==<size=70><color=#bd3059><alpha=#44>희미한 빛을 찾아낼 수 있을 겁니다……==RT==</size></color>==RT==<size=70><color=#bd3059><alpha=#DD>마왕님, 포기하지 마십시오.==RT==",
       ""
     }
   },
@@ -33972,7 +33972,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.05====Off==<size=70>==RT==</size>==RT==<size=70><color=#bd3059><alpha=#33>희미한 빛을 찾아낼 수 있을 거야……==RT==</size></color>==RT==<size=70><color=#bd3059><alpha=#EE>마왕님, 포기하지 마십시오.==RT==",
+      "_NOT_IN_LOG_==A0.05====Off==<size=70>==RT==</size>==RT==<size=70><color=#bd3059><alpha=#33>희미한 빛을 찾아낼 수 있을 겁니다……==RT==</size></color>==RT==<size=70><color=#bd3059><alpha=#EE>마왕님, 포기하지 마십시오.==RT==",
       ""
     }
   },
@@ -33986,7 +33986,7 @@ return {
       "",
       false,
       "",
-      "_NOT_IN_LOG_==A0.05====Off==<size=70>==RT==</size>==RT==<size=70><color=#bd3059><alpha=#22>희미한 빛을 찾아낼 수 있을 거야……==RT==</size></color>==RT==<size=70><color=#bd3059><alpha=#FF>마왕님, 포기하지 마십시오.==RT==",
+      "_NOT_IN_LOG_==A0.05====Off==<size=70>==RT==</size>==RT==<size=70><color=#bd3059><alpha=#22>희미한 빛을 찾아낼 수 있을 겁니다……==RT==</size></color>==RT==<size=70><color=#bd3059><alpha=#FF>마왕님, 포기하지 마십시오.==RT==",
       ""
     }
   },
@@ -35686,7 +35686,7 @@ return {
       "",
       false,
       "",
-      "바로 구원 위원회가 ‘세상을 멸망시킨 마왕’을 정식으로 처형하는 오늘까지.==RT====RT==<size=30>- 무월 25일 -</size>",
+      "바로 구원 위원회가 ‘세상을 멸망시킬 마왕’을 정식으로 처형하는 오늘까지.==RT====RT==<size=30>- 무월 25일 -</size>",
       ""
     }
   },
@@ -44302,7 +44302,7 @@ return {
       "",
       false,
       "",
-      "먼 길을 나아가는 동안, ==W==곁에서 너를 걱정해 주는 사람들을 뒤돌아보는 걸 잊지 마.",
+      "먼 길을 나아가는 동안, 곁에서 너를 걱정해 주는 사람들을 뒤돌아보는 걸 잊지 마.==W==",
       ""
     }
   },
@@ -48436,7 +48436,7 @@ return {
       "",
       false,
       "",
-      "비록 앞길이 끊겼더라도…… 희미한 빛을 찾아낼 수 있을 거야……",
+      "비록 앞길이 끊겼더라도…… 희미한 빛을 찾아낼 수 있을 겁니다……",
       ""
     }
   },

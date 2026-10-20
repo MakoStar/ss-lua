@@ -10934,7 +10934,7 @@ return {
       "vo_STm09_07C_018",
       false,
       "",
-      "역시 당신도 그 시스템을 본 적 있는 거군요? 후후…… 왜 그렇게 생각하냐고요? 간단합니다. ==W==당신이 하고 있는 일은, 제가 과거에 달성했던 임무와 똑같기 때문입니다.",
+      "역시 당신도 그 시스템을 알고 있는 거군요? 후후…… 왜 그렇게 생각하냐고요? 간단합니다. ==W==당신이 하고 있는 일은, 제가 과거에 달성했던 임무와 똑같기 때문입니다.",
       ""
     }
   },
@@ -16345,7 +16345,7 @@ return {
       "vo_STm09_07C_056",
       false,
       "",
-      "==Off==<size=70><color=black><alpha=#FF>안녕히.==RT====RT====RT====RT====RT==",
+      "==Off==<size=70><color=black><alpha=#FF>안녕히.",
       ""
     }
   },
@@ -16572,7 +16572,7 @@ return {
       "vo_STm09_07C_057",
       false,
       "",
-      "==Off==<size=70></size><size=70><color=black><alpha=#FF>자……",
+      "==Off==<size=70> </size> <size=70><color=black><alpha=#FF>자……",
       ""
     }
   },
@@ -16799,7 +16799,7 @@ return {
       "vo_STm09_07C_058",
       false,
       "",
-      "==Off==<size=70>==RT==</size><size=70><color=black>==RT====RT====RT==</size></color><size=70><color=black><alpha=#FF>저와 함께……",
+      "==Off==<size=70> </size> <size=70><color=black> </size></color> <size=70><color=black><alpha=#FF>저와 함께……",
       ""
     }
   },

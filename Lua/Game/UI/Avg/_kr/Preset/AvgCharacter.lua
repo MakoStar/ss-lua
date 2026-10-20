@@ -328,13 +328,13 @@ return {
     id = "avg1_161",
     name = "***",
     name_bg_color = "#0ABEC5",
-    reuse = "avg3_161",
     ver = "2.1.0"
   },
   {
     id = "avg1_162",
-    name = "***",
+    name = "엘리나",
     name_bg_color = "#ffddb1",
+    reuseL2DPose = "c",
     ver = "2.0.0"
   },
   {
@@ -348,6 +348,18 @@ return {
     name = "사쿠",
     name_bg_color = "#5a91ca",
     ver = "1.9.0"
+  },
+  {
+    id = "avg1_166",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    ver = "2.3.0"
+  },
+  {
+    id = "avg1_168",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    ver = "2.3.0"
   },
   {
     id = "avg2_001",
@@ -365,6 +377,12 @@ return {
     name_bg_color = "#0ABEC5"
   },
   {
+    id = "avg2_937",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    ver = "2.1.0"
+  },
+  {
     id = "avg2_938",
     name = "얼음 공작",
     name_bg_color = "#0ABEC5",
@@ -378,19 +396,19 @@ return {
   },
   {
     id = "avg2_940",
-    name = "***",
+    name = "인형 병사",
     name_bg_color = "#0ABEC5",
     ver = "2.0.0"
   },
   {
     id = "avg2_941",
-    name = "***",
+    name = "올림파야(인형)",
     name_bg_color = "#0ABEC5",
     ver = "2.0.0"
   },
   {
     id = "avg2_942",
-    name = "***",
+    name = "코폐리우스",
     name_bg_color = "#0ABEC5",
     ver = "2.0.0"
   },
@@ -1234,31 +1252,31 @@ return {
   },
   {
     id = "avg3_225",
-    name = "***",
+    name = "라이타",
     name_bg_color = "#fffcdf",
     ver = "2.0.0"
   },
   {
     id = "avg3_226",
-    name = "***",
+    name = "피란니스 파수꾼",
     name_bg_color = "#0ABEC5",
     ver = "2.0.0"
   },
   {
     id = "avg3_227",
-    name = "***",
+    name = "피란니스 원로",
     name_bg_color = "#0ABEC5",
     ver = "2.0.0"
   },
   {
     id = "avg3_228",
-    name = "***",
+    name = "피란니스 평민(남)",
     name_bg_color = "#0ABEC5",
     ver = "2.0.0"
   },
   {
     id = "avg3_229",
-    name = "***",
+    name = "피란니스 노예(여)",
     name_bg_color = "#0ABEC5",
     ver = "2.0.0"
   },
@@ -3090,31 +3108,31 @@ return {
   },
   {
     id = "avg3_1321",
-    name = "***",
+    name = "인형 병사(시작 좌표)A",
     name_bg_color = "#0ABEC5",
-    reuse = "avg2_940",
-    ver = "2.2.0"
+    reuse = "avg4_106",
+    ver = "2.0.0"
   },
   {
     id = "avg3_1322",
-    name = "***",
+    name = "인형 병사(시작 좌표)B",
     name_bg_color = "#0ABEC5",
-    reuse = "avg2_940",
-    ver = "2.2.0"
+    reuse = "avg4_106",
+    ver = "2.0.0"
   },
   {
     id = "avg3_1323",
-    name = "***",
+    name = "인형 병사(시작 좌표)C",
     name_bg_color = "#0ABEC5",
-    reuse = "avg2_940",
-    ver = "2.2.0"
+    reuse = "avg4_106",
+    ver = "2.0.0"
   },
   {
     id = "avg3_1324",
-    name = "***",
+    name = "인형 병사(시작 좌표)D",
     name_bg_color = "#0ABEC5",
-    reuse = "avg2_940",
-    ver = "2.2.0"
+    reuse = "avg4_106",
+    ver = "2.0.0"
   },
   {
     id = "avg3_1325",
@@ -3129,6 +3147,118 @@ return {
     name_bg_color = "#0ABEC5",
     reuse = "avg3_219",
     ver = "1.16.0"
+  },
+  {
+    id = "avg3_1327",
+    name = "인형 병사A",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg2_940",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1328",
+    name = "인형 병사B",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg2_940",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1329",
+    name = "인형 병사C",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg2_940",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1330",
+    name = "인형 병사D",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg2_940",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1331",
+    name = "세이나",
+    name_bg_color = "#ffddb1",
+    reuse = "avg1_162",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1332",
+    name = "엘리나A",
+    name_bg_color = "#ffddb1",
+    reuse = "avg1_162",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1333",
+    name = "이리스A",
+    name_bg_color = "#a4a5d5",
+    reuse = "avg3_182",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1334",
+    name = "이리스B",
+    name_bg_color = "#a4a5d5",
+    reuse = "avg3_182",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1335",
+    name = "필라니스 평민A(남)",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_228",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1336",
+    name = "필라니스 평민B(남)",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_228",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1337",
+    name = "필라니스  원로A",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_227",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1338",
+    name = "필라니스  원로B",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_227",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1339",
+    name = "필라니스  노예 소녀A",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_229",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1340",
+    name = "필라니스  노예 소녀B",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_229",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1341",
+    name = "세라B(여)",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_100",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1342",
+    name = "세라B(남)",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_101",
+    ver = "2.0.0"
   },
   {
     id = "avg4_100",
@@ -3161,6 +3291,12 @@ return {
     name = "우측돌",
     name_bg_color = "#0ABEC5",
     ver = "1.13.0"
+  },
+  {
+    id = "avg4_106",
+    name = "인형 병사(시작 좌표)",
+    name_bg_color = "#0ABEC5",
+    ver = "2.0.0"
   },
   {
     id = "avg4_999",
