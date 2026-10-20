@@ -3150,7 +3150,7 @@ return {
       "",
       false,
       "",
-      "I also heard Lady Angel's absolutely furious.",
+      "I also heard Lady Albedo's absolutely furious.",
       ""
     }
   },

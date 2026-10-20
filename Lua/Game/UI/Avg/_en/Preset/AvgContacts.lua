@@ -302,6 +302,14 @@ return {
     ver = "1.13.0"
   },
   {
+    id = 162,
+    icon = "Icon/Head/head_16201_S",
+    name = "Firstlight Noya",
+    landmark = "Filanis",
+    signature = "It wants me to write something here, but I can't seem to write on it.",
+    ver = "2.0.0"
+  },
+  {
     id = 3136,
     icon = "Icon/Head/head_npc13601_S",
     name = "Ruby",

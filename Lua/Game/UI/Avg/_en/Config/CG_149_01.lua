@@ -4211,7 +4211,7 @@ return {
       "",
       false,
       "",
-      "Well now?==W====RT== Well, well, well, well, well...==W== If it isn't the dear Boss?<r=mowang></r> ♪",
+      "Well now?==W====RT== Well, well, well, well, well...==W== If it isn't the dear Boss? ♪",
       ""
     }
   },

@@ -76,7 +76,7 @@ return {
     param = {
       "16:40",
       "Nebula Month",
-      "7th",
+      "18th",
       "Mirage",
       "Unnamed Street"
     }
@@ -986,7 +986,7 @@ return {
       "",
       false,
       "",
-      "As long as it isn't rapid fire, I can spice them all.",
+      "As long as it isn't rapid fire, I can slice them all.",
       ""
     }
   },
@@ -1054,7 +1054,7 @@ return {
       "",
       false,
       "",
-      "And No.160's time stop is useless as long as we don't actually hurt her.",
+      "And No. 160's time stop is useless as long as we don't actually hurt her.",
       ""
     }
   },
@@ -13938,7 +13938,7 @@ return {
     param = {
       "17:01",
       "Nebula Month",
-      "7th",
+      "18th",
       "Mirage",
       "Unnamed Street"
     }

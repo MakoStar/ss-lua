@@ -328,13 +328,13 @@ return {
     id = "avg1_161",
     name = "***",
     name_bg_color = "#0ABEC5",
-    reuse = "avg3_161",
     ver = "2.1.0"
   },
   {
     id = "avg1_162",
-    name = "***",
+    name = "Alina",
     name_bg_color = "#ffddb1",
+    reuseL2DPose = "c",
     ver = "2.0.0"
   },
   {
@@ -348,6 +348,18 @@ return {
     name = "Shuo",
     name_bg_color = "#5a91ca",
     ver = "1.9.0"
+  },
+  {
+    id = "avg1_166",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    ver = "2.3.0"
+  },
+  {
+    id = "avg1_168",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    ver = "2.3.0"
   },
   {
     id = "avg2_001",
@@ -365,6 +377,12 @@ return {
     name_bg_color = "#0ABEC5"
   },
   {
+    id = "avg2_937",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    ver = "2.1.0"
+  },
+  {
     id = "avg2_938",
     name = "Glopo Duke",
     name_bg_color = "#0ABEC5",
@@ -378,19 +396,19 @@ return {
   },
   {
     id = "avg2_940",
-    name = "***",
+    name = "Puppet Soldier",
     name_bg_color = "#0ABEC5",
     ver = "2.0.0"
   },
   {
     id = "avg2_941",
-    name = "***",
+    name = "Olympia (Puppet)",
     name_bg_color = "#0ABEC5",
     ver = "2.0.0"
   },
   {
     id = "avg2_942",
-    name = "***",
+    name = "Coppelius",
     name_bg_color = "#0ABEC5",
     ver = "2.0.0"
   },
@@ -1006,7 +1024,7 @@ return {
   },
   {
     id = "avg3_182",
-    name = "Aspara",
+    name = "Elis",
     name_bg_color = "#a4a5d5"
   },
   {
@@ -1234,31 +1252,31 @@ return {
   },
   {
     id = "avg3_225",
-    name = "***",
+    name = "Leita",
     name_bg_color = "#fffcdf",
     ver = "2.0.0"
   },
   {
     id = "avg3_226",
-    name = "***",
+    name = "Filanis Night Watcher",
     name_bg_color = "#0ABEC5",
     ver = "2.0.0"
   },
   {
     id = "avg3_227",
-    name = "***",
+    name = "Filanis Elder",
     name_bg_color = "#0ABEC5",
     ver = "2.0.0"
   },
   {
     id = "avg3_228",
-    name = "***",
+    name = "Filanis Citizen (M)",
     name_bg_color = "#0ABEC5",
     ver = "2.0.0"
   },
   {
     id = "avg3_229",
-    name = "***",
+    name = "Filanis Slave",
     name_bg_color = "#0ABEC5",
     ver = "2.0.0"
   },
@@ -3090,31 +3108,31 @@ return {
   },
   {
     id = "avg3_1321",
-    name = "***",
+    name = "Puppet Soldier (Initial Coordinates) A",
     name_bg_color = "#0ABEC5",
-    reuse = "avg2_940",
-    ver = "2.2.0"
+    reuse = "avg4_106",
+    ver = "2.0.0"
   },
   {
     id = "avg3_1322",
-    name = "***",
+    name = "Puppet Soldier (Initial Coordinates) B",
     name_bg_color = "#0ABEC5",
-    reuse = "avg2_940",
-    ver = "2.2.0"
+    reuse = "avg4_106",
+    ver = "2.0.0"
   },
   {
     id = "avg3_1323",
-    name = "***",
+    name = "Puppet Soldier (Initial Coordinates) C",
     name_bg_color = "#0ABEC5",
-    reuse = "avg2_940",
-    ver = "2.2.0"
+    reuse = "avg4_106",
+    ver = "2.0.0"
   },
   {
     id = "avg3_1324",
-    name = "***",
+    name = "Puppet Soldier (Initial Coordinates) D",
     name_bg_color = "#0ABEC5",
-    reuse = "avg2_940",
-    ver = "2.2.0"
+    reuse = "avg4_106",
+    ver = "2.0.0"
   },
   {
     id = "avg3_1325",
@@ -3129,6 +3147,118 @@ return {
     name_bg_color = "#0ABEC5",
     reuse = "avg3_219",
     ver = "1.16.0"
+  },
+  {
+    id = "avg3_1327",
+    name = "Puppet Soldier (Initial Coordinates) A",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg2_940",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1328",
+    name = "Puppet Soldier (Initial Coordinates) B",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg2_940",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1329",
+    name = "Puppet Soldier (Initial Coordinates) C",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg2_940",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1330",
+    name = "Puppet Soldier (Initial Coordinates) D",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg2_940",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1331",
+    name = "Noya",
+    name_bg_color = "#ffddb1",
+    reuse = "avg1_162",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1332",
+    name = "Alina A",
+    name_bg_color = "#ffddb1",
+    reuse = "avg1_162",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1333",
+    name = "Elis A",
+    name_bg_color = "#a4a5d5",
+    reuse = "avg3_182",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1334",
+    name = "Elis B",
+    name_bg_color = "#a4a5d5",
+    reuse = "avg3_182",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1335",
+    name = "Filanis Citizen Male A",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_228",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1336",
+    name = "Filanis Citizen Male B",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_228",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1337",
+    name = "Filanis Elder A",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_227",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1338",
+    name = "Filanis Elder B",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_227",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1339",
+    name = "Filanis Slave Girl A",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_229",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1340",
+    name = "Filanis Slave Girl B",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_229",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1341",
+    name = "SaiLa F B",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_100",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1342",
+    name = "SaiLa M B",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_101",
+    ver = "2.0.0"
   },
   {
     id = "avg4_100",
@@ -3161,6 +3291,12 @@ return {
     name = "Stone on the Right",
     name_bg_color = "#0ABEC5",
     ver = "1.13.0"
+  },
+  {
+    id = "avg4_106",
+    name = "Puppet Soldier (Initial Coordinates)",
+    name_bg_color = "#0ABEC5",
+    ver = "2.0.0"
   },
   {
     id = "avg4_999",

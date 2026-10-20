@@ -1,0 +1,11837 @@
+return {
+  {
+    cmd = "SetIntro",
+    param = {
+      "ep_mainline_001",
+      "Act One",
+      "The Name of Hers (Part I)",
+      "A strange sense of déjà vu, a chance to change—it all begins with her name.",
+      0
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      0,
+      0,
+      "0",
+      "OutSine",
+      true,
+      true,
+      0.0,
+      true,
+      "default"
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.05,
+      nil,
+      nil,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetBg",
+    param = {
+      0,
+      "phylanis_forest",
+      "0",
+      "Linear",
+      0.0,
+      false,
+      "default",
+      0
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.05,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      false,
+      0
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg3_100",
+      "a",
+      "009",
+      "none",
+      nil,
+      0.5,
+      0.0,
+      1.0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetBGM",
+    param = {
+      0,
+      "music_avg_volume100_1s",
+      0,
+      "m149",
+      "1000ms",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      1,
+      0,
+      "0",
+      "OutSine",
+      false,
+      false,
+      1.0,
+      true,
+      "default"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.4}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_062",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_100",
+      "a",
+      nil,
+      "none",
+      nil,
+      nil,
+      nil,
+      1.02,
+      nil,
+      nil,
+      1.0,
+      "none",
+      "none",
+      "OutQuint",
+      0,
+      nil,
+      false,
+      0.6,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.2}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_265",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_100",
+      "a",
+      "026",
+      "none",
+      nil,
+      0.46,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "jushou",
+      "none",
+      "OutBack",
+      0,
+      nil,
+      false,
+      0.25,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      -12.0,
+      0.0,
+      1.05,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.25,
+      false
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Hah!==W== Hiyah!==W== Swish!",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.7}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_265",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_100",
+      "a",
+      "026",
+      "none",
+      nil,
+      0.54,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "jushou",
+      "none",
+      "OutBack",
+      0,
+      nil,
+      false,
+      0.25,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      12.0,
+      0.0,
+      1.05,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.25,
+      false
+    }
+  },
+  {cmd = "SetGoOn"},
+  {
+    cmd = "Wait",
+    param = {0.7}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_265",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_100",
+      "a",
+      "026",
+      "none",
+      nil,
+      0.5,
+      nil,
+      1.05,
+      nil,
+      nil,
+      nil,
+      "diantou",
+      "none",
+      "OutBack",
+      0,
+      nil,
+      false,
+      0.3,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.07,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.3,
+      false
+    }
+  },
+  {cmd = "SetGoOn"},
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.05,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.4,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_100",
+      "a",
+      "010",
+      "avg_emoji_sigh",
+      nil,
+      nil,
+      nil,
+      1.02,
+      nil,
+      nil,
+      nil,
+      "niunie",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.6,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Ugh... This sword has a mind of its own. No matter what I do, it just feels off...",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.4}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_100",
+      "a",
+      "026",
+      "avg_emoji_attention",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "jushou",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Let's try again. Let the blade do the work...==W== Hah!==W== Swish...==W== Whoa?!==W==",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.75}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_265",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_100",
+      "a",
+      nil,
+      "none",
+      nil,
+      0.54,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "jushou1",
+      "none",
+      "OutBack",
+      0,
+      nil,
+      false,
+      0.25,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      20.0,
+      nil,
+      1.07,
+      nil,
+      nil,
+      nil,
+      "Xiao",
+      "OutSine",
+      0.25,
+      false
+    }
+  },
+  {cmd = "SetGoOn"},
+  {
+    cmd = "Wait",
+    param = {0.7}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_265",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_100",
+      "a",
+      "026",
+      "none",
+      nil,
+      0.5,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "jushou1",
+      "none",
+      "OutBack",
+      0,
+      nil,
+      false,
+      0.25,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      -20.0,
+      0.0,
+      1.09,
+      nil,
+      nil,
+      nil,
+      "Xiao",
+      "OutSine",
+      0.25,
+      false
+    }
+  },
+  {cmd = "SetGoOn"},
+  {
+    cmd = "Wait",
+    param = {0.8}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_276",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_100",
+      "a",
+      "025",
+      "avg_emoji_shock",
+      nil,
+      0.38,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "OutBack",
+      0,
+      -20.0,
+      false,
+      0.3,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      -20.0,
+      0.0,
+      1.09,
+      nil,
+      nil,
+      nil,
+      "chijing",
+      "OutSine",
+      0.3,
+      false
+    }
+  },
+  {cmd = "SetGoOn"},
+  {
+    cmd = "Wait",
+    param = {0.8}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_100",
+      "a",
+      "025",
+      "close",
+      nil,
+      0.4,
+      -0.38,
+      nil,
+      nil,
+      nil,
+      0.0,
+      "chijing",
+      "none",
+      "InOutCubic",
+      0,
+      -50.0,
+      false,
+      0.4,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.35}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_406",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      -20.0,
+      40.0,
+      1.1,
+      nil,
+      nil,
+      nil,
+      "Zhong",
+      "OutSine",
+      0.5,
+      false
+    }
+  },
+  {
+    cmd = "SetFx",
+    param = {
+      0,
+      "fx_avg_dust_heave",
+      0,
+      1,
+      nil,
+      -5.0,
+      1.5,
+      0.0,
+      false,
+      false,
+      0.0
+    }
+  },
+  {cmd = "SetGoOn"},
+  {
+    cmd = "Wait",
+    param = {1.0}
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      -10.0,
+      20.0,
+      1.08,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.5,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_100",
+      "a",
+      "016",
+      "none",
+      nil,
+      nil,
+      -0.15,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      0.0,
+      false,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_100",
+      "a",
+      nil,
+      "avg_emoji_vexation",
+      nil,
+      nil,
+      -0.1,
+      nil,
+      nil,
+      nil,
+      1.0,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.8,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Ow... Well, that was graceful. So embarrassing.==W== Haha, at least nobody saw...",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.65}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_100",
+      "a",
+      "011",
+      "avg_emoji_shy",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "niunie",
+      "none",
+      "Linear",
+      0,
+      nil,
+      false,
+      1.0,
+      false,
+      nil
+    }
+  },
+  {cmd = "SetGoOn"},
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetCharHead",
+    param = {
+      0,
+      2,
+      -100.0,
+      nil,
+      1.1,
+      "avg1_162",
+      "a",
+      "011",
+      "avg_emoji_sweaty",
+      3,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.0,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Your form is all wrong.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_053",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_100",
+      "a",
+      "025",
+      "avg_emoji_shock",
+      nil,
+      nil,
+      0.0,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "OutBack",
+      0,
+      0.0,
+      false,
+      0.35,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      -90.0,
+      20.0,
+      1.05,
+      nil,
+      nil,
+      nil,
+      "chijing",
+      "OutSine",
+      0.35,
+      false
+    }
+  },
+  {
+    cmd = "SetTalkShake",
+    param = {
+      0,
+      "ChanDou",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Waaah!",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.3}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_148",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      0,
+      0,
+      "3",
+      "OutSine",
+      true,
+      true,
+      0.4,
+      true,
+      "fade"
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg1_162",
+      "a",
+      "011",
+      "none",
+      nil,
+      0.5,
+      nil,
+      1.05,
+      nil,
+      nil,
+      1.0,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.2}
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      1,
+      0,
+      "4",
+      "Linear",
+      false,
+      false,
+      0.4,
+      true,
+      "fade"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.2}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "011",
+      "avg_emoji_sigh",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.4,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "... That's quite the scream. You've certainly got the lungs for it.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      0,
+      "007",
+      "avg_emoji_resentful",
+      "buman",
+      "z",
+      0.6,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Seriously, sneaking up on people without a sound... You scared me half to death.",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "017",
+      "none",
+      nil,
+      0.5,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "diantou",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.45,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "I just followed the noise... You're up unusually early. That's not like you.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      0,
+      "002",
+      "none",
+      "diantou",
+      "z",
+      0.6,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Oh, I'm just training.",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "010",
+      "avg_emoji_question",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      -1.5,
+      false,
+      0.3,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Training? That hardly seems like something an Acolyte needs to do.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      nil,
+      "none",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      0.0,
+      false,
+      2.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      0,
+      "013",
+      "avg_emoji_sweaty",
+      "none",
+      "z",
+      0.6,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      1,
+      "",
+      false,
+      "",
+      "Uh... I figured I should learn some self-defense. If I'm completely helpless out on patrol, you'll just end up having to watch my back.",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      0,
+      0,
+      "024",
+      "avg_emoji_speechless",
+      "none",
+      "z",
+      0.0,
+      true,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "This is ...==W== a stance a friend taught me. She said it was perfect for beginners.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetBGM",
+    param = {
+      4,
+      "music_avg_volume35_1s",
+      0,
+      "",
+      "none",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_169",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetBg",
+    param = {
+      0,
+      "mirage_creche_outside_daylight",
+      "0",
+      "OutSine",
+      0.35,
+      false,
+      "default",
+      0
+    }
+  },
+  {
+    cmd = "SetFx",
+    param = {
+      0,
+      "fx_avg_reminiscence_loop",
+      0,
+      2,
+      nil,
+      nil,
+      nil,
+      0.35,
+      false,
+      false
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg1_112",
+      "a",
+      "004",
+      "none",
+      nil,
+      nil,
+      nil,
+      1.05,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      nil,
+      "none",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.0,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.35,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_112",
+      "a",
+      "004",
+      "none",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      1.0,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.35,
+      true,
+      nil
+    }
+  },
+  {cmd = "SetGoOn"},
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetBg",
+    param = {
+      0,
+      "phylanis_forest",
+      "0",
+      "OutSine",
+      0.35,
+      false,
+      "default",
+      0
+    }
+  },
+  {
+    cmd = "SetFx",
+    param = {
+      0,
+      "fx_avg_reminiscence_loop",
+      1,
+      2,
+      nil,
+      nil,
+      nil,
+      0.35,
+      false,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_112",
+      "a",
+      nil,
+      "none",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.0,
+      "none",
+      "none",
+      "Linear",
+      0,
+      nil,
+      false,
+      0.35,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      nil,
+      "none",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      1.0,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.35,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.75}
+  },
+  {
+    cmd = "SetBGM",
+    param = {
+      4,
+      "music_avg_volume100_1s",
+      0,
+      "",
+      "none",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "004",
+      "avg_emoji_speechless",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "niunie1",
+      "none",
+      "OutCubic",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Admirable, but pointless like this. Your body is stiff, and you're wasting energy...==W== Wait, did you even warm up properly?",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {1.25}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "010",
+      "avg_emoji_attention",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {cmd = "SetGoOn"},
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      0,
+      "011",
+      "avg_emoji_sweaty",
+      "niunie1",
+      "z",
+      0.5,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Uh... Sort of?",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "014",
+      "avg_emoji_sigh",
+      nil,
+      0.5,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Then you didn't do it right. Your muscles are locked up. That's why you lost your balance and fell flat on your back.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      0,
+      "007",
+      "avg_emoji_exclamation",
+      "chijing",
+      "z",
+      0.5,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "You saw all of that?!",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.3}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_062",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      nil,
+      1.1,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.6,
+      false
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      1.0,
+      "none",
+      "Linear",
+      0.6,
+      false,
+      0
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "006",
+      "none",
+      nil,
+      nil,
+      -0.35,
+      1.4,
+      nil,
+      nil,
+      nil,
+      "JuGong",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.6,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.4}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "021",
+      "avg_emoji_happy",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "diantou",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.4,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Come on, we're starting over with stretches. Stand back-to-back with me, like this...==W== Now link arms.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_077",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      nil,
+      "none",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "JuGong",
+      "none",
+      "Linear",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {cmd = "SetGoOn"},
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_074",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      180.0,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.3,
+      false
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      0,
+      0,
+      "AvgStageEffect_fade_left",
+      "OutSine",
+      true,
+      true,
+      0.5,
+      true,
+      "fade"
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.1,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.0,
+      true
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.0,
+      "none",
+      "Linear",
+      0.0,
+      false,
+      0
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      1,
+      0,
+      "AvgStageEffect_fade_right",
+      "OutSine",
+      false,
+      false,
+      0.5,
+      true,
+      "fade"
+    }
+  },
+  {
+    cmd = "SetCharHead",
+    param = {
+      0,
+      4,
+      nil,
+      nil,
+      nil,
+      "avg1_162",
+      "a",
+      "006",
+      "avg_emoji_happy",
+      0,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.0,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "One,==W== two,==W== three...",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {cmd = "SetGoOn"},
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetCharHead",
+    param = {
+      1,
+      4,
+      nil,
+      nil,
+      nil,
+      "avg1_162",
+      "a",
+      "002",
+      "none",
+      0,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_251",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "1ZhenDong",
+      "Linear",
+      1.0,
+      false
+    }
+  },
+  {cmd = "SetGoOn"},
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetTalkShake",
+    param = {
+      0,
+      "ChanDou",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      0,
+      "007",
+      "avg_emoji_flurry",
+      "ChanDou",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      1,
+      "",
+      false,
+      "",
+      "Waaah!",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      0,
+      1,
+      "007",
+      "avg_emoji_shock",
+      "chijing",
+      "y",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      2,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "(M-My spine is cracking?!)",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "y",
+      0.0,
+      true,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_169",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      0,
+      0,
+      "16",
+      "OutSine",
+      true,
+      true,
+      1.0,
+      true,
+      "default"
+    }
+  },
+  {
+    cmd = "SetBg",
+    param = {
+      0,
+      "luckyoasis_forest_daylight",
+      "0",
+      "Linear",
+      0.0,
+      false,
+      "default",
+      0
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.0,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      false,
+      0
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.1,
+      nil,
+      nil,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetFx",
+    param = {
+      0,
+      "fx_avg_reminiscence_loop",
+      0,
+      2,
+      nil,
+      nil,
+      nil,
+      0.0,
+      false,
+      false
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      1,
+      0,
+      "0",
+      "OutSine",
+      false,
+      false,
+      0.6,
+      true,
+      "default"
+    }
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_065",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetCharHead",
+    param = {
+      0,
+      4,
+      nil,
+      nil,
+      nil,
+      "avg1_112",
+      "a",
+      "002",
+      "none",
+      0,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.0,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_112",
+      "",
+      1,
+      "",
+      false,
+      "",
+      "Like this. Back to back with me...==B== Now hook your arms with mine.",
+      ""
+    }
+  },
+  {
+    cmd = "SetCharHead",
+    param = {
+      1,
+      4,
+      nil,
+      nil,
+      nil,
+      "avg1_112",
+      "a",
+      "002",
+      "none",
+      0,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_251",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "1ZhenDong",
+      "Linear",
+      1.0,
+      true
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_112",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Heave!",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.4}
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      0,
+      "007",
+      "avg_emoji_exclamation",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Whoa!",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "z",
+      0.0,
+      true,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.35}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_169",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      0,
+      0,
+      "17",
+      "OutSine",
+      true,
+      true,
+      0.5,
+      true,
+      "default"
+    }
+  },
+  {
+    cmd = "SetFx",
+    param = {
+      0,
+      "fx_avg_reminiscence_loop",
+      1,
+      2,
+      nil,
+      nil,
+      nil,
+      0.0,
+      false,
+      false
+    }
+  },
+  {
+    cmd = "SetFilm",
+    param = {
+      1,
+      "Linear",
+      0.0,
+      true
+    }
+  },
+  {
+    cmd = "SetBg",
+    param = {
+      0,
+      "phylanis_forest",
+      "0",
+      "Linear",
+      0.0,
+      false,
+      "default",
+      0
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.05,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      false,
+      0
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.1,
+      nil,
+      nil,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      1,
+      0,
+      "0",
+      "OutSine",
+      false,
+      false,
+      0.5,
+      true,
+      "default"
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      1,
+      "015",
+      "avg_emoji_think",
+      "none",
+      "y",
+      0.0,
+      true,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      2,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "This feels so familiar... It's exactly like when Noya helped me stretch...",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "y",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_062",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg1_162",
+      "a",
+      "006",
+      "none",
+      nil,
+      0.6,
+      -0.05,
+      1.05,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      nil,
+      "none",
+      nil,
+      0.5,
+      nil,
+      nil,
+      nil,
+      nil,
+      1.0,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.45,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.08,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.5,
+      true
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "006",
+      "none",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "diantou",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.45,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Next stretch... Sit down with your legs straight. Lean forward slowly and try to touch your toes.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      nil,
+      "none",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.0,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.5,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_110",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      100.0,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      1.0,
+      true
+    }
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_208",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      100.0,
+      1.25,
+      nil,
+      nil,
+      nil,
+      "Xiao",
+      "InOutSine",
+      0.8,
+      false
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      0,
+      0,
+      "0",
+      "Linear",
+      true,
+      true,
+      1.0,
+      true,
+      "default"
+    }
+  },
+  {
+    cmd = "SetBg",
+    param = {
+      0,
+      "BG_Black",
+      "0",
+      "Linear",
+      0.5,
+      true,
+      "default",
+      0
+    }
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_365",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg1_162",
+      "a",
+      "006",
+      "none",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "006",
+      "none",
+      nil,
+      0.52,
+      -0.51,
+      1.7,
+      nil,
+      nil,
+      0.0,
+      "none",
+      "none",
+      "Linear",
+      0,
+      nil,
+      false,
+      0.0,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      1,
+      0,
+      "0",
+      "Linear",
+      false,
+      false,
+      0.1,
+      true,
+      "default"
+    }
+  },
+  {
+    cmd = "SetBg",
+    param = {
+      0,
+      "mood_1",
+      "0",
+      "OutSine",
+      1.0,
+      false,
+      "default",
+      0
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      -300.0,
+      1.5,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      true,
+      0
+    }
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_236",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetFx",
+    param = {
+      0,
+      "fx_avg_bubble_lp",
+      0,
+      1,
+      nil,
+      nil,
+      nil,
+      0.0,
+      false,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      nil,
+      "none",
+      nil,
+      nil,
+      -0.55,
+      1.75,
+      nil,
+      nil,
+      1.0,
+      "none",
+      "none",
+      "Linear",
+      0,
+      nil,
+      false,
+      2.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "0",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "As she presses against my back, her weight slowly bearing down on me... It feels exactly like that day.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.3}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_112",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_365_stop",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "Zhong",
+      "Linear",
+      1.0,
+      false
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      0,
+      0,
+      "0",
+      "OutSine",
+      true,
+      true,
+      0.3,
+      true,
+      "default"
+    }
+  },
+  {
+    cmd = "SetFx",
+    param = {
+      0,
+      "fx_avg_bubble_lp",
+      1,
+      1,
+      nil,
+      nil,
+      nil,
+      0.0,
+      false,
+      false
+    }
+  },
+  {
+    cmd = "SetBg",
+    param = {
+      0,
+      "phylanis_forest",
+      "0",
+      "Linear",
+      0.0,
+      true,
+      "default",
+      0
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.05,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      true,
+      0
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      100.0,
+      1.23,
+      nil,
+      nil,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      true
+    }
+  },
+  {
+    cmd = "SetTalkShake",
+    param = {
+      0,
+      "ChanDou",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      0,
+      "016",
+      "avg_emoji_flurry",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Ow, ow, ow, ow! I yield, I yieeeeld!==W== I yield, Noya!",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetBGM",
+    param = {
+      2,
+      "music_avg_volume100_0s",
+      0,
+      "",
+      "2000ms",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      0,
+      0,
+      "007",
+      "avg_emoji_exclamation",
+      "ChanDou",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {cmd = "SetGoOn"},
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetBGM",
+    param = {
+      1,
+      "music_avg_volume100_0s",
+      0,
+      "",
+      "500ms",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg1_162",
+      "a",
+      "015",
+      "none",
+      nil,
+      0.5,
+      -0.4,
+      1.4,
+      nil,
+      nil,
+      1.0,
+      0.0,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.8,
+      1.0,
+      "none",
+      "Linear",
+      0.0,
+      false,
+      0
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      1,
+      0,
+      "0",
+      "OutSine",
+      false,
+      false,
+      0.5,
+      true,
+      "cut off"
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "015",
+      "avg_emoji_question",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "lengzhan",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.5,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Noya?",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      0,
+      "025",
+      "avg_emoji_awkward",
+      "none",
+      "z",
+      0.6,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Ah... Sorry. I just thought of an old friend, and it slipped out...",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.3}
+  },
+  {
+    cmd = "SetBGM",
+    param = {
+      0,
+      "music_avg_volume100_0s",
+      0,
+      "m37",
+      "none",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      1.0,
+      nil,
+      "none",
+      "OutSine",
+      0.5,
+      false,
+      0
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      90.0,
+      1.28,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.5,
+      true
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "007",
+      "avg_emoji_angry",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "lengzhan",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.4,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "... Calling me by others' name? It seems you still have energy to spare. To help you focus on your stretches...",
+      ""
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      nil,
+      "close",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "Linear",
+      0,
+      nil,
+      false,
+      0.4,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_251",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      90,
+      1.28,
+      nil,
+      nil,
+      nil,
+      "Zhong",
+      "OutSine",
+      0.5,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "013",
+      "close",
+      nil,
+      nil,
+      -0.4,
+      nil,
+      nil,
+      nil,
+      nil,
+      "JuGong",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "I'll just apply a little more pressure!",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_070",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      90,
+      1.28,
+      nil,
+      nil,
+      nil,
+      "Zhong",
+      "OutSine",
+      0.5,
+      false
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      0,
+      "025",
+      "avg_emoji_flurry",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Wait, wait, wait! I'm focused! I'll focus,==W== waaah!",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetTalkShake",
+    param = {
+      0,
+      "ChanDou",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      0,
+      0,
+      "007",
+      "none",
+      "ChanDou",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_449",
+      0.0,
+      false
+    }
+  },
+  {cmd = "SetGoOn"},
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      -150.0,
+      1.1,
+      nil,
+      nil,
+      nil,
+      "none",
+      "InBack",
+      0.6,
+      false
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      -100.0,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "InBack",
+      0.6,
+      false,
+      0
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      nil,
+      "none",
+      nil,
+      nil,
+      -0.6,
+      nil,
+      nil,
+      nil,
+      0.0,
+      "none",
+      "none",
+      "InSine",
+      0,
+      nil,
+      true,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetBg",
+    param = {
+      0,
+      "sky_sunny",
+      "0",
+      "OutCubic",
+      0.5,
+      false,
+      "default",
+      0
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      100.0,
+      1.1,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      false,
+      0
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      0.0,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.8,
+      false,
+      0
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      -150.0,
+      1.1,
+      nil,
+      nil,
+      nil,
+      "Zhong",
+      "OutSine",
+      0.6,
+      false
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.9}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_554",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {1.4}
+  },
+  {
+    cmd = "SetBg",
+    param = {
+      0,
+      "phylanis_forest",
+      "0",
+      "OutSine",
+      0.8,
+      false,
+      "default",
+      0
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.05,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      false,
+      0
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.08,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.8,
+      false
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg1_162",
+      "a",
+      "009",
+      "none",
+      nil,
+      0.5,
+      -0.05,
+      1.05,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      nil,
+      "none",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      1.0,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.45,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "009",
+      "avg_emoji_happy",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "huanxin",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.4,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Is your body feeling more relaxed?",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      0,
+      "007",
+      "avg_emoji_sigh",
+      "JuGong",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Huff... Huff... This isn't about being relaxed anymore. I thought my spine was going to snap...",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "006",
+      "avg_emoji_music",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.45,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      1,
+      "",
+      false,
+      "",
+      "Don't worry. The human body is much sturdier than you think...==W== Hm?",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetBGM",
+    param = {
+      1,
+      "music_avg_volume100_0s",
+      0,
+      "",
+      "1000ms",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_573",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "010",
+      "avg_emoji_attention",
+      nil,
+      0.46,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "lengzhan",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.4,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      -60.0,
+      0.0,
+      1.1,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.5,
+      true
+    }
+  },
+  {cmd = "SetGoOn"},
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "007",
+      "avg_emoji_attention",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "diantou",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.45,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "A carriage. It sounds like it's heading this way. ==PLAYER_NAME==, let's hide.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_573_stop",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_086",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      nil,
+      "close",
+      nil,
+      0.5,
+      -0.25,
+      1.3,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.25,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.1,
+      nil,
+      nil,
+      nil,
+      "Xiao",
+      "OutSine",
+      0.25,
+      true
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.15}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_090",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      nil,
+      "none",
+      nil,
+      nil,
+      -0.4,
+      nil,
+      nil,
+      nil,
+      0.0,
+      "none",
+      "none",
+      "InSine",
+      0,
+      nil,
+      true,
+      0.35,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.7,
+      nil,
+      "none",
+      "Linear",
+      0.35,
+      false,
+      0
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      80.0,
+      1.1,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.35,
+      true
+    }
+  },
+  {
+    cmd = "SetBGM",
+    param = {
+      0,
+      "music_avg_volume100_3s",
+      0,
+      "m14",
+      "1000ms",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      0,
+      0,
+      "31",
+      "OutSine",
+      true,
+      true,
+      1.0,
+      true,
+      "fade"
+    }
+  },
+  {
+    cmd = "SetBg",
+    param = {
+      0,
+      "phylanis_prisonvan_dusk",
+      "0",
+      "Linear",
+      0.0,
+      false,
+      "default",
+      0
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      0.0,
+      1.1,
+      nil,
+      nil,
+      nil,
+      "xingshi",
+      "Linear",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.05,
+      nil,
+      nil,
+      1.0,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      true,
+      0
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg3_229",
+      "a",
+      "009",
+      "none",
+      nil,
+      0.44,
+      nil,
+      1.0,
+      nil,
+      1.0,
+      nil,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg3_168",
+      "a",
+      "002",
+      "none",
+      nil,
+      0.6,
+      nil,
+      1.0,
+      nil,
+      1.0,
+      nil,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg3_228",
+      "a",
+      "002",
+      "none",
+      nil,
+      0.65,
+      -0.2,
+      1.2,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg3_227",
+      "a",
+      "002",
+      "none",
+      nil,
+      0.35,
+      -0.2,
+      1.2,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_486",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      1,
+      0,
+      "4",
+      "Linear",
+      false,
+      false,
+      0.5,
+      true,
+      "fade"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {1.0}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_229",
+      "a",
+      nil,
+      "none",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      1.0,
+      false,
+      1.0
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_168",
+      "a",
+      nil,
+      "none",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      1.0,
+      false,
+      1.0
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      nil,
+      1.05,
+      nil,
+      nil,
+      nil,
+      "still",
+      "OutSine",
+      1.25,
+      true
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_227",
+      "a",
+      nil,
+      "none",
+      nil,
+      0.3,
+      nil,
+      nil,
+      nil,
+      nil,
+      1.0,
+      "manbu2",
+      "none",
+      "OutCubic",
+      0,
+      nil,
+      false,
+      1.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.25}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_228",
+      "a",
+      nil,
+      "none",
+      nil,
+      0.7,
+      nil,
+      nil,
+      nil,
+      nil,
+      1.0,
+      "manbu2",
+      "none",
+      "OutCubic",
+      0,
+      nil,
+      false,
+      1.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {1.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_227",
+      "a",
+      "003",
+      "avg_emoji_attention",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "diantou",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.6,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "Suspicious Slave Trader",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Alright, let the horses rest here for a bit. Then we make a straight push for Lord Caligula's estate.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.4}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_228",
+      "a",
+      "003",
+      "avg_emoji_attention",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "jushou0",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.6,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "Hot-Tempered Slave Trader",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Got it!",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_148",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      0,
+      0,
+      "3",
+      "OutSine",
+      true,
+      true,
+      0.46,
+      true,
+      "fade"
+    }
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_486_stop",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetBg",
+    param = {
+      0,
+      "phylanis_forest",
+      "0",
+      "Linear",
+      0.0,
+      false,
+      "default",
+      0
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg3_227",
+      "a",
+      "002",
+      "none",
+      nil,
+      0.4,
+      -0.07,
+      1.1,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg3_228",
+      "a",
+      "002",
+      "none",
+      nil,
+      0.6,
+      -0.07,
+      1.1,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      -20.0,
+      1.05,
+      nil,
+      nil,
+      nil,
+      "stop",
+      "Linear",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {1.0}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_166",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      1,
+      0,
+      "0",
+      "Linear",
+      false,
+      false,
+      0.46,
+      true,
+      "default"
+    }
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_101",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_227",
+      "a",
+      nil,
+      "none",
+      nil,
+      0.35,
+      nil,
+      nil,
+      nil,
+      nil,
+      1.0,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.35}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_101",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_228",
+      "a",
+      nil,
+      "none",
+      nil,
+      0.65,
+      nil,
+      nil,
+      nil,
+      nil,
+      1.0,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.5,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.35}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_228",
+      "a",
+      "006",
+      "avg_emoji_happy",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "diantou",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.6,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "Hot-Tempered Slave Trader",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Heh, we bagged a prime one this time. She should fetch a handsome price, right?",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_227",
+      "a",
+      "006",
+      "avg_emoji_music",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "diantou",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.6,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "Suspicious Slave Trader",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Lord Caligula is more than happy to pay a premium for women! He even arranged a hidden route into the city for us. Makes our job a whole lot easier. What a lifesaver.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_227",
+      "a",
+      nil,
+      "none",
+      nil,
+      0.38,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "InBack",
+      0,
+      nil,
+      false,
+      0.3,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_228",
+      "a",
+      nil,
+      "none",
+      nil,
+      0.62,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "InBack",
+      0,
+      nil,
+      false,
+      0.3,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_071",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_227",
+      "a",
+      nil,
+      "none",
+      nil,
+      0.35,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "OutBack",
+      0,
+      nil,
+      false,
+      0.3,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_228",
+      "a",
+      nil,
+      "none",
+      nil,
+      0.65,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "OutBack",
+      0,
+      nil,
+      false,
+      0.3,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.35}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_227",
+      "a",
+      nil,
+      "avg_emoji_happy",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "huanxin",
+      "none",
+      "Linear",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_228",
+      "a",
+      nil,
+      "avg_emoji_happy",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "huanxin",
+      "none",
+      "Linear",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {1.0}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_148",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      90.0,
+      nil,
+      1.05,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.45,
+      false
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      0,
+      0,
+      "3",
+      "OutSine",
+      true,
+      true,
+      0.46,
+      true,
+      "fade"
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      -90.0,
+      0.0,
+      1.05,
+      nil,
+      nil,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      true
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      120.0,
+      0.0,
+      1.15,
+      nil,
+      nil,
+      0.7,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      true,
+      0
+    }
+  },
+  {
+    cmd = "SetBg",
+    param = {
+      0,
+      "circle_light",
+      "0",
+      "Linear",
+      0.0,
+      false,
+      "default",
+      1
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      nil,
+      4.0,
+      nil,
+      0.8,
+      nil,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      false,
+      1
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg1_162",
+      "a",
+      "007",
+      "none",
+      nil,
+      0.5,
+      -0.35,
+      1.4,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      1,
+      0,
+      "31",
+      "Linear",
+      false,
+      false,
+      0.5,
+      true,
+      "fade"
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.05,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.5,
+      true
+    }
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_090",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      nil,
+      1.0,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.5,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "007",
+      "none",
+      nil,
+      nil,
+      -0.3,
+      nil,
+      nil,
+      nil,
+      1.0,
+      "none",
+      "none",
+      "OutFlash",
+      0,
+      nil,
+      false,
+      0.5,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      0,
+      "020",
+      "avg_emoji_speechless",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Is that ... a slave trader's carriage?",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_077",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "005",
+      "none",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "diantou",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.4,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "It appears so. Caligula... I never thought he'd be involved in the slave trade.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      0,
+      "012",
+      "avg_emoji_question",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "You know him?",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "004",
+      "none",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "niunie",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.45,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      1,
+      "",
+      false,
+      "",
+      "His father hails from Emor. A member of the Senate. Their family owns vast estates across Filanis.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "007",
+      "none",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "lengzhan",
+      "none",
+      "Linear",
+      0,
+      nil,
+      false,
+      0.45,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "He puts on a show of opposing slavery, yet secretly profits from this filth.==W== Unforgivable!==W==",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.75}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_090",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.9,
+      nil,
+      "none",
+      "OutCubic",
+      0.5,
+      false,
+      0
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.1,
+      nil,
+      nil,
+      "none",
+      "OutCubic",
+      0.5,
+      false,
+      1
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "013",
+      "avg_emoji_angry",
+      nil,
+      0.5,
+      -0.2,
+      nil,
+      nil,
+      nil,
+      nil,
+      "ChanDou",
+      "none",
+      "OutCubic",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      -100.0,
+      1.1,
+      nil,
+      nil,
+      nil,
+      "Xiao",
+      "OutCubic",
+      0.5,
+      false
+    }
+  },
+  {cmd = "SetGoOn"},
+  {
+    cmd = "Wait",
+    param = {0.7}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "010",
+      "avg_emoji_flurry",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "chijing",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      1.0,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "017",
+      "none",
+      nil,
+      nil,
+      -0.3,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "InBack",
+      0,
+      nil,
+      false,
+      0.45,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.2}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_090",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      0.0,
+      1.0,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutQuad",
+      0.45,
+      false
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.8,
+      nil,
+      nil,
+      "none",
+      "Linear",
+      0.45,
+      false,
+      1
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.7,
+      nil,
+      "none",
+      "OutQuad",
+      0.45,
+      false,
+      0
+    }
+  },
+  {cmd = "SetGoOn"},
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      0,
+      "012",
+      "none",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "... Do you want to save those slaves?",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "018",
+      "avg_emoji_attention",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "lengzhan",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Eh?",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.4}
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      0,
+      "017",
+      "avg_emoji_happy",
+      "diantou",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "It's written all over your face.",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.3}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "014",
+      "none",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "niunie1",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.6,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      1,
+      "",
+      false,
+      "",
+      "But I am a Night Watcher of Filanis. I have no authority to free slaves outside the city limits.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.6}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "004",
+      "avg_emoji_speechless",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.4,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      1,
+      "",
+      false,
+      "",
+      "Wait to intercept them after they enter the gates...? No. From the sound of it, this isn't their first transaction. Caligula will have a way to cover it up.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.6}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "022",
+      "avg_emoji_awkward",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.6,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Without evidence, the Night Watchers cannot touch the family of a Senator.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      0,
+      "004",
+      "avg_emoji_idea",
+      "jushou",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "In that case, if you just stop being a Night Watcher of Filanis for a moment... Problem solved, right?",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "010",
+      "avg_emoji_question",
+      nil,
+      nil,
+      -0.32,
+      1.45,
+      nil,
+      nil,
+      nil,
+      "lengzhan",
+      "none",
+      "OutQuad",
+      0,
+      nil,
+      false,
+      0.35,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "What do you mean?",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.35}
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      0,
+      "004",
+      "avg_emoji_star",
+      "jushou",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "It's simple. The slavers aren't attacked by a Night Watcher, they're ambushed by passing bandits. Out here in the Wilds, getting targeted by bandits is perfectly normal.",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "004",
+      "avg_emoji_speechless",
+      nil,
+      nil,
+      -0.25,
+      1.35,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      1.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "True, but what are the odds of bandits conveniently showing up right now...==W== Wait, don't tell me...",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.75}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "007",
+      "avg_emoji_exclamation",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "chijing",
+      "none",
+      "Linear",
+      0,
+      nil,
+      false,
+      0.45,
+      false,
+      nil
+    }
+  },
+  {cmd = "SetGoOn"},
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.1,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.5,
+      false
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      0,
+      "018",
+      "none",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Exactly. We are the bandits!",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.3}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "022",
+      "avg_emoji_flurry",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "niunie",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.45,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "We? A Night Watcher masquerading as a bandit... That's completely crossing a line. It stains the honor of the Night Watchers.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      0,
+      "012",
+      "avg_emoji_attention",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "So you're just going to stand by and watch?",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "017",
+      "avg_emoji_vexation",
+      nil,
+      nil,
+      nil,
+      1.32,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "OutQuad",
+      0,
+      nil,
+      false,
+      1.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "I...",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.8}
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      0,
+      "012",
+      "none",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "I think ignoring your own conscience here would be a much bigger stain on your honor.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.16,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutQuart",
+      0.5,
+      false
+    }
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_019",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "010",
+      "none",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "lengzhan",
+      "none",
+      "Linear",
+      0,
+      nil,
+      false,
+      0.5,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      0,
+      0,
+      "017",
+      "none",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "And if you really think it's crossing a line, well, you've got me here to cross it with you.",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "022",
+      "avg_emoji_speechless",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "niunie",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      1.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      1,
+      "",
+      false,
+      "",
+      "My conscience... ==PLAYER_NAME==, do you realize you are tempting a Night Watcher to stray from her path?",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {1.0}
+  },
+  {
+    cmd = "SetBGM",
+    param = {
+      1,
+      "music_avg_volume100_0s",
+      0,
+      "",
+      "1000ms",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.05,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.5,
+      false
+    }
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_434",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "007",
+      "avg_emoji_attention",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "diantou",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "But ... you're right. Let's do it!",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_090",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      nil,
+      "none",
+      nil,
+      nil,
+      -0.2,
+      1.35,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      0.0,
+      1.1,
+      nil,
+      nil,
+      1.0,
+      nil,
+      "none",
+      "OutSine",
+      0.5,
+      false,
+      0
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      0.0,
+      1.0,
+      nil,
+      0.0,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.5,
+      false,
+      1
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      nil,
+      1.0,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.5,
+      true
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      nil,
+      "close",
+      nil,
+      0.75,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.0,
+      "none",
+      "none",
+      "InOutBack",
+      0,
+      nil,
+      true,
+      0.6,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.2}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_148",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      -90.0,
+      0.0,
+      1.05,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.45,
+      false
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      0,
+      0,
+      "3",
+      "OutSine",
+      true,
+      true,
+      0.46,
+      true,
+      "fade"
+    }
+  },
+  {
+    cmd = "SetBg",
+    param = {
+      0,
+      "phylanis_forest",
+      "0",
+      "Linear",
+      0.0,
+      false,
+      "default",
+      0
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      90.0,
+      0.0,
+      1.1,
+      nil,
+      nil,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.1,
+      nil,
+      nil,
+      1.0,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      false,
+      0
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg3_227",
+      "a",
+      "002",
+      "none",
+      nil,
+      0.32,
+      0.0,
+      1.0,
+      nil,
+      nil,
+      1.0,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg3_228",
+      "a",
+      "002",
+      "none",
+      nil,
+      0.62,
+      0.0,
+      1.0,
+      nil,
+      nil,
+      1.0,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      1,
+      0,
+      "4",
+      "Linear",
+      false,
+      false,
+      0.46,
+      false,
+      "fade"
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      90.0,
+      -10.0,
+      1.05,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.45,
+      true
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_227",
+      "a",
+      "007",
+      "avg_emoji_attention",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "jushou",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.6,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "Suspicious Slave Trader",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Alright! Time to move out!",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetBGM",
+    param = {
+      0,
+      "music_avg_volume100_1s",
+      0,
+      "m148",
+      "2000ms",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg3_100",
+      "a",
+      "006",
+      "none",
+      nil,
+      0.95,
+      0.0,
+      1.75,
+      nil,
+      0.8,
+      0.0,
+      0.0,
+      false,
+      1.0
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg1_162",
+      "a",
+      "005",
+      "none",
+      nil,
+      -0.02,
+      0.0,
+      1.75,
+      nil,
+      0.8,
+      0.0,
+      0.0,
+      false,
+      1.0
+    }
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_062",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_100",
+      "a",
+      nil,
+      "none",
+      nil,
+      0.9,
+      nil,
+      nil,
+      nil,
+      nil,
+      1.0,
+      "none",
+      "none",
+      "OutQuad",
+      0,
+      nil,
+      false,
+      0.35,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg3_999",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "These woods are ours, and we claim this road!",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_062",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      nil,
+      "none",
+      nil,
+      0.02,
+      nil,
+      nil,
+      nil,
+      nil,
+      1.0,
+      "none",
+      "none",
+      "OutQuad",
+      0,
+      nil,
+      false,
+      0.35,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg3_999",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "If you want to pass, you pay the toll!",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_100",
+      "a",
+      nil,
+      "none",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.0,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      true,
+      0.35,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      nil,
+      "none",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.0,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      true,
+      0.35,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      90.0,
+      -40.0,
+      1.15,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.35,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_227",
+      "a",
+      "008",
+      "avg_emoji_shock",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "jingxia",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.35,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_228",
+      "a",
+      "007",
+      "avg_emoji_shock",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "jingxia",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.35,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_148",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      0,
+      0,
+      "4",
+      "OutSine",
+      true,
+      false,
+      0.45,
+      true,
+      "fade"
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg3_100",
+      "a",
+      "006",
+      "none",
+      nil,
+      0.65,
+      0.1,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg1_162",
+      "a",
+      "002",
+      "none",
+      nil,
+      0.35,
+      0.1,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "PlayGradient2Anim",
+    param = {
+      "avg3_100",
+      0,
+      -0.15,
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "PlayGradient2Anim",
+    param = {
+      "avg1_162",
+      0,
+      -0.15,
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.1}
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      1,
+      0,
+      "3",
+      "Linear",
+      false,
+      false,
+      0.45,
+      true,
+      "fade"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.3}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_100",
+      "a",
+      "004",
+      "avg_emoji_happy",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "diantou",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg3_999",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Heh, looks like we caught a big fish today! If you value your lives, leave the cargo and walk away!",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_100",
+      "a",
+      nil,
+      "none",
+      nil,
+      0.75,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      nil,
+      "none",
+      nil,
+      0.25,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetCharHead",
+    param = {
+      0,
+      1,
+      nil,
+      -0.15,
+      1.05,
+      "avg3_228",
+      "a",
+      "004",
+      "avg_emoji_resentful",
+      1,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.0,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "Hot-Tempered Slave Trader",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Bandits?! You've got some nerve. Do you have any idea whose cargo this is? The name alone would make you tremble.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.4}
+  },
+  {
+    cmd = "SetCharHead",
+    param = {
+      1,
+      1,
+      nil,
+      nil,
+      nil,
+      "avg3_228",
+      "a",
+      "002",
+      "none",
+      0,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.0,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      nil,
+      "none",
+      nil,
+      nil,
+      0.05,
+      0.97,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.35,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_100",
+      "a",
+      nil,
+      "none",
+      nil,
+      0.65,
+      -0.2,
+      1.35,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.35,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.05,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.35,
+      true
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_100",
+      "a",
+      "026",
+      "avg_emoji_angry",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "jushou",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.6,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "Boss",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "I don't care whose it is. Today, this ill-gotten loot belongs to Boss.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_148",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      -90.0,
+      0.0,
+      1.05,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.45,
+      false
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      0,
+      0,
+      "3",
+      "OutSine",
+      true,
+      true,
+      0.46,
+      true,
+      "fade"
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.0,
+      nil,
+      nil,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.0,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      false,
+      0
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg3_227",
+      "a",
+      "002",
+      "none",
+      nil,
+      0.32,
+      -0.2,
+      1.2,
+      nil,
+      nil,
+      nil,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg3_228",
+      "a",
+      "004",
+      "none",
+      nil,
+      0.67,
+      -0.2,
+      1.2,
+      nil,
+      nil,
+      nil,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      1,
+      0,
+      "3",
+      "Linear",
+      false,
+      false,
+      0.46,
+      true,
+      "fade"
+    }
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_434",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_227",
+      "a",
+      nil,
+      "avg_emoji_question",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "Linear",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "Suspicious Slave Trader",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Boss? Is that what you call yourself? Heh, I'll remember that.==W== You might want to start picking out your gravestone.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.65}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_063",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.8,
+      nil,
+      "none",
+      "OutQuad",
+      0.5,
+      false,
+      0
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      200.0,
+      nil,
+      1.2,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.35,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_227",
+      "a",
+      "004",
+      "none",
+      nil,
+      0.4,
+      -0.28,
+      1.25,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "OutQuad",
+      0,
+      nil,
+      false,
+      0.35,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_228",
+      "a",
+      nil,
+      "none",
+      nil,
+      0.69,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.0,
+      "none",
+      "none",
+      "OutQuad",
+      0,
+      nil,
+      true,
+      0.35,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetFx",
+    param = {
+      0,
+      "fx_avg_line_cen_lp",
+      0,
+      0,
+      nil,
+      nil,
+      1.0,
+      0.0,
+      false,
+      false,
+      0.0
+    }
+  },
+  {cmd = "SetGoOn"},
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      5,
+      "none",
+      "avg1_162",
+      "a",
+      "013",
+      "none",
+      nil,
+      nil,
+      -0.5,
+      2.0,
+      nil,
+      nil,
+      nil,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetStage",
+    param = {
+      4,
+      14,
+      "OutQuad",
+      0.2,
+      true
+    }
+  },
+  {
+    cmd = "SetFx",
+    param = {
+      5,
+      "fx_avg_flash_light",
+      0,
+      0,
+      nil,
+      1.0,
+      nil,
+      0.0,
+      false,
+      false,
+      0.0
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.55}
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg3_999",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "You're the one who'll be needing a grave.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      0,
+      0,
+      "7",
+      "OutQuad",
+      true,
+      true,
+      0.2,
+      true,
+      "fade"
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetFx",
+    param = {
+      0,
+      "fx_avg_line_cen_lp",
+      1,
+      0,
+      nil,
+      nil,
+      nil,
+      0.0,
+      false,
+      false,
+      0.0
+    }
+  },
+  {
+    cmd = "SetStage",
+    param = {
+      4,
+      3,
+      "Linear",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetBg",
+    param = {
+      0,
+      "BG_Black",
+      "0",
+      "Linear",
+      0.0,
+      false,
+      "default",
+      0
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      1,
+      0,
+      "0",
+      "Linear",
+      false,
+      false,
+      0.1,
+      false,
+      "default"
+    }
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_332",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetFx",
+    param = {
+      0,
+      "fx_avg_light_blade",
+      0,
+      0,
+      nil,
+      -1.0,
+      nil,
+      0.0,
+      false,
+      false,
+      0.0
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.8}
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      0,
+      0,
+      "0",
+      "Linear",
+      false,
+      false,
+      0.0,
+      false,
+      "default"
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      45.0,
+      nil,
+      1.1,
+      nil,
+      nil,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetBg",
+    param = {
+      0,
+      "phylanis_forest",
+      "0",
+      "Linear",
+      0.0,
+      false,
+      "default",
+      0
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg1_162",
+      "a",
+      "007",
+      "none",
+      1,
+      0.35,
+      nil,
+      1.35,
+      nil,
+      nil,
+      nil,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg3_227",
+      "a",
+      "002",
+      "none",
+      2,
+      0.65,
+      nil,
+      0.85,
+      nil,
+      nil,
+      nil,
+      0.0,
+      false,
+      1.0
+    }
+  },
+  {
+    cmd = "PlayGradient2Anim",
+    param = {
+      "avg1_162",
+      0,
+      -0.15,
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_227",
+      "a",
+      nil,
+      "none",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "Linear",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "Linear",
+      1.5,
+      false
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      1,
+      0,
+      "0",
+      "Linear",
+      false,
+      false,
+      0.45,
+      true,
+      "fade"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.35}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_023",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {1.25}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_227",
+      "a",
+      "005",
+      "avg_emoji_symbol",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "chijing",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      0.0
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "Suspicious Slave Trader",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Huh? M-My sword... How did it snap in half?!",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      1,
+      "none",
+      "avg3_100",
+      "a",
+      "019",
+      "none",
+      nil,
+      0.5,
+      -0.15,
+      1.3,
+      nil,
+      nil,
+      nil,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "PlayGradient2Anim",
+    param = {
+      "avg3_100",
+      0,
+      -0.14,
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      1,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetBg",
+    param = {
+      1,
+      "mood_3",
+      "0",
+      "Linear",
+      0.0,
+      false,
+      "default",
+      0
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      1,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      1.0,
+      "none",
+      "Linear",
+      0.0,
+      false,
+      0
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_100",
+      "a",
+      nil,
+      "avg_emoji_attention",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      1.0,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetStage",
+    param = {
+      0,
+      4,
+      "Linear",
+      0.5,
+      false
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Heh heh heh... Unless you want my Dark Knight here to slice you in two,==W== running away would be the smart move.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {1.0}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_100",
+      "a",
+      "006",
+      "avg_emoji_exclamation",
+      nil,
+      nil,
+      -0.4,
+      1.6,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "OutElastic",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {cmd = "SetGoOn"},
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_148",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      0,
+      0,
+      "AvgStageEffect_wipe_left",
+      "OutQuad",
+      true,
+      true,
+      0.2,
+      true,
+      "default"
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg3_227",
+      "a",
+      "010",
+      "none",
+      nil,
+      0.35,
+      nil,
+      1.1,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg3_228",
+      "a",
+      "008",
+      "none",
+      nil,
+      0.65,
+      nil,
+      1.1,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetStage",
+    param = {
+      0,
+      3,
+      "Linear",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      nil,
+      1.1,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.5,
+      false
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      1,
+      0,
+      "AvgStageEffect_wipe_right",
+      "OutQuad",
+      false,
+      false,
+      0.2,
+      true,
+      "default"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.2}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_227",
+      "a",
+      nil,
+      "avg_emoji_exclamation",
+      nil,
+      nil,
+      0.02,
+      0.9,
+      nil,
+      nil,
+      1.0,
+      "chijing2",
+      "none",
+      "OutQuad",
+      0,
+      nil,
+      false,
+      0.35,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_228",
+      "a",
+      nil,
+      "avg_emoji_exclamation",
+      nil,
+      nil,
+      0.02,
+      0.9,
+      nil,
+      nil,
+      1.0,
+      "chijing2",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.35,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_227",
+      "a",
+      nil,
+      "avg_emoji_flurry",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "ChanDou",
+      "none",
+      "Linear",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_228",
+      "a",
+      nil,
+      "avg_emoji_flurry",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "ChanDou",
+      "none",
+      "Linear",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "Slave Traders",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Eeeeek! Run for your liiiiives!",
+      ""
+    }
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_104",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetBGM",
+    param = {
+      1,
+      "music_avg_volume100_0s",
+      0,
+      "",
+      "2000ms",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.2}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_227",
+      "a",
+      nil,
+      "none",
+      nil,
+      -0.2,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.0,
+      "manbu2",
+      "none",
+      "InOutExpo",
+      0,
+      nil,
+      true,
+      0.65,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_228",
+      "a",
+      nil,
+      "none",
+      nil,
+      1.2,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.0,
+      "manbu2",
+      "none",
+      "InOutExpo",
+      0,
+      nil,
+      true,
+      0.65,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.75}
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      0,
+      0,
+      "0",
+      "OutSine",
+      true,
+      true,
+      0.55,
+      true,
+      "default"
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      0.0,
+      nil,
+      nil,
+      1.0,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      false,
+      0
+    }
+  },
+  {
+    cmd = "SetBg",
+    param = {
+      0,
+      "phylanis_prisonvan_dusk",
+      "0",
+      "Linear",
+      0.0,
+      false,
+      "default",
+      0
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      90.0,
+      0.0,
+      1.05,
+      nil,
+      nil,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg3_229",
+      "a",
+      "008",
+      "none",
+      3,
+      0.3,
+      nil,
+      1.0,
+      nil,
+      1.0,
+      1.0,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg3_168",
+      "a",
+      "002",
+      "none",
+      4,
+      0.15,
+      nil,
+      nil,
+      nil,
+      1.0,
+      nil,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg1_162",
+      "a",
+      "010",
+      "none",
+      1,
+      0.82,
+      0.0,
+      1.0,
+      nil,
+      nil,
+      nil,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg3_100",
+      "a",
+      "002",
+      "none",
+      2,
+      0.9,
+      0.0,
+      1.0,
+      nil,
+      nil,
+      nil,
+      0.0,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "PlayGradient2Anim",
+    param = {
+      "avg1_162",
+      0,
+      -0.15,
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "PlayGradient2Anim",
+    param = {
+      "avg3_100",
+      0,
+      -0.15,
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      nil,
+      "none",
+      2,
+      0.6,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "manbu2",
+      "none",
+      "Linear",
+      0,
+      nil,
+      false,
+      1.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_100",
+      "a",
+      nil,
+      "none",
+      3,
+      0.75,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "manbu2",
+      "none",
+      "Linear",
+      0,
+      nil,
+      false,
+      1.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {2.0}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_166",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetBGM",
+    param = {
+      0,
+      "music_avg_volume100_0s",
+      0,
+      "m3",
+      "2000ms",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      1,
+      0,
+      "0",
+      "OutSine",
+      false,
+      false,
+      1.0,
+      false,
+      "default"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "010",
+      "none",
+      nil,
+      0.55,
+      nil,
+      nil,
+      nil,
+      nil,
+      1.0,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.35,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "010",
+      "avg_emoji_question",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "JuGong",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.6,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "Black Knight",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Are any of you hurt?",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_229",
+      "a",
+      "008",
+      "avg_emoji_exclamation",
+      nil,
+      0.25,
+      nil,
+      nil,
+      nil,
+      0.5,
+      nil,
+      "jingxia",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_168",
+      "a",
+      nil,
+      "none",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "lengzhan",
+      "none",
+      "Linear",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "Captured Slave",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Please! I'll do whatever you want, just let my sister go!",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_100",
+      "a",
+      nil,
+      "avg_emoji_attention",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "jushou",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "Boss",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Calm down. We aren't bandits.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_062",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "006",
+      "none",
+      nil,
+      0.47,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "diantou",
+      "none",
+      "OutQuad",
+      0,
+      nil,
+      false,
+      0.5,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.2}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_183",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "006",
+      "none",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "JuGong",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {1.2}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      nil,
+      "none",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "diantou",
+      "none",
+      "Linear",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_077",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "Black Knight",
+      "",
+      1,
+      "",
+      false,
+      "",
+      "Take these coins and run. Head north to Filanis. Keep moving, and you'll be there in an hour.",
+      ""
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "Black Knight",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "No slave trader can touch you once you're inside its walls.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_229",
+      "a",
+      "010",
+      "avg_emoji_flurry",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "chijing",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.6,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "Captured Slaves",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Oh... Thank you! Thank you so much!",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.3}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_072",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_229",
+      "a",
+      nil,
+      "close",
+      nil,
+      -0.2,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.0,
+      "buman",
+      "none",
+      "InCirc",
+      0,
+      nil,
+      true,
+      0.8,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg3_168",
+      "a",
+      nil,
+      "none",
+      nil,
+      -0.25,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.0,
+      "buman",
+      "none",
+      "InCubic",
+      0,
+      nil,
+      false,
+      0.8,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.6}
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      0,
+      0,
+      "0",
+      "Linear",
+      true,
+      true,
+      1.0,
+      true,
+      "default"
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.05,
+      nil,
+      nil,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetBg",
+    param = {
+      0,
+      "phylanis_forest",
+      "0",
+      "Linear",
+      0.0,
+      false,
+      "default",
+      0
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      1.0,
+      nil,
+      0.0,
+      "none",
+      "Linear",
+      0.0,
+      false,
+      0
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg1_162",
+      "a",
+      "006",
+      "none",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {1.5}
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      1,
+      0,
+      "0",
+      "Linear",
+      false,
+      false,
+      1.0,
+      true,
+      "default"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.2}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "012",
+      "avg_emoji_sigh",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "JuGong",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Phew. They all got away. Once they make it to Filanis, they'll be safe.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      0,
+      "014",
+      "avg_emoji_music",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Yeah. By the way, you play a pretty convincing bandit.",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_062",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "011",
+      "avg_emoji_angry",
+      nil,
+      nil,
+      -0.28,
+      1.3,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.45,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      40.0,
+      1.16,
+      nil,
+      nil,
+      nil,
+      "Xiao",
+      "OutSine",
+      0.45,
+      false
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "... Should I take that as an insult?",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      0,
+      "013",
+      "avg_emoji_flurry",
+      "huanxin",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Not at all. It's a compliment.",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "016",
+      "avg_emoji_vexation",
+      nil,
+      nil,
+      0.0,
+      1.0,
+      nil,
+      nil,
+      nil,
+      "niunie1",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.6,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.1,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.6,
+      false
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      1,
+      "",
+      false,
+      "",
+      "A compliment...? I hardly think that is something to be proud of.",
+      ""
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "005",
+      "avg_emoji_question",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "diantou",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.4,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "And what was that Dark Knight nonsense about?",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.4}
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      0,
+      "020",
+      "avg_emoji_attention",
+      "jushou",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      1,
+      "",
+      false,
+      "",
+      "Having aliases makes things easier. See? I called myself Boss too, didn't I?",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      0,
+      0,
+      "004",
+      "avg_emoji_happy",
+      "diantou",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "If someone can commit crimes under the guise of the Fallen Saintess, I don't see the harm in us using fake names to do some good.",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "014",
+      "avg_emoji_speechless",
+      nil,
+      0.52,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "manbu2",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Playing bandits... What a despicable tactic. How can you be so resolute? Why was there zero hesitation?",
+      ""
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      nil,
+      "close",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "Linear",
+      0,
+      nil,
+      false,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.7}
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      0,
+      "020",
+      "none",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Hmm... Because it was a choice I won't regret.",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "010",
+      "avg_emoji_question",
+      nil,
+      0.5,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "OutBack",
+      1,
+      0.0,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.16,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.5,
+      false
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Regret?",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      0,
+      "009",
+      "none",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      1,
+      "",
+      false,
+      "",
+      "Yeah... If we'd let those slavers go back there, I know I would have regretted it.",
+      ""
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.19,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.8,
+      false
+    }
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_077",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      0,
+      0,
+      "018",
+      "none",
+      "diantou",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      1,
+      "",
+      false,
+      "",
+      "So I just trusted my heart and took action. That's all there is to it.",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      0,
+      0,
+      "017",
+      "none",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Even if you say it's despicable, I will always make a choice I won't regret. Every single time.",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "017",
+      "avg_emoji_sigh",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "niunie",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "... So you really thought it all through.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.16,
+      nil,
+      nil,
+      nil,
+      "Xiao",
+      "OutSine",
+      0.5,
+      false
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      0,
+      "007",
+      "avg_emoji_shock",
+      "buman",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Huh? What kind of person did you think I was?!",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.3}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "006",
+      "avg_emoji_happy",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "daintou",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.6,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      1,
+      "",
+      false,
+      "",
+      "When someone suddenly says we'll become bandits, any normal person would assume they've lost their mind.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "020",
+      "none",
+      nil,
+      0.5,
+      -0.1,
+      1.12,
+      nil,
+      nil,
+      nil,
+      "JuGong",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.25,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.9,
+      false
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "But...==W== You helped me. Without you, I would have just stood there, unable to do a thing. And I know I would have regretted it, too...",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.95}
+  },
+  {cmd = "SetGoOn"},
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      0,
+      "015",
+      "none",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Alina...",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "017",
+      "avg_emoji_awkward",
+      nil,
+      0.45,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "diantou",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.6,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      -30.0,
+      0.0,
+      1.16,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.6,
+      false
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "That being said, crossing the line ends today! For the sake of both our reputations, we can never speak of what happened here.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_062",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "020",
+      "none",
+      nil,
+      0.5,
+      -0.28,
+      1.35,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.7,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      40.0,
+      1.24,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      0.85,
+      true
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.2}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "020",
+      "avg_emoji_shy",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "niunie",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.6,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Which means this stays between you and me.==W== Do we have an agreement?",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {1.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "016",
+      "avg_emoji_attention",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "jushou0",
+      "none",
+      "Linear",
+      0,
+      nil,
+      false,
+      0.5,
+      false,
+      nil
+    }
+  },
+  {cmd = "SetGoOn"},
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      0,
+      "015",
+      "none",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "A secret between the two of us...==W== Ah, I understand.",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      0,
+      0,
+      "017",
+      "avg_emoji_attention",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {cmd = "SetGoOn"},
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_169",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      0,
+      0,
+      "16",
+      "OutSine",
+      true,
+      true,
+      0.8,
+      true,
+      "default"
+    }
+  },
+  {
+    cmd = "SetFx",
+    param = {
+      0,
+      "fx_avg_reminiscence_loop",
+      0,
+      0,
+      nil,
+      nil,
+      nil,
+      0.0,
+      false,
+      false,
+      0.0
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.0,
+      nil,
+      nil,
+      1.0,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      true,
+      0
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      nil,
+      1.2,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutQuint",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetBg",
+    param = {
+      0,
+      "ttc_parkbase_dusk",
+      "0",
+      "Linear",
+      0.0,
+      false,
+      "default",
+      0
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg1_112",
+      "a",
+      "002",
+      "none",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      1,
+      0,
+      "0",
+      "OutSine",
+      false,
+      false,
+      0.8,
+      true,
+      "default"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.3}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_112",
+      "a",
+      "007",
+      "avg_emoji_attention",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "tiao2",
+      "none",
+      "Linear",
+      0,
+      nil,
+      false,
+      1.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_112",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "By the way...==W== What happened today...==W== Let it stay our little secret, please?",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {1.0}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_112",
+      "a",
+      "010",
+      "none",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "Linear",
+      0,
+      nil,
+      false,
+      1.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      -120.0,
+      1.4,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutQuint",
+      1.0,
+      false
+    }
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_226",
+      0.0,
+      false
+    }
+  },
+  {cmd = "SetGoOn"},
+  {
+    cmd = "Wait",
+    param = {1.0}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_112",
+      "a",
+      "011",
+      "avg_emoji_shy",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "niunie",
+      "none",
+      "Linear",
+      0,
+      nil,
+      false,
+      1.0,
+      false,
+      nil
+    }
+  },
+  {cmd = "SetGoOn"},
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      0,
+      "014",
+      "avg_emoji_sigh",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      0.0,
+      1.2,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutQuint",
+      1.0,
+      false
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "You're scared that Iris will nag you, aren't you?",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_112",
+      "a",
+      "023",
+      "avg_emoji_flurry",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "niunie1",
+      "none",
+      "Linear",
+      0,
+      nil,
+      false,
+      1.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_112",
+      "",
+      1,
+      "",
+      false,
+      "",
+      "If she finds out,==W== I won't be allowed to sit behind Loxy's steering wheel for the next two months!",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.75}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_112",
+      "a",
+      "016",
+      "avg_emoji_awkward",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "chijing",
+      "none",
+      "Linear",
+      0,
+      nil,
+      false,
+      1.0,
+      false,
+      nil
+    }
+  },
+  {cmd = "SetGoOn"},
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_112",
+      "a",
+      "012",
+      "avg_emoji_flurry",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "tiao2",
+      "none",
+      "Linear",
+      0,
+      nil,
+      false,
+      1.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_112",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Please...",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_169",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      0,
+      0,
+      "17",
+      "OutSine",
+      true,
+      true,
+      0.8,
+      true,
+      "default"
+    }
+  },
+  {
+    cmd = "SetFx",
+    param = {
+      0,
+      "fx_avg_reminiscence_loop",
+      1,
+      0,
+      nil,
+      nil,
+      nil,
+      0.0,
+      false,
+      false
+    }
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.12,
+      nil,
+      nil,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      true
+    }
+  },
+  {
+    cmd = "SetBg",
+    param = {
+      0,
+      "phylanis_forest",
+      "0",
+      "Linear",
+      0.0,
+      false,
+      "default",
+      0
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.05,
+      nil,
+      nil,
+      1.0,
+      nil,
+      "none",
+      "Linear",
+      0.0,
+      false,
+      0
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      1,
+      0,
+      "0",
+      "OutSine",
+      false,
+      false,
+      0.8,
+      true,
+      "default"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.3}
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      1,
+      1,
+      "024",
+      "avg_emoji_think",
+      "none",
+      "y",
+      0.0,
+      true,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      2,
+      "avg3_100",
+      "",
+      1,
+      "",
+      false,
+      "",
+      "Now that I think about it, I made a similar promise to Noya once...",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.8}
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      0,
+      0,
+      "010",
+      "avg_emoji_sigh",
+      "none",
+      "z",
+      0.0,
+      true,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      1,
+      "avg3_100",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "Noya, Iris, Amber... How can I find my way back to you...?",
+      ""
+    }
+  },
+  {
+    cmd = "SetMainRoleTalk",
+    param = {
+      3,
+      0,
+      nil,
+      "close",
+      "none",
+      "z",
+      0.0,
+      false,
+      "avg3_100"
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "CtrlStage",
+    param = {
+      0,
+      nil,
+      nil,
+      -100.0,
+      -45.0,
+      1.22,
+      nil,
+      nil,
+      nil,
+      "none",
+      "OutSine",
+      1.2,
+      false
+    }
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      1.05,
+      nil,
+      nil,
+      0.85,
+      nil,
+      "none",
+      "OutSine",
+      1.2,
+      false,
+      0
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {1.25}
+  },
+  {
+    cmd = "CtrlBg",
+    param = {
+      0,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.7,
+      nil,
+      "none",
+      "OutSine",
+      0.5,
+      false,
+      0
+    }
+  },
+  {
+    cmd = "SetChar",
+    param = {
+      0,
+      0,
+      "none",
+      "avg1_162",
+      "a",
+      "022",
+      "none",
+      nil,
+      0.53,
+      nil,
+      nil,
+      nil,
+      nil,
+      0.0,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "022",
+      "avg_emoji_speechless",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      1.0,
+      "none",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      1.0,
+      true,
+      nil
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.25}
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      1,
+      "",
+      false,
+      "",
+      "<size=85%>There's that name again... Noya. Maybe I really do look like her.</size>",
+      ""
+    }
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg1_162",
+      "a",
+      "014",
+      "close",
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "lengzhan",
+      "none",
+      "OutSine",
+      0,
+      nil,
+      false,
+      0.0,
+      false,
+      nil
+    }
+  },
+  {
+    cmd = "SetTalk",
+    param = {
+      0,
+      "avg1_162",
+      "",
+      0,
+      "",
+      false,
+      "",
+      "<size=85%>I wonder... What kind of person is she?</size>",
+      ""
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
+    cmd = "SetBGM",
+    param = {
+      1,
+      "music_avg_volume100_0s",
+      0,
+      "",
+      "2000ms",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "SetTrans",
+    param = {
+      0,
+      0,
+      "0",
+      "OutSine",
+      true,
+      true,
+      1.0,
+      true,
+      "default"
+    }
+  },
+  {
+    cmd = "SetAudio",
+    param = {
+      0,
+      "se_024_stop",
+      0.0,
+      false
+    }
+  },
+  {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {cmd = "End"}
+}

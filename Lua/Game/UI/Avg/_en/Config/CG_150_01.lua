@@ -547,7 +547,7 @@ return {
       "",
       false,
       "",
-      "I was over at headquarters for something and just happened to see Lady Angel going off about it.",
+      "I was over at headquarters for something and just happened to see Lady Albedo  going off about it.",
       ""
     }
   },

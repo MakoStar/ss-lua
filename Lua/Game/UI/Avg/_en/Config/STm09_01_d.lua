@@ -41763,7 +41763,7 @@ return {
       "",
       false,
       "",
-      "==A1==\t\t\t<align=left><margin-left=2em><color=#000000><size=110>==Off==This is the final death==RT====RT==\t\tand the rebirth of Nova.",
+      "_NOT_IN_LOG_==A1==\t\t\t<align=left><margin-left=2em><color=#000000><size=110>==Off==This is the final death==RT====RT==\t\tand the rebirth of Nova.",
       ""
     }
   },

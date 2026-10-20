@@ -364,7 +364,7 @@ return {
       "",
       false,
       "",
-      "Angie and YOUR BOSS are here. Chatting.",
+      "I am chatting with Albedo.",
       ""
     }
   },
@@ -739,7 +739,7 @@ return {
       "",
       false,
       "",
-      "I was just about to make a break for it, but Angie caught me right at the door!",
+      "I was just about to make a break for it, but Albedo caught me right at the door!",
       ""
     }
   },

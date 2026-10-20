@@ -127,7 +127,7 @@ return {
     param = {
       "18:45",
       "Nebula Month",
-      "7th",
+      "18th",
       "Mirage",
       "Unnamed Street"
     }

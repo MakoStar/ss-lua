@@ -575,7 +575,7 @@ return {
       false,
       "",
       "Keep it down! That's the \"Boss\" who runs her own company. I heard ==SEX1== and Gerie got ...==W== real close in the Monolith.",
-      ""
+      "Keep it down! That's the \"Boss\" who runs his own company. I heard ==SEX1== and Gerie got ...==W== real close in the Monolith."
     }
   },
   {
