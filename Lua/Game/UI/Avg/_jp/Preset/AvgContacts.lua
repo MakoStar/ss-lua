@@ -302,6 +302,14 @@ return {
     ver = "1.13.0"
   },
   {
+    id = 162,
+    icon = "Icon/Head/head_16201_S",
+    name = "エリナ",
+    landmark = "フィラニス",
+    signature = "コメント",
+    ver = "2.0.0"
+  },
+  {
     id = 3136,
     icon = "Icon/Head/head_npc13601_S",
     name = "ルビィ",

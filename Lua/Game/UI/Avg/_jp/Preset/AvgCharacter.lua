@@ -328,13 +328,13 @@ return {
     id = "avg1_161",
     name = "***",
     name_bg_color = "#0ABEC5",
-    reuse = "avg3_161",
     ver = "2.1.0"
   },
   {
     id = "avg1_162",
-    name = "***",
+    name = "エリナ",
     name_bg_color = "#ffddb1",
+    reuseL2DPose = "c",
     ver = "2.0.0"
   },
   {
@@ -348,6 +348,18 @@ return {
     name = "サク",
     name_bg_color = "#5a91ca",
     ver = "1.9.0"
+  },
+  {
+    id = "avg1_166",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    ver = "2.3.0"
+  },
+  {
+    id = "avg1_168",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    ver = "2.3.0"
   },
   {
     id = "avg2_001",
@@ -365,6 +377,12 @@ return {
     name_bg_color = "#0ABEC5"
   },
   {
+    id = "avg2_937",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    ver = "2.1.0"
+  },
+  {
     id = "avg2_938",
     name = "冻冻公爵",
     name_bg_color = "#0ABEC5",
@@ -378,19 +396,19 @@ return {
   },
   {
     id = "avg2_940",
-    name = "***",
+    name = "人偶士兵",
     name_bg_color = "#0ABEC5",
     ver = "2.0.0"
   },
   {
     id = "avg2_941",
-    name = "***",
+    name = "奥林匹娅（人偶）",
     name_bg_color = "#0ABEC5",
     ver = "2.0.0"
   },
   {
     id = "avg2_942",
-    name = "***",
+    name = "コペリウス",
     name_bg_color = "#0ABEC5",
     ver = "2.0.0"
   },
@@ -1234,31 +1252,31 @@ return {
   },
   {
     id = "avg3_225",
-    name = "***",
+    name = "莱塔",
     name_bg_color = "#fffcdf",
     ver = "2.0.0"
   },
   {
     id = "avg3_226",
-    name = "***",
+    name = "菲兰尼斯守夜人",
     name_bg_color = "#0ABEC5",
     ver = "2.0.0"
   },
   {
     id = "avg3_227",
-    name = "***",
+    name = "菲兰尼斯元老",
     name_bg_color = "#0ABEC5",
     ver = "2.0.0"
   },
   {
     id = "avg3_228",
-    name = "***",
+    name = "菲兰尼斯平民男性",
     name_bg_color = "#0ABEC5",
     ver = "2.0.0"
   },
   {
     id = "avg3_229",
-    name = "***",
+    name = "菲兰尼斯奴隶少女",
     name_bg_color = "#0ABEC5",
     ver = "2.0.0"
   },
@@ -3090,31 +3108,31 @@ return {
   },
   {
     id = "avg3_1321",
-    name = "***",
+    name = "人偶士兵（初始坐标）A",
     name_bg_color = "#0ABEC5",
-    reuse = "avg2_940",
-    ver = "2.2.0"
+    reuse = "avg4_106",
+    ver = "2.0.0"
   },
   {
     id = "avg3_1322",
-    name = "***",
+    name = "人偶士兵（初始坐标）B",
     name_bg_color = "#0ABEC5",
-    reuse = "avg2_940",
-    ver = "2.2.0"
+    reuse = "avg4_106",
+    ver = "2.0.0"
   },
   {
     id = "avg3_1323",
-    name = "***",
+    name = "人偶士兵（初始坐标）C",
     name_bg_color = "#0ABEC5",
-    reuse = "avg2_940",
-    ver = "2.2.0"
+    reuse = "avg4_106",
+    ver = "2.0.0"
   },
   {
     id = "avg3_1324",
-    name = "***",
+    name = "人偶士兵（初始坐标）D",
     name_bg_color = "#0ABEC5",
-    reuse = "avg2_940",
-    ver = "2.2.0"
+    reuse = "avg4_106",
+    ver = "2.0.0"
   },
   {
     id = "avg3_1325",
@@ -3129,6 +3147,118 @@ return {
     name_bg_color = "#0ABEC5",
     reuse = "avg3_219",
     ver = "1.16.0"
+  },
+  {
+    id = "avg3_1327",
+    name = "人偶士兵A",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg2_940",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1328",
+    name = "人偶士兵B",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg2_940",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1329",
+    name = "人偶士兵C",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg2_940",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1330",
+    name = "人偶士兵D",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg2_940",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1331",
+    name = "セイナ",
+    name_bg_color = "#ffddb1",
+    reuse = "avg1_162",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1332",
+    name = "エリナA",
+    name_bg_color = "#ffddb1",
+    reuse = "avg1_162",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1333",
+    name = "イリスA",
+    name_bg_color = "#a4a5d5",
+    reuse = "avg3_182",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1334",
+    name = "イリスB",
+    name_bg_color = "#a4a5d5",
+    reuse = "avg3_182",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1335",
+    name = "菲兰尼斯平民男性A",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_228",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1336",
+    name = "菲兰尼斯平民男性B",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_228",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1337",
+    name = "菲兰尼斯元老A",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_227",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1338",
+    name = "菲兰尼斯元老B",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_227",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1339",
+    name = "菲兰尼斯奴隶少女A",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_229",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1340",
+    name = "菲兰尼斯奴隶少女B",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_229",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1341",
+    name = "塞拉女B",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_100",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1342",
+    name = "塞拉男B",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_101",
+    ver = "2.0.0"
   },
   {
     id = "avg4_100",
@@ -3161,6 +3291,12 @@ return {
     name = "一块右侧的石头",
     name_bg_color = "#0ABEC5",
     ver = "1.13.0"
+  },
+  {
+    id = "avg4_106",
+    name = "人偶士兵（初始坐标）",
+    name_bg_color = "#0ABEC5",
+    ver = "2.0.0"
   },
   {
     id = "avg4_999",
