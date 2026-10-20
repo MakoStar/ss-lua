@@ -302,6 +302,14 @@ return {
     ver = "1.13.0"
   },
   {
+    id = 162,
+    icon = "Icon/Head/head_16201_S",
+    name = "尘沙（源初）",
+    landmark = "菲兰尼斯",
+    signature = "这里让我签名，可我没有笔要怎么签？",
+    ver = "2.0.0"
+  },
+  {
     id = 3136,
     icon = "Icon/Head/head_npc13601_S",
     name = "红宝石",

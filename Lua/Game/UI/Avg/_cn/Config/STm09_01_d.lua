@@ -41758,7 +41758,7 @@ return {
     param = {
       8,
       "0",
-      "==A1==\t\t\t<align=left><margin-left=2em><color=#000000><size=110>==Off==此即，最终之死；==RT====RT==\t\t亦是，诺瓦新生。",
+      "_NOT_IN_LOG_==A1==\t\t\t<align=left><margin-left=2em><color=#000000><size=110>==Off==此即，最终之死；==RT====RT==\t\t亦是，诺瓦新生。",
       1,
       "",
       false,
