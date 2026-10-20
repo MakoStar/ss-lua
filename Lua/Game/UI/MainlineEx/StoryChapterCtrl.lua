@@ -101,6 +101,19 @@ function StoryChapterCtrl:OnEnable()
   end
   self:SetMoWang()
   self:CheckJustRead()
+  if type(tbParam) == "table" then
+    local nPreviousSelectedChapterId = tbParam[2] or 0
+    if type(nPreviousSelectedChapterId) == "number" and 0 < nPreviousSelectedChapterId then
+      local bUnlock, sTxt = PlayerData.Avg:IsStoryChapterUnlock(nPreviousSelectedChapterId)
+      if bUnlock == true then
+        self.nChapterId_From = nPreviousSelectedChapterId
+        local cfgdata = ConfigTable.GetData("StoryChapter", nPreviousSelectedChapterId)
+        self.nStoryLineId_From = cfgdata.StoryLineId
+      else
+        printLog("previous selected chapter hasn't unlocked, chapter id:" .. tostring(nPreviousSelectedChapterId))
+      end
+    end
+  end
   self:CheckLatest()
   self:FallbackToDefault()
   self.bPlayEnterChapter = false
@@ -257,7 +270,6 @@ function StoryChapterCtrl:OnDisable()
   self.bPlayEnterChapter = false
   delChildren(self._mapNode.loopsvChapterList.transform:Find("Viewport/Content"))
   delChildren(self._mapNode.loopsvStoryLineList.transform:Find("Viewport/Content"))
-  self._panel._tbParam = nil
 end
 
 function StoryChapterCtrl:ParseData()
@@ -711,7 +723,8 @@ function StoryChapterCtrl:OnBtn_Chapter(go)
   if type(self._panel._tbParam) ~= "table" then
     self._panel._tbParam = {}
   end
-  self._panel._tbParam[1] = self.nCurChapterId
+  self._panel._tbParam[1] = 0
+  self._panel._tbParam[2] = self.nCurChapterId
   local seq = DOTween.Sequence()
   seq:AppendInterval(0.1)
   seq:AppendCallback(Play_ChapterAnim)

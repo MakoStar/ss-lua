@@ -2307,7 +2307,7 @@ local function GetToolBoxUrl()
       url = "https://staging-web-toolbox.stellasora.jp"
     end
   elseif clientPublishRegion == CS.ClientPublishRegion.US then
-    if sChannel == "EN" then
+    if sChannel == "EN" or sChannel == "EN_Steam" then
       result = true
       url = "https://toolbox.stellasora.global"
     else
@@ -2349,7 +2349,7 @@ local function GetExchangeCodeUrl()
       url = "https://staging-web.stellasora.jp/serial_code?type=webview"
     end
   elseif clientPublishRegion == CS.ClientPublishRegion.US then
-    if sChannel == "EN" then
+    if sChannel == "EN" or sChannel == "EN_Steam" then
       result = true
       url = "https://stellasora.global/gift?type=webview"
     else

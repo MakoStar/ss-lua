@@ -137,12 +137,6 @@ end
 
 function DormFriendRootCtrl:OnBtnClick_Like()
   local function callback()
-    self._mapNode.btnLike.gameObject:SetActive(false)
-    
-    self._mapNode.iconLike.gameObject:SetActive(true)
-    self.mapFriendDormDetail.LikeNum = self.mapFriendDormDetail.LikeNum + 1
-    NovaAPI.SetTMPText(self._mapNode.TMPLikeCount, self.mapFriendDormDetail.LikeNum)
-    NovaAPI.SetTMPText(self._mapNode.TMPiconLike, self.mapFriendDormDetail.LikeNum)
   end
   
   PlayerData.PlayerDormData:DormFriendLike(self.mapFriendDormDetail.uid, callback)

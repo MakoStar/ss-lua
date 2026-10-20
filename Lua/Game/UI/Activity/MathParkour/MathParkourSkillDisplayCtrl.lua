@@ -4,6 +4,7 @@ local GameResourceLoader = require("Game.Common.Resource.GameResourceLoader")
 local ResTypeAny = GameResourceLoader.ResType.Any
 local Path = require("path")
 local WwiseAudioMgr = CS.WwiseAudioManager.Instance
+local LocalSettingData = require("GameCore.Data.LocalSettingData")
 MathParkourSkillDisplayCtrl._mapNodeConfig = {
   DisplayParent = {},
   imgBgChar = {sComponentName = "Image"},
@@ -118,6 +119,10 @@ function MathParkourSkillDisplayCtrl:OnEvent_CastAssistSkillPause(bPause)
 end
 
 function MathParkourSkillDisplayCtrl:OnEvent_CastAssistSkill(nCharId, nSkinId)
+  self.UseLive2D = LocalSettingData.mapData.UseLive2D
+  if not (nCharId and nSkinId) or not self.UseLive2D then
+    return
+  end
   self:UltimateDisplay(nCharId, nSkinId)
 end
 

@@ -131,8 +131,11 @@ function PopUpManager.PopUpDeQueue()
       table.remove(mapData, 1)
     end
     if #mapData == 0 then
-      exitPopUpQueue()
-      return
+      if #_tbPopUpQueue == 0 then
+        exitPopUpQueue()
+        return
+      end
+      _tempPopUpMapData = table.remove(_tbPopUpQueue, 1)
     else
       _tempPopUpMapData.mapData = mapData
     end
