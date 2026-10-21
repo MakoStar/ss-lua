@@ -1,71 +1,110 @@
-local SoldierCharCardItemCtrl = require("Game.UI.Soldier.Template.Character.SoldierCharCardItemCtrl")
-local SoldierRecommendCharItemCtrl = class("SoldierRecommendCharItemCtrl", SoldierCharCardItemCtrl)
+local SoldierRecommendCharItemCtrl = class("SoldierRecommendCharItemCtrl", BaseCtrl)
+local MAX_STAR = 5
+
+local function SetActiveIfChanged(goNode, bActive)
+  if goNode.activeSelf ~= bActive then
+    goNode:SetActive(bActive)
+  end
+end
+
+SoldierRecommendCharItemCtrl._mapNodeConfig = {
+  btnItem = {
+    sComponentName = "UIButton",
+    callback = "OnBtnItemClick"
+  },
+  Star = {nCount = MAX_STAR},
+  goChar = {},
+  imgEmpty = {},
+  imageIcon = {sComponentName = "Image"},
+  imageRarity = {sComponentName = "Image"},
+  img_Position = {sComponentName = "Image"}
+}
 SoldierRecommendCharItemCtrl._mapEventConfig = {}
+SoldierRecommendCharItemCtrl._mapRedDotConfig = {}
 
 function SoldierRecommendCharItemCtrl:Awake()
-  SoldierCharCardItemCtrl.Awake(self)
   self._mapSpritePath = {}
-  self._mapNode.animRoot.enabled = false
+  local trAttribute = self._mapNode.goChar.transform:Find("imgAttribute")
+  if trAttribute ~= nil then
+    self._imgAttribute = trAttribute:GetComponent("Image")
+  end
+  local trAnimRoot = self._mapNode.btnItem.transform:Find("AnimRoot")
+  if trAnimRoot ~= nil then
+    local objAnimator = trAnimRoot:GetComponent("Animator")
+    if objAnimator ~= nil then
+      objAnimator.enabled = false
+    end
+  end
 end
 
 function SoldierRecommendCharItemCtrl:OnEnable()
-  SoldierCharCardItemCtrl.OnEnable(self)
   self:SetAttribute(self._nRecommendPosition)
 end
 
-function SoldierRecommendCharItemCtrl:OnDisable()
-  self.bActive = false
-end
-
 function SoldierRecommendCharItemCtrl:OnDestroy()
-  SoldierCharCardItemCtrl.OnDestroy(self)
   self._mapSpritePath = nil
+  self._imgAttribute = nil
+  self._objClickCallback = nil
+  self._fnClickCallback = nil
 end
 
 function SoldierRecommendCharItemCtrl:SetRecommendData(mapCharData, nPosition)
-  self._nRecommendPosition = nPosition
   if mapCharData == nil or mapCharData.nId == nil or mapCharData.nId == 0 then
-    self._nRecommendPosition = nil
-    SoldierCharCardItemCtrl.SetItemData(self, nil)
     self.nCharId = nil
-    self.bInSandland = false
-    self._nRecommendStar = 0
-    self:SetStar(0)
+    self._nRecommendPosition = nil
+    SetActiveIfChanged(self._mapNode.goChar, false)
+    SetActiveIfChanged(self._mapNode.imgEmpty, true)
     self:SetAttribute(nil)
-    self._mapNode.imgRecommend.gameObject:SetActive(false)
-    self:SetLock(false)
-    self:SetClickCallback(nil, nil)
     return
   end
-  self._nRecommendStar = mapCharData.nStar or 0
+  SetActiveIfChanged(self._mapNode.imgEmpty, false)
+  SetActiveIfChanged(self._mapNode.goChar, true)
   if self.nCharId ~= mapCharData.nId then
-    SoldierCharCardItemCtrl.SetItemData(self, mapCharData.nId)
-  else
-    self:SetStar(self._nRecommendStar)
+    self.nCharId = mapCharData.nId
+    self:SetCharConfig(mapCharData.nId)
   end
+  self:SetStar(mapCharData.nStar or 0)
+  self._nRecommendPosition = nPosition
   self:SetAttribute(nPosition)
 end
 
+function SoldierRecommendCharItemCtrl:SetCharConfig(nCharId)
+  local mapCharConfig = ConfigTable.GetData("SoldierCharacter", nCharId)
+  if mapCharConfig == nil then
+    return
+  end
+  if mapCharConfig.Rarity ~= nil then
+    self:SetPngSprite(self._mapNode.imageRarity, "Icon/SoldierOtherIcon/" .. AllEnum.SoldierChessRarityIcon[mapCharConfig.Rarity] .. AllEnum.SoldierChessIconSurfix.M)
+  end
+  local mapSkinConfig = ConfigTable.GetData("SoldierSkin", mapCharConfig.Skin)
+  if mapSkinConfig ~= nil then
+    self:SetPngSprite(self._mapNode.imageIcon, mapSkinConfig.Icon .. AllEnum.SoldierChessIconSurfix.M)
+  end
+  if mapCharConfig.Type ~= nil then
+    local mapChessType = CacheTable.GetData("_SoldierChessType", mapCharConfig.Type)
+    local sIcon = mapChessType ~= nil and mapChessType.Icon or ""
+    self:SetPngSprite(self._mapNode.img_Position, "Icon/SoldierOtherIcon/" .. sIcon)
+  end
+end
+
 function SoldierRecommendCharItemCtrl:SetStar(nStar)
-  nStar = self._nRecommendStar or nStar or 0
   if self.nStar == nStar then
     return
   end
   self.nStar = nStar
-  for nIndex = 1, self.MAX_STAR do
-    local bActive = nIndex <= nStar
+  for nIndex = 1, MAX_STAR do
     local goStar = self._mapNode.Star[nIndex]
-    local goFxStar = self._mapNode.FxStar[nIndex]
-    if goStar ~= nil and goStar.activeSelf ~= bActive then
-      goStar:SetActive(bActive)
-    end
-    if goFxStar ~= nil and goFxStar.activeSelf ~= bActive then
-      goFxStar:SetActive(bActive)
+    if goStar ~= nil then
+      SetActiveIfChanged(goStar, nIndex <= nStar)
     end
   end
 end
 
 function SoldierRecommendCharItemCtrl:SetAttribute(nPosition)
+  local imgAttribute = self._imgAttribute
+  if imgAttribute == nil then
+    return
+  end
   local bUnlock = false
   local sIcon
   if nPosition ~= nil and 1 <= nPosition and nPosition <= 3 then
@@ -76,12 +115,20 @@ function SoldierRecommendCharItemCtrl:SetAttribute(nPosition)
       sIcon = "Icon/SoldierOtherIcon/" .. mapConfig.Icon
     end
   end
-  local imgAttribute = self._mapNode.imgAttribute
-  if imgAttribute.gameObject.activeSelf ~= bUnlock then
-    imgAttribute.gameObject:SetActive(bUnlock)
-  end
+  SetActiveIfChanged(imgAttribute.gameObject, bUnlock)
   if bUnlock then
     self:SetPngSprite(imgAttribute, sIcon)
+  end
+end
+
+function SoldierRecommendCharItemCtrl:SetClickCallback(obj, fn)
+  self._objClickCallback = obj
+  self._fnClickCallback = fn
+end
+
+function SoldierRecommendCharItemCtrl:OnBtnItemClick()
+  if self._fnClickCallback ~= nil and self.nCharId ~= nil then
+    self._fnClickCallback(self._objClickCallback, self.nCharId)
   end
 end
 

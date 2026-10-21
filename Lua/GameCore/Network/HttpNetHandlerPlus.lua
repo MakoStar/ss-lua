@@ -599,4 +599,8 @@ function HttpNetHandlerPlus.handbook_complete_notify(mapMsgData)
   end
 end
 
+function HttpNetHandlerPlus.guide_mission_state_notify(mapMsgData)
+  RedDotManager.SetValid(RedDotDefine.GuideMission_Server, nil, mapMsgData.New)
+end
+
 return HttpNetHandlerPlus

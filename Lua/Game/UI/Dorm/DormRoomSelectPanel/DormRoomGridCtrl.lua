@@ -6,15 +6,9 @@ DormRoomGridCtrl._mapNodeConfig = {
   imgNameBg = {},
   imgLock = {},
   TMPRoomName = {sComponentName = "TMP_Text"},
-  txtBtnGo = {
-    sComponentName = "TMP_Text",
-    sLanguageId = "MainView_Go"
-  },
+  txtBtnGo = {sComponentName = "TMP_Text", sLanguageId = "Dorm_Go"},
   TMPRoomNotAvailable = {sComponentName = "TMP_Text"},
-  txtBtnGoGray = {
-    sComponentName = "TMP_Text",
-    sLanguageId = "MainView_Go"
-  },
+  txtBtnGoGray = {sComponentName = "TMP_Text", sLanguageId = "Dorm_Go"},
   btnGo = {
     sComponentName = "UIButton",
     callback = "OnBtnClick_Go"

@@ -263,7 +263,7 @@ end
 
 function VampireSurvivorPauseCtrl:OnBtnClick_Skill(btn)
   local mapCharData = self._panel._bTrialBuild and self._panel.mapCharData or nil
-  EventManager.Hit(EventId.OpenPanel, PanelId.PopupSkillPanel, self.tbChar, false, nil, mapCharData)
+  EventManager.Hit(EventId.OpenPanel, PanelId.PopupSkillPanel, self.tbChar, false, self._mapCharTrialId or {}, mapCharData)
   self._mapNode.ActionBar.gameObject:SetActive(false)
 end
 

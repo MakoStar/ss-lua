@@ -130,8 +130,9 @@ end
 function TraceHuntPauseCtrl:OnDisable()
 end
 
-function TraceHuntPauseCtrl:Pause(nLevelId, tbCharId, bSelfBoss)
+function TraceHuntPauseCtrl:Pause(nLevelId, tbCharId, bSelfBoss, mapCharTrialId)
   self.tbChar = tbCharId
+  self._mapCharTrialId = mapCharTrialId
   self.nLevelId = nLevelId
   self.bSelfBoss = bSelfBoss
   EventManager.Hit(EventId.BattleDashboardVisible, false)
@@ -253,7 +254,7 @@ function TraceHuntPauseCtrl:OnBtnClick_Settings(btn)
 end
 
 function TraceHuntPauseCtrl:OnBtnClick_Skill(btn)
-  EventManager.Hit(EventId.OpenPanel, PanelId.PopupSkillPanel, self.tbChar)
+  EventManager.Hit(EventId.OpenPanel, PanelId.PopupSkillPanel, self.tbChar, false, self._mapCharTrialId)
   self._mapNode.ActionBar.gameObject:SetActive(false)
 end
 

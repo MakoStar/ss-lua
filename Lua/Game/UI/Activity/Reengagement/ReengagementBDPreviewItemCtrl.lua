@@ -26,7 +26,7 @@ ReengagementBDPreviewItemCtrl._mapNodeConfig = {
 ReengagementBDPreviewItemCtrl._mapEventConfig = {}
 
 function ReengagementBDPreviewItemCtrl:Refresh(nTrialBuildId)
-  self.mapBuildData = PlayerData.Build:GetTrialBuild(nTrialBuildId)
+  self.mapBuildData = PlayerData.Build:GetLimitedTrialBuild(nTrialBuildId)
   if self.mapBuildData == nil then
     self.gameObject:SetActive(false)
     return
@@ -74,7 +74,7 @@ function ReengagementBDPreviewItemCtrl:OnClickItem()
   if self.mapBuildData == nil then
     return
   end
-  self.mapBuildData = PlayerData.Build:GetTrialBuild(self.mapBuildData.nBuildId)
+  self.mapBuildData = PlayerData.Build:GetLimitedTrialBuild(self.mapBuildData.nBuildId)
   if self.mapBuildData == nil then
     return
   end

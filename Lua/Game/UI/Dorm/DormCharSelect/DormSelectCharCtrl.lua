@@ -258,20 +258,16 @@ function DormSelectCharCtrl:FilterChar()
   self.tbSortedChar = {}
   for _, data in pairs(self.tbAllChar) do
     local mapCharCfgData = ConfigTable.GetData_Character(data.nId)
-    local mapDormCharCfgData = ConfigTable.GetData("DormRole", data.nId, false)
+    local mapDormCharCfgData = ConfigTable.GetData("DormRole", data.nId, true)
     local bAvailable = mapCharCfgData.Available and mapDormCharCfgData ~= nil
     if bAvailable then
-      local isFilter = PlayerData.Filter:CheckFilterByChar(data.nId)
-      local bCur = table.indexof(self.curChar, data.nId) > 0
-      if isFilter or bCur then
-        local mapSkill = PlayerData.Char:GetCharSkillUpgradeData(data.nId)
-        local nSkillLevelSum = 0
-        for k, v in pairs(mapSkill) do
-          nSkillLevelSum = nSkillLevelSum + v.nLv
-        end
-        data.SkillLevel = nSkillLevelSum
-        table.insert(self.tbSortedChar, data)
+      local mapSkill = PlayerData.Char:GetCharSkillUpgradeData(data.nId)
+      local nSkillLevelSum = 0
+      for k, v in pairs(mapSkill) do
+        nSkillLevelSum = nSkillLevelSum + v.nLv
       end
+      data.SkillLevel = nSkillLevelSum
+      table.insert(self.tbSortedChar, data)
     end
   end
   print("过滤后 charCount:" .. #self.tbSortedChar)

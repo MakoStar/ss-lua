@@ -24,7 +24,7 @@ DormFriendGridCtrl._mapNodeConfig = {
   imgHead = {sComponentName = "Image"},
   TMPBtnVisit = {
     sComponentName = "TMP_Text",
-    sLanguageId = "DormBtn_Visit"
+    sLanguageId = "DormFriend_Visit"
   }
 }
 DormFriendGridCtrl._mapEventConfig = {}

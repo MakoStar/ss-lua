@@ -121,7 +121,7 @@ end
 
 function TraceHuntLevel:OnEvent_Pause()
   if self.isCanPause then
-    EventManager.Hit("OpenTraceHuntPause", self.LevelId, self.tbCharId, self.parent.bSelfBoss)
+    EventManager.Hit("OpenTraceHuntPause", self.LevelId, self.tbCharId, self.parent.bSelfBoss, self.tbCharTrialId)
   end
 end
 

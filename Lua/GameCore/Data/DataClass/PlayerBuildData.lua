@@ -940,6 +940,11 @@ function PlayerBuildData:SyncLimitedTrialBuildCache()
   self:RefreshLimitedTrialBuildCache(tbTrialBuildId)
 end
 
+function PlayerBuildData:GetLimitedTrialBuild(nBuildId)
+  self:SyncLimitedTrialBuildCache()
+  return self._MapLimitedTrialBuildData[nBuildId]
+end
+
 function PlayerBuildData:GetActiveLimitedTrialBuilds(nType, bIncludeUnsupported)
   local tbRet = {}
   local mapRet = {}

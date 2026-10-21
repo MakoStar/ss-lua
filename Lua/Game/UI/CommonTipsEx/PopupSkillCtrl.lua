@@ -182,20 +182,20 @@ function PopupSkillCtrl:OnEnable()
   local tbParam = self:GetPanelParam()
   self.tbChar = tbParam[1]
   local bNoMask = tbParam[2]
-  local tbTrialId = tbParam[3]
+  local mapCharTrialId = tbParam[3]
   self.mapCharInfo = tbParam[4]
   local nSelectCharId = tbParam[5]
   self.bOutBattle = tbParam[6]
   self._mapNode.aniBlur.gameObject:SetActive(not bNoMask)
   self._mapNode.aniBlur2.gameObject:SetActive(bNoMask)
   self.mapCharSkill = {}
-  local bTrial = tbTrialId and 0 < #tbTrialId
-  for k, nCharId in ipairs(self.tbChar) do
+  for _, nCharId in ipairs(self.tbChar) do
     local mapChar = self.mapCharInfo and self.mapCharInfo[nCharId]
+    local nTrialId = mapCharTrialId and mapCharTrialId[nCharId]
     if mapChar and mapChar.tbSkillAddedLvs then
       self.mapCharSkill[nCharId] = clone(mapChar.tbSkillAddedLvs)
-    elseif bTrial then
-      self.mapCharSkill[nCharId] = PlayerData.Char:GetTrialCharSkillAddedLevel(tbTrialId[k])
+    elseif type(nTrialId) == "number" and 0 < nTrialId then
+      self.mapCharSkill[nCharId] = PlayerData.Char:GetAnyTrialCharSkillAddedLevel(nTrialId)
     elseif self.mapCharInfo == nil or next(self.mapCharInfo) == nil then
       self.mapCharSkill[nCharId] = PlayerData.Char:GetCharSkillAddedLevel(nCharId)
     else

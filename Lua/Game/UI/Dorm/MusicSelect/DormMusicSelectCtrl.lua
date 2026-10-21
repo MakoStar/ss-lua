@@ -101,10 +101,7 @@ function DormMusicSelectCtrl:FilterDisc()
   for _, data in pairs(self.tbAllDisc) do
     local mapCfg = ConfigTable.GetData("Disc", data.nId)
     if mapCfg.Visible then
-      local isFilter = PlayerData.Filter:CheckFilterByDisc(data.nId)
-      if isFilter then
-        table.insert(self.tbSortedDisc, data)
-      end
+      table.insert(self.tbSortedDisc, data)
     end
   end
 end

@@ -55,8 +55,9 @@ function JumpUtil.JumpTo(jumpId, ...)
         JumpUtil.DoJump(jumpId, table.unpack(args))
       end
       
+      local nUseTransitionId = nTransitionId == 0 and 1 or nTransitionId
       if bNeedTransition then
-        EventManager.Hit(EventId.SetTransition, nTransitionId, transitionOpenCallback, nTransitionType)
+        EventManager.Hit(EventId.SetTransition, nUseTransitionId, transitionOpenCallback, nTransitionType)
       else
         transitionOpenCallback()
       end
@@ -153,7 +154,7 @@ function JumpUtil.JumpCheckAndTransition(jumpId, callback, ...)
     end
     callback(true, false, 0)
   elseif nType == GameEnum.jumpType.InfinityTower then
-    callback(true, true, 0)
+    callback(true, true, 8)
   elseif nType == GameEnum.jumpType.Phone then
     local function openCallback()
       callback(true, false, 0)

@@ -14,7 +14,7 @@ SoldierRecommendDetailCtrl._mapNodeConfig = {
   },
   MainChar = {
     nCount = 3,
-    sCtrlName = "Game.UI.Soldier.Template.Character.SoldierCharSupportCardItemCtrl"
+    sCtrlName = "Game.UI.Soldier.Recommend.SoldierRecommendCharItemCtrl"
   },
   sv_backChar = {
     sComponentName = "LoopScrollView"
@@ -199,26 +199,18 @@ function SoldierRecommendDetailCtrl:OnBackCharRefreshGrid(goGrid, nGridIndex)
   local nInstanceId = goGrid:GetInstanceID()
   local objCharCard = self.mapBackCharCtrl[nInstanceId]
   if objCharCard == nil then
-    objCharCard = self:BindCtrlByNode(goGrid, "Game.UI.Soldier.Template.Character.SoldierCharSupportCardItemCtrl")
+    objCharCard = self:BindCtrlByNode(goGrid, "Game.UI.Soldier.Recommend.SoldierRecommendCharItemCtrl")
     self.mapBackCharCtrl[nInstanceId] = objCharCard
   end
   self:RefreshCharCard(objCharCard, self.tbBackCharData[nIndex])
 end
 
 function SoldierRecommendDetailCtrl:RefreshCharCard(objCharCard, mapCharData)
-  objCharCard:_RemoveAllTimer()
-  objCharCard.nStar = nil
+  objCharCard:SetRecommendData(mapCharData, nil)
   if mapCharData == nil or mapCharData.nId == nil or mapCharData.nId == 0 then
-    objCharCard:SetItemData(nil)
-    objCharCard:SetStar(0)
-    objCharCard:SetChessPosition(nil)
-    objCharCard._mapNode.Fx_warrior.gameObject:SetActive(false)
     objCharCard:SetClickCallback(nil, nil)
     return
   end
-  objCharCard:SetItemData(mapCharData.nId)
-  objCharCard:SetStar(mapCharData.nStar)
-  objCharCard.nStar = mapCharData.nStar or 0
   objCharCard:SetClickCallback(self, function()
     local mapChessData = {
       nId = mapCharData.nId,

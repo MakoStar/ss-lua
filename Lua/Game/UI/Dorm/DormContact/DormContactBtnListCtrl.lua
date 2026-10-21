@@ -166,8 +166,28 @@ function DormContactBtnListCtrl:RemoveRewardHud(nEntityId, nFurId)
       removedIdx = nIdx
     end
   end
-  local removedInfo = table.remove(self.mapListBtn[nEntityId], removedIdx)
-  self:RecycleBtnItem(removedInfo.goItem)
+  if 0 < removedIdx then
+    local removedInfo = table.remove(self.mapListBtn[nEntityId], removedIdx)
+    self:RecycleBtnItem(removedInfo.goItem)
+  end
+end
+
+function DormContactBtnListCtrl:RemoveAllRewardHud()
+  if self.mapListBtn == nil then
+    return
+  end
+  for _, tbBtnInfo in pairs(self.mapListBtn) do
+    local removedIdx = 0
+    for nIdx, mapInfo in ipairs(tbBtnInfo) do
+      if mapInfo.nType == 4 then
+        removedIdx = nIdx
+      end
+    end
+    if 0 < removedIdx then
+      local removedInfo = table.remove(tbBtnInfo, removedIdx)
+      self:RecycleBtnItem(removedInfo.goItem)
+    end
+  end
 end
 
 function DormContactBtnListCtrl:RemoveInteractiveBtn(nEntityId)

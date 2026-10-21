@@ -713,7 +713,11 @@ function GachaCtrl:GachaOneExchangeCoin(mapGacha)
     else
       sTips = orderedFormat(ConfigTable.GetUIText("Recruit_Exchange"), nNeedCount, mapCostCfgData.Id, mapGachaStorage.DefaultQty - nDefaultCount, mapDefaultCfgData.Id)
     end
-    ConfirmPanel(sTips, confirmCallback, "GachaShowTicketExchange")
+    local tips = "GachaShowTicketExchange"
+    if mapGacha.Id == 1001 then
+      tips = nil
+    end
+    ConfirmPanel(sTips, confirmCallback, tips)
   else
     EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("NotEnoughItem"))
   end
@@ -846,7 +850,11 @@ function GachaCtrl:GachaTenExchangeCoin(mapGacha)
     else
       sTips = orderedFormat(ConfigTable.GetUIText("Recruit_Exchange"), nNeedCount, mapCostCfgData.Id, mapGachaStorage.DefaultQty * 10 - nSpecificCount - nDefaultCount, mapDefaultCfgData.Id)
     end
-    ConfirmPanel(sTips, confirmCallback, "GachaShowTicketExchange")
+    local tips = "GachaShowTicketExchange"
+    if mapGacha.Id == 1001 then
+      tips = nil
+    end
+    ConfirmPanel(sTips, confirmCallback, tips)
   else
     EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("NotEnoughItem"))
   end

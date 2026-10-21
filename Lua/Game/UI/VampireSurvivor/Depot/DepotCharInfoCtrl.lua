@@ -232,7 +232,8 @@ function DepotCharInfoCtrl:OnBtnClick_Char(btn, nIndex)
 end
 
 function DepotCharInfoCtrl:OnBtnClick_Skill(btn)
-  EventManager.Hit(EventId.OpenPanel, PanelId.PopupSkillPanel, self.tbTeam, false, {}, {}, self.nCharId)
+  local mapCharData = self._panel._bTrialBuild and self.mapCharData or {}
+  EventManager.Hit(EventId.OpenPanel, PanelId.PopupSkillPanel, self.tbTeam, false, {}, mapCharData, self.nCharId)
 end
 
 function DepotCharInfoCtrl:OnBtnClick_Detail()

@@ -214,14 +214,14 @@ function ChapterPauseCtrl:OnBtnClick_Char(btn, nIndex)
 end
 
 function ChapterPauseCtrl:OnBtnClick_Skill(btn)
-  local tbCharId, tbTrial = {}, {}
+  local tbCharId, mapCharTrialId = {}, {}
   for _, v in ipairs(self.tbChar) do
     table.insert(tbCharId, v.nTid)
     if v.nTrialId then
-      table.insert(tbTrial, v.nTrialId)
+      mapCharTrialId[v.nTid] = v.nTrialId
     end
   end
-  EventManager.Hit(EventId.OpenPanel, PanelId.PopupSkillPanel, tbCharId, false, tbTrial)
+  EventManager.Hit(EventId.OpenPanel, PanelId.PopupSkillPanel, tbCharId, false, mapCharTrialId)
   self._mapNode.ActionBar.gameObject:SetActive(false)
 end
 

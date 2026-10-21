@@ -357,6 +357,7 @@ end
 function StarTowerAutoDecisionSettingCtrl:Awake()
   self._mapNode.imgBlurredBg:SetActive(false)
   self._mapNode.goContentAnim:SetActive(false)
+  self:RefreshPresetBase()
 end
 
 function StarTowerAutoDecisionSettingCtrl:OnEnable()
@@ -387,7 +388,6 @@ function StarTowerAutoDecisionSettingCtrl:OnEnable()
       self:ShowPhoneTime()
       self:RefreshTokenValue()
       self:RefreshPresetList()
-      self:RefreshPresetBase()
       self:RefreshPresetDetail()
       self:CacheOriginalServerProject()
     end

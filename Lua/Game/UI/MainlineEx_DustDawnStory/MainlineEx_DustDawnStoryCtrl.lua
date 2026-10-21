@@ -236,7 +236,7 @@ function MainlineEx_DustDawnStoryCtrl:RefreshStoryList()
   if recentStoryId ~= 0 then
     for i = 1, #self.tbChapterStoryNumIds do
       if self.tbChapterStoryNumIds[i] == recentStoryId then
-        self:AddTimer(1, 0.1, function()
+        self:AddTimer(1, 0.01, function()
           local time = self.bInit and 0 or self.nScrollTime
           self._mapNode.svStory:SetScrollGridPos(i, time, 0)
           self.bInit = true

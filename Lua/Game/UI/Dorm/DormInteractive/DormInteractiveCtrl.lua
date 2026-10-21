@@ -643,6 +643,7 @@ function DormInteractiveCtrl:OnBtnClick_ReceiveDormReward()
     local afterIds = self._panel:GetDormRewardId()
     self._mapNode.rtGiftHint:SetActive(0 < #afterIds)
     self:CheckRewardFurnitureHuds()
+    self._mapNode.rtContact:RemoveAllRewardHud()
     UTILS.OpenReceiveByChangeInfo(changeInfo)
     DormGuideAdapter.NoteQuest(nil, true)
   end

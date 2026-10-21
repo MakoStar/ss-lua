@@ -149,7 +149,7 @@ function InfinityTowerLevel:OnEvent_UnloadComplete()
 end
 
 function InfinityTowerLevel:OnEvnet_Pause()
-  EventManager.Hit("show_Infinity_Pause", self.lvRunTime, self.tbCharId)
+  EventManager.Hit("show_Infinity_Pause", self.lvRunTime, self.tbCharId, self.tbCharTrialId)
 end
 
 function InfinityTowerLevel:OnEvent_AbandonBattle()

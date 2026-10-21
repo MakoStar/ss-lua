@@ -1565,7 +1565,8 @@ local function BindProcessFunction()
     [NetMsgId.Id.clear_all_activity_mathParkour_levels_notify] = HttpNetHandlerPlus.clear_all_activity_mathParkour_levels_notify,
     [NetMsgId.Id.activity_mail_bind_reward_receive_succeed_ack] = HttpNetHandlerPlus.activity_mail_bind_reward_receive_succeed_ack,
     [NetMsgId.Id.activity_mail_bind_reward_receive_failed_ack] = NOTHING_NEED_TO_BE_DONE,
-    [NetMsgId.Id.handbook_complete_notify] = HttpNetHandlerPlus.handbook_complete_notify
+    [NetMsgId.Id.handbook_complete_notify] = HttpNetHandlerPlus.handbook_complete_notify,
+    [NetMsgId.Id.guide_mission_state_notify] = HttpNetHandlerPlus.guide_mission_state_notify
   }
 end
 

@@ -1144,7 +1144,7 @@ function AvgData:SendMsg_STORY_DONE(callBack, tbBattleEvents)
     if self.tbLastEndStoryIds ~= nil then
       for _, nLastEndStoryId in ipairs(self.tbLastEndStoryIds) do
         local mapLastEndStoryCfg = ConfigTable.GetData_Story(nLastEndStoryId)
-        if mapLastEndStoryCfg ~= nil and 0 < table.indexof(self.tbTempStoryIds, mapLastEndStoryCfg.StoryId) then
+        if mapLastEndStoryCfg ~= nil then
           self:SetLastEndState(nLastEndStoryId)
         end
       end

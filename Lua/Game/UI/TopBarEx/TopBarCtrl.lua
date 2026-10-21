@@ -349,7 +349,12 @@ function TopBarCtrl:OnBtnClick_Home()
   if self.bEvent == true then
     EventManager.Hit(EventId.UIHomeConfirm, self._panel._nPanelId)
   else
-    PanelManager.Home()
+    local ModuleManager = require("GameCore.Module.ModuleManager")
+    if ModuleManager.GetCurModuleName() == "DormModuleScene" then
+      PlayerData.Base:GoHomeFromCurModule()
+    else
+      PanelManager.Home()
+    end
   end
 end
 

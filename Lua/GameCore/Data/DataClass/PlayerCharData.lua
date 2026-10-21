@@ -811,6 +811,13 @@ function PlayerCharData:GetLimitedTrialCharSkillAddedLevel(nTrialId)
   return tbSkillLevel
 end
 
+function PlayerCharData:GetAnyTrialCharSkillAddedLevel(nTrialId)
+  if self._mapLimitedTrialChar[nTrialId] ~= nil then
+    return self:GetLimitedTrialCharSkillAddedLevel(nTrialId)
+  end
+  return self:GetTrialCharSkillAddedLevel(nTrialId)
+end
+
 function PlayerCharData:GetCharPlotDataById(charId)
   return CacheTable.GetData("_Plot", charId)
 end

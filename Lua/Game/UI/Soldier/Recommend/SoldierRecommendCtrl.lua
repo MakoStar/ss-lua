@@ -1,5 +1,6 @@
 local SoldierRecommendCtrl = class("SoldierRecommendCtrl", BaseCtrl)
 local SDKManager = CS.SDKManager.Instance
+local HIDE_CELL_POS_Y = 100000
 SoldierRecommendCtrl._mapNodeConfig = {
   Topbar = {
     sNodeName = "TopBarPanel",
@@ -108,25 +109,40 @@ end
 
 function SoldierRecommendCtrl:OnEnable()
   self._bListActive = true
-  self._bWaitingEnterAnim = true
-  self:SetListInputBlocked(true)
   self._mapNode.btnHome.gameObject:SetActive(not self.bInSoldier)
   self:RefreshListHeader()
   local canvas = self.gameObject:GetComponent("Canvas")
   NovaAPI.SetCanvasSortingOrder(canvas, self._nSortingOrder + 1)
   local bNewCache = self._tbListCache == nil
   if bNewCache then
-    self.tbRecommendCellCtrl = {}
     self.tbRecommendData = {}
     self._tbListCache = {}
+    self._tbCellPool = {}
+    self._tbSlotIndex = {}
+    self._nPoolSize = nil
     self._nVisibleListState = nil
   end
   local svList = self._mapNode.sv_recommend
+  self._svRecommend = svList
   self._goRecommendTemplate = svList.transform:Find("grid").gameObject
   self._goRecommendTemplate:SetActive(false)
   self._rtRecommendContent = svList.content
   self._objRecommendLayout = self._rtRecommendContent:GetComponent("GridLayoutGroup")
   self._objRecommendLayout.enabled = false
+  local objLayout = self._objRecommendLayout
+  self._v2CellSize = objLayout.cellSize
+  self._nCellLeft = objLayout.padding.left
+  self._nCellTop = objLayout.padding.top
+  self._nCellBottom = objLayout.padding.bottom
+  self._nCellSpacing = objLayout.spacing.y
+  self._nCellStep = self._v2CellSize.y + self._nCellSpacing
+  if not self._bScrollListening then
+    self._fnOnListScroll = self._fnOnListScroll or function()
+      self:OnListScroll()
+    end
+    svList.onValueChanged:AddListener(self._fnOnListScroll)
+    self._bScrollListening = true
+  end
   local objFitter = self._rtRecommendContent:GetComponent("ContentSizeFitter")
   if objFitter ~= nil then
     objFitter.enabled = false
@@ -134,9 +150,6 @@ function SoldierRecommendCtrl:OnEnable()
   self._rtRecommendContent.pivot = Vector2(0, 1)
   self._rtRecommendContent.anchorMin = Vector2(0, 1)
   self._rtRecommendContent.anchorMax = Vector2(1, 1)
-  self._rtRecommendContent.gameObject:SetActive(false)
-  NovaAPI.SetTMPText(self._mapNode.txtNoRcmd, ConfigTable.GetUIText("Soldier_Recommend_Loading"))
-  self._mapNode.rtEmpty.gameObject:SetActive(true)
   EventManager.Hit("SoldierRecommendPanel_Open")
   self._mapNode.goImport:SetActive(false)
   local tbListCache = self._tbListCache
@@ -147,30 +160,10 @@ function SoldierRecommendCtrl:OnEnable()
       end
     end)
   end
-  if tbListCache[1] ~= nil and tbListCache[1].bLoaded and tbListCache[2] ~= nil and tbListCache[2].bLoaded then
-    self:ShowRecommendList()
-  end
-  
-  local function wait()
-    coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
-    if not self._bListActive then
-      return
-    end
-    while self._bListActive and self.animator ~= nil and self.animator.isActiveAndEnabled do
-      local objState = self.animator:GetCurrentAnimatorStateInfo(0)
-      if not objState:IsName("SoldierRecommendPanel_in") or objState.normalizedTime >= 1 then
-        break
-      end
-      coroutine.yield(nil)
-    end
-    if not self._bListActive then
-      return
-    end
-    self._bWaitingEnterAnim = false
-    self:RefreshRecommendList()
-  end
-  
-  self._coOpenList = cs_coroutine.start(wait)
+  self:RefreshRecommendList()
+  self:AddTimer(1, 0, function()
+    self:OnListScroll()
+  end, true, true, true)
 end
 
 function SoldierRecommendCtrl:OnPreExit()
@@ -180,27 +173,11 @@ function SoldierRecommendCtrl:OnPreExit()
     mapCache.v2Size = self._rtRecommendContent.sizeDelta
   end
   self._bListActive = false
-  self._bWaitingEnterAnim = false
-  if self._coOpenList ~= nil then
-    cs_coroutine.stop(self._coOpenList)
-    self._coOpenList = nil
-  end
-  self:StopListLoading()
-  self:SetListInputBlocked(false)
-end
-
-function SoldierRecommendCtrl:SetListInputBlocked(bBlocked)
-  if self._bListInputBlocked == true == bBlocked then
-    return
-  end
-  self._bListInputBlocked = bBlocked
-  EventManager.Hit(EventId.BlockInput, bBlocked)
-end
-
-function SoldierRecommendCtrl:StopListLoading()
-  if self._coLoadList ~= nil then
-    cs_coroutine.stop(self._coLoadList)
-    self._coLoadList = nil
+  if self._bScrollListening then
+    self._bScrollListening = false
+    if self._svRecommend ~= nil and not self._svRecommend:IsNull() then
+      self._svRecommend.onValueChanged:RemoveListener(self._fnOnListScroll)
+    end
   end
 end
 
@@ -217,8 +194,11 @@ end
 function SoldierRecommendCtrl:ClearListCache()
   self._tbListCache = nil
   self._nVisibleListState = nil
-  self.tbRecommendCellCtrl = nil
+  self._tbCellPool = nil
+  self._tbSlotIndex = nil
+  self._nPoolSize = nil
   self.tbRecommendData = nil
+  self._svRecommend = nil
   self._goRecommendTemplate = nil
   self._rtRecommendContent = nil
   self._objRecommendLayout = nil
@@ -244,104 +224,136 @@ function SoldierRecommendCtrl:RefreshRecommendList()
     return
   end
   self:RefreshListHeader()
-  if self._bWaitingEnterAnim then
-    return
-  end
   local tbSources = {
     PlayerData.SoldierData:GetSystemRecommendList(),
     PlayerData.SoldierData:GetCollectRecommendList()
   }
-  local tbPending = {}
+  local mapPrevious = self._tbListCache[self._nVisibleListState]
+  if mapPrevious ~= nil then
+    mapPrevious.v2Position = self._rtRecommendContent.anchoredPosition
+  end
+  local bChanged = false
   for nState = 1, 2 do
     local mapCache = self._tbListCache[nState]
     if mapCache == nil then
       mapCache = {
-        tbCellCtrl = {},
         tbData = {}
       }
       self._tbListCache[nState] = mapCache
     end
     if not mapCache.bLoaded or mapCache.tbSource ~= tbSources[nState] then
-      table.insert(tbPending, nState)
+      self:LoadRecommendList(mapCache, tbSources[nState])
+      bChanged = true
     end
   end
-  if #tbPending == 0 and self._nVisibleListState == self.nListState then
-    self:SetListInputBlocked(false)
+  if not bChanged and self._nVisibleListState == self.nListState then
     return
   end
-  self:StopListLoading()
-  self._mapNode.sv_recommend:StopMovement()
-  local mapPrevious = self._tbListCache[self._nVisibleListState]
-  if mapPrevious ~= nil then
-    mapPrevious.v2Position = self._rtRecommendContent.anchoredPosition
-    mapPrevious.v2Size = self._rtRecommendContent.sizeDelta
-  end
-  self._rtRecommendContent.gameObject:SetActive(false)
-  if #tbPending == 0 then
-    self:ShowRecommendList()
-    self:SetListInputBlocked(false)
-    return
-  end
-  self:SetListInputBlocked(true)
-  NovaAPI.SetTMPText(self._mapNode.txtNoRcmd, ConfigTable.GetUIText("Soldier_Recommend_Loading"))
-  self._mapNode.rtEmpty.gameObject:SetActive(true)
-  self._coLoadList = cs_coroutine.start(function()
-    coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
-    coroutine.yield(nil)
-    if not self._bListActive then
-      self:SetListInputBlocked(false)
-      return
-    end
-    local bSuccess, sError = pcall(function()
-      for _, nState in ipairs(tbPending) do
-        self:LoadRecommendList(self._tbListCache[nState], tbSources[nState])
-      end
-      self:ShowRecommendList()
-    end)
-    self._coLoadList = nil
-    self:SetListInputBlocked(false)
-    if not bSuccess then
-      printError(sError)
-    end
-  end)
+  self._svRecommend:StopMovement()
+  self:ShowRecommendList()
 end
 
 function SoldierRecommendCtrl:ShowRecommendList()
   local mapCache = self._tbListCache[self.nListState]
-  for nState, mapTabCache in pairs(self._tbListCache) do
-    for nIndex, objCell in ipairs(mapTabCache.tbCellCtrl) do
-      local bActive = nState == self.nListState and nIndex <= #mapTabCache.tbData
-      if objCell.gameObject.activeSelf ~= bActive then
-        objCell.gameObject:SetActive(bActive)
-      end
-    end
-  end
   self._nVisibleListState = self.nListState
-  self.tbRecommendCellCtrl = mapCache.tbCellCtrl
   self.tbRecommendData = mapCache.tbData
   self._rtRecommendContent.sizeDelta = mapCache.v2Size
   self._rtRecommendContent.anchoredPosition = mapCache.v2Position
   local bHasData = #mapCache.tbData > 0
-  self._rtRecommendContent.gameObject:SetActive(bHasData)
-  if not mapCache.bAnimationReady then
-    for nIndex = 1, #mapCache.tbData do
-      local objAnimator = mapCache.tbCellCtrl[nIndex].gameObject:GetComponent("Animator")
-      if objAnimator ~= nil then
-        objAnimator.enabled = true
-        objAnimator:Play("go", 0, 1)
-        objAnimator:Update(0)
-        objAnimator.enabled = false
+  if self._rtRecommendContent.gameObject.activeSelf ~= bHasData then
+    self._rtRecommendContent.gameObject:SetActive(bHasData)
+  end
+  self:RefreshVisibleCells(true)
+  self._mapNode.rtEmpty.gameObject:SetActive(not bHasData)
+end
+
+function SoldierRecommendCtrl:OnListScroll()
+  if not self._bListActive or self._nVisibleListState == nil then
+    return
+  end
+  self:RefreshVisibleCells(false)
+end
+
+function SoldierRecommendCtrl:GetCellPosition(nIndex)
+  return Vector2(self._nCellLeft, -self._nCellTop - (nIndex - 1) * self._nCellStep)
+end
+
+function SoldierRecommendCtrl:CreateRecommendCell()
+  local goItem = instantiate(self._goRecommendTemplate, self._rtRecommendContent)
+  local rtItem = goItem:GetComponent("RectTransform")
+  rtItem.pivot = Vector2(0, 1)
+  rtItem.anchorMin = Vector2(0, 1)
+  rtItem.anchorMax = Vector2(0, 1)
+  rtItem.localScale = Vector3.one
+  rtItem.sizeDelta = self._v2CellSize
+  goItem:SetActive(true)
+  local objCell = self._panel:BindRecommendCtrl(goItem, "Game.UI.Soldier.Recommend.SoldierRecommendCellCtrl")
+  objCell._rtCell = rtItem
+  objCell._nBindIndex = nil
+  objCell._bAnimationReady = false
+  return objCell
+end
+
+function SoldierRecommendCtrl:PrepareCellAnimator(objCell)
+  if objCell._bAnimationReady or not objCell.gameObject.activeInHierarchy then
+    return
+  end
+  local objAnimator = objCell.gameObject:GetComponent("Animator")
+  if objAnimator ~= nil then
+    objAnimator.enabled = true
+    objAnimator:Play("go", 0, 1)
+    objAnimator:Update(0)
+    objAnimator.enabled = false
+  end
+  objCell._bAnimationReady = true
+end
+
+function SoldierRecommendCtrl:RefreshVisibleCells(bForce)
+  local tbData = self.tbRecommendData
+  local nCount = #tbData
+  local rtViewport = self._svRecommend.viewport or self._svRecommend:GetComponent("RectTransform")
+  local nPoolSize = math.max(1, math.ceil(rtViewport.rect.height / self._nCellStep)) + 2
+  if self._nPoolSize == nil or nPoolSize > self._nPoolSize then
+    self._nPoolSize = nPoolSize
+    bForce = true
+  else
+    nPoolSize = self._nPoolSize
+  end
+  local nFirst = math.floor((self._rtRecommendContent.anchoredPosition.y - self._nCellTop) / self._nCellStep) + 1
+  nFirst = math.max(1, math.min(nFirst, nCount - nPoolSize + 1))
+  local nLast = math.min(nCount, nFirst + nPoolSize - 1)
+  local tbSlotIndex = self._tbSlotIndex
+  for nSlot = 1, nPoolSize do
+    tbSlotIndex[nSlot] = nil
+  end
+  for nIndex = nFirst, nLast do
+    tbSlotIndex[(nIndex - 1) % nPoolSize + 1] = nIndex
+  end
+  for nSlot = 1, nPoolSize do
+    local nIndex = tbSlotIndex[nSlot]
+    local objCell = self._tbCellPool[nSlot]
+    if objCell == nil and nIndex ~= nil then
+      objCell = self:CreateRecommendCell()
+      self._tbCellPool[nSlot] = objCell
+    end
+    if objCell ~= nil and (bForce or objCell._nBindIndex ~= nIndex) then
+      objCell._nBindIndex = nIndex
+      if nIndex ~= nil then
+        objCell:SetDetailCallback(self, nIndex)
+        objCell:SetItemData(tbData[nIndex], self.bInSoldier)
+        objCell._rtCell.anchoredPosition = self:GetCellPosition(nIndex)
+      else
+        objCell._rtCell.anchoredPosition = Vector2(self._nCellLeft, HIDE_CELL_POS_Y)
       end
     end
-    mapCache.bAnimationReady = true
+    if objCell ~= nil then
+      self:PrepareCellAnimator(objCell)
+    end
   end
-  NovaAPI.SetTMPText(self._mapNode.txtNoRcmd, ConfigTable.GetUIText("Soldier_Recommend_NoRcmd"))
-  self._mapNode.rtEmpty.gameObject:SetActive(not bHasData)
 end
 
 function SoldierRecommendCtrl:LoadRecommendList(mapCache, tbSource)
   mapCache.bLoaded = false
-  mapCache.bAnimationReady = false
   mapCache.tbData = {}
   for _, mapData in ipairs(tbSource or {}) do
     table.insert(mapCache.tbData, mapData)
@@ -361,29 +373,8 @@ function SoldierRecommendCtrl:LoadRecommendList(mapCache, tbSource)
       return mapFirst.nRecommendId < mapSecond.nRecommendId
     end)
   end
-  local objLayout = self._objRecommendLayout
-  local v2CellSize = objLayout.cellSize
-  local nSpacing = objLayout.spacing.y
-  local nTop = objLayout.padding.top
-  for nIndex, mapData in ipairs(mapCache.tbData) do
-    local objCell = mapCache.tbCellCtrl[nIndex]
-    if objCell == nil then
-      local goItem = instantiate(self._goRecommendTemplate, self._rtRecommendContent)
-      local rtItem = goItem:GetComponent("RectTransform")
-      rtItem.pivot = Vector2(0, 1)
-      rtItem.anchorMin = Vector2(0, 1)
-      rtItem.anchorMax = Vector2(0, 1)
-      rtItem.localScale = Vector3.one
-      rtItem.sizeDelta = v2CellSize
-      rtItem.anchoredPosition = Vector2(objLayout.padding.left, -nTop - (nIndex - 1) * (v2CellSize.y + nSpacing))
-      objCell = self._panel:BindRecommendCtrl(goItem, "Game.UI.Soldier.Recommend.SoldierRecommendCellCtrl")
-      mapCache.tbCellCtrl[nIndex] = objCell
-      objCell:SetDetailCallback(self, nIndex)
-    end
-    objCell:SetItemData(mapData, self.bInSoldier)
-  end
   local nCount = #mapCache.tbData
-  mapCache.v2Size = Vector2(0, nTop + nCount * v2CellSize.y + math.max(0, nCount - 1) * nSpacing + objLayout.padding.bottom)
+  mapCache.v2Size = Vector2(0, self._nCellTop + nCount * self._v2CellSize.y + math.max(0, nCount - 1) * self._nCellSpacing + self._nCellBottom)
   mapCache.v2Position = Vector2.zero
   mapCache.tbSource = tbSource
   mapCache.bLoaded = true

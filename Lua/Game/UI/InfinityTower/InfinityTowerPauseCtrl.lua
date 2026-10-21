@@ -132,8 +132,9 @@ end
 function InfinityTowerPauseCtrl:OnRelease()
 end
 
-function InfinityTowerPauseCtrl:OnEvent_ShowInfinityPause(runTime, tbChar)
+function InfinityTowerPauseCtrl:OnEvent_ShowInfinityPause(runTime, tbChar, mapCharTrialId)
   self.tbChar = tbChar
+  self._mapCharTrialId = mapCharTrialId
   EventManager.Hit(EventId.BattleDashboardVisible, false)
   PanelManager.InputDisable()
   local lvId = PlayerData.InfinityTower:GetCurrentLv()
@@ -366,7 +367,7 @@ function InfinityTowerPauseCtrl:OnPanelClose(_, bGiveUp)
 end
 
 function InfinityTowerPauseCtrl:OnBtnClick_Skill(btn)
-  EventManager.Hit(EventId.OpenPanel, PanelId.PopupSkillPanel, self.tbChar, true)
+  EventManager.Hit(EventId.OpenPanel, PanelId.PopupSkillPanel, self.tbChar, true, self._mapCharTrialId)
   self._mapNode.ActionBar.gameObject:SetActive(false)
 end
 

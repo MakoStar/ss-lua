@@ -254,7 +254,7 @@ function SkillInstancePauseCtrl:OnBtnClick_Char(btn, nIndex)
 end
 
 function SkillInstancePauseCtrl:OnBtnClick_Skill(btn)
-  EventManager.Hit(EventId.OpenPanel, PanelId.PopupSkillPanel, self.tbChar)
+  EventManager.Hit(EventId.OpenPanel, PanelId.PopupSkillPanel, self.tbChar, false, self._mapCharTrialId)
   self._mapNode.ActionBar.gameObject:SetActive(false)
 end
 
