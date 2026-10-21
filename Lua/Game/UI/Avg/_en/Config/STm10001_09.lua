@@ -7464,7 +7464,7 @@ return {
       "vo_STm10_05_068",
       false,
       "",
-      "That was also the name \"Alina Colossi\" was born into this world.",
+      "That was also when the name \"Alina Colossi\" was born into this world.",
       ""
     }
   },
