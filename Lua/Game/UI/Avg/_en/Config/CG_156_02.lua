@@ -4312,7 +4312,7 @@ return {
       "",
       false,
       "",
-      "That sounds a bit drama...",
+      "That sounds a bit dramatic...",
       ""
     }
   },

@@ -4,7 +4,7 @@ return {
     param = {
       "ep_mainline_001",
       "The End",
-      "The One Beside You",
+      "She at Your Side",
       "You take Angie with you and become the bait yourself, driving Loxy out of the encirclement with the help of the Desert Scorpion. But then this inexplicable \"ocean\" completely cuts off your last path to survival…",
       1
     }

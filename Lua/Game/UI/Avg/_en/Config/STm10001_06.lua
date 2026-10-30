@@ -5579,7 +5579,7 @@ return {
       "",
       false,
       "",
-      "My name is Elis. E—lis.==W== I'm not Iris, nor am I anyone else.",
+      "My name is Elis. E-lis.==W== I'm not Iris, nor am I anyone else.",
       ""
     }
   },
@@ -6157,7 +6157,7 @@ return {
       "",
       false,
       "",
-      "Loud and clear. You're Elis. E—lis. Not Iris.",
+      "Loud and clear. You're Elis. E-lis. Not Iris.",
       ""
     }
   },
@@ -9456,7 +9456,7 @@ return {
       "",
       false,
       "",
-      "==SEX12== Acolyte! And ...==W== you, the slave.Thank the gods you're both here.",
+      "==SEX12== Acolyte! And ...==W== you, the slave. Thank the gods you're both here.",
       ""
     }
   },

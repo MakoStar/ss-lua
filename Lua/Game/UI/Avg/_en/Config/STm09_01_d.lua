@@ -3,7 +3,7 @@ return {
     cmd = "SetIntro",
     param = {
       "ep_mainline_001",
-      "True End",
+      "The True End",
       "Narrow Door",
       "Fate converges atop the Monolith as the story reaches its final crossroads. Will you risk everything, or let it all go? Where will the next door lead...?",
       0
@@ -16863,7 +16863,7 @@ return {
       "",
       false,
       "",
-      "Heh. Speak like a true Tyrant.",
+      "Heh. Spoken like a true Tyrant.",
       ""
     }
   },

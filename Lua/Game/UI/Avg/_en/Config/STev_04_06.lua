@@ -4037,7 +4037,7 @@ return {
       "",
       false,
       "",
-      "Three horns, huh...==W== In all my years fighting Nocturn Eterna, I've never seen a single one with three horns.",
+      "White horns, huh...==W== In all my years fighting Nocturn Eterna, I've never seen a single one with white horns.",
       ""
     }
   },
@@ -4168,7 +4168,7 @@ return {
       "",
       false,
       "",
-      "What are you talking about...?! You're the one who said they have three horns—",
+      "What are you talking about...?! You're the one who said they have white horns—",
       ""
     }
   },

@@ -494,7 +494,7 @@ return {
       "",
       false,
       "",
-      "But me, the Lord Nazuna, play no such games",
+      "But I, the Lord Nazuna, play no such games",
       ""
     }
   },

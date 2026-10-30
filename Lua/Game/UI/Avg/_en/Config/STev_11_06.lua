@@ -8920,7 +8920,7 @@ return {
       "",
       false,
       "",
-      "(Karin's face ... looks terrifying.)",
+      "(Karin… Her expression is so strained...)",
       ""
     }
   },
