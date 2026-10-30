@@ -1,5 +1,4 @@
 local SoldierRecommendCtrl = class("SoldierRecommendCtrl", BaseCtrl)
-local SDKManager = CS.SDKManager.Instance
 local HIDE_CELL_POS_Y = 100000
 SoldierRecommendCtrl._mapNodeConfig = {
   Topbar = {
@@ -464,29 +463,7 @@ function SoldierRecommendCtrl:OnBtnClick_ConfirmImport()
 end
 
 function SoldierRecommendCtrl:OnBtnClick_RcmdSquare()
-  local bHasUrl, sUrl = UTILS.GetToolBoxUrl()
-  if not (bHasUrl and sUrl) or sUrl == "" then
-    EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Function_NotAvailable"))
-    return
-  end
-  sUrl = sUrl .. "/auto-chess"
-  local bSuccess, bOpened = pcall(function()
-    if NovaAPI.IsEditorPlatform() then
-      NovaAPI.OpenURL(sUrl)
-      return true
-    end
-    if not SDKManager:IsSDKInit() then
-      return false
-    end
-    SDKManager:ShowWebView(false, "", sUrl, 1, 0, true)
-    return true
-  end)
-  if not bSuccess then
-    printError(bOpened)
-  end
-  if not bSuccess or not bOpened then
-    EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Function_NotAvailable"))
-  end
+  PlayerData.SoldierData:OpenRecommendSquare()
 end
 
 function SoldierRecommendCtrl:OnEvent_RefreshRecommendList()

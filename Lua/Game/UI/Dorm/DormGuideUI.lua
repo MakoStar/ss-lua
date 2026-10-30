@@ -19,10 +19,7 @@ DormGuideUI._bKeepContact = false
 DormGuideUI._nInputCap = 0
 DormGuideUI._bTriggerEventBound = false
 DormGuideUI._bInterceptEventBound = false
-DormGuideUI._bPendingRoom2Guide = false
-DormGuideUI._nRoom2Timer = nil
 DormGuideUI.ROOM2_ID = 701002
-DormGuideUI.ROOM2_ENTER_DELAY = 1.5
 DormGuideUI.GUIDE_GROUP_ID = {
   [521] = true,
   [522] = true,
@@ -72,6 +69,7 @@ function DormGuideUI._EnsureTriggerEvents()
   EventManager.Add("OnEvent_DormLevelLoadComplete", DormGuideUI, DormGuideUI.OnEvent_DormLevelLoadComplete)
   EventManager.Add("DormRoomSelect_ChangeRoomResult", DormGuideUI, DormGuideUI.OnEvent_ChangeRoomResult)
   EventManager.Add("Guide_CloseDisposablePanel", DormGuideUI, DormGuideUI.OnEvent_CloseDisposablePanel)
+  EventManager.Add("DormGuide_CharSelectClosed", DormGuideUI, DormGuideUI.OnEvent_CharSelectClosed)
   EventManager.Add("DormGuide_ModeApplied", DormGuideUI, DormGuideUI.OnEvent_ModeApplied)
   EventManager.Add("DORM_CS2LUA_BORN_TIMELINE_DONE", DormGuideUI, DormGuideUI.OnEvent_BornTimeline)
 end
@@ -84,6 +82,7 @@ function DormGuideUI._RemoveTriggerEvents()
   EventManager.Remove("OnEvent_DormLevelLoadComplete", DormGuideUI, DormGuideUI.OnEvent_DormLevelLoadComplete)
   EventManager.Remove("DormRoomSelect_ChangeRoomResult", DormGuideUI, DormGuideUI.OnEvent_ChangeRoomResult)
   EventManager.Remove("Guide_CloseDisposablePanel", DormGuideUI, DormGuideUI.OnEvent_CloseDisposablePanel)
+  EventManager.Remove("DormGuide_CharSelectClosed", DormGuideUI, DormGuideUI.OnEvent_CharSelectClosed)
   EventManager.Remove("DormGuide_ModeApplied", DormGuideUI, DormGuideUI.OnEvent_ModeApplied)
   EventManager.Remove("DORM_CS2LUA_BORN_TIMELINE_DONE", DormGuideUI, DormGuideUI.OnEvent_BornTimeline)
 end
@@ -160,6 +159,10 @@ function DormGuideUI.Unbind(objCtrl)
   end
   if objCtrl ~= nil and DormGuideUI._objDormCtrl ~= objCtrl then
     return
+  end
+  if DormGuideUI._objEnterTimer ~= nil then
+    TimerManager.Remove(DormGuideUI._objEnterTimer)
+    DormGuideUI._objEnterTimer = nil
   end
   DormGuideUI._RemoveTriggerEvents()
   DormGuideUI._objDormCtrl = nil
@@ -256,44 +259,74 @@ function DormGuideUI.Clear()
   DormGuideUI._RemoveInterceptEvents()
 end
 
-function DormGuideUI._CancelRoom2Timer()
-  if DormGuideUI._nRoom2Timer ~= nil then
-    TimerManager.Remove(DormGuideUI._nRoom2Timer)
-    DormGuideUI._nRoom2Timer = nil
+local function IsPopupDisposablePanel(nPanelId)
+  if nPanelId == nil then
+    return true
   end
+  if nPanelId == PanelId.ReceivePropsTips or nPanelId == PanelId.ReceivePropsNPC or nPanelId == PanelId.ReceiveAutoTrans or nPanelId == PanelId.ReceiveSpecialReward or nPanelId == PanelId.CharFavourLevelUp or nPanelId == PanelId.DormInteractiveAffinityPanel or nPanelId == PanelId.DictionaryEntry then
+    return true
+  end
+  if UTILS ~= nil and type(UTILS.CheckIsTipsPanel) == "function" and UTILS.CheckIsTipsPanel(nPanelId) then
+    return true
+  end
+  return false
+end
+
+function DormGuideUI.IsOnDormMainPanel()
+  if NovaAPI.GetCurrentModuleName() ~= "DormModuleScene" then
+    return false
+  end
+  local objCtrl = DormGuideUI._objDormCtrl
+  if objCtrl == nil or objCtrl._panel == nil or objCtrl._panel._bIsActive ~= true then
+    return false
+  end
+  if objCtrl.gameObject == nil or not objCtrl.gameObject.activeInHierarchy then
+    return false
+  end
+  local nMode = objCtrl._panel.nCurMode
+  if nMode ~= 0 and nMode ~= 1 then
+    return false
+  end
+  local objSelect = DormGuideUI._GetCharSelectCtrl()
+  if objSelect ~= nil and objSelect.bOpen == true then
+    return false
+  end
+  if PanelManager.GetCurPanelId() ~= PanelId.DormPanel or PanelManager.CheckNextPanelOpening() or PanelManager.HasDisposablePanel() then
+    return false
+  end
+  return true
 end
 
 function DormGuideUI.TryBroadcastEnter()
-  if NovaAPI.GetCurrentModuleName() ~= "DormModuleScene" then
-    return
-  end
-  local objCtrl = DormGuideUI._objDormCtrl
-  if objCtrl == nil or objCtrl._panel == nil then
-    return
-  end
-  local nMode = objCtrl._panel.nCurMode
-  if nMode == 2 or nMode == 3 then
-    return
-  end
-  if PanelManager.CheckPanelOpen(PanelId.DormQuestPanel) then
+  if not DormGuideUI.IsOnDormMainPanel() then
     return
   end
   EventManager.Hit("Guide_PassiveCheck_Msg", "Guide_DormEnter")
 end
 
-function DormGuideUI._TryBroadcastRoom2()
-  if not DormGuideUI._bPendingRoom2Guide then
-    return
+function DormGuideUI._ScheduleReturnCheck()
+  if DormGuideUI._objEnterTimer ~= nil then
+    TimerManager.Remove(DormGuideUI._objEnterTimer)
+    DormGuideUI._objEnterTimer = nil
   end
-  local objCtrl = DormGuideUI._objDormCtrl
-  if objCtrl == nil or objCtrl._panel == nil or objCtrl._panel.nCurRoom ~= DormGuideUI.ROOM2_ID then
-    return
-  end
-  DormGuideUI._bPendingRoom2Guide = false
-  DormGuideUI._CancelRoom2Timer()
-  DormGuideUI._nRoom2Timer = TimerManager.Add(1, DormGuideUI.ROOM2_ENTER_DELAY, DormGuideUI, function()
-    DormGuideUI._nRoom2Timer = nil
-    EventManager.Hit("Guide_PassiveCheck_Msg", "Guide_DormEnterRoom2")
+  local nScheduleFrame = CS.UnityEngine.Time.frameCount
+  DormGuideUI._objEnterTimer = TimerManager.Add(1, 0, DormGuideUI, function(_, timer)
+    if CS.UnityEngine.Time.frameCount <= nScheduleFrame then
+      return
+    end
+    if timer ~= nil then
+      timer:Cancel(false)
+    end
+    DormGuideUI._objEnterTimer = nil
+    if PlayerData.Guide ~= nil and PlayerData.Guide.isProcessing then
+      return
+    end
+    if PanelManager.CheckInTransition() or not DormGuideUI.IsOnDormMainPanel() then
+      return
+    end
+    DormGuideUI.TryBroadcastEnter()
+    local DormGuideAdapter = require("Game.UI.Dorm.DormGuideAdapter")
+    DormGuideAdapter.FlushPassive()
   end, true, true, true, nil)
 end
 
@@ -320,20 +353,14 @@ function DormGuideUI.OnEvent_ChangeRoomResult(_, bConfirm, nRoomId)
 end
 
 function DormGuideUI.OnEvent_CloseDisposablePanel(_, nPanelId)
-  if nPanelId ~= PanelId.DormQuestPanel then
+  if IsPopupDisposablePanel(nPanelId) then
     return
   end
-  if DormGuideUI._objEnterTimer ~= nil then
-    TimerManager.Remove(DormGuideUI._objEnterTimer)
-    DormGuideUI._objEnterTimer = nil
-  end
-  DormGuideUI._objEnterTimer = TimerManager.Add(1, 0, DormGuideUI, function(_, timer)
-    if timer ~= nil then
-      timer:Cancel(false)
-    end
-    DormGuideUI._objEnterTimer = nil
-    DormGuideUI.TryBroadcastEnter()
-  end, true, true, true, nil)
+  DormGuideUI._ScheduleReturnCheck()
+end
+
+function DormGuideUI.OnEvent_CharSelectClosed()
+  DormGuideUI._ScheduleReturnCheck()
 end
 
 function DormGuideUI._GetInteractiveNode()

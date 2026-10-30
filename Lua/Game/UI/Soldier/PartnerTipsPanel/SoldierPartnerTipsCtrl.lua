@@ -143,7 +143,7 @@ end
 
 function SoldierPartnerTipsCtrl:OnDisable()
   self:DisableGamepadUI()
-  if self._tbTargetOriginPos ~= nil and self.rtTarget ~= nil then
+  if self._tbTargetOriginPos ~= nil and not self.rtTarget:IsNull() then
     local rtTargetRect = self.rtTarget:GetComponent("RectTransform")
     rtTargetRect.anchoredPosition = self._tbTargetOriginPos
     self._tbTargetOriginPos = nil

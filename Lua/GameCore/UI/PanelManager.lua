@@ -629,6 +629,10 @@ function PanelManager.CheckNextPanelOpening()
   return objNextPanel ~= nil
 end
 
+function PanelManager.HasDisposablePanel()
+  return type(tbDisposablePanel) == "table" and 0 < #tbDisposablePanel
+end
+
 function PanelManager.SetMainViewSkipAnimIn(bIn)
   bMainViewSkipAnimIn = bIn
 end

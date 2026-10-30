@@ -1888,6 +1888,9 @@ function SoldierSandtableCtrl:OnEvent_SoldierSandtableCharItemDragEnd(nDragInsId
         self:InitChessList()
         self._mapNode.blockInput:SetActive(false)
       end)
+      if self._mapNode.SoldierShopComponent:IsShopOpen() then
+        self._mapNode.SoldierShopComponent:RefreshShopData()
+      end
     end)
   elseif targetChessData == nil then
     self:RefreshChessList()
@@ -1930,12 +1933,16 @@ function SoldierSandtableCtrl:OnEvent_SoldierSandtableOtherCharItemDragEnd(chess
           table.insert(tbStep, v)
         end
       end
+      CS.WwiseAudioManager.Instance:PostEvent("mode_900001_chess_shop_sell")
       self._mapNode.blockInput:SetActive(true)
       self:PlayStepsAnimation(tbStep, function()
         self:InitOtherChessList()
         self:InitChessList()
         self._mapNode.blockInput:SetActive(false)
       end)
+      if self._mapNode.SoldierShopComponent:IsShopOpen() then
+        self._mapNode.SoldierShopComponent:RefreshShopData()
+      end
     end)
   else
     self:RefreshChessList()

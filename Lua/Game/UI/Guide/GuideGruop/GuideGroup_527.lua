@@ -111,7 +111,13 @@ function GuideGroup_527:GetSteps()
           DescDeviation = {-650, 0},
           HandDeviation = {0, 120},
           HandRotation = 180
-        }
+        },
+        Ready = function(_, tr)
+          if tr == nil or tr.gameObject == nil or not tr.gameObject.activeInHierarchy then
+            return false
+          end
+          return DormGuideAdapter.QuestCardSettled()
+        end
       },
       InputPolicy = {
         nSceneCap = DormGuideUI.DEFAULT_BLOCK | CAP.Move,

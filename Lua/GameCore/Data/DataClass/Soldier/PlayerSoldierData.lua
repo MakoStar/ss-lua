@@ -409,6 +409,33 @@ function PlayerSoldierData:CheckPartnerRecommendState(nPartnerType)
   return self.recommendData:CheckPartnerRecommendState(nPartnerType)
 end
 
+function PlayerSoldierData:OpenRecommendSquare()
+  local bHasUrl, sUrl = UTILS.GetToolBoxUrl()
+  if not (bHasUrl and sUrl) or sUrl == "" then
+    EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Function_NotAvailable"))
+    return
+  end
+  sUrl = sUrl .. "/auto-chess"
+  local bSuccess, bOpened = pcall(function()
+    if NovaAPI.IsEditorPlatform() then
+      NovaAPI.OpenURL(sUrl)
+      return true
+    end
+    local SDKManager = CS.SDKManager.Instance
+    if not SDKManager:IsSDKInit() then
+      return false
+    end
+    SDKManager:ShowWebView(false, "", sUrl, 1, 0, true)
+    return true
+  end)
+  if not bSuccess then
+    printError(bOpened)
+  end
+  if not bSuccess or not bOpened then
+    EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Function_NotAvailable"))
+  end
+end
+
 function PlayerSoldierData:GetTechActiveClientEffect()
   if self.nCurSelectSeasonId == 0 then
     return

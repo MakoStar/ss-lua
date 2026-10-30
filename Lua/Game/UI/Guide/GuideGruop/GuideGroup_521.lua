@@ -24,13 +24,7 @@ local function Policy(nCap, bHide, bQuest, bBarrier)
 end
 
 function GuideGroup_521:OnStart(ctx)
-  if NovaAPI.GetCurrentModuleName() == "DormModuleScene" then
-    print("[DormGuide] 521 abort, already in dorm")
-    ctx:Set("bAbort", true)
-  else
-    PlayerData.PlayerDormData:SetEnterDormParam(nil, true)
-    ctx:Set("nEnterGen", DormGuideAdapter.BeginDormEnter())
-  end
+  ctx:Set("nEnterGen", DormGuideAdapter.BeginDormEnter())
 end
 
 function GuideGroup_521:OnClear()
@@ -42,60 +36,18 @@ end
 function GuideGroup_521:GetSteps()
   return {
     {
-      sName = "dorm_entry",
+      sName = "outdoor_avg",
       bPlayerWait = true,
-      ShouldRun = function(ctx)
-        if ctx:Get("bAbort") then
+      ShouldRun = function()
+        if DormGuideAdapter.QuestStatus(nQuestId) == 2 then
+          return "finish"
+        end
+        if DormGuideAdapter.Mode() == 3 then
           return "abort"
         end
         return "run"
       end,
-      Poll = function()
-        local goRoot = GameObject.Find("---- UI ----")
-        if goRoot == nil then
-          return nil
-        end
-        return goRoot.transform:Find("MainViewPanel/----SafeAreaRoot----/HideRoot/--BottomRight--/btnDorm")
-      end,
-      Present = {
-        sKind = "Mask",
-        mapMask = {
-          Size = {200, 200},
-          Deviation = {0, 0},
-          Desc = "Guide_521_1",
-          DescDeviation = {-650, 0},
-          HandDeviation = {0, 180},
-          HandRotation = 180
-        }
-      },
-      InputPolicy = Policy(0, false, false, true),
-      Action = function()
-        local goRoot = GameObject.Find("---- UI ----")
-        if goRoot == nil then
-          return {sState = "rejected"}
-        end
-        local tr = goRoot.transform:Find("MainViewPanel/----SafeAreaRoot----/HideRoot/--BottomRight--/btnDorm")
-        if tr == nil then
-          return {sState = "rejected"}
-        end
-        local btn = tr:GetComponent("UIButton")
-        if btn ~= nil and btn.onClick ~= nil then
-          btn.onClick:Invoke()
-        end
-        return {sState = "accepted"}
-      end,
-      End = {sMode = "Click"},
-      OnExit = function(_, sReason)
-        if sReason ~= "success" then
-          return
-        end
-        DormGuideAdapter.ApplyPolicy(Policy(nTimelineBlock, true, false, true))
-      end
-    },
-    {
-      sName = "outdoor_avg",
-      bPlayerWait = true,
-      Start = {
+      WaitTrigger = {
         Events = {
           "DORM_CS2LUA_BORN_TIMELINE_DONE"
         },
@@ -105,6 +57,9 @@ function GuideGroup_521:GetSteps()
           return true
         end,
         Ready = function(ctx)
+          if not PlayerData.PlayerDormData.bCurEnterIsGuide then
+            return true
+          end
           if ctx:Get("bCameraDone") == true then
             return true
           end
@@ -117,7 +72,10 @@ function GuideGroup_521:GetSteps()
         sAvgId = sAvgId,
         sAvgGroup = sAvgGroupId
       },
-      InputPolicy = Policy(DormGuideUI.DEFAULT_BLOCK, true, false, false),
+      InputPolicy = {
+        enter = Policy(nTimelineBlock, true, false, true),
+        present = Policy(DormGuideUI.DEFAULT_BLOCK, true, false, false)
+      },
       End = {
         sMode = "Condition",
         Ready = function()

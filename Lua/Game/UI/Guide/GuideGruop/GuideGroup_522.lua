@@ -73,7 +73,13 @@ function GuideGroup_522:GetSteps()
           HandDeviation = {0, 120},
           HandRotation = 180,
           Type = GameEnum.guidetype.ForcedClick
-        }
+        },
+        Ready = function(_, tr)
+          if tr == nil or tr.gameObject == nil or not tr.gameObject.activeInHierarchy then
+            return false
+          end
+          return DormGuideAdapter.QuestCardSettled()
+        end
       },
       InputPolicy = Policy(false, false),
       Action = function()

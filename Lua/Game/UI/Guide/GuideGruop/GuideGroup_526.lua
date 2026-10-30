@@ -115,6 +115,12 @@ function GuideGroup_526:GetSteps()
           if tr ~= nil then
             tr.gameObject:SetActive(true)
           end
+        end,
+        Ready = function(_, tr)
+          if tr == nil or tr.gameObject == nil or not tr.gameObject.activeInHierarchy then
+            return false
+          end
+          return DormGuideAdapter.QuestCardSettled()
         end
       },
       InputPolicy = {

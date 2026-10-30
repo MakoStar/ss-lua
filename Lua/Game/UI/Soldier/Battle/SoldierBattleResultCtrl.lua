@@ -1,4 +1,6 @@
 local SoldierBattleResultCtrl = class("SoldierBattleResultCtrl", BaseCtrl)
+local LocalData = require("GameCore.Data.LocalData")
+local newDayTime = UTILS.GetDayRefreshTimeOffset()
 SoldierBattleResultCtrl._mapNodeConfig = {
   goRoot = {
     sNodeName = "----SafeAreaRoot----"
@@ -113,6 +115,8 @@ local _NF = AllEnum.SoldierResultType.NodeFail
 local _CS = AllEnum.SoldierResultType.ChallengeSuccess
 local _CF = AllEnum.SoldierResultType.ChallengeFail
 local AssetRoot = "Icon/SoldierOtherIcon/"
+local RecommendTipsKey = "Soldier_Recommend_Tips_Time"
+local RecommendWorldClass = 20
 
 function SoldierBattleResultCtrl:RefreshResult()
   self.bInBattleReport = false
@@ -244,7 +248,84 @@ function SoldierBattleResultCtrl:OnBtnClick_Confirm()
     self:ShowBattleReport()
     return
   end
+  if (self.nResultType == _CS or self.nResultType == _CF) and self:CheckShowRecommendTips() then
+    self:ShowRecommendTips()
+    return
+  end
   self:ClosePanel()
+end
+
+local function GetTodayKey()
+  local nFixedTimeStamp = CS.ClientManager.Instance.serverTimeStampWithTimeZone - newDayTime * 3600
+  local nYear = tonumber(os.date("!%Y", nFixedTimeStamp))
+  local nMonth = tonumber(os.date("!%m", nFixedTimeStamp))
+  local nDay = tonumber(os.date("!%d", nFixedTimeStamp))
+  return nYear * 366 + nMonth * 31 + nDay
+end
+
+function SoldierBattleResultCtrl:CheckIsLastGradeChallenge()
+  local nGradeChallengeId = self.mapData and self.mapData.nGradeChallengeId or 0
+  if nGradeChallengeId == 0 then
+    return false
+  end
+  local nSeasonId = PlayerData.SoldierData:GetCurSelectSeasonId()
+  local nMaxGradeId = 0
+  ForEachTableLine(ConfigTable.Get("SoldierGradeChallenge"), function(mapLine)
+    if mapLine.Season == nSeasonId and mapLine.Id > nMaxGradeId then
+      nMaxGradeId = mapLine.Id
+    end
+  end)
+  return 0 < nMaxGradeId and nGradeChallengeId == nMaxGradeId
+end
+
+function SoldierBattleResultCtrl:CheckShowRecommendTips()
+  local nTipDay = tonumber(LocalData.GetPlayerLocalData(RecommendTipsKey) or 0)
+  if nTipDay == GetTodayKey() then
+    return false
+  end
+  if PlayerData.Base:GetWorldClass() < RecommendWorldClass then
+    return false
+  end
+  local nScoreCondition = ConfigTable.GetConfigNumber("SoldierRecommendScoreCondition")
+  if nScoreCondition == nil or nScoreCondition > (self.nTotalScore or 0) then
+    return false
+  end
+  return self:CheckIsLastGradeChallenge()
+end
+
+function SoldierBattleResultCtrl:ShowRecommendTips()
+  local bSelectAgain = false
+  
+  local function SaveAgain()
+    if bSelectAgain then
+      LocalData.SetPlayerLocalData(RecommendTipsKey, tostring(GetTodayKey()))
+    end
+  end
+  
+  local function confirmCallback()
+    SaveAgain()
+    PlayerData.SoldierData:OpenRecommendSquare()
+    self:ClosePanel()
+  end
+  
+  local function cancelCallback()
+    SaveAgain()
+    self:ClosePanel()
+  end
+  
+  local function againCallback(bSelect)
+    bSelectAgain = bSelect
+  end
+  
+  local msg = {
+    nType = AllEnum.MessageBox.Confirm,
+    sContent = ConfigTable.GetUIText("Soldier_Result_Recommend_Tips"),
+    callbackConfirm = confirmCallback,
+    callbackCancel = cancelCallback,
+    callbackAgain = againCallback,
+    bBlur = false
+  }
+  EventManager.Hit(EventId.OpenMessageBox, msg)
 end
 
 function SoldierBattleResultCtrl:ShowBattleReport()
@@ -435,6 +516,7 @@ function SoldierBattleResultCtrl:SetGoBattleExpansionMsg()
   local nCheckStageTime = tbSettle.nCheckStageTime or 0
   local nChessTotalCost = tbSettle.nChessTotalCost or 0
   local nTotalScore = nPassedNode + nRemainingHp + nCheckStageDps + nCheckStageTime + nChessTotalCost
+  self.nTotalScore = nTotalScore
   if 0 < nTotalScore then
     CS.WwiseAudioManager.Instance:PostEvent("mode_900001_chess_result_countPoint")
   end

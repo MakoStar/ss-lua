@@ -1,5 +1,6 @@
 local DiscSkillPanel = class("DiscSkillPanel", BasePanel)
 DiscSkillPanel._bIsMainPanel = false
+DiscSkillPanel._sSortingLayerName = AllEnum.SortingLayerName.UI_Top
 DiscSkillPanel._tbDefine = {
   {
     sPrefabPath = "DiscSkill/DiscSkillPanel.prefab",

@@ -853,6 +853,12 @@ function PlayerBaseData:GoHomeFromCurModule()
     EventManager.Add("EnterModule", self, OnEventEnterModule)
     NovaAPI.EnterModule("MainMenuModuleScene", true)
     return
+  elseif PanelManager.CheckPanelOpen(PanelId.SoldierSandtable) == true then
+    if PlayerData.SoldierData:GetCurLevelData() ~= nil then
+      PlayerData.SoldierData:GetCurLevelData():UnloadSandtableScene()
+    end
+    PanelManager.Home()
+    return
   end
   PanelManager.Home()
 end

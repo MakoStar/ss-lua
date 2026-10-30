@@ -65,8 +65,7 @@ function SoldierPartnerListCtrl:OnPartnerRefreshGrid(goGrid, gridIndex)
   NovaAPI.SetTMPText(txt_name, partnerCfg.Name)
   NovaAPI.SetTMPText(txtPartner2, partner.nCurNum)
   local bTrace = PlayerData.SoldierData:GetCurLevelData():CheckPartnerTrace(partner.nType)
-  local bRecommend = PlayerData.SoldierData:CheckPartnerRecommendState(partner.nType)
-  img_Trace.gameObject:SetActive(bTrace or bRecommend)
+  img_Trace.gameObject:SetActive(bTrace)
   local strLevel = ""
   for i = 1, #partner.tbNumList do
     if 1 < i then

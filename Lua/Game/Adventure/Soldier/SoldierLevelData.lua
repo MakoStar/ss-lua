@@ -1541,6 +1541,10 @@ function SoldierLevelData:BattleResult()
 end
 
 function SoldierLevelData:OpenSoldierEnding()
+  EventManager.Hit(EventId.ClosePanel, PanelId.SoldierPartnerTips)
+  EventManager.Hit(EventId.ClosePanel, PanelId.SoldierCharCardTips)
+  EventManager.Hit(EventId.ClosePanel, PanelId.SoldierCharSkillDetail)
+  EventManager.Hit(EventId.ClosePanel, PanelId.SoldierCharPontentialDetailPanel)
   local endingData = self.mapClientCases[ClientCase.Ending].data
   self.mapClientCases[ClientCase.Ending] = nil
   

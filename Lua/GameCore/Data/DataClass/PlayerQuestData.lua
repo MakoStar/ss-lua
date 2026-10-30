@@ -911,8 +911,8 @@ function PlayerQuestData:ReceiveDailyActiveReward(callBack)
       self.tbDailyActives[v].bReward = true
       local mapCfg = ConfigTable.GetData("DailyQuestActive", v)
       if mapCfg ~= nil then
-        for i = 1, 2 do
-          if mapCfg["ItemTid" .. i] ~= 0 then
+        for i = 1, 3 do
+          if mapCfg["ItemTid" .. i] ~= nil and mapCfg["ItemTid" .. i] ~= 0 then
             if tbReward[mapCfg["ItemTid" .. i]] == nil then
               tbReward[mapCfg["ItemTid" .. i]] = 0
             end
@@ -1892,7 +1892,9 @@ function PlayerQuestData:RequestGuideMissionInfo(callback)
     
     if mapDataCb.Chapters ~= nil then
       for _, mapChapterData in pairs(mapDataCb.Chapters) do
-        PlayerData.GuideMission:CacheServerUnlockTime(mapChapterData.Id, mapChapterData.UnlockTime)
+        if PlayerData.GuideMission ~= nil then
+          PlayerData.GuideMission:CacheServerUnlockTime(mapChapterData.Id, mapChapterData.UnlockTime)
+        end
         if mapChapterData.Quests ~= nil and mapChapterData.Quests.List ~= nil then
           for _, mapQuestData in pairs(mapChapterData.Quests.List) do
             self:OnQuestProgressChanged(mapQuestData)

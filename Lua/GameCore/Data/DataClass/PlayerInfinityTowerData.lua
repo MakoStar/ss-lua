@@ -241,6 +241,7 @@ function PlayerInfinityTowerData:RefreshCharDamageData(tbCharId)
     local actorInfo = {}
     actorInfo.nCharId = tbCharId[i]
     actorInfo.nDamage = damage
+    actorInfo.nSkinId = PlayerData.Build:GetBattleCharSkinId(tbCharId[i])
     table.insert(self.tbCharDamage, actorInfo)
   end
   CS.AdventureModuleHelper.ClearCharacterDamageRecord(true)

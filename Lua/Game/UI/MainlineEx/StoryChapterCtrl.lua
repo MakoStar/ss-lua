@@ -196,6 +196,8 @@ function StoryChapterCtrl:OnEnable()
   end
   
   local function AnimDone()
+    self.nChapterId_To = 0
+    self.nStoryLineId_To = 0
     self.nChapterIn = 0
   end
   

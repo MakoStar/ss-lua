@@ -10,6 +10,21 @@ local sHead = "Icon/Head/head_11101"
 local CAP = DormGuideUI.InputCap
 local nApproachCap = CAP.Zoom | CAP.PickFur
 local nCaressCap = CAP.Zoom | CAP.Move | CAP.PickFur
+local mapCaressFree = {
+  nSceneCap = nApproachCap,
+  bUiBarrier = false,
+  bLockLeave = true,
+  bHideChrome = true,
+  bKeepContact = true
+}
+local mapCaressLock = {
+  nSceneCap = nCaressCap,
+  bUiBarrier = true,
+  bLockLeave = true,
+  bHideChrome = true,
+  bKeepContact = true
+}
+local bGateLock
 
 local function SelectOpen()
   local obj = DormGuideAdapter._Select()
@@ -35,10 +50,29 @@ local function RoomFullWithoutRole()
   return #mapRoom.RoleList >= mapCfg.RoleNum
 end
 
+local function SyncCaressGate()
+  local bLock = DormGuideAdapter.ContactRole() == nRoleId
+  if bLock then
+    DormGuideAdapter.MarkFocus(nRoleId)
+  else
+    DormGuideAdapter.ResetFocus()
+  end
+  if bGateLock ~= bLock then
+    bGateLock = bLock
+    DormGuideAdapter.ApplyPolicy(bLock and mapCaressLock or mapCaressFree)
+  end
+  return bLock
+end
+
 function GuideGroup_524:OnStart()
+  bGateLock = nil
+  DormGuideAdapter.ResetFocus()
 end
 
 function GuideGroup_524:OnClear()
+  bGateLock = nil
+  DormGuideAdapter.ResetFocus()
+  EventManager.Hit(EventId.AvgBubbleExit)
   DormGuideAdapter.ReleaseGuide()
 end
 
@@ -73,7 +107,13 @@ function GuideGroup_524:GetSteps()
           Head = sHead,
           HandDeviation = {0, 80},
           HandRotation = 180
-        }
+        },
+        Ready = function(_, tr)
+          if tr == nil or tr.gameObject == nil or not tr.gameObject.activeInHierarchy then
+            return false
+          end
+          return DormGuideAdapter.QuestCardSettled()
+        end
       },
       InputPolicy = {
         nSceneCap = DormGuideUI.DEFAULT_BLOCK | CAP.Move,
@@ -288,6 +328,13 @@ function GuideGroup_524:GetSteps()
     {
       sName = "approach_avg",
       bPlayerWait = true,
+      ShouldRun = function()
+        if DormGuideAdapter.ContactRole() ~= nRoleId then
+          return "run"
+        end
+        SyncCaressGate()
+        return "skip"
+      end,
       WaitTrigger = {
         Ready = function()
           if DormGuideAdapter.RoleInRoom(nRoleId) ~= true then
@@ -315,17 +362,30 @@ function GuideGroup_524:GetSteps()
       },
       End = {
         sMode = "Condition",
+        Events = {
+          "DormShowInteractiveBtns"
+        },
+        Match = function()
+          if not SyncCaressGate() then
+            return false
+          end
+          EventManager.Hit(EventId.AvgBubbleExit)
+          return true
+        end,
         Ready = function()
-          return false
+          return DormGuideAdapter.ContactRole() == nRoleId
         end
-      }
+      },
+      OnExit = function()
+        EventManager.Hit(EventId.AvgBubbleExit)
+      end
     },
     {
       sName = "caress",
       bPlayerWait = true,
       bReportDone = true,
       Poll = function()
-        if DormGuideAdapter.ContactRole() ~= nRoleId then
+        if not SyncCaressGate() then
           return nil
         end
         local obj = DormGuideAdapter._Interactive()
@@ -336,7 +396,7 @@ function GuideGroup_524:GetSteps()
       end,
       WaitTrigger = {
         Ready = function()
-          if DormGuideAdapter.ContactRole() ~= nRoleId then
+          if not SyncCaressGate() then
             return false
           end
           return DormGuideAdapter.MarkFocus(nRoleId)
@@ -344,10 +404,8 @@ function GuideGroup_524:GetSteps()
         Events = {
           "DormShowInteractiveBtns"
         },
-        Match = function(_, bShow)
-          if bShow == true or DormGuideAdapter.ContactRole() ~= nRoleId then
-            DormGuideAdapter.ResetFocus()
-          end
+        Match = function()
+          SyncCaressGate()
           return true
         end,
         bPlayerWait = true
@@ -388,29 +446,14 @@ function GuideGroup_524:GetSteps()
         end
         return DormGuideAdapter.ContactRole() == nRoleId
       end,
-      InputPolicy = {
-        enter = {
-          nSceneCap = nApproachCap,
-          bUiBarrier = false,
-          bLockLeave = true,
-          bHideChrome = true,
-          bKeepContact = true
-        },
-        click = {
-          nSceneCap = nCaressCap,
-          bUiBarrier = true,
-          bLockLeave = true,
-          bHideChrome = true,
-          bKeepContact = true
-        },
-        request = {
-          nSceneCap = nCaressCap,
-          bUiBarrier = true,
-          bLockLeave = true,
-          bHideChrome = true,
-          bKeepContact = true
-        }
-      },
+      InputPolicy = function()
+        local bLock = DormGuideAdapter.ContactRole() == nRoleId
+        bGateLock = bLock
+        if not bLock then
+          DormGuideAdapter.ResetFocus()
+        end
+        return bLock and mapCaressLock or mapCaressFree
+      end,
       Action = function(ctx)
         local nId, bNew = DormGuideAdapter.BeginCaress()
         ctx:Set("nCaressOp", nId)

@@ -25,6 +25,7 @@ function PlayerDormData:Init()
   self.nLastLikeInfoTime = 0
   self.nEnterRoomSceneId = nil
   self.bEnterIsGuide = false
+  self.bCurEnterIsGuide = false
   printLog("dorm init")
   EventManager.Add(EventId.IsNewDay, self, self.OnEvent_NewDay)
   self.nHonorMaxLevel = 0
@@ -80,6 +81,7 @@ end
 function PlayerDormData:GetGuideState()
   local ret = self.bEnterIsGuide == true
   self.bEnterIsGuide = false
+  self.bCurEnterIsGuide = ret
   return ret
 end
 
@@ -1011,6 +1013,7 @@ function PlayerDormData:CacheDormHotInfo(mapData)
   if mapData ~= nil then
     self.cachedCollection = mapData.CollectionValue
     PlayerData.Guide:SetGuideNewbie(mapData.Newbies)
+    self.bEnterIsGuide = not PlayerData.Guide:CheckGuideFinishById(521)
   end
   local sKey = "PlayerDormNewRoom"
   local sData = LocalData.GetPlayerLocalData(sKey)

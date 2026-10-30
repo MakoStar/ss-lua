@@ -98,8 +98,10 @@ function GuideGroup_510:Step_2()
   self.waitAnimTime = 0.3
   
   local function wait()
+    EventManager.Hit(EventId.BlockInput, true)
     coroutine.yield(CS.UnityEngine.WaitForSeconds(self.waitAnimTime))
     self.parent:PlayTypeMask(self.msg)
+    EventManager.Hit(EventId.BlockInput, false)
   end
   
   cs_coroutine.start(wait)

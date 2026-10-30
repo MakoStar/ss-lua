@@ -317,19 +317,25 @@ function DormGuideAdapter.ContactRole()
 end
 
 function DormGuideAdapter.BeginDormEnter()
-  DormGuideAdapter._nEnterGen = (DormGuideAdapter._nEnterGen or 0) + 1
-  DormGuideAdapter._mapEnter = {
-    nGen = DormGuideAdapter._nEnterGen,
-    bLoad = false,
-    bTimeline = nil
-  }
-  return DormGuideAdapter._nEnterGen
+  if DormGuideAdapter._mapEnter == nil then
+    DormGuideAdapter._nEnterGen = (DormGuideAdapter._nEnterGen or 0) + 1
+    DormGuideAdapter._mapEnter = {
+      nGen = DormGuideAdapter._nEnterGen,
+      bLoad = false,
+      bTimeline = nil
+    }
+  end
+  return DormGuideAdapter._mapEnter.nGen
 end
 
 function DormGuideAdapter.MarkDormLoad()
-  if DormGuideAdapter._mapEnter ~= nil then
-    DormGuideAdapter._mapEnter.bLoad = true
-  end
+  DormGuideAdapter._nDormLoadFrame = CS.UnityEngine.Time.frameCount
+  DormGuideAdapter._nEnterGen = (DormGuideAdapter._nEnterGen or 0) + 1
+  DormGuideAdapter._mapEnter = {
+    nGen = DormGuideAdapter._nEnterGen,
+    bLoad = true,
+    bTimeline = nil
+  }
   DormGuideAdapter.MarkRoomLoaded()
 end
 
@@ -432,7 +438,10 @@ end
 
 function DormGuideAdapter.QuestCardSettled()
   local objCtrl = DormGuideAdapter._Ctrl()
-  if objCtrl == nil then
+  if objCtrl == nil or objCtrl.gameObject == nil or not objCtrl.gameObject.activeInHierarchy then
+    return false
+  end
+  if DormGuideAdapter._nDormLoadFrame ~= nil and CS.UnityEngine.Time.frameCount <= DormGuideAdapter._nDormLoadFrame then
     return false
   end
   return DormGuideAdapter.AnimatorSettled(objCtrl.animator, "DormPanel_in")
@@ -592,21 +601,62 @@ end
 
 function DormGuideAdapter.MarkFocus(nRoleId)
   if DormGuideAdapter.ContactRole() ~= nRoleId then
-    DormGuideAdapter._nFocusRole = nil
-    DormGuideAdapter._nFocusAt = nil
+    DormGuideAdapter.ResetFocus()
     return false
   end
+  local nNow = TimerManager.GetUnscaledTime()
   if DormGuideAdapter._nFocusRole ~= nRoleId then
     DormGuideAdapter._nFocusRole = nRoleId
-    DormGuideAdapter._nFocusAt = TimerManager.GetUnscaledTime()
+    DormGuideAdapter._nFocusAt = nNow
+    DormGuideAdapter._nFocusX = nil
+    DormGuideAdapter._nFocusY = nil
+    DormGuideAdapter._nFocusFrame = nil
+    DormGuideAdapter._nFocusStable = 0
     return false
   end
-  return TimerManager.GetUnscaledTime() - (DormGuideAdapter._nFocusAt or 0) >= 0.7
+  local nElapsed = nNow - (DormGuideAdapter._nFocusAt or 0)
+  if nElapsed < 0.5 then
+    return false
+  end
+  local obj = DormGuideAdapter._Interactive()
+  local trHud
+  if obj ~= nil and obj._mapNode ~= nil and obj._mapNode.rtContact ~= nil and obj._mapNode.rtContact._mapNode ~= nil then
+    trHud = DormGuideAdapter.NodeTr(obj._mapNode.rtContact._mapNode.goCharHudRoot)
+  end
+  if trHud == nil then
+    return false
+  end
+  local pos = trHud.localPosition
+  local nFrame = CS.UnityEngine.Time.frameCount
+  if DormGuideAdapter._nFocusX == nil then
+    DormGuideAdapter._nFocusX = pos.x
+    DormGuideAdapter._nFocusY = pos.y
+    DormGuideAdapter._nFocusFrame = nFrame
+    DormGuideAdapter._nFocusStable = 0
+    return false
+  end
+  if nFrame ~= DormGuideAdapter._nFocusFrame then
+    local dx = pos.x - DormGuideAdapter._nFocusX
+    local dy = pos.y - DormGuideAdapter._nFocusY
+    DormGuideAdapter._nFocusX = pos.x
+    DormGuideAdapter._nFocusY = pos.y
+    DormGuideAdapter._nFocusFrame = nFrame
+    if dx * dx + dy * dy <= 0.04 then
+      DormGuideAdapter._nFocusStable = (DormGuideAdapter._nFocusStable or 0) + 1
+    else
+      DormGuideAdapter._nFocusStable = 0
+    end
+  end
+  return 0.7 <= nElapsed and (DormGuideAdapter._nFocusStable or 0) >= 2
 end
 
 function DormGuideAdapter.ResetFocus()
   DormGuideAdapter._nFocusRole = nil
   DormGuideAdapter._nFocusAt = nil
+  DormGuideAdapter._nFocusX = nil
+  DormGuideAdapter._nFocusY = nil
+  DormGuideAdapter._nFocusFrame = nil
+  DormGuideAdapter._nFocusStable = 0
 end
 
 function DormGuideAdapter.BeginRoomEnter(nRoomId, bElevator)
@@ -655,6 +705,7 @@ function DormGuideAdapter.MarkWalkout()
   if DormGuideAdapter._mapRoomEnter ~= nil then
     DormGuideAdapter._mapRoomEnter.bWalkout = true
   end
+  DormGuideUI.TryBroadcastEnter()
   DormGuideAdapter.FlushPassive()
 end
 
@@ -707,15 +758,7 @@ function DormGuideAdapter._PendingValid(sMsg)
   if sMsg == "Guide_DormEnterRoom2" then
     return DormGuideAdapter.RoomEnterReady(DormGuideAdapter.ROOM2_ID)
   end
-  local nMode = DormGuideAdapter.Mode()
-  if nMode == nil or nMode == 2 or nMode == 3 then
-    return false
-  end
-  local PanelManager = require("GameCore.UI.PanelManager")
-  if PanelManager.CheckPanelOpen(PanelId.DormQuestPanel) then
-    return false
-  end
-  return true
+  return DormGuideUI.IsOnDormMainPanel()
 end
 
 function DormGuideAdapter.FlushPassive()

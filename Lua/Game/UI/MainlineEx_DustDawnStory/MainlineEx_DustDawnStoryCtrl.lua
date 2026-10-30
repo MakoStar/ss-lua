@@ -119,7 +119,8 @@ local Storys = {
   1120,
   1121,
   1122,
-  1123
+  1123,
+  1124
 }
 local BG_SCROLL_SPEED = 1.0
 local BEHIND_BG_SCROLL_SPEED = 0.15
@@ -255,7 +256,7 @@ function MainlineEx_DustDawnStoryCtrl:RebaseBGScroll()
   end
   local x = content.anchoredPosition.x
   self.bgInitX = self._mapNode.behindBG.anchoredPosition.x - x * BEHIND_BG_SCROLL_SPEED
-  self.zsBGInitX = self._mapNode.zsBG.anchoredPosition.x - x * BG_SCROLL_SPEED
+  self.zsBGInitX = self._mapNode.zsBG.anchoredPosition.x
   self.dustDawnBgInitX = self._mapNode.DustDawnBg.anchoredPosition.x - x * DUSTDAWN_BG_SCROLL_SPEED
 end
 

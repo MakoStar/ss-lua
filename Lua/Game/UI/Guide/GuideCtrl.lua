@@ -151,7 +151,7 @@ end
 function GuideCtrl:PlayTypeMask(msg)
   self._mapNode.btnShortcutClose.gameObject:SetActive(GamepadUIManager.GetInputState() and not msg.isUITop)
   if GamepadUIManager.GetInputState() then
-    GamepadUIManager.EnableGamepadUI("GuideCtrl", self.tbGamepadUINode)
+    GamepadUIManager.EnableGamepadUI("GuideCtrl", self.tbGamepadUINode, nil, nil, nil, AllEnum.UI_SORTING_ORDER.TipsEx)
   end
   self.tmpSort = nil
   local nSort = NovaAPI.GetCanvasSortingOrder(self.gameObject:GetComponent("Canvas"))
@@ -599,7 +599,7 @@ end
 function GuideCtrl:PlayTypeMask_505(msg)
   self._mapNode.btnShortcutClose.gameObject:SetActive(false)
   if GamepadUIManager.GetInputState() then
-    GamepadUIManager.EnableGamepadUI("GuideCtrl", self.tbGamepadUINode)
+    GamepadUIManager.EnableGamepadUI("GuideCtrl", self.tbGamepadUINode, nil, nil, nil, AllEnum.UI_SORTING_ORDER.TipsEx)
   end
   self.tmpSort = nil
   local nSort = NovaAPI.GetCanvasSortingOrder(self.gameObject:GetComponent("Canvas"))

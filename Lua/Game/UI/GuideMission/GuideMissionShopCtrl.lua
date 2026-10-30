@@ -70,6 +70,12 @@ function GuideMissionShopCtrl:EnterShop(nTogIndex)
 end
 
 function GuideMissionShopCtrl:ExitShop()
+  if self.tbGridCtrl ~= nil then
+    for nInstanceId, objCtrl in pairs(self.tbGridCtrl) do
+      self:UnbindCtrlByNode(objCtrl)
+      self.tbGridCtrl[nInstanceId] = nil
+    end
+  end
   if not self.bInShop then
     return
   end
