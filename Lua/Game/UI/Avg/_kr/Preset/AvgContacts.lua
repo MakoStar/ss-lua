@@ -304,7 +304,7 @@ return {
   {
     id = 162,
     icon = "Icon/Head/head_16201_S",
-    name = "엘리나",
+    name = "세이나(기원)",
     landmark = "필라니스",
     signature = "여기에 서명하라는데, 펜이 없는데 어떻게 서명하지?",
     ver = "2.0.0"

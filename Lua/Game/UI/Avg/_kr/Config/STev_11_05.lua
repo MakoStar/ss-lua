@@ -8967,7 +8967,7 @@ return {
     cmd = "SetBg",
     param = {
       0,
-      "tower_common",
+      "tower_laundryroom",
       "0",
       "Linear",
       1.0,
@@ -11879,7 +11879,7 @@ return {
     cmd = "SetBg",
     param = {
       0,
-      "tower_common",
+      "tower_laundryroom",
       "0",
       "Linear",
       1.0,
@@ -12868,7 +12868,7 @@ return {
     cmd = "SetBg",
     param = {
       3,
-      "tower_common",
+      "tower_laundryroom",
       "0",
       "Linear",
       0.0,
@@ -13789,7 +13789,7 @@ return {
     cmd = "SetBg",
     param = {
       5,
-      "tower_common",
+      "tower_laundryroom",
       "0",
       "Linear",
       0.0,
