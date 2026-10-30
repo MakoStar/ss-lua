@@ -10531,6 +10531,10 @@ return {
     }
   },
   {
+    cmd = "Wait",
+    param = {1.0}
+  },
+  {
     cmd = "SetChar",
     param = {
       0,
@@ -10606,6 +10610,10 @@ return {
     }
   },
   {
+    cmd = "Wait",
+    param = {0.5}
+  },
+  {
     cmd = "SetMainRoleTalk",
     param = {
       2,
@@ -10634,10 +10642,6 @@ return {
     }
   },
   {
-    cmd = "Wait",
-    param = {0.3}
-  },
-  {
     cmd = "SetChar",
     param = {
       0,
@@ -10658,6 +10662,10 @@ return {
       true,
       nil
     }
+  },
+  {
+    cmd = "Wait",
+    param = {0.3}
   },
   {
     cmd = "CtrlChar",
@@ -10697,6 +10705,10 @@ return {
       "別急別急，我這就來找找~",
       ""
     }
+  },
+  {
+    cmd = "Wait",
+    param = {0.3}
   },
   {
     cmd = "SetAudio",
