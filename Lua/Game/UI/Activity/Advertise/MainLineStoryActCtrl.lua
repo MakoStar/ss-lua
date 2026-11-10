@@ -17,7 +17,19 @@ function MainLineStoryActCtrl:InitActData(actData)
   self.actData = actData
   self.nActId = actData:GetActId()
   self.AdConfig = ConfigTable.GetData("AdControl", self.nActId)
-  self:RefreshAct()
+  local bIsMainlineStoryPreview = false
+  local jumpToId = self.AdConfig.JumpTo[1]
+  if type(jumpToId) == "number" then
+    local cfgData_JumpTo = ConfigTable.GetData("JumpTo", jumpToId)
+    if cfgData_JumpTo ~= nil and cfgData_JumpTo.Type == GameEnum.jumpType.MainLineStoryPreview then
+      bIsMainlineStoryPreview = true
+    end
+  end
+  if bIsMainlineStoryPreview == true then
+    self:RefreshAct_MainlineStoryPreview()
+  else
+    self:RefreshAct()
+  end
 end
 
 function MainLineStoryActCtrl:GetTimeStr(nRemainTime)
@@ -83,6 +95,24 @@ function MainLineStoryActCtrl:RefreshAct()
   end
   refresh()
   self.refreshTimer = self:AddTimer(0, 1, refresh, true, true, true)
+end
+
+function MainLineStoryActCtrl:RefreshAct_MainlineStoryPreview()
+  if self.timerLoopRefresh ~= nil then
+    self.timerLoopRefresh:Cancel()
+    self.timerLoopRefresh = nil
+  end
+  
+  local function do_refresh()
+    local nEndTime = self.actData:GetActEndTime()
+    local nCurTime = ClientManager.serverTimeStamp
+    local nRemainTime = math.max(nEndTime - nCurTime, 0)
+    local sTime = self:GetTimeStr(nRemainTime)
+    NovaAPI.SetTMPText(self._mapNode.txtActTime, sTime)
+  end
+  
+  do_refresh()
+  self.timerLoopRefresh = self:AddTimer(0, 1, do_refresh, true, true, true)
 end
 
 function MainLineStoryActCtrl:OnBtnClick_Go()

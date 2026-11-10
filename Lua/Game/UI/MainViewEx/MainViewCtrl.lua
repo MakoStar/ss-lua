@@ -1340,6 +1340,8 @@ function MainViewCtrl:RefreshLeftActivityList()
         self:SetPngSprite(imgOpenBg, actGroupCfg.EnterRes)
         self:SetPngSprite(imgOpenBgMask, actGroupCfg.EnterRes)
         if bOpened then
+          OpenRoot:Find("imgActivityTime/imgTime").gameObject:SetActive(true)
+          OpenRoot:Find("imgActivityTime/goEmptyForLayout").gameObject:SetActive(false)
           local txtActRemainTime = OpenRoot:Find("imgActivityTime/txtActivityTime"):GetComponent("TMP_Text")
           if bShowCountDown then
             do
@@ -1396,6 +1398,29 @@ function MainViewCtrl:RefreshLeftActivityList()
         end
         table.insert(self.tbActivityPrepareShowList, showData)
       end
+    end
+  end
+  self.actAdv = PlayerData.Activity:GetMainviewShowActivityAdv()
+  if self.actAdv ~= nil then
+    local nIdx = #self.tbActivityPrepareShowList + 1
+    local btnTrans = self._mapNode.btnActivityPrepare[nIdx]
+    if btnTrans ~= nil then
+      btnTrans.gameObject:SetActive(true)
+      local tr = btnTrans.transform:Find("AnimRoot")
+      tr:Find("End").gameObject:SetActive(false)
+      tr:Find("Open").gameObject:SetActive(true)
+      local imgBg = tr:Find("Open/imgBg"):GetComponent("Image")
+      imgBg.gameObject:SetActive(true)
+      local sIcon = string.gsub(self.actAdv.actCfg.TabBgRes, "tab", "banner")
+      local sIcon = string.gsub(sIcon, "lang", "m_lang")
+      self:SetPngSprite(imgBg, sIcon)
+      tr:Find("Open/imgBgMask").gameObject:SetActive(false)
+      tr:Find("Open/imgActivityTime").gameObject:SetActive(true)
+      tr:Find("Open/imgActivityTime/imgTime").gameObject:SetActive(false)
+      tr:Find("Open/imgActivityTime/goEmptyForLayout").gameObject:SetActive(true)
+      local tmpTxt = tr:Find("Open/imgActivityTime/txtActivityTime"):GetComponent("TMP_Text")
+      tmpTxt.gameObject:SetActive(true)
+      NovaAPI.SetTMPText(tmpTxt, ConfigTable.GetUIText("MainView_MainStoryPreview"))
     end
   end
 end
@@ -1760,6 +1785,10 @@ end
 function MainViewCtrl:OnBtnClick_ActivityPrepare(btn, index)
   local actGroupData = self.tbActivityPrepareShowList[index]
   if actGroupData == nil then
+    if self.actAdv ~= nil then
+      local jumpToId = self.actAdv.adCfg.JumpTo[1]
+      JumpUtil.JumpTo(jumpToId)
+    end
     return
   end
   actGroupData = actGroupData.actGroupData
@@ -2319,10 +2348,6 @@ function MainViewCtrl:OnBtnClick_GoToStarTower()
   end
   
   PlayerData.StarTower:GetAffinity(AffinityCallback)
-end
-
-function MainViewCtrl:OnBtnClick_GotoMainlineStory()
-  EventManager.Hit(EventId.OpenPanel, PanelId.MainlineEx, self.nRecentChapterId, PanelId.MainView)
 end
 
 function MainViewCtrl:OnDragStart_Actor(mDrag)

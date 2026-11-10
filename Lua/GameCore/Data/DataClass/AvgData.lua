@@ -1364,7 +1364,8 @@ function AvgData:CheckNewStory(nChapterId)
     for k, v in ipairs(map) do
       local config = ConfigTable.GetData("Story", v)
       local bUnlock = self:IsUnlock(config.ConditionId, config.StoryId)
-      if bUnlock then
+      local bUnlockByTime = self:CheckStoryUnlockTime(config.StoryId)
+      if bUnlock == true and bUnlockByTime == true then
         local bReaded = self:IsStoryReaded(v)
         if not bReaded then
           tbNewUnlockStorys[v] = true
@@ -1375,6 +1376,17 @@ function AvgData:CheckNewStory(nChapterId)
     printError("[AvgData:CheckNewStory] can't find story id in chapter:" .. tostring(nChapterId))
   end
   return tbNewUnlockStorys
+end
+
+function AvgData:CheckStoryUnlockTime(sStoryId)
+  local s = ConfigTable.GetConfigValue("TimeUnlockStory")
+  if s == sStoryId then
+    local curTime = CS.ClientManager.Instance.serverTimeStamp
+    local time = ConfigTable.GetConfigValue("StoryUnlockTime")
+    local openTime = CS.ClientManager.Instance:ISO8601StrToTimeStamp(time)
+    return curTime > openTime
+  end
+  return true
 end
 
 function AvgData:SetNewLockChapterIndex(chapterIndex)

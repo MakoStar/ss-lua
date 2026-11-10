@@ -155,7 +155,6 @@ function PlayerActivityData:CacheAllActivityData(mapNetMsg)
         elseif actCfg.ActivityType == GameEnum.activityType.Shop then
           self:RefreshActivityShopData(nActId, v.Shop)
         elseif actCfg.ActivityType == GameEnum.activityType.Advertise then
-          self:RefreshInfinityTowerActData(nActId, v.Shop)
         elseif actCfg.ActivityType == GameEnum.activityType.BDConvert then
           self:RefreshBdConvertData(nActId, v.BdConvert)
         elseif actCfg.ActivityType == GameEnum.activityType.Breakout then
@@ -597,6 +596,32 @@ function PlayerActivityData:GetMainviewShowActivityGroup()
     return a:GetActGroupId() < b:GetActGroupId()
   end)
   return tbShowList
+end
+
+function PlayerActivityData:GetMainviewShowActivityAdv()
+  local actAdv
+  local tbShowList_Adv = {}
+  local curTime = CS.ClientManager.Instance.serverTimeStamp
+  for _, actData in pairs(self.tbAllActivity) do
+    if actData.actCfg.SpecialParam == "ShowInMainUI" then
+      local openTime = actData:GetActOpenTime()
+      local endTime = actData:GetActEndTime()
+      if curTime > openTime and curTime < endTime and actData.bPlay == true then
+        table.insert(tbShowList_Adv, actData)
+      end
+    end
+  end
+  if 0 < #tbShowList_Adv then
+    table.sort(tbShowList_Adv, function(a, b)
+      if a:GetActSortId() == b:GetActSortId() then
+        return a:GetActId() > b:GetActId()
+      else
+        return a:GetActSortId() < b:GetActSortId()
+      end
+    end)
+    actAdv = tbShowList_Adv[1]
+  end
+  return actAdv
 end
 
 function PlayerActivityData:IsActivityInActivityGroup(nActId)

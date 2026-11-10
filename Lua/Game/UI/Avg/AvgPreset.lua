@@ -83,10 +83,14 @@ local AvgPreset = {
     "flatlands_floralsea_daylight",
     "flatlands_floralsea_night",
     "flatlands_night",
+    "flavio_backstage",
     "flavio_city_livehouse_a",
     "flavio_city_livehouse_b",
     "flavio_city_street",
     "flavio_city_street_2",
+    "flavio_fantasystage",
+    "flavio_fantasystage_auditorium",
+    "flavio_fantasystage_auditorium_nobody",
     "forest",
     "forest_burn",
     "forest_camp_rain",
@@ -197,6 +201,7 @@ local AvgPreset = {
     "theater_inside_a",
     "theater_inside_b",
     "tower_common",
+    "tower_common_xmas",
     "tower_elevator_close",
     "tower_elevator_danger",
     "tower_elevator_event",
@@ -283,6 +288,7 @@ local AvgPreset = {
     "view_secret_laboratory_b",
     "view_skeleton_a",
     "view_skeleton_b",
+    "view_turtle",
     "view_wasteland_night",
     "view_whale_1",
     "view_whale_2",
@@ -382,6 +388,16 @@ local AvgPreset = {
     "story_event_14_002_a_MP",
     "story_event_14_002_FP",
     "story_event_14_002_MP",
+    "story_event_15_001_01",
+    "story_event_15_001_02",
+    "story_event_15_002",
+    "story_event_15_003",
+    "story_event_15_003_a",
+    "story_event_15_004",
+    "story_event_15_005",
+    "story_event_15_006",
+    "story_event_15_007",
+    "story_event_15_008",
     "story_main_00_001",
     "story_main_00_002",
     "story_main_00_003_FP",
@@ -687,6 +703,15 @@ local AvgPreset = {
     "story_main_10001_010",
     "story_main_10001_010_a",
     "story_main_10001_011",
+    "story_main_10_001_FP",
+    "story_main_10_001_MP",
+    "story_main_10_002_a_FP",
+    "story_main_10_002_a_MP",
+    "story_main_10_002_FP",
+    "story_main_10_002_MP",
+    "story_main_10_003",
+    "story_main_10_004",
+    "story_main_10_005",
     "story_main_be_01_001_FP",
     "story_main_be_01_001_MP",
     "story_main_be_01_002",
@@ -789,7 +814,19 @@ local AvgPreset = {
     "4057_B",
     "4059_B",
     "4061_B",
-    "4066_B"
+    "4066_B",
+    "4068_B",
+    "4070_B",
+    "4072_B",
+    "4074_B",
+    "4076_B",
+    "4078_B",
+    "4080_B",
+    "4082_B",
+    "4084_B",
+    "4086_B",
+    "4088_B",
+    "4090_B"
   },
   BgEffectResName = {
     "0",
@@ -2388,6 +2425,66 @@ local AvgPreset = {
             1.0,
             1.0,
             1.0
+          },
+          {
+            1,
+            1,
+            1
+          },
+          {
+            1,
+            1,
+            1
+          }
+        },
+        true
+      }
+    },
+    {
+      "yunxuan",
+      {
+        {
+          {
+            10.0,
+            5.0,
+            0
+          },
+          {
+            4,
+            2.0,
+            0
+          },
+          {
+            2.0,
+            2.0,
+            0
+          },
+          {
+            1,
+            1,
+            1
+          },
+          {
+            1,
+            1,
+            1
+          }
+        },
+        {
+          {
+            0,
+            0,
+            1
+          },
+          {
+            0,
+            0,
+            4
+          },
+          {
+            0,
+            0,
+            2
           },
           {
             1,
@@ -5597,6 +5694,126 @@ local AvgPreset = {
         },
         false
       }
+    },
+    {
+      "yunxuan",
+      {
+        {
+          {
+            0,
+            0.0,
+            0
+          },
+          {
+            4,
+            2.0,
+            0
+          },
+          {
+            2.0,
+            2.0,
+            0
+          },
+          {
+            1,
+            1,
+            1
+          },
+          {
+            1,
+            1,
+            1
+          }
+        },
+        {
+          {
+            0,
+            0,
+            0.5
+          },
+          {
+            0,
+            0,
+            4
+          },
+          {
+            0,
+            0,
+            2
+          },
+          {
+            1,
+            1,
+            1
+          },
+          {
+            1,
+            1,
+            1
+          }
+        },
+        true
+      }
+    },
+    {
+      "yunxuan2",
+      {
+        {
+          {
+            5,
+            0.0,
+            0
+          },
+          {
+            4,
+            2.0,
+            0
+          },
+          {
+            2.0,
+            2.0,
+            0
+          },
+          {
+            1,
+            1,
+            1
+          },
+          {
+            1,
+            1,
+            1
+          }
+        },
+        {
+          {
+            0,
+            0,
+            -1
+          },
+          {
+            0,
+            0,
+            4
+          },
+          {
+            0,
+            0,
+            2
+          },
+          {
+            1,
+            1,
+            1
+          },
+          {
+            1,
+            1,
+            1
+          }
+        },
+        true
+      }
     }
   },
   CharEnter = {
@@ -6431,6 +6648,70 @@ local AvgPreset = {
     },
     {
       "fx_avg_story_019",
+      ""
+    },
+    {
+      "fx_avg_magic_cure",
+      ""
+    },
+    {
+      "fx_avg_glowworm",
+      ""
+    },
+    {
+      "fx_avg_vine_loop",
+      ""
+    },
+    {
+      "fx_avg_vine_full_loop",
+      ""
+    },
+    {
+      "fx_avg_pollen_2",
+      ""
+    },
+    {
+      "fx_fog_3_lp",
+      ""
+    },
+    {
+      "fx_avg_petal_transfer",
+      ""
+    },
+    {
+      "fx_avg_powder_lp",
+      ""
+    },
+    {
+      "fx_avg_powder_blow",
+      ""
+    },
+    {
+      "fx_avg_petal",
+      ""
+    },
+    {
+      "fx_avg_claw",
+      ""
+    },
+    {
+      "fx_avg_cluster_flame_loop",
+      ""
+    },
+    {
+      "fx_avg_miss",
+      ""
+    },
+    {
+      "fx_avg_tiger_impact",
+      ""
+    },
+    {
+      "fx_avg_tiger_claw_strike",
+      ""
+    },
+    {
+      "fx_avg_fire_magic_blue",
       ""
     },
     {

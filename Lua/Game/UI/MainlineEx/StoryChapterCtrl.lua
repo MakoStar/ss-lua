@@ -26,6 +26,10 @@ StoryChapterCtrl._mapNodeConfig = {
   txtTitle2_Show = {sComponentName = "TMP_Text"},
   imgStoryIcon = {sComponentName = "Image"},
   TabRedDot = {},
+  rtBtnShowStoryLineList = {
+    sNodeName = "btnShowStoryLineList",
+    sComponentName = "RectTransform"
+  },
   btnShowStoryLineList = {
     sComponentName = "UIButton",
     callback = "OnBtn_ShowStoryLineList"
@@ -572,8 +576,10 @@ function StoryChapterCtrl:PlayRootAnim(bIn)
 end
 
 function StoryChapterCtrl:SetBtn_IconTitle(nLineId, bForceVisible)
+  local v2On = Vector2(55, 332)
+  local v2Off = Vector2(9999, 9999)
   if bForceVisible == true then
-    self._mapNode.btnShowStoryLineList.transform.localScale = Vector3.one
+    self._mapNode.rtBtnShowStoryLineList.anchoredPosition = v2On
   else
     local b = false
     if #self.tbLine > 1 then
@@ -582,7 +588,7 @@ function StoryChapterCtrl:SetBtn_IconTitle(nLineId, bForceVisible)
         b = false
       end
     end
-    self._mapNode.btnShowStoryLineList.transform.localScale = b == true and Vector3.one or Vector3.zero
+    self._mapNode.rtBtnShowStoryLineList.anchoredPosition = b == true and v2On or v2Off
   end
   local cfg = ConfigTable.GetData("StoryLine", nLineId)
   local sRemovedMain = string.gsub(cfg.TitleMain, "\n", "")

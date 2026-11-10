@@ -469,6 +469,36 @@ function JumpUtil.DoJump(jumpId, ...)
     else
       EventManager.Hit(EventId.OpenPanel, PanelId.MainlineEx, chapterIndex)
     end
+  elseif nType == GameEnum.jumpType.MainLineStoryPreview then
+    local nChapterId = mapJumpTo.Param[1]
+    local cfg = ConfigTable.GetData("StoryChapter", nChapterId)
+    local nPanelId = cfg.StoryPanelId
+    if nPanelId == 0 then
+      nPanelId = PanelId.MainlineEx
+    end
+    if PlayerData.Avg:IsStoryChapterUnlock(nChapterId) == true then
+      EventManager.Hit(EventId.OpenPanel, nPanelId, nChapterId)
+    else
+      do
+        local sLockReadTipsKey = "Mainline_Preview_Lock_Read_" .. nChapterId
+        if LocalData.GetPlayerLocalData(sLockReadTipsKey) then
+          EventManager.Hit(EventId.OpenPanel, nPanelId, nChapterId)
+        else
+          do
+            local sTip = ConfigTable.GetUIText("Mainline_Preview_Lock_Read")
+            local msg = {
+              nType = AllEnum.MessageBox.Confirm,
+              sContent = sTip,
+              callbackConfirm = function()
+                LocalData.SetPlayerLocalData(sLockReadTipsKey, true)
+                EventManager.Hit(EventId.OpenPanel, nPanelId, nChapterId)
+              end
+            }
+            EventManager.Hit(EventId.OpenMessageBox, msg)
+          end
+        end
+      end
+    end
   elseif nType == GameEnum.jumpType.QuestNewbie then
     local nJumpTab = mapJumpTo.Param[1]
     if PanelManager.GetCurPanelId() == PanelId.QuestNewbie then
@@ -495,6 +525,12 @@ function JumpUtil.DoJump(jumpId, ...)
     EventManager.Hit(EventId.OpenPanel, PanelId.SoldierMainViewPanel)
   elseif nType == GameEnum.jumpType.Dorm then
     EventManager.Hit(EventId.OpenPanel, PanelId.DormPanel)
+  elseif nType == GameEnum.jumpType.ActivityStoryReview then
+    local nActivityId = mapJumpTo.Param[1]
+    local data = ConfigTable.GetData("ActivityStoryChapter", nActivityId)
+    if data ~= nil then
+      PlayerData.StoryReview:TryOpenStoryChapter(data.ChapterId)
+    end
   end
 end
 
@@ -665,29 +701,39 @@ end
 function JumpUtil.JumpToActivity(tbJumpData)
   if tbJumpData[1] == GameEnum.jumpType.MainLineStoryChapter then
     local chapterIndex = tbJumpData[2]
-    local panelId = PanelId.MainlineEx
-    if chapterIndex == 11 then
-      panelId = PanelId.DustDawnStory
-    end
     local isUnlock = PlayerData.Avg:IsStoryChapterUnlock(chapterIndex)
     if isUnlock then
-      EventManager.Hit(EventId.OpenPanel, panelId, chapterIndex)
+      EventManager.Hit(EventId.OpenPanel, PanelId.MainlineEx, chapterIndex)
+    end
+    return
+  end
+  if tbJumpData[1] == GameEnum.jumpType.MainLineStoryPreview then
+    local nChapterId = tbJumpData[2]
+    local cfg = ConfigTable.GetData("StoryChapter", nChapterId)
+    local nPanelId = cfg.StoryPanelId
+    if nPanelId == 0 then
+      nPanelId = PanelId.MainlineEx
+    end
+    if PlayerData.Avg:IsStoryChapterUnlock(nChapterId) == true then
+      EventManager.Hit(EventId.OpenPanel, nPanelId, nChapterId)
     else
-      local sLockReadTipsKey = "Mainline_Preview_Lock_Read_" .. chapterIndex
+      local sLockReadTipsKey = "Mainline_Preview_Lock_Read_" .. nChapterId
       if LocalData.GetPlayerLocalData(sLockReadTipsKey) then
-        EventManager.Hit(EventId.OpenPanel, panelId, chapterIndex)
-        return
-      end
-      local sTip = ConfigTable.GetUIText("Mainline_Preview_Lock_Read")
-      local msg = {
-        nType = AllEnum.MessageBox.Confirm,
-        sContent = sTip,
-        callbackConfirm = function()
-          LocalData.SetPlayerLocalData(sLockReadTipsKey, true)
-          EventManager.Hit(EventId.OpenPanel, panelId, chapterIndex)
+        EventManager.Hit(EventId.OpenPanel, nPanelId, nChapterId)
+      else
+        do
+          local sTip = ConfigTable.GetUIText("Mainline_Preview_Lock_Read")
+          local msg = {
+            nType = AllEnum.MessageBox.Confirm,
+            sContent = sTip,
+            callbackConfirm = function()
+              LocalData.SetPlayerLocalData(sLockReadTipsKey, true)
+              EventManager.Hit(EventId.OpenPanel, nPanelId, nChapterId)
+            end
+          }
+          EventManager.Hit(EventId.OpenMessageBox, msg)
         end
-      }
-      EventManager.Hit(EventId.OpenMessageBox, msg)
+      end
     end
     return
   end

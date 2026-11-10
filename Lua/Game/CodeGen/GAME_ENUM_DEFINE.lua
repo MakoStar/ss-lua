@@ -400,7 +400,9 @@ GameEnum.jumpType = {
   ActivityGame1 = 46,
   ActivityGame2 = 47,
   Soldier = 48,
-  Dorm = 49
+  Dorm = 49,
+  ActivityStoryReview = 50,
+  MainLineStoryPreview = 51
 }
 GameEnum.characterSearchTargetType = {MELEE = 1, RANGED = 2}
 GameEnum.characterSearchTargetTypeTowerDefense = {NORMAL = 1}

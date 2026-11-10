@@ -564,6 +564,22 @@ end
 
 function MainlineEx_DustDawnStoryCtrl:SetGridCanvasVisible(bVisible)
   self.bAvgRootOpen = not bVisible
+  local canvasUnderBar = self._mapNode.grpUnderBar
+  if canvasUnderBar ~= nil and not canvasUnderBar:IsNull() then
+    if bVisible then
+      canvasUnderBar.enabled = true
+    else
+      local function wait()
+        coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
+        
+        if self.bAvgRootOpen and not canvasUnderBar:IsNull() then
+          canvasUnderBar.enabled = false
+        end
+      end
+      
+      cs_coroutine.start(wait)
+    end
+  end
   if self.tbGridCanvas == nil then
     return
   end
