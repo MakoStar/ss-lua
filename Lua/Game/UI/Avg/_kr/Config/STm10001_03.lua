@@ -976,7 +976,7 @@ return {
     cmd = "CtrlChar",
     param = {
       "avg2_978",
-      "a",
+      "b",
       nil,
       "none",
       nil,
@@ -2237,7 +2237,7 @@ return {
       0,
       "none",
       "avg2_978",
-      "a",
+      "b",
       "002",
       "none",
       nil,
@@ -2247,31 +2247,6 @@ return {
       nil,
       nil,
       0.0,
-      0.0,
-      true,
-      nil
-    }
-  },
-  {
-    cmd = "CtrlChar",
-    param = {
-      "avg2_978",
-      "b",
-      "018",
-      "none",
-      nil,
-      0.55,
-      nil,
-      nil,
-      nil,
-      nil,
-      nil,
-      "none",
-      "none",
-      "Linear",
-      0,
-      nil,
-      false,
       0.0,
       true,
       nil
@@ -2311,6 +2286,31 @@ return {
   {
     cmd = "Wait",
     param = {0.3}
+  },
+  {
+    cmd = "CtrlChar",
+    param = {
+      "avg2_978",
+      "b",
+      "018",
+      "none",
+      nil,
+      0.55,
+      nil,
+      nil,
+      nil,
+      nil,
+      nil,
+      "none",
+      "none",
+      "Linear",
+      0,
+      nil,
+      false,
+      0.0,
+      true,
+      nil
+    }
   },
   {
     cmd = "SetTrans",
