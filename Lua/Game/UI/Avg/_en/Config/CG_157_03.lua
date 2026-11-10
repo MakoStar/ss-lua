@@ -1262,7 +1262,7 @@ return {
       "",
       false,
       "",
-      "One Tawny Nightingale ... and one salted salmon, please.",
+      "One Tawny Nightingale ... and one red-striped fish, please.",
       ""
     }
   },
