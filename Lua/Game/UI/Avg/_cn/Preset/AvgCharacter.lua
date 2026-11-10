@@ -1329,6 +1329,12 @@ return {
     ver = "2.2.0"
   },
   {
+    id = "avg3_240",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    ver = "2.3.0"
+  },
+  {
     id = "avg3_873",
     name = "克莱儿",
     name_bg_color = "#0ABEC5"
@@ -3261,6 +3267,47 @@ return {
     ver = "2.0.0"
   },
   {
+    id = "avg3_1343",
+    name = "黑块A",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg4_107"
+  },
+  {
+    id = "avg3_1344",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_136",
+    ver = "2.1.0"
+  },
+  {
+    id = "avg3_1345",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg3_137",
+    ver = "2.1.0"
+  },
+  {
+    id = "avg3_1346",
+    name = "科佩里乌斯A",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg2_942",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1347",
+    name = "科佩里乌斯B",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg2_942",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1348",
+    name = "科佩里乌斯C",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg2_942",
+    ver = "2.0.0"
+  },
+  {
     id = "avg4_100",
     name = "菈露发光",
     name_bg_color = "#0ABEC5"
@@ -3297,6 +3344,11 @@ return {
     name = "人偶士兵（初始坐标）",
     name_bg_color = "#0ABEC5",
     ver = "2.0.0"
+  },
+  {
+    id = "avg4_107",
+    name = "黑块",
+    name_bg_color = "#0ABEC5"
   },
   {
     id = "avg4_999",
