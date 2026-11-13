@@ -302,6 +302,14 @@ return {
     ver = "1.13.0"
   },
   {
+    id = 161,
+    icon = "Icon/Head/head_16101_S",
+    name = "스구하",
+    landmark = "셀스티 지리 협회 분부",
+    signature = "해당 사용자는 현재 통신 범위 밖에 있습니다!",
+    ver = "2.1.0"
+  },
+  {
     id = 162,
     icon = "Icon/Head/head_16201_S",
     name = "세이나(기원)",
@@ -320,6 +328,13 @@ return {
     id = 3223,
     icon = "Icon/Head/head_npc22301_S",
     name = "카트린",
+    landmark = "",
+    signature = ""
+  },
+  {
+    id = 3230,
+    icon = "Icon/Head/head_npc23001_S",
+    name = "미캉",
     landmark = "",
     signature = ""
   },

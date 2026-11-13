@@ -146,6 +146,12 @@ return {
     reuseL2DPose = "b"
   },
   {
+    id = "avg1_121",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    ver = "2.2.0"
+  },
+  {
     id = "avg1_123",
     name = "안즈",
     name_bg_color = "#ed825d"
@@ -326,8 +332,8 @@ return {
   },
   {
     id = "avg1_161",
-    name = "***",
-    name_bg_color = "#0ABEC5",
+    name = "스구하",
+    name_bg_color = "#f4e0d7",
     ver = "2.1.0"
   },
   {
@@ -362,6 +368,12 @@ return {
     ver = "2.3.0"
   },
   {
+    id = "avg1_177",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    ver = "2.2.0"
+  },
+  {
     id = "avg2_001",
     name = "우드모트 잔챙이",
     name_bg_color = "#0ABEC5"
@@ -378,7 +390,7 @@ return {
   },
   {
     id = "avg2_937",
-    name = "***",
+    name = "불 드래곤",
     name_bg_color = "#0ABEC5",
     ver = "2.1.0"
   },
@@ -402,13 +414,13 @@ return {
   },
   {
     id = "avg2_941",
-    name = "올림파야(인형)",
+    name = "올림피아(인형)",
     name_bg_color = "#0ABEC5",
     ver = "2.0.0"
   },
   {
     id = "avg2_942",
-    name = "코폐리우스",
+    name = "코펠리우스",
     name_bg_color = "#0ABEC5",
     ver = "2.0.0"
   },
@@ -1252,7 +1264,7 @@ return {
   },
   {
     id = "avg3_225",
-    name = "라이타",
+    name = "레이야",
     name_bg_color = "#fffcdf",
     ver = "2.0.0"
   },
@@ -1282,13 +1294,13 @@ return {
   },
   {
     id = "avg3_230",
-    name = "***",
-    name_bg_color = "#0ABEC5",
+    name = "미캉",
+    name_bg_color = "#8cc8f4",
     ver = "2.1.0"
   },
   {
     id = "avg3_231",
-    name = "***",
+    name = "아그리 유니온 컴퍼니 대표(남)",
     name_bg_color = "#0ABEC5",
     ver = "2.1.0"
   },
@@ -1311,12 +1323,6 @@ return {
     ver = "1.14.0"
   },
   {
-    id = "avg3_235",
-    name = "***",
-    name_bg_color = "#0ABEC5",
-    ver = "2.2.0"
-  },
-  {
     id = "avg3_236",
     name = "***",
     name_bg_color = "#0ABEC5",
@@ -1327,6 +1333,18 @@ return {
     name = "***",
     name_bg_color = "#0ABEC5",
     ver = "2.2.0"
+  },
+  {
+    id = "avg3_238",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    ver = "2.3.0"
+  },
+  {
+    id = "avg3_240",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    ver = "2.3.0"
   },
   {
     id = "avg3_873",
@@ -3101,7 +3119,7 @@ return {
   },
   {
     id = "avg3_1320",
-    name = "***",
+    name = "천궁보험 컴퍼니 대표(남)",
     name_bg_color = "#0ABEC5",
     reuse = "avg3_232",
     ver = "2.1.0"
@@ -3261,6 +3279,61 @@ return {
     ver = "2.0.0"
   },
   {
+    id = "avg3_1343",
+    name = "블랙A",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg4_107"
+  },
+  {
+    id = "avg3_1344",
+    name = "루비A",
+    name_bg_color = "#9f3a42",
+    reuse = "avg3_136",
+    ver = "2.1.0"
+  },
+  {
+    id = "avg3_1345",
+    name = "사파이어A",
+    name_bg_color = "#5480d6",
+    reuse = "avg3_137",
+    ver = "2.1.0"
+  },
+  {
+    id = "avg3_1346",
+    name = "코펠리우스A",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg2_942",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1347",
+    name = "코펠리우스B",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg2_942",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1348",
+    name = "코펠리우스C",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg2_942",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1349",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg1_123",
+    ver = "2.2.0"
+  },
+  {
+    id = "avg3_1350",
+    name = "극장의 유령A",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg2_946",
+    ver = "1.9.0"
+  },
+  {
     id = "avg4_100",
     name = "빛나는 라루",
     name_bg_color = "#0ABEC5"
@@ -3297,6 +3370,11 @@ return {
     name = "인형 병사(시작 좌표)",
     name_bg_color = "#0ABEC5",
     ver = "2.0.0"
+  },
+  {
+    id = "avg4_107",
+    name = "블랙",
+    name_bg_color = "#0ABEC5"
   },
   {
     id = "avg4_999",
