@@ -146,6 +146,12 @@ return {
     reuseL2DPose = "b"
   },
   {
+    id = "avg1_121",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    ver = "2.2.0"
+  },
+  {
     id = "avg1_123",
     name = "杏子",
     name_bg_color = "#ed825d"
@@ -326,8 +332,8 @@ return {
   },
   {
     id = "avg1_161",
-    name = "***",
-    name_bg_color = "#0ABEC5",
+    name = "优叶",
+    name_bg_color = "#f4e0d7",
     ver = "2.1.0"
   },
   {
@@ -362,6 +368,12 @@ return {
     ver = "2.3.0"
   },
   {
+    id = "avg1_177",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    ver = "2.2.0"
+  },
+  {
     id = "avg2_001",
     name = "树树鼠·打手",
     name_bg_color = "#0ABEC5"
@@ -378,7 +390,7 @@ return {
   },
   {
     id = "avg2_937",
-    name = "***",
+    name = "火龙",
     name_bg_color = "#0ABEC5",
     ver = "2.1.0"
   },
@@ -1282,13 +1294,13 @@ return {
   },
   {
     id = "avg3_230",
-    name = "***",
-    name_bg_color = "#0ABEC5",
+    name = "蜜柑",
+    name_bg_color = "#8cc8f4",
     ver = "2.1.0"
   },
   {
     id = "avg3_231",
-    name = "***",
+    name = "联合种业公司代表男",
     name_bg_color = "#0ABEC5",
     ver = "2.1.0"
   },
@@ -1311,12 +1323,6 @@ return {
     ver = "1.14.0"
   },
   {
-    id = "avg3_235",
-    name = "***",
-    name_bg_color = "#0ABEC5",
-    ver = "2.2.0"
-  },
-  {
     id = "avg3_236",
     name = "***",
     name_bg_color = "#0ABEC5",
@@ -1327,6 +1333,12 @@ return {
     name = "***",
     name_bg_color = "#0ABEC5",
     ver = "2.2.0"
+  },
+  {
+    id = "avg3_238",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    ver = "2.3.0"
   },
   {
     id = "avg3_240",
@@ -3107,7 +3119,7 @@ return {
   },
   {
     id = "avg3_1320",
-    name = "***",
+    name = "天穹保险公司代表男A",
     name_bg_color = "#0ABEC5",
     reuse = "avg3_232",
     ver = "2.1.0"
@@ -3274,15 +3286,15 @@ return {
   },
   {
     id = "avg3_1344",
-    name = "***",
-    name_bg_color = "#0ABEC5",
+    name = "红宝石A",
+    name_bg_color = "#9f3a42",
     reuse = "avg3_136",
     ver = "2.1.0"
   },
   {
     id = "avg3_1345",
-    name = "***",
-    name_bg_color = "#0ABEC5",
+    name = "蓝宝石A",
+    name_bg_color = "#5480d6",
     reuse = "avg3_137",
     ver = "2.1.0"
   },
@@ -3306,6 +3318,20 @@ return {
     name_bg_color = "#0ABEC5",
     reuse = "avg2_942",
     ver = "2.0.0"
+  },
+  {
+    id = "avg3_1349",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg1_123",
+    ver = "2.2.0"
+  },
+  {
+    id = "avg3_1350",
+    name = "剧院魅影A",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg2_946",
+    ver = "1.9.0"
   },
   {
     id = "avg4_100",

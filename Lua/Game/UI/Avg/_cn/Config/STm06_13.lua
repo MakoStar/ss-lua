@@ -14594,7 +14594,7 @@ return {
     param = {
       3,
       "0",
-      "                                                                                                      <size=60>♫</size> <size=49>「Orbital」</size> ==RT==                                                                                                    歌：THE BINARY==RT==                                         作词：谷ナオキ 、mido (THE BINARY)  /  作曲&编曲：谷ナオキ",
+      "<size=60>♫</size> <size=49>「Orbital」</size> ==RT==歌：THE BINARY==RT==作词：谷ナオキ 、mido (THE BINARY)  /  作曲&编曲：谷ナオキ",
       0,
       "",
       false,

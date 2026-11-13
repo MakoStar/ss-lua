@@ -11982,7 +11982,7 @@ return {
     param = {
       3,
       "0",
-      "                                                                                                  <size=60>♫</size><size=50>「FARAWAY」</size> ==RT==                                                                 演唱：ヰ世界情緒  作词·作曲·編曲：香椎モイミ",
+      "<size=60>♫</size><size=50>「FARAWAY」</size> ==RT==演唱：ヰ世界情緒  作词·作曲·編曲：香椎モイミ",
       0,
       "",
       false,
