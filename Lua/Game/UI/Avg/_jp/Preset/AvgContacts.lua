@@ -302,6 +302,14 @@ return {
     ver = "1.13.0"
   },
   {
+    id = 161,
+    icon = "Icon/Head/head_16101_S",
+    name = "スグハ",
+    landmark = "セルスティ 地理協会本部",
+    signature = "このユーザーは現在通信圏外です",
+    ver = "2.1.0"
+  },
+  {
     id = 162,
     icon = "Icon/Head/head_16201_S",
     name = "エリナ",
@@ -320,6 +328,13 @@ return {
     id = 3223,
     icon = "Icon/Head/head_npc22301_S",
     name = "カトリーヌ",
+    landmark = "",
+    signature = ""
+  },
+  {
+    id = 3230,
+    icon = "Icon/Head/head_npc23001_S",
+    name = "ミカン",
     landmark = "",
     signature = ""
   },

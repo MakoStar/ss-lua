@@ -5205,7 +5205,12 @@ return {
   },
   {
     cmd = "Wait",
-    param = {1.2}
+    param = {0.5}
+  },
+  {cmd = "SetGoOn"},
+  {
+    cmd = "Wait",
+    param = {0.3}
   },
   {
     cmd = "SetFx",
