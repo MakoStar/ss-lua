@@ -302,6 +302,14 @@ return {
     ver = "1.13.0"
   },
   {
+    id = 161,
+    icon = "Icon/Head/head_16101_S",
+    name = "優葉",
+    landmark = "塞爾斯泰地理協會總部",
+    signature = "該使用者目前不在通訊範圍內！",
+    ver = "2.1.0"
+  },
+  {
     id = 162,
     icon = "Icon/Head/head_16201_S",
     name = "破曉塵沙",
@@ -320,6 +328,13 @@ return {
     id = 3223,
     icon = "Icon/Head/head_npc22301_S",
     name = "卡特琳",
+    landmark = "",
+    signature = ""
+  },
+  {
+    id = 3230,
+    icon = "Icon/Head/head_npc23001_S",
+    name = "蜜柑",
     landmark = "",
     signature = ""
   },
