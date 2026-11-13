@@ -22263,7 +22263,7 @@ return {
       "",
       false,
       "",
-      "Why... Why can't I stop chewing? Are you two ... trying to corrupt me...",
+      "Why...==W== Why can't I stop chewing?==W== Are you two ... trying to corrupt me...",
       ""
     }
   },
