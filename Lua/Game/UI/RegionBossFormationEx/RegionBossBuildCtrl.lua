@@ -96,6 +96,9 @@ function RegionBossBuildCtrl:RefreshList()
     end
     table.sort(self.tbCurShow, function(a, b)
       if self.nSortype == SortType.Time then
+        if a.bDislike ~= b.bDislike then
+          return b.bDislike
+        end
         if self.nSortOrder == SortOrder.Descending then
           if a.isCanUse ~= b.isCanUse then
             return a.isCanUse and not b.isCanUse
@@ -107,23 +110,28 @@ function RegionBossBuildCtrl:RefreshList()
           end
           return a.nBuildId < b.nBuildId
         end
-      elseif self.nSortOrder == SortOrder.Descending then
-        if a.isCanUse ~= b.isCanUse then
-          return a.isCanUse and not b.isCanUse
-        end
-        if a.nScore ~= b.nScore then
-          return a.nScore > b.nScore
-        else
-          return a.nBuildId > b.nBuildId
-        end
       else
-        if a.isCanUse ~= b.isCanUse then
-          return a.isCanUse and not b.isCanUse
+        if a.bDislike ~= b.bDislike then
+          return b.bDislike
         end
-        if a.nScore ~= b.nScore then
-          return a.nScore < b.nScore
+        if self.nSortOrder == SortOrder.Descending then
+          if a.isCanUse ~= b.isCanUse then
+            return a.isCanUse and not b.isCanUse
+          end
+          if a.nScore ~= b.nScore then
+            return a.nScore > b.nScore
+          else
+            return a.nBuildId > b.nBuildId
+          end
         else
-          return a.nBuildId > b.nBuildId
+          if a.isCanUse ~= b.isCanUse then
+            return a.isCanUse and not b.isCanUse
+          end
+          if a.nScore ~= b.nScore then
+            return a.nScore < b.nScore
+          else
+            return a.nBuildId > b.nBuildId
+          end
         end
       end
     end)
@@ -251,6 +259,9 @@ function RegionBossBuildCtrl:FilterAndSortBuildData()
           return bSelectA
         end
       end
+      if a.bDislike ~= b.bDislike then
+        return b.bDislike
+      end
       if self.nSortOrder == SortOrder.Descending then
         return a.nBuildId > b.nBuildId
       else
@@ -279,6 +290,9 @@ function RegionBossBuildCtrl:FilterAndSortBuildData()
         if bSelectA ~= bSelectB then
           return bSelectA
         end
+      end
+      if a.bDislike ~= b.bDislike then
+        return b.bDislike
       end
       if self.nSortOrder == SortOrder.Descending then
         if a.nScore ~= b.nScore then

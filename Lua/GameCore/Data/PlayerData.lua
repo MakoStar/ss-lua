@@ -271,6 +271,8 @@ function PlayerData.UnInit()
   PlayerData.StoryReview = nil
   PlayerData.GuideMission:UnInit()
   PlayerData.GuideMission = nil
+  PlayerData.Reengagement:UnInit()
+  PlayerData.Reengagement = nil
 end
 
 return PlayerData

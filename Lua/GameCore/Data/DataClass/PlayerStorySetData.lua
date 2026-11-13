@@ -136,6 +136,18 @@ function PlayerStorySetData:GetAllChapterList(nType, bOnlyShowUnRead)
   return tbChapter
 end
 
+function PlayerStorySetData:GetChapterData(nChapterId)
+  local v = self.tbChapter[nChapterId]
+  if v == nil then
+    return nil
+  end
+  return {
+    nId = nChapterId,
+    tbSectionList = v.tbSectionList,
+    bUnlock = v.bUnlock
+  }
+end
+
 function PlayerStorySetData:GetAllTabList()
   local tbTabData = {}
   

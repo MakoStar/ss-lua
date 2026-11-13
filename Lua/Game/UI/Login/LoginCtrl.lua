@@ -452,7 +452,9 @@ function LoginCtrl:RequestLogin()
     Account.Pass = "123456"
   end
   local curPlatform = CS.ClientManager.Instance.Platform
-  if curPlatform == "ios" or curPlatform == "mac" then
+  if NovaAPI.GetServerChannelName() == "Steam" then
+    msgSend.Platform = 5
+  elseif curPlatform == "ios" or curPlatform == "mac" then
     msgSend.Platform = 1
   elseif curPlatform == "android" then
     msgSend.Platform = 2
@@ -489,7 +491,9 @@ function LoginCtrl:RequestLoginSDK()
   end
   local msgSend = {}
   local curPlatform = CS.ClientManager.Instance.Platform
-  if curPlatform == "ios" or curPlatform == "mac" then
+  if NovaAPI.GetServerChannelName() == "Steam" then
+    msgSend.Platform = 5
+  elseif curPlatform == "ios" or curPlatform == "mac" then
     msgSend.Platform = 1
   elseif curPlatform == "android" then
     msgSend.Platform = 2

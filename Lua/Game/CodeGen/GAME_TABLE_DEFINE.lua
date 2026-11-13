@@ -233,6 +233,7 @@ GameTableDefine.CommonTable = {
   Buff = {Key = true},
   BuffEffect = {Key = true},
   BuffValue = {Key = true},
+  BuildGeneratorLevelControl = {Key = true},
   Chapter = {
     Key = true,
     Lang = {"Name", "Desc"}
@@ -960,7 +961,7 @@ GameTableDefine.CommonTable = {
   },
   PeriodicQuestControl = {
     Key = true,
-    Lang = {"DesText"}
+    Lang = {"DesText", "TitleText"}
   },
   PeriodicQuestGroup = {},
   PlayerHead = {

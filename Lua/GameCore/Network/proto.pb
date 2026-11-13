@@ -1289,8 +1289,8 @@ ActivityId.
 Events (2.proto.EventsREvents
 	Evidences (R	Evidences!
 NextPackageˇ (RNextPackageP bproto3
-‰
-%activity_ice_cream_level_settle.protoprotopublic.proto"õ
+§
+%activity_ice_cream_level_settle.protoprotopublic.proto"€
 ActivityIceCreamLevelSettleReq
 
 ActivityId (R
@@ -1304,7 +1304,9 @@ OrderCount
 TotalScore (R
 TotalScore 
 StreakCount (RStreakCount
-	PropCount (R	PropCount!
+	PropCount (R	PropCount
+MaxCombo (RMaxCombo"
+PassionTimes	 (RPassionTimes!
 NextPackageˇ (RNextPackageP bproto3
 €
 activity_levels_apply.protoprotopublic.proto"ú
@@ -1812,12 +1814,6 @@ ActivityId
 Change (2.proto.ChangeInfoRChange
 Level (RLevel!
 NextPackageˇ (RNextPackageP bproto3
-ü
-battle_pass_order.protoprotopublic.proto"e
-BattlePassOrderReq
-Mode (RMode
-Version (RVersion!
-NextPackageˇ (RNextPackageP bproto3
 ¸
 battle_pass_order_collect.protoprotopublic.proto"π
 BattlePassOrderCollectResp4
@@ -1825,6 +1821,12 @@ ActivityId
 Mode (RMode
 Level (RLevel
 Version (RVersion!
+NextPackageˇ (RNextPackageP bproto3
+ü
+battle_pass_order.protoprotopublic.proto"e
+BattlePassOrderReq
+Mode (RMode
+Version (RVersion!
 NextPackageˇ (RNextPackageP bproto3
 “
 &battle_pass_quest_reward_receive.protoprotopublic.proto"à
@@ -1904,7 +1906,7 @@ RankChange
 New (RNew
 Token (	RToken!
 NextPackageˇ (RNextPackageP bproto3
-∫R
+¸R
 public_star_tower.protoprotopublic.prototraveler_duel_rank_upload.proto"≠
 StarTowerInfo(
 Meta (2.proto.StarTowerMetaRMeta(
@@ -2022,14 +2024,15 @@ SyncHPCase!
 	CanReRoll (R	CanReRoll 
 ReRollPrice (RReRollPrice
 Type (RType!
-NextPackageˇ (RNextPackage"È
+NextPackageˇ (RNextPackage"ë
 SelectOptionsEventCaseData
 EvtId (REvtId
 Options (ROptions 
 FailedIdxes (RFailedIdxes
 NPCId (RNPCId
 Done (RDone,
-Infos (2.proto.NPCAffinityInfoRInfos!
+Infos (2.proto.NPCAffinityInfoRInfos&
+EventOptionCnt (REventOptionCnt!
 NextPackageˇ (RNextPackage"π
 SelectFateCardCaseData
 Ids (RIds
@@ -2209,7 +2212,7 @@ FirstAward
 Brief (2.proto.StarTowerBuildBriefRBrief3
 Detail (2.proto.StarTowerBuildDetailRDetail
 	BuildCoin (R	BuildCoin!
-NextPackageˇ (RNextPackage"è
+NextPackageˇ (RNextPackage"©
 StarTowerBuildBrief
 Id (RId
 Name (	RName
@@ -2220,7 +2223,8 @@ Preference
 Score (RScore
 DiscIds (RDiscIds+
 Chars (2.proto.TowerBuildCharRChars 
-StarTowerId (RStarTowerId!
+StarTowerId (RStarTowerId
+Discard	 (RDiscard!
 NextPackageˇ (RNextPackage"¸
 StarTowerBuildDetail5
 
@@ -2304,8 +2308,6 @@ AwardItems (2.proto.ItemTplR
 AwardItems
 Number (RNumber!
 NextPackageˇ (RNextPackageP bproto3
-3
-char_advance.protoprotopublic.protoP bproto3
 π
 !char_advance_reward_receive.protoprotopublic.proto"r
 CharAdvanceRewardReceiveReq
@@ -2316,6 +2318,8 @@ AwardItems
 Flag (RFlag)
 Change (2.proto.ChangeInfoRChange!
 NextPackageˇ (RNextPackageP bproto3
+3
+char_advance.protoprotopublic.protoP bproto3
 
 char_affinity_gift_send.protoprotopublic.proto"z
 CharAffinityGiftSendReq
@@ -2505,17 +2509,17 @@ ChangeInfo$
 GemIndex (RGemIndex
 Lock (RLock!
 NextPackageˇ (RNextPackagebproto3
-–
-char_gem_use_overlock.protoproto"°
-CharGemOverlockReq
+›
+"char_gem_use_overlock_revert.protoproto"ß
+CharGemOverlockRevertReq
 CharId (RCharId
 SlotId (RSlotId
 GemIndex (RGemIndex
 	AttrIndex (R	AttrIndex!
 NextPackageˇ (RNextPackagebproto3
-›
-"char_gem_use_overlock_revert.protoproto"ß
-CharGemOverlockRevertReq
+–
+char_gem_use_overlock.protoproto"°
+CharGemOverlockReq
 CharId (RCharId
 SlotId (RSlotId
 GemIndex (RGemIndex
@@ -2844,6 +2848,8 @@ DormRoomIdH
 NextPackageˇ (RNextPackageP bproto3
 B
 dorm_get_furniture_num.protoprotopublic_dorm.protoP bproto3
+A
+dorm_info_update_name.protoprotopublic_dorm.protoP bproto3
 Ä
 dorm_info.protoprotopublic_dorm.proto"»
 DormInfoListResp/
@@ -2853,8 +2859,6 @@ B
 InteractionRoleIds (RInteractionRoleIdsQ
 AffinityGiftRoleInfos (2.proto.DormAffinityGiftInfoRAffinityGiftRoleInfos!
 NextPackageˇ (RNextPackageP bproto3
-A
-dorm_info_update_name.protoprotopublic_dorm.protoP bproto3
 Ë
 dorm_invitation_role.protoprotopublic_dorm.proto"•
 DormInvitationRoleReq
@@ -2905,11 +2909,6 @@ C
 energy_info.protoprotopublic.protoP bproto3
 8
 fragments_convert.protoprotopublic.protoP bproto3
-v
-friend_add.protoprotopublic.proto"C
-FriendAddReq
-UId (RUId!
-NextPackageˇ (RNextPackageP bproto3
 ·
 friend_add_agree.protoprotopublic.proto"H
 FriendAddAgreeReq
@@ -2917,6 +2916,11 @@ v
 NextPackageˇ (RNextPackage"^
 FriendAddAgreeResp%
 Friend (2.proto.FriendRFriend!
+NextPackageˇ (RNextPackageP bproto3
+v
+friend_add.protoprotopublic.proto"C
+FriendAddReq
+UId (RUId!
 NextPackageˇ (RNextPackageP bproto3
 Ÿ
 friend_all_agree.protoprotopublic.proto"ü
@@ -4019,93 +4023,6 @@ RewardType
 
 CardEffect
 LoseAllCoinP bproto3
-π
-notify.protoprotopublic_mining.protopublic_soldier.protopublic_star_tower.protopublic.protopublic_dorm.proto"?
-NewAgent
-Ids (RIds!
-NextPackageˇ (RNextPackage"ê
-SigninRewardUpdate
-Index (RIndex)
-Change (2.proto.ChangeInfoRChange
-Switch (RSwitch!
-NextPackageˇ (RNextPackage"e
-OrderStateChange
-OrderId (	ROrderId
-Store (RStore!
-NextPackageˇ (RNextPackage"¶
-StarTowerBookPotentialChangeI
-CharPotentials (2!.proto.StarTowerBookCharPotentialRCharPotentials
-CharIds (RCharIds!
-NextPackageˇ (RNextPackage"Y
-StarTowerBookEventChange
-EventIds (REventIds!
-NextPackageˇ (RNextPackage"Œ
-Skin
-New (2.proto.UI32H RNew7
-
-Duplicated (2.proto.Skin.TransformH R
-Duplicated!
-NextPackageˇ (RNextPackageA
-	Transform
-ID (RID$
-Items (2.proto.ItemTplRItemsB
-Type"_
-
-SkinChange
-CharId (RCharId
-SkinId (RSkinId!
-NextPackageˇ (RNextPackage"Ï
-MonthlyCardRewards
-Id (RId)
-Change (2.proto.ChangeInfoRChange
-EndTime (REndTime(
-Rewards (2.proto.ItemTplRRewards
-	Remaining (R	Remaining
-Switch (RSwitch!
-NextPackageˇ (RNextPackage"Y
-TowerBookFateCardCollectNotify
-Cards (RCards!
-NextPackageˇ (RNextPackage"t
-#TowerBookFateCardRewardChangeNotify
-List (RList
-Option (ROption!
-NextPackageˇ (RNextPackage"`
-HonorChangeNotify(
-Honors (2.proto.HonorInfoRHonors!
-NextPackageˇ (RNextPackage"Û
-NoticeChangeNotify
-Content (	RContent
-Channel (RChannel
-	StartTime (R	StartTime
-EndTime (REndTime
-Interval (RInterval
-Duration (RDuration
-IsStop (RIsStop!
-NextPackageˇ (RNextPackage"c
-PlayerHeadIconChangeNotify
-Set (RSet
-Del (RDel!
-NextPackageˇ (RNextPackage"≤
-ActivityMiningEnterLayerNotify(
-Layer (2.proto.MiningLayerRLayerC
-MiningChangeInfo (2.proto.MiningChangeInfoRMiningChangeInfo!
-NextPackageˇ (RNextPackage"d
-OrderCollected/
-Orders (2.proto.OrderStateChangeROrders!
-NextPackageˇ (RNextPackage"y
-MilkoutCharacterUnlockNotify
-
-ActivityId (R
-ActivityId
-CharId (RCharId!
-NextPackageˇ (RNextPackage"¶
-ActivityDoubleRewardTimesNotify
-
-ActivityId (R
-ActivityId
-UseTimes (RUseTimes$
-ReturneeTimes (RReturneeTimes!
-NextPackageˇ (RNextPackageP PPPPbproto3
 æ
 notify_gm.protoprotopublic.protopublic_star_tower.protopublic_soldier.proto"£
 GmWorldClass
@@ -4215,6 +4132,93 @@ AgentInfos&
 GmHandbookCompleteNotify/
 Handbook (2.proto.HandbookInfoRHandbook!
 NextPackageˇ (RNextPackageP bproto3
+π
+notify.protoprotopublic_mining.protopublic_soldier.protopublic_star_tower.protopublic.protopublic_dorm.proto"?
+NewAgent
+Ids (RIds!
+NextPackageˇ (RNextPackage"ê
+SigninRewardUpdate
+Index (RIndex)
+Change (2.proto.ChangeInfoRChange
+Switch (RSwitch!
+NextPackageˇ (RNextPackage"e
+OrderStateChange
+OrderId (	ROrderId
+Store (RStore!
+NextPackageˇ (RNextPackage"¶
+StarTowerBookPotentialChangeI
+CharPotentials (2!.proto.StarTowerBookCharPotentialRCharPotentials
+CharIds (RCharIds!
+NextPackageˇ (RNextPackage"Y
+StarTowerBookEventChange
+EventIds (REventIds!
+NextPackageˇ (RNextPackage"Œ
+Skin
+New (2.proto.UI32H RNew7
+
+Duplicated (2.proto.Skin.TransformH R
+Duplicated!
+NextPackageˇ (RNextPackageA
+	Transform
+ID (RID$
+Items (2.proto.ItemTplRItemsB
+Type"_
+
+SkinChange
+CharId (RCharId
+SkinId (RSkinId!
+NextPackageˇ (RNextPackage"Ï
+MonthlyCardRewards
+Id (RId)
+Change (2.proto.ChangeInfoRChange
+EndTime (REndTime(
+Rewards (2.proto.ItemTplRRewards
+	Remaining (R	Remaining
+Switch (RSwitch!
+NextPackageˇ (RNextPackage"Y
+TowerBookFateCardCollectNotify
+Cards (RCards!
+NextPackageˇ (RNextPackage"t
+#TowerBookFateCardRewardChangeNotify
+List (RList
+Option (ROption!
+NextPackageˇ (RNextPackage"`
+HonorChangeNotify(
+Honors (2.proto.HonorInfoRHonors!
+NextPackageˇ (RNextPackage"Û
+NoticeChangeNotify
+Content (	RContent
+Channel (RChannel
+	StartTime (R	StartTime
+EndTime (REndTime
+Interval (RInterval
+Duration (RDuration
+IsStop (RIsStop!
+NextPackageˇ (RNextPackage"c
+PlayerHeadIconChangeNotify
+Set (RSet
+Del (RDel!
+NextPackageˇ (RNextPackage"≤
+ActivityMiningEnterLayerNotify(
+Layer (2.proto.MiningLayerRLayerC
+MiningChangeInfo (2.proto.MiningChangeInfoRMiningChangeInfo!
+NextPackageˇ (RNextPackage"d
+OrderCollected/
+Orders (2.proto.OrderStateChangeROrders!
+NextPackageˇ (RNextPackage"y
+MilkoutCharacterUnlockNotify
+
+ActivityId (R
+ActivityId
+CharId (RCharId!
+NextPackageˇ (RNextPackage"¶
+ActivityDoubleRewardTimesNotify
+
+ActivityId (R
+ActivityId
+UseTimes (RUseTimes$
+ReturneeTimes (RReturneeTimes!
+NextPackageˇ (RNextPackageP PPPPbproto3
 ª
 npc_affinity_book_get.protoprotopublic.proto"}
 NPCAffinityBookGetResp(
@@ -4798,13 +4802,13 @@ AwardItems
 CoinQty (RCoinQty)
 Change (2.proto.ChangeInfoRChange!
 NextPackageˇ (RNextPackageP Pbproto3
-E
-$soldier_battle_report_favorite.protoprotopublic.protoP bproto3
 ∆
 )soldier_battle_report_favorite_list.protoprotopublic.proto"z
 SoldierBattleReportFavoriteList4
 Reports (2.proto.SoldierBattleReportRReports!
 NextPackageˇ (RNextPackageP bproto3
+E
+$soldier_battle_report_favorite.protoprotopublic.protoP bproto3
 ¬
 'soldier_battle_report_recent_list.protoprotopublic.proto"x
 SoldierBattleReportRecentList4
@@ -4962,6 +4966,24 @@ Potentials
 StarTowerBuildDetailGetResp3
 Detail (2.proto.StarTowerBuildDetailRDetail!
 NextPackageˇ (RNextPackageP bproto3
+Ω
+star_tower_build_discard.protoprotopublic_star_tower.proto"q
+StarTowerBuildDiscardReq
+BuildId (RBuildId
+Discard (RDiscard!
+NextPackageˇ (RNextPackageP bproto3
+Í
+ star_tower_build_generator.protoprotopublic.protopublic_star_tower.proto"Ó
+StarTowerBuildGeneratorReqI
+CharPotentials (2!.proto.StarTowerBookCharPotentialRCharPotentials
+DiscIds (RDiscIds4
+SubNoteSkills (2.proto.ItemTplRSubNoteSkills
+Name (	RName!
+NextPackageˇ (RNextPackage"ö
+StarTowerBuildGeneratorResp)
+Change (2.proto.ChangeInfoRChange-
+Info (2.proto.StarTowerBuildInfoRInfo!
+NextPackageˇ (RNextPackageP Pbproto3
 æ
 "star_tower_build_lock_unlock.protoprotopublic_star_tower.proto"n
 StarTowerBuildLockUnlockReq
@@ -5004,15 +5026,16 @@ CheckInIds (R
 CheckInIds 
 CheckOutIds (RCheckOutIds!
 NextPackageˇ (RNextPackageP bproto3
-Ö
-#star_tower_build_whether_save.protoprotopublic_star_tower.proto"´
+ü
+#star_tower_build_whether_save.protoprotopublic_star_tower.proto"≈
 StarTowerBuildWhetherSaveReq
 Delete (RDelete
 Lock (RLock
 
 Preference (R
 Preference
-	BuildName (	R	BuildName!
+	BuildName (	R	BuildName
+Discard (RDiscard!
 NextPackageˇ (RNextPackage"Ö
 StarTowerBuildWhetherSaveResp)
 Change (2.proto.ChangeInfoRChange

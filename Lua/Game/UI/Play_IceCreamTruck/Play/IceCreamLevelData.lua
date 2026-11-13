@@ -20,6 +20,9 @@ function IceCreamLevelData:InitData(nLevelId, nActId)
   local nOctopusFoot = ConfigTable.GetConfigNumberArray("IceCreamOctopusClick")
   self.nOctopusFoot_min = nOctopusFoot[1]
   self.nOctopusFoot_max = nOctopusFoot[2]
+  local nShowOctopusOrders = ConfigTable.GetConfigNumberArray("IceCreamOctopusInterval")
+  self.nShowOctopusOrders_min = nShowOctopusOrders[1]
+  self.nShowOctopusOrders_max = nShowOctopusOrders[2]
   self.nLevelMaxScore = ConfigTable.GetConfigNumber("IceCreamMaxTotalScore") or 999999999
 end
 
@@ -130,6 +133,62 @@ function IceCreamLevelData:OnEvent_SetFloorHasDic(nLevelId)
   end
 end
 
+function IceCreamLevelData:GetNewUnlockSlot()
+  if self.levelConfig then
+    local tbCurUnlockSlot = self.levelConfig.UnlockSlot
+    local PrenLevelId = self.levelConfig.PreLevelId
+    local tbNewUnlockSlot = {}
+    local tbPreSet = {}
+    if PrenLevelId == 0 then
+      return tbNewUnlockSlot
+    end
+    local PreLevelConfig = ConfigTable.GetData("ActivityIceCreamLevel", PrenLevelId)
+    local tbPreUnlockSlot = PreLevelConfig.UnlockSlot
+    for _, v in pairs(tbPreUnlockSlot or {}) do
+      tbPreSet[v] = true
+    end
+    for _, v in pairs(tbCurUnlockSlot or {}) do
+      if not tbPreSet[v] then
+        tbNewUnlockSlot[#tbNewUnlockSlot + 1] = v
+      end
+    end
+    return tbNewUnlockSlot
+  else
+    return nil
+  end
+end
+
+function IceCreamLevelData:ShowOctopusFoots(SeverCount, bInGM, nOctopusTimesGM)
+  if self.levelConfig.LevelType == GameEnum.ActivityIceCreamLevelType.Infinite then
+    if bInGM then
+      if SeverCount % nOctopusTimesGM == 0 then
+        EventManager.Hit("Event_ShowOctopus")
+        return true
+      end
+    else
+      if self.randomOrders == nil then
+        self:ShowOctopus_End()
+      end
+      if SeverCount % self.randomOrders == 0 then
+        EventManager.Hit("Event_ShowOctopus")
+        self:ShowOctopus_End()
+        return true
+      end
+    end
+  end
+  return false
+end
+
+function IceCreamLevelData:ShowOctopus_End()
+  if self.levelConfig.LevelType == GameEnum.ActivityIceCreamLevelType.Infinite then
+    self.randomOrders = math.random(self.nShowOctopusOrders_min, self.nShowOctopusOrders_max)
+    if self.randomOrders == nil or self.randomOrders < 1 then
+      self.randomOrders = 6
+    end
+    printLog("本次触发章鱼的顾客数：" .. self.randomOrders)
+  end
+end
+
 function IceCreamLevelData:CreatOctopusFoots()
   local tbOctopus = {}
   local tbPool = {
@@ -146,7 +205,7 @@ function IceCreamLevelData:CreatOctopusFoots()
   end
   for i = 1, nNumberOctopus do
     local nIndex = math.random(i, #tbPool)
-    tbPool[i], tbPool[nIndex] = tbPool[i], tbPool[nIndex]
+    tbPool[i], tbPool[nIndex] = tbPool[nIndex], tbPool[i]
     tbOctopus[i] = tbPool[i]
   end
   if #tbOctopus == 0 then

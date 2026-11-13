@@ -163,7 +163,8 @@ function NpcOptionCtrl:OnEnable()
     self.nStarTowerId = tbParams[13]
     self.tbNote = tbParams[14]
     self.tbDisc = tbParams[15]
-    self.mapAutoDisplay = tbParams[16]
+    self.nEventCnt = tbParams[16]
+    self.mapAutoDisplay = tbParams[17]
     NovaAPI.SetTMPText(self._mapNode.txtCoinCount, self:ThousandsNumber(self.nCoin))
     self._mapNode.imgMask.gameObject:SetActive(false)
     self._mapNode.goContent.gameObject:SetActive(false)
@@ -268,8 +269,14 @@ function NpcOptionCtrl:Refresh(nCaseId, nEventId, tbNpcOption, tbUnselect, nNpcS
             self._mapNode.TMPChooseDisable[i]:SetText(mapOptionAction.Desc)
           end
         end
-        self._mapNode.TMPFunc[i]:SetText(mapResultCfgData.Desc)
-        self._mapNode.TMPFuncDisable[i]:SetText(mapResultCfgData.Desc)
+        local sDesc = mapResultCfgData.Desc
+        if mapResultCfgData.Id == 10502 then
+          local nNumber1 = 30 + 35 * self.nEventCnt
+          local nNumber2 = 100 - nNumber1
+          sDesc = orderedFormat(sDesc, nNumber1, nNumber2)
+        end
+        self._mapNode.TMPFunc[i]:SetText(sDesc)
+        self._mapNode.TMPFuncDisable[i]:SetText(sDesc)
         if 0 < table.indexof(tbUnselect, i - 1) then
           self._mapNode.imgBgDisable[i]:SetActive(true)
           self._mapNode.btnChoose[i].interactable = false

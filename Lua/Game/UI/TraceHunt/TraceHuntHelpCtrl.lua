@@ -201,7 +201,8 @@ function TraceHuntHelpCtrl:RefreshHuntBoardHard()
       NovaAPI.SetTMPText(self._mapNode.txtSwitchLock, ConfigTable.GetUIText("TraceHunt_HardSwitch_HuntItemLimit"))
     end
   end
-  self:SetSprite_Coin(self._mapNode.imgExtraIcon, AllEnum.CoinItemId.TraceHunt)
+  local mapItem = ConfigTable.GetData_Item(AllEnum.CoinItemId.TraceHunt)
+  self:SetPngSprite(self._mapNode.imgExtraIcon, mapItem.Icon)
   local mapDifficulty = ConfigTable.GetData("TraceHuntDifficulty", 2)
   NovaAPI.SetTMPText(self._mapNode.txtExtraCount, string.format("+%d%%", mapDifficulty.TokenRate))
   self._mapNode.btnSwitch[1].gameObject:SetActive(nHard == 1)

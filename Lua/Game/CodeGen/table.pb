@@ -1,5 +1,5 @@
 
-¦¡
+À¤
 client_table.protonova.client"Ù
 Achievement
 Id (RId
@@ -1338,7 +1338,15 @@ BuffEffect
 	IsInherit (R	IsInherit"
 IsExitDelete (RIsExitDelete"=
 table_BuffValue*
-list (2.nova.client.BuffValueRlist"•
+list (2.nova.client.BuffValueRlist"ú
+BuildGeneratorLevelControl
+Id (RId"
+GrowthNodeId (RGrowthNodeId,
+PotentialMaxLevel (RPotentialMaxLevel<
+MasterPotentialTotalLevel (RMasterPotentialTotalLevel<
+AssistPotentialTotalLevel (RAssistPotentialTotalLevel"_
+ table_BuildGeneratorLevelControl;
+list (2'.nova.client.BuildGeneratorLevelControlRlist"•
 Chapter
 Id (RId
 Name (	RName
@@ -5137,7 +5145,7 @@ QuestGroup
 RewardQty2	 (R
 RewardQty2"E
 table_PeriodicQuest.
-list (2.nova.client.PeriodicQuestRlist"„
+list (2.nova.client.PeriodicQuestRlist"¢
 PeriodicQuestControl
 Id (RId"
 FinalReward1 (RFinalReward1(
@@ -5146,11 +5154,12 @@ RewardQty2"E
 FinalRewardQty2 (RFinalRewardQty2"
 FinalReward3 (RFinalReward3(
 FinalRewardQty3 (RFinalRewardQty3
-DesText (	RDesText
-UIAssets	 (	RUIAssets
-CtrlName
- (	RCtrlName 
-PreviewType (RPreviewType"S
+DesText (	RDesText
+	TitleText	 (	R	TitleText
+UIAssets
+ (	RUIAssets
+CtrlName (	RCtrlName 
+PreviewType (RPreviewType"S
 table_PeriodicQuestControl5
 list (2!.nova.client.PeriodicQuestControlRlist"f
 PeriodicQuestGroup
@@ -7041,14 +7050,15 @@ AchieveIds"G
 IconBg (	RIconBg
 visible (Rvisible"E
 table_StoryEvidence.
-list (2.nova.client.StoryEvidenceRlist"¡
+list (2.nova.client.StoryEvidenceRlist"¿
 	StoryLine
 Id (RId
 	TitleMain (	R	TitleMain
 TitleSub (	RTitleSub
 Icon (	RIcon
 	SortIndex (R	SortIndex
-Visible (RVisible"=
+Visible (RVisible
+	PrevStory (	R	PrevStory"=
 table_StoryLine*
 list (2.nova.client.StoryLineRlist"p
 StoryPersonality

@@ -381,6 +381,10 @@ function PlayerSoldierData:GetCollectRecommendList()
   return self.recommendData:GetCollectRecommendList()
 end
 
+function PlayerSoldierData:CheckRecommendCollected(sCode)
+  return self.recommendData:CheckRecommendCollected(sCode)
+end
+
 function PlayerSoldierData:SetRecommendData(nRecommendId, bInSoldier)
   self.recommendData:SetRecommendData(nRecommendId, bInSoldier)
 end

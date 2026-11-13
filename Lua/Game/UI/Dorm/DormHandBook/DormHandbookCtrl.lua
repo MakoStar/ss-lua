@@ -174,7 +174,7 @@ function DormHandbookCtrl:OnEnable()
     local nAchievementIdx = 0
     for idx, nId in ipairs(self.tbAchievement) do
       local nState = self.mapAchievementState[nId] or 0
-      if nState == 2 then
+      if nState ~= 0 then
         nAchievementIdx = idx
         break
       end

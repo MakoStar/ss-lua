@@ -3,7 +3,7 @@ local LocalData = require("GameCore.Data.LocalData")
 
 function PlayerDormData:Init()
   self.nMaxInteractionCount = ConfigTable.GetConfigNumber("DormRoleInteractionMaxNum")
-  self.nMaxGiftSendCount = ConfigTable.GetConfigNumber("DormRoleAffinityGiftMaxNum")
+  self.nMaxGiftSendCount = tonumber(ConfigTable.GetConfigNumber("AffinityGiftSendCount"))
   self.nMaxRoleGiftSendCount = ConfigTable.GetConfigNumber("DormRoleAffinityGiftDailyNum")
   self.mapDormRoomInfo = {}
   self.mapFurnitureBag = {}
@@ -597,13 +597,8 @@ end
 
 function PlayerDormData:DormAffinityGiftSend(nRoomId, nCharId, tbGift, callback)
   local mapAffinityBefore = PlayerData.Char:GetCharAffinityData(nCharId)
-  local nGiftCount = 0
   
-  local function NetCallback(_, msgData)
-    if self.mapAffinityGiftRoleCount[nCharId] == nil then
-      self.mapAffinityGiftRoleCount[nCharId] = 0
-    end
-    self.mapAffinityGiftRoleCount[nCharId] = self.mapAffinityGiftRoleCount[nCharId] + nGiftCount
+  local function successCallback(_, msgData)
     if msgData.Info == nil then
       if type(callback) == "function" and callback ~= nil then
         callback()
@@ -620,15 +615,8 @@ function PlayerDormData:DormAffinityGiftSend(nRoomId, nCharId, tbGift, callback)
     end
   end
   
-  local msg = {
-    CharId = nCharId,
-    DormRoomId = nRoomId,
-    Items = tbGift
-  }
-  for _, mapItemTpl in ipairs(tbGift) do
-    nGiftCount = nGiftCount + mapItemTpl.Qty
-  end
-  HttpNetHandler.SendMsg(NetMsgId.Id.dorm_affinity_gift_send_req, msg, nil, NetCallback)
+  local msg = {CharId = nCharId, Items = tbGift}
+  HttpNetHandler.SendMsg(NetMsgId.Id.char_affinity_gift_send_req, msg, nil, successCallback)
 end
 
 function PlayerDormData:DormGetFriendList(callback)
@@ -797,16 +785,12 @@ function PlayerDormData:DormSetRoomScene(nRoomId, nScene, callback)
 end
 
 function PlayerDormData:CheckRoleSendGift(nRoleId)
-  local nCount = 0
-  for nCharId, nCharCount in pairs(self.mapAffinityGiftRoleCount) do
-    nCount = nCount + nCharCount
-  end
+  local nCount = PlayerData.Base:GetSendGiftCount()
   if nCount >= self.nMaxGiftSendCount then
     print("今日送礼次数已达上限")
     return true
   end
-  local nRoleCount = self.mapAffinityGiftRoleCount[nRoleId] or 0
-  return nRoleCount > self.nMaxRoleGiftSendCount
+  return false
 end
 
 function PlayerDormData:CheckRoleInteraction(nRoleId)
@@ -839,14 +823,8 @@ function PlayerDormData:CalcAffinityExpChange(nCharId, nLastLevel, nLastExp, nNe
 end
 
 function PlayerDormData:GetCharGiftCountDay(nCharId)
-  local nCount = 0
-  for nCharId, nCharCount in pairs(self.mapAffinityGiftRoleCount) do
-    nCount = nCount + nCharCount
-  end
-  local nSumTotalCount = self.nMaxGiftSendCount - nCount
-  local nCharCount = self.mapAffinityGiftRoleCount[nCharId] or 0
-  local nSumCharCount = self.nMaxRoleGiftSendCount - nCharCount
-  return math.max(math.min(nSumTotalCount, nSumCharCount), 0)
+  local nCount = PlayerData.Base:GetSendGiftCount()
+  return self.nMaxGiftSendCount - nCount
 end
 
 function PlayerDormData:GetPanelDefaultMode()

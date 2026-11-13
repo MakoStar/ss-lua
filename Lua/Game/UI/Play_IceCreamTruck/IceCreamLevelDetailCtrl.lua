@@ -249,7 +249,7 @@ end
 
 function IceCreamLevelDetailCtrl:OnBtnClick_Go()
   self.gameObject:SetActive(false)
-  EventManager.Hit(EventId.OpenPanel, PanelId.IceCreamTruckGamePanel, self.nActId, self.curLevelId)
+  EventManager.Hit(EventId.OpenPanel, PanelId.IceCreamTruckGamePanel_400020, self.nActId, self.curLevelId)
 end
 
 function IceCreamLevelDetailCtrl:RegisterNewRedNode(trTag, nActId, nIndex, nLevel)

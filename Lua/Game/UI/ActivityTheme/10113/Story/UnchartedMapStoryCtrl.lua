@@ -97,11 +97,17 @@ function UnchartedMapStoryCtrl:RefreshStoryList()
   end, true, true, true)
 end
 
+local v2OddPos = Vector2(0, 20.7)
+local v2EvenPos = Vector2(0, 111)
+
 function UnchartedMapStoryCtrl:OnRefreshGrid(goGrid, nIndex)
-  local trNormal = goGrid.transform:Find("Normal")
-  trNormal.gameObject:SetActive(true)
+  local nGridIndex = nIndex + 1
+  local bOdd = nGridIndex % 2 ~= 0
+  local trpivot = goGrid.transform:Find("pivot")
+  trpivot.gameObject:SetActive(true)
+  trpivot.anchoredPosition = bOdd and v2OddPos or v2EvenPos
   goGrid.transform:Find("Branch").gameObject:SetActive(false)
-  self:RefreshGridInfo(trNormal.gameObject, nIndex + 1)
+  self:RefreshGridInfo(trpivot.transform:Find("Normal").gameObject, nIndex + 1)
 end
 
 function UnchartedMapStoryCtrl:RefreshGridInfo(goGrid, nIndex)
@@ -131,22 +137,25 @@ function UnchartedMapStoryCtrl:RefreshGridInfo(goGrid, nIndex)
   local bRead = self._objStoryData:IsStoryReaded(nStoryId)
   local bOpen, nOpenTime = self._objStoryData:IsOpen(mapStoryCfg.StoryId, self._nActId)
   local bAvailable = bOpen and bUnlock
-  self:SetPngSprite(imgStory, bAvailable and mapStoryCfg.Icon or "Icon/ActivityStory/ep_event_13_00")
+  self:SetPngSprite(imgStory, bAvailable and mapStoryCfg.Icon or "Icon/ActivityStory/ep_event13_00")
   NovaAPI.SetTMPText(txtIndex, mapStoryCfg.Index)
   NovaAPI.SetTMPText(txtTitle, mapStoryCfg.Title)
   NovaAPI.SetTMPText(txtComplete, ConfigTable.GetUIText("RoguelikeBuild_Manage_FilterPass"))
   NovaAPI.SetTMPText(trStoryTitle:Find("txtPlot"):GetComponent("TMP_Text"), ConfigTable.GetUIText("Story_StoryTitle"))
   NovaAPI.SetTMPText(trBattleTitle:Find("txtPlot"):GetComponent("TMP_Text"), ConfigTable.GetUIText("Story_BattleTitle"))
-  trStoryTitle.gameObject:SetActive(bAvailable and not mapStoryCfg.IsBattle)
-  trBattleTitle.gameObject:SetActive(bAvailable and mapStoryCfg.IsBattle)
+  trStoryTitle.gameObject:SetActive(not mapStoryCfg.IsBattle)
+  trBattleTitle.gameObject:SetActive(mapStoryCfg.IsBattle)
   trRoot:Find("goNotOpen").gameObject:SetActive(not bOpen)
   trRoot:Find("goLockState").gameObject:SetActive(bOpen and not bUnlock)
   trTextRoot:Find("goLocktxtState").gameObject:SetActive(bOpen and not bUnlock)
-  trTitle.gameObject:SetActive(bAvailable)
+  trTitle.gameObject:SetActive(bOpen)
   trComplete.gameObject:SetActive(bAvailable and bRead)
   trTime.gameObject:SetActive(not bOpen)
+  txtTitle.gameObject:SetActive(bAvailable)
   if bRead then
-    animNormal:Play("svStory_idle", 0, 0)
+    animNormal:Play("svStory_in_read", 0, 0)
+  else
+    animNormal:Play("svStory_in", 0, 0)
   end
   if not bOpen then
     NovaAPI.SetTMPText(txtTime, self:GetRemainTimeStr(nOpenTime, mapStoryCfg.DayOpen))
@@ -176,10 +185,6 @@ function UnchartedMapStoryCtrl:RefreshGridInfo(goGrid, nIndex)
   btnGrid.onClick:AddListener(function()
     self:OnClickStory(nStoryId)
   end)
-  local objAnimator = goGrid:GetComponent("Animator")
-  if objAnimator ~= nil then
-    objAnimator:Play(bAvailable and "svStory_in" or "svStoryNotOpen_in")
-  end
 end
 
 function UnchartedMapStoryCtrl:OnClickStory(nStoryId)

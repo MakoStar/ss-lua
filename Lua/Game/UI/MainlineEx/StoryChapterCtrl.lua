@@ -25,6 +25,7 @@ StoryChapterCtrl._mapNodeConfig = {
   txtTitle_Show = {sComponentName = "TMP_Text"},
   txtTitle2_Show = {sComponentName = "TMP_Text"},
   imgStoryIcon = {sComponentName = "Image"},
+  goLocked = {},
   TabRedDot = {},
   rtBtnShowStoryLineList = {
     sNodeName = "btnShowStoryLineList",
@@ -81,20 +82,19 @@ function StoryChapterCtrl:OnEnable()
   self:ParseData()
   self.nStoryLineId_From = 0
   self.nStoryLineId_To = 0
-  self.bStoryLine_NeedPlayUnlockAnim = false
-  self.bStoryLine_NeedPlaySwitchAnim = false
   self.nChapterId_From = 0
   self.nChapterId_To = 0
-  self.bChapter_NeedPlayUnlockAnim = false
   self.nCurLineId = 0
   self.nCurChapterId = 0
+  self.bStoryLine_NeedPlayUnlockAnim = false
   self.goLineSel = nil
   local tbParam = self:GetPanelParam()
   if type(tbParam) == "table" then
     local nSpecifyChapterId = tbParam[1] or 0
     if type(nSpecifyChapterId) == "number" and 0 < nSpecifyChapterId then
       local bUnlock, sTxt = PlayerData.Avg:IsStoryChapterUnlock(nSpecifyChapterId)
-      if bUnlock == true then
+      local bShow = PlayerData.Avg:IsStoryChapterShow(nSpecifyChapterId)
+      if bUnlock == true and bShow == true then
         self.nChapterId_From = nSpecifyChapterId
         local cfgdata = ConfigTable.GetData("StoryChapter", nSpecifyChapterId)
         self.nStoryLineId_From = cfgdata.StoryLineId
@@ -105,11 +105,12 @@ function StoryChapterCtrl:OnEnable()
   end
   self:SetMoWang()
   self:CheckJustRead()
-  if type(tbParam) == "table" then
+  if self.nChapterId_From == 0 and type(tbParam) == "table" then
     local nPreviousSelectedChapterId = tbParam[2] or 0
     if type(nPreviousSelectedChapterId) == "number" and 0 < nPreviousSelectedChapterId then
       local bUnlock, sTxt = PlayerData.Avg:IsStoryChapterUnlock(nPreviousSelectedChapterId)
-      if bUnlock == true then
+      local bShow = PlayerData.Avg:IsStoryChapterShow(nPreviousSelectedChapterId)
+      if bUnlock == true and bShow == true then
         self.nChapterId_From = nPreviousSelectedChapterId
         local cfgdata = ConfigTable.GetData("StoryChapter", nPreviousSelectedChapterId)
         self.nStoryLineId_From = cfgdata.StoryLineId
@@ -200,8 +201,8 @@ function StoryChapterCtrl:OnEnable()
   end
   
   local function AnimDone()
-    self.nChapterId_To = 0
     self.nStoryLineId_To = 0
+    self.nChapterId_To = 0
     self.nChapterIn = 0
   end
   
@@ -233,24 +234,17 @@ function StoryChapterCtrl:OnEnable()
     seq:AppendInterval(1)
     seq:AppendCallback(PlayAnim_ClickLine)
     seq:AppendInterval(0.7)
-    seq:AppendCallback(PlayAnim_Locate_To_Chapter)
-    seq:AppendInterval(0.2)
-    seq:AppendCallback(PlayAnim_Unlock_To_Chapter)
-    seq:AppendInterval(1.3)
-    nAnimDuration = nAnimDuration + 0.5 + 0.2 + 1 + 0.7 + 0.2 + 1.3
-  elseif self.bStoryLine_NeedPlaySwitchAnim == true then
+    nAnimDuration = nAnimDuration + 0.5 + 0.2 + 1 + 0.7
+  elseif 0 < self.nStoryLineId_To then
     seq:AppendCallback(PlayAnim_MoveRight)
     seq:AppendInterval(0.5)
     seq:AppendCallback(PlayAnim_ScrollToLine)
     seq:AppendInterval(0.2)
     seq:AppendCallback(PlayAnim_ClickLine)
     seq:AppendInterval(0.7)
-    seq:AppendCallback(PlayAnim_Locate_To_Chapter)
-    seq:AppendInterval(0.2)
-    seq:AppendCallback(PlayAnim_Unlock_To_Chapter)
-    seq:AppendInterval(1.3)
-    nAnimDuration = nAnimDuration + 0.5 + 0.2 + 0.7 + 0.2 + 1.3
-  elseif self.bChapter_NeedPlayUnlockAnim == true then
+    nAnimDuration = nAnimDuration + 0.5 + 0.2 + 0.7
+  end
+  if 0 < self.nChapterId_To then
     seq:AppendCallback(PlayAnim_Locate_To_Chapter)
     seq:AppendInterval(0.2)
     seq:AppendCallback(PlayAnim_Unlock_To_Chapter)
@@ -263,17 +257,6 @@ function StoryChapterCtrl:OnEnable()
 end
 
 function StoryChapterCtrl:OnDisable()
-  self.nStoryLineId_From = 0
-  self.nStoryLineId_To = 0
-  self.bStoryLine_NeedPlayUnlockAnim = false
-  self.bStoryLine_NeedPlaySwitchAnim = false
-  self.nChapterId_From = 0
-  self.nChapterId_To = 0
-  self.bChapter_NeedPlayUnlockAnim = false
-  self.nCurLineId = 0
-  self.nCurChapterId = 0
-  self.goLineSel = nil
-  self.bPlayEnterChapter = false
   delChildren(self._mapNode.loopsvChapterList.transform:Find("Viewport/Content"))
   delChildren(self._mapNode.loopsvStoryLineList.transform:Find("Viewport/Content"))
 end
@@ -282,15 +265,24 @@ function StoryChapterCtrl:ParseData()
   self.tbLine = {}
   self.mapChapter = {}
   self.tbUnlockAnimPlayedChapter = {}
+  self.tbUnlockAnimPlayedLine = {}
   self:LoadLocalData()
   
   local function foreach_Line(cfg)
+    local b = true
+    local sStoryId = cfg.PrevStory
+    if type(sStoryId) == "string" and sStoryId ~= "" then
+      local _cfgStory = PlayerData.Avg:GetStoryCfgData(sStoryId)
+      if _cfgStory ~= nil then
+        b = PlayerData.Avg:IsStoryReaded(_cfgStory.Id)
+      end
+    end
     table.insert(self.tbLine, {
       nLineId = cfg.Id,
       nSort = cfg.SortIndex,
       tbChapterId = {},
       bVisible = cfg.Visible,
-      bIsUnlock = false
+      bIsUnlock = b
     })
   end
   
@@ -340,20 +332,23 @@ function StoryChapterCtrl:ParseData()
       return a.nSort < b.nSort
     end
   end)
-  local tbChapterId_HasNoStory = {}
-  for k, v in pairs(self.mapChapter) do
-    if v.nHeadStoryId == 0 then
-      table.insert(tbChapterId_HasNoStory, k)
+  local bProcess = true
+  if bProcess == true then
+    local tbChapterId_HasNoStory = {}
+    for k, v in pairs(self.mapChapter) do
+      if v.nHeadStoryId == 0 then
+        table.insert(tbChapterId_HasNoStory, k)
+      end
     end
-  end
-  for i, v in ipairs(tbChapterId_HasNoStory) do
-    self.mapChapter[v] = nil
-  end
-  for i, v in ipairs(self.tbLine) do
-    for ii, vv in ipairs(tbChapterId_HasNoStory) do
-      local nIdx = table.indexof(v.tbChapterId, vv)
-      if 0 < nIdx then
-        table.remove(v.tbChapterId, nIdx)
+    for i, v in ipairs(tbChapterId_HasNoStory) do
+      self.mapChapter[v] = nil
+    end
+    for i, v in ipairs(self.tbLine) do
+      for ii, vv in ipairs(tbChapterId_HasNoStory) do
+        local nIdx = table.indexof(v.tbChapterId, vv)
+        if 0 < nIdx then
+          table.remove(v.tbChapterId, nIdx)
+        end
       end
     end
   end
@@ -364,8 +359,6 @@ function StoryChapterCtrl:ParseData()
       table.remove(self.tbLine, i)
     else
       table.sort(data.tbChapterId)
-      local nChapterId = data.tbChapterId[1]
-      self.tbLine[i].bIsUnlock = self.mapChapter[nChapterId].bIsUnlock
       if data.bVisible == false and data.bIsUnlock == false then
         table.remove(self.tbLine, i)
       end
@@ -396,6 +389,9 @@ function StoryChapterCtrl:CheckJustRead()
     return
   end
   local nStoryId = PlayerData.Avg.nJustReadStoryId
+  if type(nStoryId) ~= "number" then
+    return
+  end
   if nStoryId <= 0 then
     return
   end
@@ -403,88 +399,139 @@ function StoryChapterCtrl:CheckJustRead()
   if cfg == nil then
     return
   end
+  local sStoryId = cfg.StoryId
   local nChapterId = cfg.Chapter
-  if self.mapChapter[nChapterId].bIsUnlock ~= true then
-    return
-  end
-  local _cfg = ConfigTable.GetData("StoryChapter", nChapterId)
-  local nStoryLineId = _cfg.StoryLineId
-  local mapLine
-  for i, v in ipairs(self.tbLine) do
-    if v.nLineId == nStoryLineId then
-      mapLine = v
-      break
+  local data = self.mapChapter[nChapterId]
+  if data ~= nil and data.bIsUnlock == true then
+    cfg = ConfigTable.GetData("StoryChapter", nChapterId)
+    local nLineId = cfg.StoryLineId
+    for i, v in ipairs(self.tbLine) do
+      if v.nLineId == nLineId and v.bIsUnlock == true then
+        self.nChapterId_From = nChapterId
+        self.nStoryLineId_From = nLineId
+        break
+      end
     end
   end
-  if mapLine == nil then
+  if self.nChapterId_From == 0 then
     return
   end
-  if mapLine.bIsUnlock ~= true then
-    return
-  end
-  local sAvgLuaName = cfg.StoryId
-  self.nChapterId_From = cfg.Chapter
-  self.nStoryLineId_From = _cfg.StoryLineId
-  self.bChapter_NeedPlayUnlockAnim = false
   local nNextChapterId = self.nChapterId_From + 1
-  local data = self.mapChapter[nNextChapterId]
-  if type(data) == "table" and 0 < table.indexof(data.tbPrevStoryId, sAvgLuaName) and data.bIsUnlock == true and data.bHeadRead == false and self:UnlockAnimHasPlayed(nNextChapterId) == false then
-    self.bChapter_NeedPlayUnlockAnim = true
+  data = self.mapChapter[nNextChapterId]
+  if type(data) == "table" and 0 < table.indexof(data.tbPrevStoryId, sStoryId) then
+    cfg = ConfigTable.GetData("StoryChapter", nNextChapterId)
+    if data.bIsUnlock == true and data.bHeadRead == false and self:UnlockAnimHasPlayed(nNextChapterId) == false then
+      if cfg.StoryLineId ~= self.nStoryLineId_From then
+        for i, v in ipairs(self.tbLine) do
+          if v.nLineId == cfg.StoryLineId and v.bIsUnlock == true then
+            self.nChapterId_To = nNextChapterId
+            self.nStoryLineId_To = cfg.StoryLineId
+            nChapterId = v.tbChapterId[1]
+            data = self.mapChapter[nChapterId]
+            if type(data) == "table" and data.bHeadRead == false and self:UnlockAnimHasPlayed(nil, v.nLineId) == false then
+              self.bStoryLine_NeedPlayUnlockAnim = true
+            end
+            break
+          end
+        end
+      else
+        self.nChapterId_To = nNextChapterId
+      end
+    elseif cfg.StoryLineId ~= self.nStoryLineId_From then
+      for i, v in ipairs(self.tbLine) do
+        if v.nLineId == cfg.StoryLineId and v.bIsUnlock == true then
+          nChapterId = v.tbChapterId[1]
+          data = self.mapChapter[nChapterId]
+          if type(data) == "table" and data.bHeadRead == false and self:UnlockAnimHasPlayed(nil, v.nLineId) == false then
+            self.nStoryLineId_To = v.nLineId
+            self.bStoryLine_NeedPlayUnlockAnim = true
+            break
+          end
+        end
+      end
+    end
   end
-  self:Check_StoryLine_NeedPlayUnlockAnim(nNextChapterId)
 end
 
 function StoryChapterCtrl:CheckLatest()
   if self.nChapterId_From ~= 0 then
     return
   end
-  self.bChapter_NeedPlayUnlockAnim = false
   local tb = {}
   for k, v in pairs(self.mapChapter) do
     table.insert(tb, k)
   end
   table.sort(tb)
-  local nNewUnlockChapterId = 0
+  local nChapterId = 0
+  local nLineId = 0
   local n = #tb
-  for i = n, 1, -1 do
-    local nChapterId = tb[i]
-    local data = self.mapChapter[nChapterId]
-    if data.bIsUnlock == true then
-      self.nChapterId_From = nChapterId
-      if data.bHeadRead == false and self:UnlockAnimHasPlayed(nChapterId) == false then
-        self.bChapter_NeedPlayUnlockAnim = true
-        self.nChapterId_From = tb[i - 1]
-        nNewUnlockChapterId = nChapterId
-      end
+  for i = 1, n do
+    local nId = tb[i]
+    local data = self.mapChapter[nId]
+    if data.bIsUnlock ~= true then
       break
     end
+    do
+      local cfg = ConfigTable.GetData("StoryChapter", nId)
+      local nId_ = cfg.StoryLineId
+      local b = false
+      for _, v in ipairs(self.tbLine) do
+        if v.nLineId == nId_ and v.bIsUnlock == true then
+          nChapterId = nId
+          nLineId = nId_
+          b = true
+          break
+        end
+      end
+      if b == false then
+        break
+      end
+    end
+    goto lbl_61
+    do break end
+    ::lbl_61::
   end
-  local cfg = ConfigTable.GetData("StoryChapter", self.nChapterId_From)
-  self.nStoryLineId_From = cfg.StoryLineId
-  self:Check_StoryLine_NeedPlayUnlockAnim(nNewUnlockChapterId)
-end
-
-function StoryChapterCtrl:Check_StoryLine_NeedPlayUnlockAnim(nNextChapterId)
-  self.nChapterId_To = 0
-  self.nStoryLineId_To = 0
-  self.bStoryLine_NeedPlayUnlockAnim = false
-  self.bStoryLine_NeedPlaySwitchAnim = false
-  if self.bChapter_NeedPlayUnlockAnim == true and 0 < nNextChapterId then
-    self.nChapterId_To = nNextChapterId
-    cfg = ConfigTable.GetData("StoryChapter", nNextChapterId)
-    if cfg ~= nil then
+  if nChapterId == 0 or nLineId == 0 then
+    return
+  end
+  local data = self.mapChapter[nChapterId]
+  if data.bHeadRead == false and self:UnlockAnimHasPlayed(nChapterId) == false then
+    local nPreviousChapterId = nChapterId - 1
+    self.nChapterId_From = nPreviousChapterId
+    self.nChapterId_To = nChapterId
+    local cfg = ConfigTable.GetData("StoryChapter", nPreviousChapterId)
+    local nPreviousLineId = cfg.StoryLineId
+    if nPreviousLineId ~= nLineId then
+      self.nStoryLineId_From = nPreviousLineId
+      self.nStoryLineId_To = nLineId
       for i, v in ipairs(self.tbLine) do
-        if v.nLineId == cfg.StoryLineId then
-          if v.tbChapterId[1] == nNextChapterId then
+        if v.nLineId == nLineId and v.bIsUnlock == true then
+          nChapterId = v.tbChapterId[1]
+          data = self.mapChapter[nChapterId]
+          if type(data) == "table" and data.bHeadRead == false and self:UnlockAnimHasPlayed(nil, v.nLineId) == false then
+            self.bStoryLine_NeedPlayUnlockAnim = true
+          end
+          break
+        end
+      end
+    else
+      self.nStoryLineId_From = nLineId
+    end
+  else
+    self.nChapterId_From = nChapterId
+    self.nStoryLineId_From = nLineId
+    local nNextChapterId = self.nChapterId_From + 1
+    local cfg = ConfigTable.GetData("StoryChapter", nNextChapterId)
+    if cfg ~= nil and cfg.StoryLineId ~= self.nStoryLineId_From then
+      for i, v in ipairs(self.tbLine) do
+        if v.nLineId == cfg.StoryLineId and v.bIsUnlock == true then
+          nChapterId = v.tbChapterId[1]
+          data = self.mapChapter[nChapterId]
+          if type(data) == "table" and data.bHeadRead == false and self:UnlockAnimHasPlayed(nil, v.nLineId) == false then
             self.nStoryLineId_To = v.nLineId
             self.bStoryLine_NeedPlayUnlockAnim = true
             break
           end
-          if cfg.StoryLineId ~= self.nStoryLineId_From then
-            self.nStoryLineId_To = v.nLineId
-            self.bStoryLine_NeedPlaySwitchAnim = true
-          end
-          break
         end
       end
     end
@@ -497,11 +544,9 @@ function StoryChapterCtrl:FallbackToDefault()
   end
   self.nStoryLineId_From = 1
   self.nStoryLineId_To = 0
-  self.bStoryLine_NeedPlayUnlockAnim = false
-  self.bStoryLine_NeedPlaySwitchAnim = false
   self.nChapterId_From = 1
   self.nChapterId_To = 0
-  self.bChapter_NeedPlayUnlockAnim = false
+  self.bStoryLine_NeedPlayUnlockAnim = false
 end
 
 function StoryChapterCtrl:LoadLocalData()
@@ -513,10 +558,18 @@ function StoryChapterCtrl:LoadLocalData()
       table.insert(self.tbUnlockAnimPlayedChapter, "1")
     end
   end
+  local _sJson = LocalData.GetPlayerLocalData("UnlockAnimPlayedLine")
+  local _tb = decodeJson(_sJson)
+  if type(_tb) == "table" then
+    self.tbUnlockAnimPlayedLine = _tb
+    if 0 >= table.indexof(self.tbUnlockAnimPlayedLine, "1") then
+      table.insert(self.tbUnlockAnimPlayedLine, "1")
+    end
+  end
 end
 
-function StoryChapterCtrl:MarkAndSaveLocalData(nChapterId)
-  if type(self.tbUnlockAnimPlayedChapter) == "table" then
+function StoryChapterCtrl:MarkAndSaveLocalData(nChapterId, nLineId)
+  if type(nChapterId) == "number" and type(self.tbUnlockAnimPlayedChapter) == "table" then
     local sId = tostring(nChapterId)
     if table.indexof(self.tbUnlockAnimPlayedChapter, sId) <= 0 then
       table.insert(self.tbUnlockAnimPlayedChapter, sId)
@@ -524,11 +577,22 @@ function StoryChapterCtrl:MarkAndSaveLocalData(nChapterId)
       LocalData.SetPlayerLocalData("UnlockAnimPlayedChapter", sJson)
     end
   end
+  if type(nLineId) == "number" and type(self.tbUnlockAnimPlayedLine) == "table" then
+    local sId = tostring(nLineId)
+    if 0 >= table.indexof(self.tbUnlockAnimPlayedLine, sId) then
+      table.insert(self.tbUnlockAnimPlayedLine, sId)
+      local sJson = RapidJson.encode(self.tbUnlockAnimPlayedLine)
+      LocalData.SetPlayerLocalData("UnlockAnimPlayedLine", sJson)
+    end
+  end
 end
 
-function StoryChapterCtrl:UnlockAnimHasPlayed(nChapterId)
-  if type(self.tbUnlockAnimPlayedChapter) == "table" and table.indexof(self.tbUnlockAnimPlayedChapter, tostring(nChapterId)) > 0 then
-    return true
+function StoryChapterCtrl:UnlockAnimHasPlayed(nChapterId, nLineId)
+  if type(nChapterId) == "number" and type(self.tbUnlockAnimPlayedChapter) == "table" then
+    return table.indexof(self.tbUnlockAnimPlayedChapter, tostring(nChapterId)) > 0
+  end
+  if type(nLineId) == "number" and type(self.tbUnlockAnimPlayedLine) == "table" then
+    return 0 < table.indexof(self.tbUnlockAnimPlayedLine, tostring(nLineId))
   end
   return false
 end
@@ -591,12 +655,26 @@ function StoryChapterCtrl:SetBtn_IconTitle(nLineId, bForceVisible)
     self._mapNode.rtBtnShowStoryLineList.anchoredPosition = b == true and v2On or v2Off
   end
   local cfg = ConfigTable.GetData("StoryLine", nLineId)
-  local sRemovedMain = string.gsub(cfg.TitleMain, "\n", "")
-  local sRemovedSub = string.gsub(cfg.TitleSub, "\n", "")
-  sRemovedMain = string.gsub(sRemovedMain, "\r", "")
-  sRemovedSub = string.gsub(sRemovedSub, "\r", "")
-  NovaAPI.SetTMPText(self._mapNode.txtTitle_Show, sRemovedMain)
-  NovaAPI.SetTMPText(self._mapNode.txtTitle2_Show, sRemovedSub)
+  local bIsUnlock = false
+  for i, v in ipairs(self.tbLine) do
+    if v.nLineId == nLineId then
+      bIsUnlock = v.bIsUnlock
+      break
+    end
+  end
+  if bIsUnlock == true then
+    local sRemovedMain = string.gsub(cfg.TitleMain, "\n", "")
+    local sRemovedSub = string.gsub(cfg.TitleSub, "\n", "")
+    sRemovedMain = string.gsub(sRemovedMain, "\r", "")
+    sRemovedSub = string.gsub(sRemovedSub, "\r", "")
+    NovaAPI.SetTMPText(self._mapNode.txtTitle_Show, sRemovedMain)
+    NovaAPI.SetTMPText(self._mapNode.txtTitle2_Show, sRemovedSub)
+  else
+    NovaAPI.SetTMPText(self._mapNode.txtTitle_Show, "???")
+    NovaAPI.SetTMPText(self._mapNode.txtTitle2_Show, "???")
+  end
+  self._mapNode.goLocked:SetActive(bIsUnlock ~= true)
+  self._mapNode.imgStoryIcon.gameObject:SetActive(bIsUnlock == true)
   self:SetPngSprite(self._mapNode.imgStoryIcon, cfg.Icon)
 end
 
@@ -619,9 +697,12 @@ function StoryChapterCtrl:OnGrid_StoryLine(go, bPlayUnlockAnim)
   local goRedDot = trOn:Find("tmpTabTitle_on/redDotTab").gameObject
   RedDotManager.RegisterNode(RedDotDefine.Map_MainLine_StoryLine, data.nLineId, goRedDot)
   if bPlayUnlockAnim == true and data.nLineId == self.nStoryLineId_To then
+    self:MarkAndSaveLocalData(nil, data.nLineId)
     WwiseAudioMgr:PlaySound("ui_mainline_ago_unlock")
     go:GetComponent("Animator"):Play("StoryChapter_Line_unlock")
-  elseif data.bIsUnlock == true and data.nLineId == self.nStoryLineId_To and self.nChapterId_To == data.tbChapterId[1] then
+  elseif data.bIsUnlock == false then
+    go:GetComponent("Animator"):Play("StoryChapter_Line_off")
+  elseif data.nLineId == self.nStoryLineId_To and self.bStoryLine_NeedPlayUnlockAnim == true then
     go:GetComponent("Animator"):Play("StoryChapter_Line_off")
   else
     go:GetComponent("Animator"):Play("StoryChapter_Line_on")
@@ -733,6 +814,7 @@ function StoryChapterCtrl:OnBtn_Chapter(go)
   end
   self._panel._tbParam[1] = 0
   self._panel._tbParam[2] = self.nCurChapterId
+  PlayerData.Avg.nJustReadStoryId = 0
   local seq = DOTween.Sequence()
   seq:AppendInterval(0.1)
   seq:AppendCallback(Play_ChapterAnim)

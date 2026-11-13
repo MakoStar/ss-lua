@@ -398,7 +398,7 @@ function BaseRoom:HandleNpc(nNpcId, nNpcUid)
     local nBoardNpcId = ConfigTable.GetData("NPCConfig", nNpcId).NPCId
     local nSkinId = PlayerData.Board:GetNPCUsingSkinId(nBoardNpcId)
     local nCoin = self.parent._mapItem[AllEnum.CoinItemId.FixedRogCurrency] or 0
-    EventManager.Hit(EventId.OpenPanel, PanelId.NpcOptionPanel, 0, 0, {}, nSkinId, 1, {}, {}, nTalkId, 0, true, false, nCoin, self.parent.nTowerId, self.parent._mapNote, self.parent.tbDisc)
+    EventManager.Hit(EventId.OpenPanel, PanelId.NpcOptionPanel, 0, 0, {}, nSkinId, 1, {}, {}, nTalkId, 0, true, false, nCoin, self.parent.nTowerId, self.parent._mapNote, self.parent.tbDisc, 0)
     return
   elseif mapNpcCfgData.type == GameEnum.npcNewType.Event then
     self:OpenNpcOptionPanel(nCaseId, nNpcId)
@@ -847,7 +847,7 @@ function BaseRoom:OpenNpcOptionPanel(nCaseId, nNpcConfigId)
       nTalkId = 0
     end
     local nCoin = self.parent._mapItem[AllEnum.CoinItemId.FixedRogCurrency] or 0
-    EventManager.Hit(EventId.OpenPanel, PanelId.NpcOptionPanel, 0, 0, {}, nSkinId, 1, {}, {}, nTalkId, 0, true, false, nCoin, self.parent.nTowerId, self.parent._mapNote, self.parent.tbDisc)
+    EventManager.Hit(EventId.OpenPanel, PanelId.NpcOptionPanel, 0, 0, {}, nSkinId, 1, {}, {}, nTalkId, 0, true, false, nCoin, self.parent.nTowerId, self.parent._mapNote, self.parent.tbDisc, 0)
     return
   end
   local tbOption = mapCase.Options
@@ -942,7 +942,8 @@ function BaseRoom:OpenNpcOptionPanel(nCaseId, nNpcConfigId)
   end
   mapCase.bFirst = false
   local nCoin = self.parent._mapItem[AllEnum.CoinItemId.FixedRogCurrency] or 0
-  EventManager.Hit(EventId.OpenPanel, PanelId.NpcOptionPanel, 1, nEventId, tbOption, nSkinId, callback, tbUnabledOption, nTableEvtId, nTalkId, mapCase.nActionId, false, false, nCoin, self.parent.nTowerId, self.parent._mapNote, self.parent.tbDisc)
+  local nEventCnt = mapCase.EventOptionCnt or 0
+  EventManager.Hit(EventId.OpenPanel, PanelId.NpcOptionPanel, 1, nEventId, tbOption, nSkinId, callback, tbUnabledOption, nTableEvtId, nTalkId, mapCase.nActionId, false, false, nCoin, self.parent.nTowerId, self.parent._mapNote, self.parent.tbDisc, nEventCnt)
 end
 
 function BaseRoom:HandleRecover(nCaseId, nNpcConfigId)
@@ -1004,7 +1005,7 @@ function BaseRoom:HandleNpcRecover(nCaseId, nNpcConfigId)
       nTalkId = tbSelectedChat[math.random(1, #tbSelectedChat)]
     end
     local nCoin = self.parent._mapItem[AllEnum.CoinItemId.FixedRogCurrency] or 0
-    EventManager.Hit(EventId.OpenPanel, PanelId.NpcOptionPanel, 0, 0, {}, nSkinId, 1, {}, {}, nTalkId, 0, true, false, nCoin, self.parent.nTowerId, self.parent._mapNote, self.parent.tbDisc)
+    EventManager.Hit(EventId.OpenPanel, PanelId.NpcOptionPanel, 0, 0, {}, nSkinId, 1, {}, {}, nTalkId, 0, true, false, nCoin, self.parent.nTowerId, self.parent._mapNote, self.parent.tbDisc, 0)
     return
   end
   local nEftId = mapCase.EffectId
@@ -1054,7 +1055,7 @@ function BaseRoom:HandleNpcDangerRoom(nCaseId, nNpcConfigId)
     nTalkId = 0
   end
   local nCoin = self.parent._mapItem[AllEnum.CoinItemId.FixedRogCurrency] or 0
-  EventManager.Hit(EventId.OpenPanel, PanelId.NpcOptionPanel, 2, nCaseId, {}, nSkinId, callback, {}, 0, nTalkId, 0, false, false, nCoin, self.parent.nTowerId, self.parent._mapNote, self.parent.tbDisc)
+  EventManager.Hit(EventId.OpenPanel, PanelId.NpcOptionPanel, 2, nCaseId, {}, nSkinId, callback, {}, 0, nTalkId, 0, false, false, nCoin, self.parent.nTowerId, self.parent._mapNote, self.parent.tbDisc, 0)
 end
 
 function BaseRoom:HandlePopupDisc(mapData)

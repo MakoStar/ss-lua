@@ -184,6 +184,7 @@ function PlayerBuildData:CreateBuildBriefData(mapBuildBriefMsg)
     mapRank = self:CalBuildRank(mapBuildBriefMsg.Score),
     bLock = mapBuildBriefMsg.Lock,
     bPreference = mapBuildBriefMsg.Preference,
+    bDislike = mapBuildBriefMsg.Discard,
     bDetail = false,
     tbDisc = {},
     tbSecondarySkill = {},
@@ -249,6 +250,7 @@ function PlayerBuildData:RefreshBuildInfo(mapBuildInfo)
   mapBuildData.mapRank = self:CalBuildRank(mapBuildBriefMsg.Score)
   mapBuildData.bLock = mapBuildBriefMsg.Lock
   mapBuildData.bPreference = mapBuildBriefMsg.Preference
+  mapBuildData.bDislike = mapBuildBriefMsg.Discard
   mapBuildData.nTowerId = mapBuildBriefMsg.StarTowerId
   mapBuildData.tbDisc = mapBuildBriefMsg.DiscIds
   if mapBuildInfo.Detail ~= nil then
@@ -364,14 +366,25 @@ function PlayerBuildData:SetBuildPreference(tbCheckInIds, tbCheckOutIds, callbac
   self:NetMsg_BuildPreference(tbCheckInIds, tbCheckOutIds, callback)
 end
 
-function PlayerBuildData:SaveBuild(nBuildID, bDelete, bLock, bPreference, sName, callback)
+function PlayerBuildData:SetBuildDislike(nBuildId, bDislike, callback)
+  local tbCheckId = self:FilterEditableBuildIds({nBuildId})
+  if #tbCheckId == 0 then
+    if callback then
+      callback()
+    end
+    return
+  end
+  self:NetMsg_BuildDislike(nBuildId, bDislike, callback)
+end
+
+function PlayerBuildData:SaveBuild(nBuildID, bDelete, bLock, bPreference, bDislike, sName, callback)
   if not self:IsBuildEditable(nBuildID) then
     if callback then
       callback()
     end
     return
   end
-  self:NetMsg_SaveBuild(nBuildID, bDelete, bLock, bPreference, sName, callback)
+  self:NetMsg_SaveBuild(nBuildID, bDelete, bLock, bPreference, bDislike, sName, callback)
 end
 
 function PlayerBuildData:ModifyBuildNote(nBuildId, tbNoteChange, callback)
@@ -774,6 +787,9 @@ function PlayerBuildData:NetMsg_ChangeBuildLock(nBuildId, bLock, callback)
   
   local function callBack()
     self._MapBuildData[nBuildId].bLock = bLock
+    if bLock then
+      self._MapBuildData[nBuildId].bDislike = false
+    end
     if callback ~= nil then
       callback()
     end
@@ -804,6 +820,8 @@ function PlayerBuildData:NetMsg_BuildPreference(tbCheckInIds, tbCheckOutIds, cal
   local function callBack()
     for _, bBuildId in ipairs(tbCheckInIds) do
       self._MapBuildData[bBuildId].bPreference = true
+      self._MapBuildData[bBuildId].bDislike = false
+      self._MapBuildData[bBuildId].bLock = true
     end
     for _, bBuildId in ipairs(tbCheckOutIds) do
       self._MapBuildData[bBuildId].bPreference = false
@@ -816,12 +834,32 @@ function PlayerBuildData:NetMsg_BuildPreference(tbCheckInIds, tbCheckOutIds, cal
   HttpNetHandler.SendMsg(NetMsgId.Id.star_tower_build_preference_set_req, msg, nil, callBack)
 end
 
-function PlayerBuildData:NetMsg_SaveBuild(nBuildID, bDelete, bLock, bPreference, sName, callback)
+function PlayerBuildData:NetMsg_BuildDislike(nBuildId, bDislike, callback)
+  local msg = {BuildId = nBuildId, Discard = bDislike}
+  
+  local function callBack()
+    self._MapBuildData[nBuildId].bDislike = bDislike
+    if callback ~= nil then
+      callback()
+    end
+  end
+  
+  HttpNetHandler.SendMsg(NetMsgId.Id.star_tower_build_discard_req, msg, nil, callBack)
+end
+
+function PlayerBuildData:NetMsg_SaveBuild(nBuildID, bDelete, bLock, bPreference, bDislike, sName, callback)
+  if bPreference == nil then
+    bPreference = false
+  end
+  if bDislike == nil then
+    bDislike = false
+  end
   local msg = {}
   msg.Delete = bDelete
   msg.Lock = bLock
   msg.Preference = bPreference
   msg.BuildName = sName
+  msg.Discard = bDislike
   
   local function callBack(_, mapMainData)
     if callback ~= nil then
@@ -831,6 +869,7 @@ function PlayerBuildData:NetMsg_SaveBuild(nBuildID, bDelete, bLock, bPreference,
         self._MapBuildData[nBuildID].bLock = bLock
         self._MapBuildData[nBuildID].bPreference = bPreference
         self._MapBuildData[nBuildID].sName = sName
+        self._MapBuildData[nBuildID].bDislike = bDislike
       end
       callback(mapMainData.Change)
     end
@@ -1007,6 +1046,7 @@ function PlayerBuildData:CreateTrialBuild(nTrialId)
     mapRank = self:CalBuildRank(mapTrialData.Score),
     bLock = false,
     bPreference = false,
+    bDislike = false,
     bDetail = true,
     tbDisc = {},
     tbSecondarySkill = {},

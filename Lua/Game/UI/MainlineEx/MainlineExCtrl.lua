@@ -105,7 +105,6 @@ MainlineExCtrl._mapRedDotConfig = {
 function MainlineExCtrl:Awake()
   local tbParam = self:GetPanelParam()
   self.curChapter = tbParam[1]
-  self.fromPanel = tbParam[2] ~= nil and tbParam[2] or 0
   self._mapNode.btnClue.gameObject:SetActive(false)
   self.canvase = self.gameObject:GetComponent("Canvas")
 end
@@ -174,11 +173,16 @@ function MainlineExCtrl:PlayAnimOut()
   })
   local time = math.min(time1, time2)
   self:AddTimer(1, time, function()
-    if self.fromPanel ~= 0 and self.fromPanel ~= PanelId.StoryChapter then
-      EventManager.Hit(EventId.OpenPanel, PanelId.StoryChapter, self.fromPanel)
-    end
     EventManager.Hit(EventId.ClosePanel, PanelId.MainlineEx)
   end)
+end
+
+function MainlineExCtrl:BackToStoryChapter()
+  if PanelManager.GetPrePanelId() == PanelId.StoryChapter then
+    EventManager.Hit(EventId.ClosePanel, PanelId.MainlineEx)
+  else
+    EventManager.Hit(EventId.OpenPanel, PanelId.StoryChapter, 0, self.curChapter)
+  end
 end
 
 function MainlineExCtrl:OnBtn_ClickOpenClue()
@@ -192,11 +196,7 @@ function MainlineExCtrl:OnBtn_ClickCloseLevelInfoPanel()
   self.bAllCompleted = self.curChapterCtrl:IsAllStoryCompleted()
   if self.bAllCompleted then
     AvgData:SetNewLockChapterIndex(self.curChapter)
-    if self.fromPanel ~= 0 and self.fromPanel ~= PanelId.StoryChapter then
-      EventManager.Hit(EventId.OpenPanel, PanelId.StoryChapter, self.fromPanel)
-    else
-      EventManager.Hit(EventId.ClosePanel, PanelId.MainlineEx)
-    end
+    self:BackToStoryChapter()
   end
 end
 
@@ -246,6 +246,7 @@ function MainlineExCtrl:OnEvent_BackHome(nPanelId)
   if self._panel._nPanelId ~= nPanelId then
     return
   end
+  PlayerData.Avg.nJustReadStoryId = 0
   PanelManager.Home()
 end
 
@@ -263,11 +264,7 @@ function MainlineExCtrl:OnEvent_Story_RewardClosed()
       
       cs_coroutine.start(wait)
       self:AddTimer(1, 2.5, function()
-        if self.fromPanel ~= 0 and self.fromPanel ~= PanelId.StoryChapter then
-          EventManager.Hit(EventId.OpenPanel, PanelId.StoryChapter, self.fromPanel)
-        else
-          EventManager.Hit(EventId.ClosePanel, PanelId.MainlineEx)
-        end
+        self:BackToStoryChapter()
       end, true, true, true)
     end
   end

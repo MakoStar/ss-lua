@@ -247,6 +247,18 @@ function StarTowerBuildBriefCtrl:FilterAndSortBuildData()
           return bSelectA
         end
       end
+      if a.bDislike == nil then
+        a.bDislike = false
+      end
+      if b.bDislike == nil then
+        b.bDislike = false
+      end
+      if a.bDislike ~= b.bDislike then
+        return b.bDislike
+      end
+      if a.bPreference ~= b.bPreference then
+        return a.bPreference
+      end
       if self.nSortOrder == SortOrder.Descending then
         return a.nBuildId > b.nBuildId
       else
@@ -275,6 +287,18 @@ function StarTowerBuildBriefCtrl:FilterAndSortBuildData()
         if bSelectA ~= bSelectB then
           return bSelectA
         end
+      end
+      if a.bDislike == nil then
+        a.bDislike = false
+      end
+      if b.bDislike == nil then
+        b.bDislike = false
+      end
+      if a.bDislike ~= b.bDislike then
+        return b.bDislike
+      end
+      if a.bPreference ~= b.bPreference then
+        return a.bPreference
       end
       if self.nSortOrder == SortOrder.Descending then
         if a.nScore ~= b.nScore then
@@ -548,6 +572,8 @@ function StarTowerBuildBriefCtrl:Awake()
   self.mapListItemCtrl = {}
   self.tbCoinRate = ConfigTable.GetConfigArray("StarTowerBuildTransformParas")
   local tbLanguageId = {
+    "RoguelikeBuild_Manage_DD_Unlock",
+    "RoguelikeBuild_Manage_DD_Dislike",
     "RoguelikeBuild_Manage_DD_N",
     "RoguelikeBuild_Manage_DD_R",
     "RoguelikeBuild_Manage_DD_SR",
@@ -719,10 +745,28 @@ function StarTowerBuildBriefCtrl:OnBtnClick_FastSelectDeleteBuild(btn)
   if #self.tbCurShow == 0 then
     return
   end
-  for _, mapBuild in ipairs(self.tbCurShow) do
-    if PlayerData.Build:IsBuildEditable(mapBuild.nBuildId) and mapBuild.mapRank.Rarity >= 4 - filterGrade and not mapBuild.bLock and self.mapDelete[mapBuild.nBuildId] == nil then
-      self.mapDelete[mapBuild.nBuildId] = 0
-      self.nSelectedDeleteCount = self.nSelectedDeleteCount + 1
+  if filterGrade < 2 then
+    if filterGrade == 0 then
+      for _, mapBuild in ipairs(self.tbCurShow) do
+        if PlayerData.Build:IsBuildEditable(mapBuild.nBuildId) and not mapBuild.bLock and self.mapDelete[mapBuild.nBuildId] == nil then
+          self.mapDelete[mapBuild.nBuildId] = 0
+          self.nSelectedDeleteCount = self.nSelectedDeleteCount + 1
+        end
+      end
+    else
+      for _, mapBuild in ipairs(self.tbCurShow) do
+        if PlayerData.Build:IsBuildEditable(mapBuild.nBuildId) and mapBuild.bDislike and self.mapDelete[mapBuild.nBuildId] == nil then
+          self.mapDelete[mapBuild.nBuildId] = 0
+          self.nSelectedDeleteCount = self.nSelectedDeleteCount + 1
+        end
+      end
+    end
+  else
+    for _, mapBuild in ipairs(self.tbCurShow) do
+      if PlayerData.Build:IsBuildEditable(mapBuild.nBuildId) and mapBuild.mapRank.Rarity >= 6 - filterGrade and not mapBuild.bLock and self.mapDelete[mapBuild.nBuildId] == nil then
+        self.mapDelete[mapBuild.nBuildId] = 0
+        self.nSelectedDeleteCount = self.nSelectedDeleteCount + 1
+      end
     end
   end
   self._mapNode.BuildList:ForceRefresh()

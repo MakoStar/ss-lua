@@ -45,6 +45,7 @@ function BdConvertData:CreateBuildData(mapBuildMsg)
     mapRank = self:CalBuildRank(mapBuildMsg.Brief.Score),
     bLock = mapBuildMsg.Brief.Lock,
     bPreference = mapBuildMsg.Brief.Preference,
+    bDislike = mapBuildMsg.Brief.Discard,
     bDetail = false,
     tbDisc = mapBuildMsg.Brief.DiscIds,
     tbSecondarySkill = mapBuildMsg.Detail.ActiveSecondaryIds,
@@ -575,6 +576,9 @@ function BdConvertData:RequestChangeBuildLock(nBuildId, bLock, callback)
   
   local function callBack()
     self.AllBuild[nBuildId].bLock = bLock
+    if bLock then
+      self.AllBuild[nBuildId].bDislike = false
+    end
     if callback ~= nil then
       callback()
     end

@@ -52,6 +52,7 @@ function IceCreamLevelsSelectCtrl:OnDisable()
 end
 
 function IceCreamLevelsSelectCtrl:OnDestroy()
+  NovaAPI.UnLoadBankByEventName("activityMinGame_icecream_allstop_vo")
 end
 
 function IceCreamLevelsSelectCtrl:InitLevel(nActId)

@@ -170,10 +170,9 @@ function ScoreCalculationCtrl:CalcOrderScore(nBaseScore)
 end
 
 function ScoreCalculationCtrl:CalcFeedPGScore(nBaseScore)
-  local fComboMul = self:GetComboMultiplier()
   local fBuffMul = self.fBuffMultiplier
   local fFeverMul = self.bInFeverMode and 2 or 1
-  local nFinal = math.floor(nBaseScore * fComboMul * fBuffMul * fFeverMul)
+  local nFinal = math.floor(nBaseScore * fBuffMul * fFeverMul)
   return nFinal
 end
 

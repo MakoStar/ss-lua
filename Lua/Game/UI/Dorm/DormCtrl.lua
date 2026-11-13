@@ -36,7 +36,11 @@ DormCtrl._mapNodeConfig = {
     sComponentName = "TMP_Text",
     sLanguageId = "MainView_ShowUI"
   },
-  rtMenu = {}
+  rtMenu = {},
+  rtMenuCanvasGroup = {
+    sNodeName = "rtMenu",
+    sComponentName = "CanvasGroup"
+  }
 }
 DormCtrl._mapEventConfig = {
   [EventId.UIBackConfirm] = "OnEvent_Back",
@@ -61,6 +65,7 @@ DormCtrl._mapEventConfig = {
   DormBackHome = "OnEvent_BackHome",
   DormNewRoomUnlock = "OnEvent_DormNewRoomUnlock",
   DormElevatorHideUI = "OnEvent_DormElevatorHideUI",
+  DormShowInteractiveBtns = "OnEvent_DormShowInteractiveBtns",
   [EventId.OpenPanel] = "OnEvent_DormGlobalOpenPanel",
   [EventId.ClosePanel] = "OnEvent_DormGlobalClosePanel"
 }
@@ -245,6 +250,7 @@ function DormCtrl:OnEnable()
   self.bNeedSwitchModeAfterLoad = true
   self.bHide = false
   self._mapNode.btnShowMenu.gameObject:SetActive(false)
+  NovaAPI.DispatchEventWithData("DORM_LUA_SET_UI_HIDDEN", nil, {0})
   DormGuideUI.Bind(self)
 end
 
@@ -252,6 +258,7 @@ function DormCtrl:OnDisable()
   DormGuideUI.Unbind(self)
   self._panel._tbParam[1] = self._panel.nCurRoom
   GamepadUIManager.SetVirtualMouseStickEnable(true)
+  NovaAPI.DispatchEventWithData("DORM_LUA_SET_UI_HIDDEN", nil, {61})
 end
 
 function DormCtrl:SwitchRoom(nRoomId)
@@ -517,6 +524,10 @@ function DormCtrl:OnEvent_Home(nPanelId)
     return
   end
   self:BtnClick_Home(nPanelId)
+end
+
+function DormCtrl:OnEvent_DormShowInteractiveBtns(bShow)
+  NovaAPI.SetCanvasGroupBlocksRaycasts(self._mapNode.rtMenuCanvasGroup, bShow)
 end
 
 function DormCtrl:BtnClick_Back(nPanelId)

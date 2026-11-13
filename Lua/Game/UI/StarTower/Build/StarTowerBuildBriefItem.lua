@@ -16,6 +16,7 @@ StarTowerBuildBriefItem._mapNodeConfig = {
     sComponentName = "UIButton",
     callback = "OnBtnClick_Lock"
   },
+  imgDiscard = {},
   btn_Detail = {
     sComponentName = "UIButton",
     callback = "OnBtnClick_Detail"
@@ -161,7 +162,9 @@ function StarTowerBuildBriefItem:RefreshInfo()
     NovaAPI.SetTMPText(self._mapNode.txtBuildName, self._mapData.sName)
   end
   self._mapNode.imgLike:SetActive(self._mapData.bPreference)
+  self._mapNode.imgDiscard:SetActive(self._mapData.bDislike)
   self._mapNode.btn_LockIcon.interactable = self._mapData.bLock
+  self._mapNode.btn_Lock.gameObject:SetActive(not self._mapData.bDislike)
 end
 
 function StarTowerBuildBriefItem:RefreshChar()

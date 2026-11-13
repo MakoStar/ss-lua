@@ -293,6 +293,9 @@ function DormContactBtnListCtrl:ExitCharActive()
 end
 
 function DormContactBtnListCtrl:CheckHasBtn()
+  if self.mapCurCharInfo ~= nil then
+    return false
+  end
   if next(self.mapListBtn) ~= nil then
     return true
   end
@@ -366,12 +369,6 @@ function DormContactBtnListCtrl:OnBtnClick_Interactive1()
 end
 
 function DormContactBtnListCtrl:OnBtnClick_Interactive2()
-  local nDayCount = PlayerData.PlayerDormData:GetCharGiftCountDay(self.mapCurCharInfo.nDataId)
-  if nDayCount < 1 then
-    local tips = ConfigTable.GetUIText("Dorm_GiftCountMaxHint")
-    EventManager.Hit(EventId.OpenMessageBox, tips)
-    return
-  end
   self._mapNode.rtGiftRoot.gameObject:SetActive(true)
   self._mapNode.rtCharInteractiveHide:SetActive(false)
   self._mapNode.rtGiftRoot:OpenGiftChoose(self.mapCurCharInfo.nDataId, self)

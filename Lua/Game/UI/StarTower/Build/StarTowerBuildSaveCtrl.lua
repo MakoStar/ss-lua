@@ -43,6 +43,19 @@ StarTowerBuildSaveCtrl._mapNodeConfig = {
     sComponentName = "TMP_Text",
     sLanguageId = "StarTower_Build_Save"
   },
+  btn_Discard = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_Dislike"
+  },
+  btn_DiscardIcon = {sComponentName = "Button"},
+  img_DiscardIcon = {
+    sNodeName = "btn_DiscardIcon",
+    sComponentName = "Image"
+  },
+  txtDiscard = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "BuildDetail_Dislike1"
+  },
   Mask = {
     sComponentName = "CanvasGroup"
   },
@@ -76,12 +89,26 @@ StarTowerBuildSaveCtrl._mapRedDotConfig = {}
 
 function StarTowerBuildSaveCtrl:InitPanel()
   self._mapNode.goBuildContent:SetActive(true)
-  self._mapNode.BuildDetail:Refresh(self.mapBuild)
+  self._mapNode.BuildDetail:Refresh(self.mapBuild, true)
   self._mapNode.ContentList:Refresh(self.mapBuild)
   self.bLock = self.mapBuild.bLock
+  self.bDislike = self.mapBuild.bDislike
   self._mapNode.btnLockIcon.interactable = self.bLock
   NovaAPI.SetTMPText(self._mapNode.txtBuildLock, self.bLock and ConfigTable.GetUIText("RoguelikeBuild_Save_Lock") or ConfigTable.GetUIText("RoguelikeBuild_Save_Unlock"))
   NovaAPI.SetTMPColor(self._mapNode.txtBuildLock, self.bLock and Color(0.14901960784313725, 0.25882352941176473, 0.47058823529411764) or Color(0.5803921568627451, 0.6666666666666666, 0.7529411764705882))
+  self:SetDisLikeBtn()
+end
+
+function StarTowerBuildSaveCtrl:SetDisLikeBtn()
+  self._mapNode.btn_DiscardIcon.interactable = self.bDislike
+  if self.bDislike then
+    NovaAPI.SetTMPText(self._mapNode.txtDiscard, ConfigTable.GetUIText("BuildDetail_Dislike2"))
+    NovaAPI.SetImageColor(self._mapNode.img_DiscardIcon, Color(1, 1, 1, 1))
+  else
+    NovaAPI.SetTMPText(self._mapNode.txtDiscard, ConfigTable.GetUIText("BuildDetail_Dislike1"))
+    NovaAPI.SetImageColor(self._mapNode.img_DiscardIcon, (self.bLock or self.bPreference) and Color(0.5803921568627451, 0.6666666666666666, 0.7529411764705882) or Color(0.14901960784313725, 0.25882352941176473, 0.47058823529411764))
+  end
+  NovaAPI.SetTMPColor(self._mapNode.txtDiscard, self.bDislike and Color(0.14901960784313725, 0.25882352941176473, 0.47058823529411764) or Color(0.5803921568627451, 0.6666666666666666, 0.7529411764705882))
 end
 
 function StarTowerBuildSaveCtrl:InitPanelDelete()
@@ -123,7 +150,7 @@ function StarTowerBuildSaveCtrl:OpenConfirmHint()
           end)
         end
         
-        PlayerData.Build:SaveBuild(self.mapBuild.nBuildId, true, self.bLock, self.bPreference, self.sName, callback)
+        PlayerData.Build:SaveBuild(self.mapBuild.nBuildId, true, self.bLock, self.bPreference, self.bDislike, self.sName, callback)
       end
     }
     EventManager.Hit(EventId.OpenMessageBox, msg)
@@ -225,6 +252,10 @@ end
 
 function StarTowerBuildSaveCtrl:OnBtnClick_Lock()
   self.bLock = not self.bLock
+  if self.bLock then
+    self.bDislike = false
+  end
+  self:SetDisLikeBtn()
   self._mapNode.btnLockIcon.interactable = self.bLock
   NovaAPI.SetTMPText(self._mapNode.txtBuildLock, self.bLock and ConfigTable.GetUIText("RoguelikeBuild_Save_Lock") or ConfigTable.GetUIText("RoguelikeBuild_Save_Unlock"))
   NovaAPI.SetTMPColor(self._mapNode.txtBuildLock, self.bLock and Color(0.14901960784313725, 0.25882352941176473, 0.47058823529411764) or Color(0.5803921568627451, 0.6666666666666666, 0.7529411764705882))
@@ -232,8 +263,25 @@ end
 
 function StarTowerBuildSaveCtrl:OnBtnClick_Preference()
   self.bPreference = not self.bPreference
+  if self.bPreference then
+    self.bDislike = false
+    self.bLock = true
+  end
+  self:SetDisLikeBtn()
   self._mapNode.btnPreferenceIcon.interactable = self.bPreference
   NovaAPI.SetTMPColor(self._mapNode.txtLike, self.bPreference and Color(0.14901960784313725, 0.25882352941176473, 0.47058823529411764) or Color(0.5803921568627451, 0.6666666666666666, 0.7529411764705882))
+  self._mapNode.btnLockIcon.interactable = self.bLock
+  NovaAPI.SetTMPText(self._mapNode.txtBuildLock, self.bLock and ConfigTable.GetUIText("RoguelikeBuild_Save_Lock") or ConfigTable.GetUIText("RoguelikeBuild_Save_Unlock"))
+  NovaAPI.SetTMPColor(self._mapNode.txtBuildLock, self.bLock and Color(0.14901960784313725, 0.25882352941176473, 0.47058823529411764) or Color(0.5803921568627451, 0.6666666666666666, 0.7529411764705882))
+end
+
+function StarTowerBuildSaveCtrl:OnBtnClick_Dislike(btn)
+  if self.bPreference or self.bLock then
+    EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Build_UnableDislike"))
+    return
+  end
+  self.bDislike = not self.bDislike
+  self:SetDisLikeBtn()
 end
 
 function StarTowerBuildSaveCtrl:OnBtnClick_Save(btn)
@@ -249,7 +297,7 @@ function StarTowerBuildSaveCtrl:OnBtnClick_Save(btn)
     EventManager.Hit(EventId.OpenMessageBox, msg)
   end
   
-  PlayerData.Build:SaveBuild(self.mapBuild.nBuildId, false, self.bLock, self.bPreference, self.sName, callback)
+  PlayerData.Build:SaveBuild(self.mapBuild.nBuildId, false, self.bLock, self.bPreference, self.bDislike, self.sName, callback)
 end
 
 function StarTowerBuildSaveCtrl:OnBtnClick_Delete()

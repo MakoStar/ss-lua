@@ -117,7 +117,7 @@ function CustomersCtrl:GetCustomerNew(CurrentLevelData)
     return nil
   end
   local customerItem = self.UnActive[1]
-  customerItem = self:SetInActiveCustomer(customerItem)
+  customerItem = self:SetInActiveCustomer(customerItem, AllCustomerCount)
   if customerItem == nil then
     return nil
   end
@@ -126,23 +126,21 @@ function CustomersCtrl:GetCustomerNew(CurrentLevelData)
   return customerItem.nCharacterId
 end
 
-function CustomersCtrl:SetInActiveCustomer(customerItem)
+function CustomersCtrl:SetInActiveCustomer(customerItem, AllCustomerCount)
   if not self.LevelData then
     printError("关卡信息为空")
     return nil
   end
   local nTryCount = self.nCustomerCount + 1
   local bIsSpecial = false
-  if self.LevelData.LevelType ~= GameEnum.ActivityIceCreamLevelType.Teaching and nTryCount % self.SpecialCustomerNum == 0 then
+  if self.LevelData.LevelType == GameEnum.ActivityIceCreamLevelType.Teaching or nTryCount % self.SpecialCustomerNum ~= 0 or 0 < AllCustomerCount and nTryCount == AllCustomerCount then
+  else
     bIsSpecial = math.random() <= self.SpecialProbability
     if bIsSpecial == true then
       self.SpecialProbability = ConfigTable.GetConfigNumber("IceCreamSpecialCustomerProbability")
     else
       self.SpecialProbability = math.min(self.SpecialProbability + 0.1, 1)
     end
-  end
-  if self.LevelData.LevelType == GameEnum.ActivityIceCreamLevelType.Infinite and nTryCount % 10 == 0 then
-    EventManager.Hit("Event_ShowOctopus")
   end
   local nItemID = 0
   if bIsSpecial then
@@ -199,6 +197,8 @@ function CustomersCtrl:SetInActiveCustomer(customerItem)
     self.nMaxPatienceValue = ConfigTable.GetConfigNumber("IceCreamPatienceShylock")
   elseif self.LevelData.LevelType == GameEnum.ActivityIceCreamLevelType.Infinite and self.nCustomerCount % self.PatienceGroup == 0 then
     self.nMaxPatienceValue = math.max(self.PatienceLowerVal, self.nMaxPatienceValue - self.PatiencePerReduce)
+  else
+    self.nMaxPatienceValue = self.LevelData.PatienceValue
   end
   local nMaxScoop = self.LevelData.IceCreamBallLimit or 1
   local nInstId = self:_NextInstId()

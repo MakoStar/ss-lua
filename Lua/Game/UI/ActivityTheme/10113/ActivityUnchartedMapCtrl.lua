@@ -160,12 +160,23 @@ function ActivityUnchartedMapCtrl:OnBtnClick_Go()
   if actGroupCfg ~= nil and actGroupCfg ~= nil and actGroupCfg.PanelId ~= nil and actGroupCfg.PanelId > 0 then
     if actGroupCfg.TransitionId ~= nil and 0 < actGroupCfg.TransitionId then
       local function callback()
-        EventManager.Hit(EventId.OpenPanel, actGroupCfg.PanelId, actGroupCfg.Id, true)
+        EventManager.Hit(EventId.OpenPanel, actGroupCfg.PanelId, actGroupCfg.Id, true, true)
       end
       
       EventManager.Hit(EventId.SetTransition, actGroupCfg.TransitionId, callback)
     else
-      EventManager.Hit(EventId.OpenPanel, actGroupCfg.PanelId, actGroupCfg.Id, true)
+      self.animRoot = self.gameObject:GetComponent("Animator")
+      if self.animRoot ~= null then
+        self.animRoot:Play("Entrance_out", 0, 0)
+        
+        local function OutAnimFinish()
+          EventManager.Hit(EventId.OpenPanel, actGroupCfg.PanelId, actGroupCfg.Id, true, true)
+        end
+        
+        self:SetAnimationCallback(self.animRoot, OutAnimFinish)
+      else
+        EventManager.Hit(EventId.OpenPanel, actGroupCfg.PanelId, actGroupCfg.Id, true, true)
+      end
     end
   end
 end

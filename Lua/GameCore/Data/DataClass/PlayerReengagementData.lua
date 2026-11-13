@@ -6,6 +6,12 @@ local SDKManager = CS.SDKManager.Instance
 
 function PlayerReengagementData:Init()
   self:InitData()
+  EventManager.Add(EventId.IsNewDay, self, self.OnEvent_NewDay)
+end
+
+function PlayerReengagementData:UnInit()
+  EventManager.Remove(EventId.IsNewDay, self, self.OnEvent_NewDay)
+  self:InitData()
 end
 
 function PlayerReengagementData:InitData()
@@ -19,6 +25,7 @@ function PlayerReengagementData:InitData()
   self._bAvgWatched = false
   self._mapQuestStateList = {}
   self._mapQuestPoint = {}
+  self._mapQuestPointConfig = {}
   self._mapMallInfo = {}
   self._tbBoughtBundles = {}
   self._mapWeeklyCard = {}
@@ -26,21 +33,39 @@ function PlayerReengagementData:InitData()
   self._tbQuestConfig = {}
 end
 
+function PlayerReengagementData:ClearData()
+  self:RefreshRedDot(true)
+  self:InitData()
+end
+
+function PlayerReengagementData:CheckExpired()
+  if self._nActId ~= 0 and self._nOpenTime ~= 0 and CS.ClientManager.Instance.serverTimeStamp >= self:GetReengagementCloseTime() then
+    self:ClearData()
+    return true
+  end
+  return false
+end
+
+function PlayerReengagementData:OnEvent_NewDay()
+  self:OnStateNotify()
+end
+
 function PlayerReengagementData:CacheReturneeInfo(mapData)
   if mapData == nil then
     return
   end
   if mapData.Id == nil or mapData.Id == 0 then
-    self:RefreshRedDot(true)
-    self:InitData()
+    self:ClearData()
     return
   end
   if self._nActId ~= mapData.Id or self._nOpenTime ~= (mapData.OpenTime or 0) then
-    self:RefreshRedDot(true)
-    self:InitData()
+    self:ClearData()
   end
   self._nActId = mapData.Id or 0
   self._nOpenTime = mapData.OpenTime or 0
+  if self:CheckExpired() then
+    return
+  end
   self._bReunionReceived = mapData.ReunionReward == true
   self._bAvgWatched = mapData.Avg == true
   local mapActData = ConfigTable.GetData("ActivityReturnee", self._nActId)
@@ -135,6 +160,9 @@ function PlayerReengagementData:RefreshRedDot(bClear)
 end
 
 function PlayerReengagementData:OnStateNotify()
+  if self:CheckExpired() then
+    return
+  end
   if self:GetActIsOpen() then
     self:RequestReengagementInfo()
   else
@@ -158,11 +186,17 @@ function PlayerReengagementData:RefreshReengagementPopUp()
 end
 
 function PlayerReengagementData:RequestReengagementInfo(callback)
+  if self:CheckExpired() or not self:GetActIsOpen() then
+    return
+  end
   local nActId = self._nActId
   local nOpenTime = self._nOpenTime
   
   local function processCb(_, mapDataCb)
     if self._nActId ~= nActId or self._nOpenTime ~= nOpenTime then
+      return
+    end
+    if self:CheckExpired() or not self:GetActIsOpen() then
       return
     end
     self._bReunionReceived = mapDataCb.Reunion.ReunionReward == true
@@ -442,6 +476,9 @@ function PlayerReengagementData:GetQuestPointInfo()
 end
 
 function PlayerReengagementData:GetDoubleDropCount()
+  if not self:GetActIsOpen() then
+    return 0
+  end
   return self._nDoubleCount
 end
 
@@ -525,6 +562,9 @@ function PlayerReengagementData:GetPurchasedBundles()
 end
 
 function PlayerReengagementData:UpdateDoubleCount(nDoubleCount)
+  if self:CheckExpired() or not self:GetActIsOpen() then
+    return
+  end
   self._nDoubleCount = math.max(self._nMaxDoubleCount - nDoubleCount, 0)
 end
 
@@ -628,7 +668,7 @@ function PlayerReengagementData:RequestReceiveLoginReward(callback)
 end
 
 function PlayerReengagementData:OnQuestChangeNotify(mapQuestData)
-  if self._nActId == 0 or mapQuestData == nil or mapQuestData.Id == nil then
+  if not (not self:CheckExpired() and self:GetActIsOpen()) or mapQuestData == nil or mapQuestData.Id == nil then
     return
   end
   local questConfig = ConfigTable.GetData("ActivityReturneeQuest", mapQuestData.Id)

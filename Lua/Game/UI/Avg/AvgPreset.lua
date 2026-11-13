@@ -683,6 +683,7 @@ local AvgPreset = {
     "story_main_10001_004_12",
     "story_main_10001_005",
     "story_main_10001_005_b",
+    "story_main_10001_005_c",
     "story_main_10001_006",
     "story_main_10001_006_a",
     "story_main_10001_006_b",

@@ -44,11 +44,23 @@ function PlayerStoryReviewData:GetAllStoryReview()
   local function funcForeachSection(mapData)
     local nActivityId = mapData.Id
     local mapActCfg = ConfigTable.GetData("Activity", nActivityId)
-    if mapActCfg ~= nil and mapActCfg.EndType == GameEnum.activityEndType.Date then
-      local nEndTime = ClientManager:ISO8601StrToTimeStamp(mapActCfg.EndTime)
-      local nCurTime = ClientManager.serverTimeStamp
-      if nEndTime <= nCurTime then
-        self.mapReviewChapters[mapData.ChapterId] = mapData
+    if mapActCfg ~= nil then
+      local nActGroupId = mapActCfg.MidGroupId
+      local nEndTime
+      if 0 < nActivityId then
+        local mapActGroupCfg = ConfigTable.GetData("ActivityGroup", nActGroupId)
+        if mapActGroupCfg ~= nil then
+          nEndTime = mapActGroupCfg.EnterEndTime
+        end
+      elseif mapActCfg.EndType == GameEnum.activityEndType.Date then
+        nEndTime = mapActCfg.EndTime
+      end
+      if nEndTime ~= nil then
+        nEndTime = ClientManager:ISO8601StrToTimeStamp(nEndTime)
+        local nCurTime = ClientManager.serverTimeStamp
+        if nEndTime <= nCurTime then
+          self.mapReviewChapters[mapData.ChapterId] = mapData
+        end
       end
     end
   end

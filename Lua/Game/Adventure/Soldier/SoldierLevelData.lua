@@ -588,6 +588,7 @@ function SoldierLevelData:DispatchServerCase(case)
     self.mapCases[CaseEnum.SelectBossAbility] = {}
     self.mapCases[CaseEnum.SelectBossAbility].nId = case.Id
   elseif case.CheckStageCase then
+    self.bEnterCheckStage = true
     self.mapCases[CaseEnum.CheckStage] = {}
     self.mapCases[CaseEnum.CheckStage].nId = case.Id
     self.mapCases[CaseEnum.CheckStage].nFloorId = case.CheckStageCase.FloorId
@@ -1484,6 +1485,7 @@ function SoldierLevelData:EnterCheckStageCase()
   if mapCase == nil then
     return
   end
+  self.bEnterCheckStage = true
   self:_EnterBattle(mapCase.nFloorId)
 end
 
@@ -1571,6 +1573,7 @@ function SoldierLevelData:SoldierSettle()
   local settleData = self.mapClientCases[ClientCase.Settle]
   local nType = settleData.nType
   local mapData = {
+    bFinalBossSuccess = settleData.bFinalBossSuccess == true,
     tbSettle = settleData.tbSettle,
     tbChess = settleData.tbChess,
     tbDamage = settleData.tbDamage,
@@ -2702,6 +2705,7 @@ function SoldierLevelData:InteractSettle(settleMsg)
   end
   self.mapClientCases[ClientCase.Settle] = {
     nType = nType,
+    bFinalBossSuccess = self.bEnterCheckStage == true,
     tbSettle = {
       nPassedNode = settleMsg.PassedNode,
       nRemainingHp = settleMsg.RemainingHp,

@@ -18,6 +18,19 @@ StarTowerBuildDetailCtrl._mapNodeConfig = {
     sComponentName = "TMP_Text",
     sLanguageId = "StarTower_Build_Like"
   },
+  btn_Discard = {
+    sComponentName = "UIButton",
+    callback = "OnBtnClick_Dislike"
+  },
+  btn_DiscardIcon = {sComponentName = "Button"},
+  img_DiscardIcon = {
+    sNodeName = "btn_DiscardIcon",
+    sComponentName = "Image"
+  },
+  txtDiscard = {
+    sComponentName = "TMP_Text",
+    sLanguageId = "BuildDetail_Dislike1"
+  },
   txtBuildLock = {sComponentName = "TMP_Text"},
   btn_Lock = {
     sComponentName = "UIButton",
@@ -64,6 +77,7 @@ function StarTowerBuildDetailCtrl:InitPanel()
   end
   local bEditable = PlayerData.Build:IsBuildEditable(self.mapBuild.nBuildId)
   self._mapNode.btn_Preference.gameObject:SetActive(bEditable)
+  self._mapNode.btn_Discard.gameObject:SetActive(bEditable)
   self._mapNode.btn_Lock.gameObject:SetActive(bEditable)
   self._mapNode.TMPBuildSaveTime.gameObject:SetActive(bEditable)
   self._mapNode.btnDelete.gameObject:SetActive(bEditable)
@@ -73,6 +87,7 @@ function StarTowerBuildDetailCtrl:InitPanel()
     self._mapNode.btn_PreferenceIcon.interactable = self.mapBuild.bPreference
     NovaAPI.SetTMPColor(self._mapNode.txtLike, self.mapBuild.bPreference and Color(0.14901960784313725, 0.25882352941176473, 0.47058823529411764) or Color(0.5803921568627451, 0.6666666666666666, 0.7529411764705882))
   end
+  self:SetDisLikeBtn()
   if self.mapBuild.bLock ~= nil then
     self._mapNode.btn_LockIcon.interactable = self.mapBuild.bLock
     NovaAPI.SetTMPText(self._mapNode.txtBuildLock, self.mapBuild.bLock and ConfigTable.GetUIText("RoguelikeBuild_Save_Lock") or ConfigTable.GetUIText("RoguelikeBuild_Save_Unlock"))
@@ -85,6 +100,18 @@ function StarTowerBuildDetailCtrl:InitPanel()
   self:OnEvent_ContentChangeTab(self._panel.nCachedIdx)
   self._mapNode.BuildDetail:Refresh(self.mapBuild)
   self._mapNode.ContentList:Refresh(self.mapBuild, self._panel.nCachedIdx)
+end
+
+function StarTowerBuildDetailCtrl:SetDisLikeBtn()
+  self._mapNode.btn_DiscardIcon.interactable = self.mapBuild.bDislike
+  if self.mapBuild.bDislike then
+    NovaAPI.SetTMPText(self._mapNode.txtDiscard, ConfigTable.GetUIText("BuildDetail_Dislike2"))
+    NovaAPI.SetImageColor(self._mapNode.img_DiscardIcon, Color(1, 1, 1, 1))
+  else
+    NovaAPI.SetTMPText(self._mapNode.txtDiscard, ConfigTable.GetUIText("BuildDetail_Dislike1"))
+    NovaAPI.SetImageColor(self._mapNode.img_DiscardIcon, (self.mapBuild.bLock or self.mapBuild.bPreference) and Color(0.5803921568627451, 0.6666666666666666, 0.7529411764705882) or Color(0.14901960784313725, 0.25882352941176473, 0.47058823529411764))
+  end
+  NovaAPI.SetTMPColor(self._mapNode.txtDiscard, self.mapBuild.bDislike and Color(0.14901960784313725, 0.25882352941176473, 0.47058823529411764) or Color(0.5803921568627451, 0.6666666666666666, 0.7529411764705882))
 end
 
 function StarTowerBuildDetailCtrl:OpenConfirmHint()
@@ -164,6 +191,10 @@ function StarTowerBuildDetailCtrl:OnBtnClick_Preference(btn)
   local function callback()
     self._mapNode.btn_PreferenceIcon.interactable = self.mapBuild.bPreference
     NovaAPI.SetTMPColor(self._mapNode.txtLike, self.mapBuild.bPreference and Color(0.14901960784313725, 0.25882352941176473, 0.47058823529411764) or Color(0.5803921568627451, 0.6666666666666666, 0.7529411764705882))
+    self._mapNode.btn_LockIcon.interactable = self.mapBuild.bLock
+    NovaAPI.SetTMPText(self._mapNode.txtBuildLock, self.mapBuild.bLock and ConfigTable.GetUIText("RoguelikeBuild_Save_Lock") or ConfigTable.GetUIText("RoguelikeBuild_Save_Unlock"))
+    NovaAPI.SetTMPColor(self._mapNode.txtBuildLock, self.mapBuild.bLock and Color(0.14901960784313725, 0.25882352941176473, 0.47058823529411764) or Color(0.5803921568627451, 0.6666666666666666, 0.7529411764705882))
+    self:SetDisLikeBtn()
   end
   
   if self.mapBuild.bPreference then
@@ -172,6 +203,23 @@ function StarTowerBuildDetailCtrl:OnBtnClick_Preference(btn)
     table.insert(tbPreferenceCheckIn, self.mapBuild.nBuildId)
   end
   PlayerData.Build:SetBuildPreference(tbPreferenceCheckIn, tbPreferenceCheckOut, callback)
+end
+
+function StarTowerBuildDetailCtrl:OnBtnClick_Dislike(btn)
+  if not PlayerData.Build:IsBuildEditable(self.mapBuild.nBuildId) then
+    return
+  end
+  if self.mapBuild.bPreference or self.mapBuild.bLock then
+    EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Build_UnableDislike"))
+    return
+  end
+  
+  local function callback()
+    self:SetDisLikeBtn()
+  end
+  
+  local bDislike = not self.mapBuild.bDislike
+  PlayerData.Build:SetBuildDislike(self.mapBuild.nBuildId, bDislike, callback)
 end
 
 function StarTowerBuildDetailCtrl:OnBtnClick_Lock(btn)
@@ -183,6 +231,7 @@ function StarTowerBuildDetailCtrl:OnBtnClick_Lock(btn)
     self._mapNode.btn_LockIcon.interactable = self.mapBuild.bLock
     NovaAPI.SetTMPText(self._mapNode.txtBuildLock, self.mapBuild.bLock and ConfigTable.GetUIText("RoguelikeBuild_Save_Lock") or ConfigTable.GetUIText("RoguelikeBuild_Save_Unlock"))
     NovaAPI.SetTMPColor(self._mapNode.txtBuildLock, self.mapBuild.bLock and Color(0.14901960784313725, 0.25882352941176473, 0.47058823529411764) or Color(0.5803921568627451, 0.6666666666666666, 0.7529411764705882))
+    self:SetDisLikeBtn()
   end
   
   PlayerData.Build:ChangeBuildLock(self.mapBuild.nBuildId, not self.mapBuild.bLock, callback)
@@ -225,15 +274,6 @@ function StarTowerBuildDetailCtrl:OnBtnClick_EditBuild()
   if PlayerData.Build:IsLimitedTrialBuild(self.mapBuild.nBuildId) then
     return
   end
-  if self.mapBuild.bLock then
-    EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("BuildModifier_ValidTips5"))
-    return
-  end
-  local nScoreFixedable = ConfigTable.GetConfigNumber("BuildModifierScoreMin")
-  if nScoreFixedable > self.mapBuild.nScore then
-    EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("BuildModifier_ValidTips2"))
-    return
-  end
   local nIdx = self._mapNode.ContentList.nCurTab
   if nIdx == 1 then
     local nModifierState = self.mapBuild and self.mapBuild.nModifierState
@@ -243,7 +283,6 @@ function StarTowerBuildDetailCtrl:OnBtnClick_EditBuild()
       EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("BuildModifier_ValidTips3"))
       return
     end
-    EventManager.Hit(EventId.OpenPanel, PanelId.BuildModifierPotentialPanel, self.mapBuild.nBuildId)
   else
     local nModifierState = self.mapBuild and self.mapBuild.nModifierState
     local bNoteModifiable = nModifierState == AllEnum.BuildModifierState.NotModified or nModifierState == AllEnum.BuildModifierState.PotentialModified
@@ -252,7 +291,41 @@ function StarTowerBuildDetailCtrl:OnBtnClick_EditBuild()
       EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("BuildModifier_ValidTips4"))
       return
     end
-    EventManager.Hit(EventId.OpenPanel, PanelId.BuildModifierMusicPanel, self.mapBuild.nBuildId)
+  end
+  if self.mapBuild.bLock then
+    EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("BuildModifier_ValidTips5"))
+    return
+  end
+  local nScoreFixedable = ConfigTable.GetConfigNumber("BuildModifierScoreMin")
+  if nScoreFixedable > self.mapBuild.nScore then
+    EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("BuildModifier_ValidTips2"))
+    return
+  end
+  
+  local function callback()
+    local nIdx = self._mapNode.ContentList.nCurTab
+    if nIdx == 1 then
+      EventManager.Hit(EventId.OpenPanel, PanelId.BuildModifierPotentialPanel, self.mapBuild.nBuildId)
+    else
+      EventManager.Hit(EventId.OpenPanel, PanelId.BuildModifierMusicPanel, self.mapBuild.nBuildId)
+    end
+  end
+  
+  local function confirmCallback()
+    PlayerData.Build:SetBuildDislike(self.mapBuild.nBuildId, false, callback)
+  end
+  
+  local sHint = orderedFormat(ConfigTable.GetUIText("BuildModifier_DislikeHint") or "")
+  local msg = {
+    nType = AllEnum.MessageBox.Confirm,
+    sContent = sHint,
+    callbackConfirm = confirmCallback,
+    bDisableSnap = false
+  }
+  if self.mapBuild.bDislike then
+    EventManager.Hit(EventId.OpenMessageBox, msg)
+  else
+    callback()
   end
 end
 

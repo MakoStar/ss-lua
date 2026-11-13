@@ -179,6 +179,15 @@ function PlayerSoldierRecommendData:GetSystemRecommendList()
   return self.tbSystemRecommendList
 end
 
+function PlayerSoldierRecommendData:CheckRecommendCollected(sCode)
+  for _, mapRecommendData in ipairs(self.tbRecommendList) do
+    if mapRecommendData.nRecommendId == sCode then
+      return true
+    end
+  end
+  return false
+end
+
 function PlayerSoldierRecommendData:SetRecommendList(tbReports)
   self.tbRecommendList = {}
   self.mapRecommendDataById = {}

@@ -60,17 +60,18 @@ StarTowerBuildDetailItemCtrl._mapNodeConfig = {
 StarTowerBuildDetailItemCtrl._mapEventConfig = {}
 StarTowerBuildDetailItemCtrl._mapRedDotConfig = {}
 
-function StarTowerBuildDetailItemCtrl:Refresh(mapData)
+function StarTowerBuildDetailItemCtrl:Refresh(mapData, bDisableJump)
   self.mapBuild = mapData
   local nBuildSource = PlayerData.Build:GetBuildSourceByData(mapData)
   self.bTrialBuild = nBuildSource == AllEnum.BuildSource.Trial or nBuildSource == AllEnum.BuildSource.LimitedTrial or mapData.bTrial == true
-  local bInteractable = self.mapBuild.bTrial ~= true
-  self._mapNode.btnLeader.interactable = not self.bTrialBuild
+  self.bDisableJump = bDisableJump == true or nBuildSource == AllEnum.BuildSource.LimitedTrial
+  local bCharInteractable = not self.bDisableJump and not self.bTrialBuild
+  self._mapNode.btnLeader.interactable = bCharInteractable
   for _, btnSub in pairs(self._mapNode.btnSub) do
-    btnSub.interactable = not self.bTrialBuild
+    btnSub.interactable = bCharInteractable
   end
   for _, btnDiscItem in pairs(self._mapNode.btnDiscItem) do
-    btnDiscItem.interactable = bInteractable
+    btnDiscItem.interactable = not self.bDisableJump
   end
   self:RefreshInfo()
   self:RefreshChar()
@@ -151,6 +152,9 @@ function StarTowerBuildDetailItemCtrl:OnBtnClick_Attr()
 end
 
 function StarTowerBuildDetailItemCtrl:OnBtnClick_Disc(btn, nIndex)
+  if self.bDisableJump then
+    return
+  end
   local nDiscId = self.mapBuild.tbDisc[nIndex]
   if nDiscId == nil or nDiscId == 0 then
     return
@@ -165,7 +169,7 @@ function StarTowerBuildDetailItemCtrl:OnBtnClick_Disc(btn, nIndex)
 end
 
 function StarTowerBuildDetailItemCtrl:OpenCharDetail(nIndex)
-  if self.bTrialBuild then
+  if self.bDisableJump or self.bTrialBuild then
     return
   end
   local nCharTid = self.mapBuild.tbChar[nIndex].nTid

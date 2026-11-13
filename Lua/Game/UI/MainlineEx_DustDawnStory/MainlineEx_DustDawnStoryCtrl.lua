@@ -119,8 +119,7 @@ local Storys = {
   1120,
   1121,
   1122,
-  1123,
-  1124
+  1123
 }
 local BG_SCROLL_SPEED = 1.0
 local BEHIND_BG_SCROLL_SPEED = 0.15
@@ -364,8 +363,8 @@ function MainlineEx_DustDawnStoryCtrl:OnRefreshGrid(grid, index)
     self.tbGridCanvas = {}
   end
   self.tbGridCanvas[grid:GetInstanceID()] = {canvasUnOpen, canvasGroupDone}
-  canvasUnOpen.enabled = not self.bAvgRootOpen
-  canvasGroupDone.enabled = not self.bAvgRootOpen
+  canvasUnOpen.enabled = not self:IsOverlayOpen()
+  canvasGroupDone.enabled = not self:IsOverlayOpen()
   NovaAPI.SetTMPText(btnGroupTxt, storyData.Title)
   NovaAPI.SetTMPText(storyTitle, ConfigTable.GetUIText("Story_StoryTitle") or "")
   NovaAPI.SetTMPText(battleTitle, ConfigTable.GetUIText("Story_BattleTitle") or "")
@@ -562,27 +561,36 @@ function MainlineEx_DustDawnStoryCtrl:OnBtn_ClickHome()
   PanelManager.Home()
 end
 
-function MainlineEx_DustDawnStoryCtrl:SetGridCanvasVisible(bVisible)
-  self.bAvgRootOpen = not bVisible
+function MainlineEx_DustDawnStoryCtrl:RefreshUnderBarVisible()
   local canvasUnderBar = self._mapNode.grpUnderBar
-  if canvasUnderBar ~= nil and not canvasUnderBar:IsNull() then
-    if bVisible then
-      canvasUnderBar.enabled = true
-    else
-      local function wait()
-        coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
-        
-        if self.bAvgRootOpen and not canvasUnderBar:IsNull() then
-          canvasUnderBar.enabled = false
-        end
-      end
-      
-      cs_coroutine.start(wait)
+  if canvasUnderBar == nil or canvasUnderBar:IsNull() then
+    return
+  end
+  if not self:IsOverlayOpen() then
+    canvasUnderBar.enabled = true
+    return
+  end
+  
+  local function wait()
+    coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
+    if self:IsOverlayOpen() and not canvasUnderBar:IsNull() then
+      canvasUnderBar.enabled = false
     end
   end
+  
+  cs_coroutine.start(wait)
+end
+
+function MainlineEx_DustDawnStoryCtrl:IsOverlayOpen()
+  return self.bAvgRootOpen == true or self.bChapterCompleteOpen == true
+end
+
+function MainlineEx_DustDawnStoryCtrl:RefreshOverlayCanvas()
+  self:RefreshUnderBarVisible()
   if self.tbGridCanvas == nil then
     return
   end
+  local bVisible = not self:IsOverlayOpen()
   for _, tbCanvas in pairs(self.tbGridCanvas) do
     for _, canvas in ipairs(tbCanvas) do
       if canvas ~= nil and not canvas:IsNull() then
@@ -592,11 +600,22 @@ function MainlineEx_DustDawnStoryCtrl:SetGridCanvasVisible(bVisible)
   end
 end
 
+function MainlineEx_DustDawnStoryCtrl:SetChapterCompleteVisible(bVisible)
+  self.bChapterCompleteOpen = bVisible
+  self._mapNode.goChapterComplete:SetActive(bVisible)
+  self:RefreshOverlayCanvas()
+end
+
+function MainlineEx_DustDawnStoryCtrl:SetGridCanvasVisible(bVisible)
+  self.bAvgRootOpen = not bVisible
+  self:RefreshOverlayCanvas()
+end
+
 function MainlineEx_DustDawnStoryCtrl:OnBtn_ClickCloseLevelInfoPanel()
   self:SetGridCanvasVisible(true)
   self._mapNode.t_fullscreen_blur_black:SetActive(false)
   self._mapNode.ctlAvgRoot.gameObject:SetActive(false)
-  self._mapNode.goChapterComplete:SetActive(false)
+  self:SetChapterCompleteVisible(false)
 end
 
 function MainlineEx_DustDawnStoryCtrl:OnEvent_Story_Done(bHasReward)
@@ -631,12 +650,12 @@ function MainlineEx_DustDawnStoryCtrl:OnEvent_Activity_Story_RewardClosed()
   self.bRefreshAfterReward = true
   self:RefreshPanel()
   if self.curIndex == #self.tbChapterStoryNumIds then
-    self._mapNode.goChapterComplete:SetActive(true)
+    self:SetChapterCompleteVisible(true)
   end
 end
 
 function MainlineEx_DustDawnStoryCtrl:OnBtn_ClickCloseCompete()
-  self._mapNode.goChapterComplete:SetActive(false)
+  self:SetChapterCompleteVisible(false)
 end
 
 return MainlineEx_DustDawnStoryCtrl

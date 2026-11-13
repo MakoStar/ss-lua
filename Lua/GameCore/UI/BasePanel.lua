@@ -47,6 +47,9 @@ function BasePanel:ctor(nIndex, nPanelId, tbParam)
     self:Awake()
   end
   self.bIsTipsPanel = UTILS.CheckIsTipsPanel(self._nPanelId)
+  if not NovaAPIHotfix.IsUwaSdkDisabled and AllEnum.PanelId_AnalysisPanel[self._nPanelId] ~= nil then
+    NovaAPIHotfix.TagUWAAnaylysis(AllEnum.PanelId_AnalysisPanel[self._nPanelId])
+  end
 end
 
 function BasePanel:_PreExit(callback, bPlayFadeOut)

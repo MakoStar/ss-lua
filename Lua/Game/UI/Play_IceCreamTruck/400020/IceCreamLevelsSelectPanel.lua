@@ -10,7 +10,7 @@ IceCreamLevelsSelectPanel._tbDefine = {
 }
 
 function IceCreamLevelsSelectPanel:Awake()
-  self.nQuestPanelId = PanelId.Task_20103
+  self.nQuestPanelId = PanelId.Task_10113
 end
 
 return IceCreamLevelsSelectPanel

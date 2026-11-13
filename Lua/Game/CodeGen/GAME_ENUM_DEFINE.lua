@@ -731,6 +731,7 @@ GameEnum.achievementCond = {
   SoldierClearTotalWithSeason = 175,
   SoldierSpecificRankWithSeason = 176,
   DormSaveRoom = 177,
+  HandbookUnlock = 178,
   ClientReport = 200,
   TowerBattleTimes = 501,
   TowerBossChallengeSpecificHighRewardWithTotal = 502,
@@ -770,7 +771,7 @@ GameEnum.achievementCond = {
   TowerSweepTotal = 540,
   TowerBattleWithPartner = 541
 }
-GameEnum.activityAcceptCond = {WorldClassSpecific = 71}
+GameEnum.activityAcceptCond = {WorldClassSpecific = 71, HandbookUnlock = 178}
 GameEnum.activityBreakoutCharUnlockCond = {ActivityBreakoutWinSpecificLevel = 117}
 GameEnum.activityQuestCompleteCond = {
   EnergyDeplete = 39,
@@ -831,7 +832,8 @@ GameEnum.activityQuestCompleteCond = {
   ActivityMathParkourCumulativeScore = 168,
   ActivityMathParkourLevelPassed = 169,
   ActivityPenguinCardClearDifficulty = 170,
-  ActivityStoryPass = 173
+  ActivityStoryPass = 173,
+  HandbookUnlock = 178
 }
 GameEnum.chatCond = {
   CharacterAcquire = 5,
@@ -848,7 +850,8 @@ GameEnum.chatCond = {
   WorldClassSpecific = 71,
   BossRushTotalStars = 88,
   DiscSpecific = 114,
-  CharacterWithSpecificSkillAndLevel = 118
+  CharacterWithSpecificSkillAndLevel = 118,
+  HandbookUnlock = 178
 }
 GameEnum.handBookCond = {
   CharacterAcquire = 5,
@@ -860,7 +863,8 @@ GameEnum.handBookCond = {
   StorySetClearSpecific = 116,
   CharacterWithSpecificSkillAndLevel = 118,
   DormFurnitureAcquire = 161,
-  ActivityStoryPass = 173
+  ActivityStoryPass = 173,
+  HandbookUnlock = 178
 }
 GameEnum.jointDrillCond = {JointDrillScoreTotal = 95}
 GameEnum.questAcceptCond = {
@@ -872,6 +876,7 @@ GameEnum.questAcceptCond = {
   StorySetClearSpecific = 116,
   TutorialLevelClearSpecific = 120,
   TutorialLevelSpecificClearTotal = 121,
+  HandbookUnlock = 178,
   TowerSpecificDifficultyShopBuyTimes = 514,
   TowerGrowthSpecificNote = 515,
   TowerBookWithSpecificEvent = 517,
@@ -999,6 +1004,7 @@ GameEnum.questCompleteCond = {
   SoldierClearTotalWithSeason = 175,
   SoldierSpecificRankWithSeason = 176,
   DormSaveRoom = 177,
+  HandbookUnlock = 178,
   ClientReport = 200,
   TowerBattleTimes = 501,
   TowerBossChallengeSpecificHighRewardWithTotal = 502,
@@ -2417,7 +2423,8 @@ GameEnum.OpenFuncType = {
   Dorm = 35,
   GuideMission = 36,
   Soldier = 37,
-  ActivityReview = 38
+  ActivityReview = 38,
+  BuildGenerator = 39
 }
 GameEnum.TowerQuestType = {Core = 1, Normal = 2}
 GameEnum.poolType = {Elite = 1, Boss = 2}

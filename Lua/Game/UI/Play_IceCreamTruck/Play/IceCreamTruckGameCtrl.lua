@@ -38,6 +38,7 @@ IceCreamTruckGameCtrl._mapNodeConfig = {
   txt_ComboCount = {sComponentName = "TMP_Text"},
   obj_Combo = {},
   anim_Combo = {sNodeName = "obj_Combo", sComponentName = "Animator"},
+  obj_MISS = {},
   txt_PeopleNum = {sComponentName = "TMP_Text"},
   obj_Hp = {},
   RedHeart = {nCount = 3},
@@ -198,6 +199,7 @@ IceCreamTruckGameCtrl._mapNodeConfig = {
   obj_Octopus = {},
   obj_OctopusFoot = {},
   obj_Caution = {},
+  Spine_OctopusHead = {},
   btn_Foot = {
     nCount = 6,
     sComponentName = "NaviButton",
@@ -232,7 +234,9 @@ IceCreamTruckGameCtrl._mapEventConfig = {
   GMEvent_AddPatienceVal = "GM_AddPatienceVal",
   GMEvent_ChangeComboNum = "GM_ChangeComboNum",
   GMEvent_ChangeFeverTime = "GM_ChangeFeverTime",
-  GMEvent_RefreshCustomer = "GM_RefreshCustomer"
+  GMEvent_RefreshCustomer = "GM_RefreshCustomer",
+  GMEvent_PrintUnlock = "GM_PrintUnlock",
+  GMEvent_ChangeOctopusTimes = "ChangeOctopusTimes"
 }
 
 function IceCreamTruckGameCtrl:Awake()
@@ -261,6 +265,7 @@ end
 function IceCreamTruckGameCtrl:OnDisable()
   GamepadUIManager.DisableGamepadUI("IceCreamTruckGameCtrl")
   GamepadUIManager.QuitAdventure()
+  self._tbLockedCondimentBtns = nil
   if self.BuffRuntime then
     self.BuffRuntime:Clear()
     self.BuffRuntime = nil
@@ -308,6 +313,8 @@ function IceCreamTruckGameCtrl:ReInitData()
   self:RegisterCondimentSpines()
   self:InitFeedPGFXBoomPool()
   self._fGuideIdleSec = ConfigTable.GetConfigNumber("IceCreamGuidanceDuration")
+  self.bOctopusTimes_GM = false
+  self.nOctopusTimesGM = 2
 end
 
 function IceCreamTruckGameCtrl:RefreshGameplayUI()
@@ -369,7 +376,7 @@ function IceCreamTruckGameCtrl:TryOpenDicAfterIntro()
   
   local function wait()
     local nMax = 120
-    while not PanelManager.CheckPanelOpen(PanelId.IceCreamTruckGamePanel) do
+    while not PanelManager.CheckPanelOpen(PanelId.IceCreamTruckGamePanel_400020) do
       coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
       if IceCreamTruckGameCtrl.GetRestartGen() ~= nGen then
         return
@@ -424,9 +431,11 @@ function IceCreamTruckGameCtrl:InitData()
   self.NumOrder = 0
   self.PropCount = 0
   self.MaxStreakCount = 0
+  self.FeverTimes = 0
   self.OrderBaseScore = 100
   self.CurrentMaxOrderNum = self.LevelData.CustomerCount
   self.PeopleNum = self.CurrentMaxOrderNum
+  self.SeverPeopleNum = 0
   self.MaxHp = self.LevelData.Health
   self.CurrentHP = self.MaxHp
   self.ServeCustomer = nil
@@ -803,6 +812,10 @@ function IceCreamTruckGameCtrl:OnBtn_Star()
     coroutine.yield(CS.UnityEngine.WaitForSeconds(nDur))
     self._mapNode.obj_Start:SetActive(false)
   end)
+  cs_coroutine.start(function()
+    coroutine.yield(CS.UnityEngine.WaitForSeconds(nDur))
+    self:PlayLockCondimentSpine()
+  end)
 end
 
 function IceCreamTruckGameCtrl:_ClickCondiment(nValue)
@@ -814,6 +827,7 @@ function IceCreamTruckGameCtrl:_ClickCondiment(nValue)
     EventManager.Hit(EventId.OpenMessageBox, sTip)
     return
   end
+  WwiseAudioMgr:PostEvent("mode_400013_dig")
   self:Cline_Spine(nValue)
   self:_GuideHide()
   local nNextStep = self.CurrentOrders:GetNextStepIndex()
@@ -846,7 +860,8 @@ function IceCreamTruckGameCtrl:_ClickCondiment(nValue)
     else
       self:RefreshFever()
     end
-    self:RefreshScoreUI()
+    local bMiss = true
+    self:RefreshScoreUI(bMiss)
   end
 end
 
@@ -889,18 +904,27 @@ function IceCreamTruckGameCtrl:OnBtn_DropGarbage(_btn)
 end
 
 function IceCreamTruckGameCtrl:OnBtn_UseBuffItem1(_btn)
+  NovaAPI.ClearSelectedUI()
   local ItemId = tonumber(_btn.gameObject.transform:GetChild(0).name)
-  local nIndex = 1
-  self:UseBuffItem(ItemId, nIndex)
+  if not ItemId or ItemId == 0 then
+    return
+  end
+  self:UseBuffItem(ItemId, 1)
 end
 
 function IceCreamTruckGameCtrl:OnBtn_UseBuffItem2(_btn)
+  NovaAPI.ClearSelectedUI()
   local ItemId = tonumber(_btn.gameObject.transform:GetChild(0).name)
-  local nIndex = 2
-  self:UseBuffItem(ItemId, nIndex)
+  if not ItemId or ItemId == 0 then
+    return
+  end
+  self:UseBuffItem(ItemId, 2)
 end
 
 function IceCreamTruckGameCtrl:UseBuffItem(ItemId, nIndex)
+  if self.bInOctopus then
+    return
+  end
   if self.BuffRuntime == nil then
     if not self._bIsExiting then
       printError("BuffRuntime 未初始化")
@@ -983,7 +1007,7 @@ function IceCreamTruckGameCtrl:CreatIceCreamIcon(nStep, CondimentType)
   if nDisplay == 1 then
     self.bInIcon1Ani = true
     local imgIconBall = objIcon.transform:Find("IconBall"):GetComponent("Image")
-    self:SetActivityAtlasSprite_New(imgIconBall, "_400013/SpriteAtlas/Item", IconPath)
+    self:SetActivityAtlasSprite_New(imgIconBall, "_400020/SpriteAtlas/Item", IconPath)
     objIcon:SetActive(true)
     local nGen = self._nRestartGen or 0
     cs_coroutine.start(function()
@@ -1089,19 +1113,24 @@ function IceCreamTruckGameCtrl:RefreshBuffItems(nIndex)
 end
 
 function IceCreamTruckGameCtrl:RefreshBuffItemSlot(btn_BuffItem, tbCurrentItem, bPlayAni)
-  btn_BuffItem.gameObject:SetActive(tbCurrentItem ~= 0)
+  local bHasItem = tbCurrentItem ~= 0
+  btn_BuffItem.interactable = bHasItem and not self.bInOctopus
+  btn_BuffItem.transform:Find("imgItem").gameObject:SetActive(bHasItem)
+  btn_BuffItem.transform:Find("AnimRoot").gameObject:SetActive(bHasItem)
   btn_BuffItem.transform:GetChild(0).name = tostring(tbCurrentItem or 0)
-  if tbCurrentItem ~= 0 then
+  if bHasItem then
     local IconPath = ConfigTable.GetData("IceCreamBuff", tbCurrentItem).Icon
     if IconPath == nil then
-      btn_BuffItem.gameObject:SetActive(false)
+      btn_BuffItem.interactable = false
+      btn_BuffItem.transform:Find("imgItem").gameObject:SetActive(false)
+      btn_BuffItem.transform:Find("AnimRoot").gameObject:SetActive(false)
       printError("道具资源路径为空,ID: " .. tbCurrentItem)
     else
       local ItemIcon = btn_BuffItem.transform:Find("imgItem"):GetComponent("Image")
       if bPlayAni then
         btn_BuffItem.transform:GetComponent("Animator"):Play("BuffItem_in", 0, 0)
       end
-      self:SetActivityAtlasSprite_New(ItemIcon, "_400013/SpriteAtlas", IconPath)
+      self:SetActivityAtlasSprite_New(ItemIcon, "_400020/SpriteAtlas", IconPath)
     end
   end
 end
@@ -1334,6 +1363,7 @@ function IceCreamTruckGameCtrl:BindServeCustomer(customerItem)
   self.ServeCustomerId = customerItem:GetCustomerId()
   self.bIsSpecial = customerItem:IsSpecial()
   self.CurrentOrders = customerItem:GetOrdersCtrl()
+  self._mapNode.obj_MISS.gameObject:SetActive(false)
   if customerItem._SyncGlobalRuntimeState ~= nil then
     customerItem:_SyncGlobalRuntimeState()
   else
@@ -1395,6 +1425,7 @@ function IceCreamTruckGameCtrl:Event_FinishCurrentOrder(OrderState, nCharacterId
     end
     if bJustEnteredFever then
       self.bInFever = true
+      self.FeverTimes = self.FeverTimes + 1
       EventManager.Hit("Event_FeverModeChanged", true)
     elseif self.ScoreCalc:HasFever() then
       if not self.bInFever then
@@ -1411,10 +1442,17 @@ function IceCreamTruckGameCtrl:Event_FinishCurrentOrder(OrderState, nCharacterId
         self:FeverModeFinish()
       end
     end
-    self:_ScheduleClearAfterFail()
-    if self.bIsOperateMiss then
-      self.bIsOperateMiss = false
-      self:_GuideClearGarbage()
+    if not self._mapNode.obj_BadIceCream.gameObject.activeSelf then
+      self._mapNode.obj_MISS.gameObject:SetActive(true)
+    end
+    if bIsOrderSpecial ~= nil and bIsOrderSpecial then
+    else
+      self:_ScheduleClearAfterFail()
+      self:_GuideClear()
+      if self.bIsOperateMiss then
+        self.bIsOperateMiss = false
+        self:_GuideClearGarbage()
+      end
     end
   end
   local nLeavingId = self.ServeCustomerId
@@ -1458,7 +1496,7 @@ function IceCreamTruckGameCtrl:Event_SpecialPGLeave(nCharacterId)
     self.CurrentOrders:SetFeedPG(false)
   end
   self:SetFeedPGState(false)
-  self:Event_FinishCurrentOrder(self.CurrentOrders:GetOrderState(), nCharacterId)
+  self:Event_FinishCurrentOrder(self.CurrentOrders:GetOrderState(), nCharacterId, true)
 end
 
 function IceCreamTruckGameCtrl:Event_SetPause(bPause)
@@ -1506,7 +1544,7 @@ function IceCreamTruckGameCtrl:Event_SetPause(bPause)
   end
 end
 
-function IceCreamTruckGameCtrl:RefreshScoreUI()
+function IceCreamTruckGameCtrl:RefreshScoreUI(bMIss)
   self._mapNode.txt_LevelScore.gameObject.transform:GetComponent("Animator"):Play("txt_LevelScore_in", 0, 0)
   if 0 < self.TargetScore and self.CurrentScore >= self.TargetScore then
     self._mapNode.iconCert:SetActive(true)
@@ -1515,7 +1553,7 @@ function IceCreamTruckGameCtrl:RefreshScoreUI()
   end
   NovaAPI.SetTMPText(self._mapNode.txt_LevelScore, self.CurrentScore)
   if not self.bInFeedPG then
-    self:RefreshComboNumber()
+    self:RefreshComboNumber(bMIss)
   end
 end
 
@@ -1523,6 +1561,10 @@ function IceCreamTruckGameCtrl:RefreshPeopleNumber()
   if self.CurrentMaxOrderNum > 0 then
     self.PeopleNum = self.PeopleNum - 1
     NovaAPI.SetTMPText(self._mapNode.txt_PeopleNum, self.PeopleNum)
+  end
+  self.SeverPeopleNum = self.SeverPeopleNum + 1
+  if self.IceCreamActData.IceCreamLevelData:ShowOctopusFoots(self.SeverPeopleNum, self.bOctopusTimes_GM, self.nOctopusTimesGM) then
+    self.SeverPeopleNum = 0
   end
 end
 
@@ -1796,7 +1838,7 @@ function IceCreamTruckGameCtrl:OnBtnClick_Pause()
   EventManager.Hit(EventId.TemporaryBlockInput, 0.4)
   local nMaxScore = self.IceCreamActData:GetLevelMaxScore(self.nLevelId)
   local bShowMaxScore = false
-  if self.LevelData.LevelType == GameEnum.ActivityIceCreamLevelType.Advanced then
+  if self.LevelData.LevelType == GameEnum.ActivityIceCreamLevelType.Infinite then
     bShowMaxScore = true
   end
   self._mapNode.PausePanel:Open(self.LevelData.Name, self.CurrentScore, self.NumOrder, self.MaxStreakCount, nMaxScore, bShowMaxScore, self.nDicId)
@@ -1837,7 +1879,7 @@ end
 
 function IceCreamTruckGameCtrl:OpenResultPanel(bResult, nMaxScore, mapChangeInfo)
   local bShowMaxScore = false
-  if self.LevelData.LevelType == GameEnum.ActivityIceCreamLevelType.Advanced then
+  if self.LevelData.LevelType == GameEnum.ActivityIceCreamLevelType.Infinite then
     bShowMaxScore = true
   end
   local bNextTimeLock = true
@@ -1867,7 +1909,7 @@ end
 function IceCreamTruckGameCtrl:Event_ExitIceCreamTruckGame()
   self._bIsExiting = true
   self:_TeardownForRestart()
-  EventManager.Hit(EventId.ClosePanel, PanelId.IceCreamTruckGamePanel)
+  EventManager.Hit(EventId.ClosePanel, PanelId.IceCreamTruckGamePanel_400020)
 end
 
 function IceCreamTruckGameCtrl:IceCream_NextLevel(nNextLevelId)
@@ -1881,8 +1923,8 @@ function IceCreamTruckGameCtrl:IceCream_NextLevel(nNextLevelId)
   end
   self:_TeardownForRestart()
   local nActId = self.nActId
-  EventManager.Hit(EventId.ClosePanel, PanelId.IceCreamTruckGamePanel)
-  EventManager.Hit(EventId.OpenPanel, PanelId.IceCreamTruckGamePanel, nActId, nNextLevelId)
+  EventManager.Hit(EventId.ClosePanel, PanelId.IceCreamTruckGamePanel_400020)
+  EventManager.Hit(EventId.OpenPanel, PanelId.IceCreamTruckGamePanel_400020, nActId, nNextLevelId)
 end
 
 function IceCreamTruckGameCtrl:RestartLevel()
@@ -2011,7 +2053,9 @@ function IceCreamTruckGameCtrl:BuildFinishData()
     OrderCount = self.NumOrder,
     TotalScore = self.CurrentScore,
     StreakCount = self.MaxStreakCount,
-    PropCount = self.PropCount
+    PropCount = self.PropCount,
+    MaxCombo = self.MaxStreakCount,
+    PassionTimes = self.FeverTimes
   }
 end
 
@@ -2038,13 +2082,22 @@ IceCreamTruckGameCtrl._tbCondimentTrKeys = {
 
 function IceCreamTruckGameCtrl:RegisterCondimentSpines()
   self.tbCondimentSpineIds = self.tbCondimentSpineIds or {}
+  for _, sTrKey in ipairs(self._tbCondimentBtnKeys) do
+    local tr = self._mapNode[sTrKey]
+    if tr ~= nil then
+      local nEnum = tonumber(tr.transform:GetChild(0).name)
+      if nEnum ~= nil then
+        self.tbCondimentSpineIds[nEnum] = tr.transform:Find("Spine_Icon")
+      end
+    end
+  end
   for _, sBtnKey in ipairs(self._tbCondimentBtnKeys) do
     local btn = self._mapNode[sBtnKey]
     if btn ~= nil then
       local nEnum = tonumber(btn.transform:GetChild(0).name)
-      local trSpine = btn.transform:Find("AnimRoot/Spine_Icon")
+      local trSpine = btn.transform:Find("Spine_Icon")
       if nEnum ~= nil and trSpine ~= nil and trSpine:IsNull() == false then
-        SpineManager.PlayAnim(trSpine, "idle", true)
+        self:SetCondimentBtnSpineAnim()
       end
     end
   end
@@ -2058,6 +2111,53 @@ function IceCreamTruckGameCtrl:RegisterCondimentSpines()
       end
     end
   end
+end
+
+function IceCreamTruckGameCtrl:SetCondimentBtnSpineAnim()
+  self._tbLockedCondimentBtns = {}
+  local bComplete = self.IceCreamActData:GetLevelFirstComplete(self.nLevelId)
+  local tbNewUnlockSlot = self.IceCreamActData.IceCreamLevelData:GetNewUnlockSlot()
+  if tbNewUnlockSlot == nil then
+    return
+  end
+  local tbUnlockSlot = self.LevelData.UnlockSlot
+  if tbUnlockSlot == nil then
+    return
+  end
+  for _, sBtnKey in ipairs(self._tbCondimentBtnKeys) do
+    local btn = self._mapNode[sBtnKey]
+    local trSpine = btn.transform:Find("Spine_Icon")
+    if btn ~= nil then
+      local nEnum = tonumber(btn.transform:GetChild(0).name)
+      if bComplete then
+        if table.indexof(tbUnlockSlot, nEnum) == 0 then
+          SpineManager.PlayAnim(trSpine, "lock", true)
+          btn.interactable = false
+          self:HideCondimentIcon(btn)
+        else
+          SpineManager.PlayAnim(trSpine, "idle", true)
+          btn.interactable = true
+        end
+      elseif table.indexof(tbUnlockSlot, nEnum) == 0 or table.indexof(tbNewUnlockSlot, nEnum) ~= 0 then
+        SpineManager.PlayAnim(trSpine, "lock", true)
+        if table.indexof(tbUnlockSlot, nEnum) == 0 then
+          self:HideCondimentIcon(btn)
+          btn.interactable = false
+        end
+      else
+        SpineManager.PlayAnim(trSpine, "idle", true)
+        btn.interactable = true
+      end
+    end
+  end
+end
+
+function IceCreamTruckGameCtrl:HideCondimentIcon(btn)
+  if btn == nil then
+    return
+  end
+  local tr = btn.transform:Find("AnimRoot")
+  tr.gameObject:SetActive(false)
 end
 
 function IceCreamTruckGameCtrl:GetCondimentTrByEnum(nEnum)
@@ -2105,39 +2205,62 @@ function IceCreamTruckGameCtrl:OnEvent_CloseDic(panelId)
   end
 end
 
-function IceCreamTruckGameCtrl:RefreshLockCondiment()
-  local tbUnlockSlot = self.LevelData.UnlockSlot
-  if tbUnlockSlot == nil then
-    return
-  end
-  for _, sBtnKey in ipairs(self._tbCondimentBtnKeys) do
-    local btn = self._mapNode[sBtnKey]
-    if btn ~= nil then
-      local nEnum = tonumber(btn.transform:GetChild(0).name)
-      if table.indexof(tbUnlockSlot, nEnum) == 0 then
-        btn.interactable = false
+function IceCreamTruckGameCtrl:PlayLockCondimentSpine()
+  local bComplete = self.IceCreamActData:GetLevelFirstComplete(self.nLevelId)
+  if not bComplete then
+    local tbNewUnlockSlot = self.IceCreamActData.IceCreamLevelData:GetNewUnlockSlot()
+    if tbNewUnlockSlot == nil or #tbNewUnlockSlot == 0 then
+      return
+    end
+    for _, sBtnKey in ipairs(self._tbCondimentBtnKeys) do
+      local btn = self._mapNode[sBtnKey]
+      local trSpine = btn.transform:Find("Spine_Icon")
+      if btn ~= nil then
+        local nEnum = tonumber(btn.transform:GetChild(0).name)
+        if table.indexof(tbNewUnlockSlot, nEnum) ~= 0 then
+          self:SetStatusSwitch(trSpine, "unlock", false, "idle")
+        end
       end
+    end
+    if 1 < #tbNewUnlockSlot then
+      WwiseAudioMgr:PostEvent("mode_400013_caps")
+    else
+      WwiseAudioMgr:PostEvent("mode_400013_cap")
     end
   end
 end
 
-function IceCreamTruckGameCtrl:RefreshComboNumber()
+function IceCreamTruckGameCtrl:RefreshComboNumber(bMiss)
   local nCombo = self.ScoreCalc:GetCombo()
-  self._mapNode.obj_Combo.gameObject:SetActive(nCombo ~= 0)
-  if 0 < nCombo then
+  local bShow = (bMiss == nil or not bMiss) and nCombo ~= 0
+  self._mapNode.obj_Combo.gameObject:SetActive(bShow)
+  if self._comboOutTimer ~= nil then
+    self._comboOutTimer:Stop()
+    self._comboOutTimer = nil
+  end
+  if bShow then
     self._mapNode.anim_Combo:Play("obj_Combo_in", 0, 0)
-    
-    local function OutAnimFinish()
+    local nAnimTime = NovaAPI.GetAnimClipLength(self._mapNode.anim_Combo, {
+      "obj_Combo_in"
+    })
+    self._comboOutTimer = self:AddTimer(1, nAnimTime, function()
       self._mapNode.obj_Combo.gameObject:SetActive(false)
-    end
-    
-    self:SetAnimationCallback(self._mapNode.anim_Combo, OutAnimFinish)
+      self._comboOutTimer = nil
+    end, true, true, true)
   end
   NovaAPI.SetTMPText(self._mapNode.txt_ComboCount, nCombo)
 end
 
 function IceCreamTruckGameCtrl:OnEvent_ShowOctopus()
-  EventManager.Hit(EventId.TemporaryBlockInput, 3)
+  if self.bInOctopus then
+    return printLog("上一个章鱼模式未结束")
+  end
+  self.bInOctopus = true
+  self._nOctopusGen = (self._nOctopusGen or 0) + 1
+  self._bOctopusKeyLatched = false
+  self._nOctopusFireFrame = nil
+  local nGen = self._nOctopusGen
+  EventManager.Hit(EventId.TemporaryBlockInput, 1.5)
   if self.IceCreamActData.IceCreamLevelData == nil then
     return
   end
@@ -2147,21 +2270,118 @@ function IceCreamTruckGameCtrl:OnEvent_ShowOctopus()
   self.tbOctopus = self.IceCreamActData.IceCreamLevelData:CreatOctopusFoots()
   if self.tbOctopus == nil then
     printError("章鱼 失败，中断后续")
+    self.bInOctopus = false
     return
   end
-  self.bInOctopus = true
   self:ActiveBtn(not self.bInOctopus)
-  self._mapNode.obj_Octopus.gameObject:SetActive(true)
-  self._mapNode.obj_OctopusFoot.gameObject:SetActive(true)
-  for index = 1, 6 do
-    local bShow = table.indexof(self.tbOctopus, index) ~= 0
-    self._mapNode.btn_Foot[index].gameObject:SetActive(bShow)
-    self._mapNode.btn_Foot[index].gameObject.transform:Find("AnimRoot").gameObject:SetActive(bShow)
-    local trSpine = self._mapNode.btn_Foot[index].gameObject.transform:GetChild(0):Find("Spine_OctopusFoot").transform
-    SpineManager.PlayAnim(trSpine, "in", false, 0)
-    SpineManager.AddAnim(trSpine, "idle", true, 0)
-    self._mapNode.btn_Foot[index].interactable = bShow
+  self:SetOctopusVisible(true)
+  self._mapNode.obj_Octopus.transform:GetComponent("Animator"):Play("obj_Octopus_in", 0, 0)
+  WwiseAudioMgr:PostEvent("mode_400013_octopus_appear")
+  self:SetStatusSwitch(self._mapNode.Spine_OctopusHead, "in", false, "idle")
+  local tbBtnByLogical = self:_EnsureOctopusBtnMap()
+  for _, btn in pairs(tbBtnByLogical) do
+    self:_HideOctopusFoot(btn)
   end
+  for _, nLogical in ipairs(self.tbOctopus) do
+    local btn = tbBtnByLogical[nLogical]
+    if btn ~= nil then
+      local trFoot = btn.transform
+      local btnCanvas = trFoot:GetComponent("CanvasGroup")
+      local trSpine = trFoot:GetChild(0):Find("Spine_OctopusFoot").transform
+      self:SetStatusSwitch(trSpine, "in", false, "idle")
+      btn.interactable = true
+      trFoot:Find("AnimRoot").gameObject:SetActive(true)
+      
+      local function wait_Spine()
+        coroutine.yield(CS.UnityEngine.WaitForSeconds(1.2))
+        if nGen ~= self._nOctopusGen then
+          return
+        end
+        NovaAPI.SetCanvasGroupAlpha(btnCanvas, 1)
+        NovaAPI.SetCanvasGroupBlocksRaycasts(btnCanvas, true)
+        NovaAPI.SetCanvasGroupInteractable(btnCanvas, true)
+      end
+      
+      cs_coroutine.start(wait_Spine)
+      
+      local function wait_Anim()
+        coroutine.yield(CS.UnityEngine.WaitForSeconds(4))
+        if nGen ~= self._nOctopusGen then
+          return
+        end
+        trFoot:Find("AnimRoot").gameObject:SetActive(true)
+      end
+      
+      cs_coroutine.start(wait_Anim)
+    end
+  end
+end
+
+function IceCreamTruckGameCtrl:_EnsureOctopusBtnMap()
+  if self._tbOctopusBtnByLogical ~= nil then
+    return self._tbOctopusBtnByLogical
+  end
+  local tbMap = {}
+  for i = 1, 6 do
+    local btn = self._mapNode.btn_Foot[i]
+    if btn ~= nil then
+      local nLogical = tonumber(btn.transform:GetChild(0).name)
+      if nLogical == nil then
+        printError("章鱼触手按钮 child(0).name 不是数字：" .. tostring(i))
+      else
+        tbMap[nLogical] = btn
+      end
+    end
+  end
+  self._tbOctopusBtnByLogical = tbMap
+  return tbMap
+end
+
+function IceCreamTruckGameCtrl:_HideOctopusFoot(btn)
+  if btn == nil then
+    return
+  end
+  local trFoot = btn.transform
+  local btnCanvas = trFoot:GetComponent("CanvasGroup")
+  NovaAPI.SetCanvasGroupAlpha(btnCanvas, 0)
+  NovaAPI.SetCanvasGroupBlocksRaycasts(btnCanvas, false)
+  NovaAPI.SetCanvasGroupInteractable(btnCanvas, false)
+  btn.interactable = false
+  local trAnim = trFoot:Find("AnimRoot")
+  if trAnim ~= nil then
+    trAnim.gameObject:SetActive(false)
+  end
+end
+
+function IceCreamTruckGameCtrl:_StartOctopusKeyReleaseWatcher()
+  local nGen = self._nOctopusGen
+  
+  local function watch()
+    local Keyboard = CS.UnityEngine.InputSystem.Keyboard
+    local Gamepad = CS.UnityEngine.InputSystem.Gamepad
+    while true do
+      coroutine.yield(CS.UnityEngine.WaitForEndOfFrame())
+      if nGen ~= self._nOctopusGen then
+        self._bOctopusKeyLatched = false
+        return
+      end
+      local kb = Keyboard.current
+      local gp = Gamepad.current
+      local bHeld = false
+      if kb ~= nil and kb.spaceKey.isPressed then
+        bHeld = true
+      end
+      if not bHeld and gp ~= nil and (gp.buttonSouth.isPressed or gp.buttonEast.isPressed) then
+        bHeld = true
+      end
+      if not bHeld then
+        self._bOctopusKeyLatched = false
+        return
+      end
+    end
+  end
+  
+  cs_coroutine.start(watch)
 end
 
 function IceCreamTruckGameCtrl:OnBtn_ClickOctopus(_btn)
@@ -2169,45 +2389,66 @@ function IceCreamTruckGameCtrl:OnBtn_ClickOctopus(_btn)
     self:FinishOctopus()
     return
   end
-  local animBtn = _btn.gameObject.transform:Find("AnimRoot"):GetComponent("Animator")
   local nIndex = tonumber(_btn.gameObject.transform:GetChild(0).name)
   if nIndex == nil then
     printError("没有拿到节点下存放的枚举数字")
     return
   end
+  local tbBtnByLogical = self:_EnsureOctopusBtnMap()
+  local nFrame = CS.UnityEngine.Time.frameCount
+  if self._nOctopusFireFrame == nFrame then
+    return
+  end
+  self._nOctopusFireFrame = nFrame
   local nUIType = GamepadUIManager.GetCurUIType()
   local bClickAny = nUIType == AllEnum.GamepadUIType.Mouse or nUIType == AllEnum.GamepadUIType.Other
+  local nHitLogical
   if bClickAny then
     local nPos = table.indexof(self.tbOctopus, nIndex)
-    if nPos ~= 0 then
-      self._mapNode.btn_Foot[nIndex].interactable = false
-      animBtn:Play("btn_Foot_out", 0, 0)
-      table.remove(self.tbOctopus, nPos)
-    end
-  else
-    local nFrame = CS.UnityEngine.Time.frameCount
-    if self._nOctopusFireFrame == nFrame then
+    if nPos == 0 then
       return
     end
-    self._nOctopusFireFrame = nFrame
-    local nHead = self.tbOctopus[1]
-    self._mapNode.btn_Foot[nHead].interactable = false
-    animBtn:Play("btn_Foot_out", 0, 0)
+    nHitLogical = nIndex
+    table.remove(self.tbOctopus, nPos)
+  else
+    if self._bOctopusKeyLatched then
+      return
+    end
+    self._bOctopusKeyLatched = true
+    self:_StartOctopusKeyReleaseWatcher()
+    nHitLogical = self.tbOctopus[1]
     table.remove(self.tbOctopus, 1)
   end
-  local trSpine = _btn.gameObject.transform:GetChild(0):Find("Spine_OctopusFoot").transform
+  local btnHit = tbBtnByLogical[nHitLogical]
+  if btnHit == nil then
+    printError("章鱼触手逻辑位置找不到对应 btn：" .. tostring(nHitLogical))
+    return
+  end
+  btnHit.interactable = false
+  WwiseAudioMgr:PostEvent("mode_400013_octopus_hurt_" .. nHitLogical)
+  local animBtn = btnHit.gameObject.transform:Find("AnimRoot"):GetComponent("Animator")
+  animBtn:Play("btn_Foot_out", 0, 0)
+  self:SetStatusSwitch(self._mapNode.Spine_OctopusHead, "hit", false, "idle")
+  local trSpine = btnHit.gameObject.transform:GetChild(0):Find("Spine_OctopusFoot").transform
   SpineManager.PlayAnim(trSpine, "out", false)
   if #self.tbOctopus == 0 then
-    self:FinishOctopus()
-    return
+    SpineManager.PlayAnim(self._mapNode.Spine_OctopusHead, "out", false)
+    
+    local function wait()
+      coroutine.yield(CS.UnityEngine.WaitForSeconds(0.3))
+      self:FinishOctopus()
+    end
+    
+    cs_coroutine.start(wait)
   end
 end
 
 function IceCreamTruckGameCtrl:FinishOctopus()
   EventManager.Hit(EventId.TemporaryBlockInput, 0.2)
-  self._mapNode.obj_Octopus.transform:GetComponent("Animator"):Play("obj_Octopus_out")
+  self._mapNode.obj_Octopus.transform:GetComponent("Animator"):Play("obj_Octopus_out", 0, 0)
+  WwiseAudioMgr:PostEvent("mode_400013_octopus_die")
   
-  function wait()
+  local function wait()
     coroutine.yield(CS.UnityEngine.WaitForSeconds(0.3))
     self:ClearOctopus()
   end
@@ -2217,9 +2458,24 @@ end
 
 function IceCreamTruckGameCtrl:ClearOctopus()
   self.bInOctopus = false
+  self._nOctopusGen = (self._nOctopusGen or 0) + 1
   self:ActiveBtn(not self.bInOctopus)
-  self._mapNode.obj_Octopus.gameObject:SetActive(false)
-  self._mapNode.obj_OctopusFoot.gameObject:SetActive(false)
+  self:SetOctopusVisible(false)
+  local tbBtnByLogical = self:_EnsureOctopusBtnMap()
+  for _, btn in pairs(tbBtnByLogical) do
+    self:_HideOctopusFoot(btn)
+  end
+end
+
+function IceCreamTruckGameCtrl:SetOctopusVisible(bSetCanvas)
+  local nAlpha = 0
+  if bSetCanvas then
+    nAlpha = 1
+  end
+  local Canvas_Octopus = self._mapNode.obj_Octopus.transform:GetComponent("CanvasGroup")
+  NovaAPI.SetCanvasGroupAlpha(Canvas_Octopus, nAlpha)
+  local Canvas_OctopusFoot = self._mapNode.obj_OctopusFoot.transform:GetComponent("CanvasGroup")
+  NovaAPI.SetCanvasGroupAlpha(Canvas_OctopusFoot, nAlpha)
 end
 
 function IceCreamTruckGameCtrl:SetFeedPGState(bInFeed)
@@ -2242,6 +2498,7 @@ function IceCreamTruckGameCtrl:_GiveFood()
   if self.CurrentOrders == nil then
     return
   end
+  WwiseAudioMgr:PostEvent("mode_400013_xialuoke_point")
   self:Show_FeedPGFXBoom()
   self.CurrentOrders:SetFeedPG(true)
   local FeedScore = self.ScoreCalc:CalcFeedPGScore(self.SpecialScore)
@@ -2341,27 +2598,62 @@ function IceCreamTruckGameCtrl:GM_RefreshCustomer(CustomerId)
   end
 end
 
+function IceCreamTruckGameCtrl:GM_PrintUnlock()
+  local tbUnlockSlot = self.LevelData.UnlockSlot
+  if tbUnlockSlot == nil or self._tbCondimentBtnKeys == nil or #self._tbCondimentBtnKeys == 0 then
+    printLog("该关卡解锁槽位信息为空")
+    return
+  end
+  local tbSlotName = {
+    [IceCreamUtils.EnumFlavor.Vanilla] = "Vanilla(香草)",
+    [IceCreamUtils.EnumFlavor.Strawberry] = "Strawberry(草莓)",
+    [IceCreamUtils.EnumFlavor.Melon] = "Melon(哈密瓜)",
+    [IceCreamUtils.EnumFlavor.Chocolate] = "Chocolate(巧克力)",
+    [IceCreamUtils.EnumTopping.Cherry] = "Cherry(樱桃)",
+    [IceCreamUtils.EnumTopping.Rainbow] = "Rainbow(彩虹碎)",
+    [IceCreamUtils.EnumTopping.Cookie] = "Cookie(饼干)",
+    [IceCreamUtils.EnumTopping.Cream] = "Cream(奶油)"
+  }
+  printLog(string.format("当前关卡[%s]解锁槽位数量=%d", tostring(self.nLevelId), #tbUnlockSlot))
+  for i, nEnum in ipairs(tbUnlockSlot) do
+    local sName = tbSlotName[nEnum] or "未知配料"
+    printLog(string.format("  [%d] 参数=%s -> %s", i, tostring(nEnum), sName))
+  end
+end
+
+function IceCreamTruckGameCtrl:ChangeOctopusTimes(nTimes)
+  self.bOctopusTimes_GM = true
+  self.nOctopusTimesGM = nTimes
+end
+
 function IceCreamTruckGameCtrl:GameEnd_Pre(bIsEnd)
   self:ActiveBtnAll(not bIsEnd)
 end
 
 function IceCreamTruckGameCtrl:ActiveBtnAll(bEnable)
   self._mapNode.btn_Pause.interactable = bEnable
-  self._mapNode.btn_Condiment_A.interactable = bEnable
-  self._mapNode.btn_Condiment_S.interactable = bEnable
-  self._mapNode.btn_Condiment_D.interactable = bEnable
-  self._mapNode.btn_Condiment_F.interactable = bEnable
-  self._mapNode.btn_Condiment_H.interactable = bEnable
-  self._mapNode.btn_Condiment_J.interactable = bEnable
-  self._mapNode.btn_Condiment_K.interactable = bEnable
-  self._mapNode.btn_Condiment_L.interactable = bEnable
+  local tbUnlockSlot = self.LevelData.UnlockSlot
+  if tbUnlockSlot == nil or self._tbCondimentBtnKeys == nil or #self._tbCondimentBtnKeys == 0 then
+    return
+  end
+  for _, sBtnKey in ipairs(self._tbCondimentBtnKeys) do
+    local btn = self._mapNode[sBtnKey]
+    if btn ~= nil then
+      local nEnum = tonumber(btn.transform:GetChild(0).name)
+      if table.indexof(tbUnlockSlot, nEnum) == 0 then
+        btn.transform:GetComponent("NaviButton").interactable = false
+      else
+        btn.transform:GetComponent("NaviButton").interactable = bEnable
+      end
+    end
+  end
   self:ActiveBtn(bEnable)
 end
 
 function IceCreamTruckGameCtrl:ActiveBtn(bEnable)
   self._mapNode.btn_Bag.interactable = bEnable
-  self._mapNode.btn_BuffItem1.interactable = bEnable
-  self._mapNode.btn_BuffItem2.interactable = bEnable
+  self._mapNode.btn_BuffItem1.interactable = bEnable and tonumber(self._mapNode.btn_BuffItem1.transform:GetChild(0).name) ~= 0
+  self._mapNode.btn_BuffItem2.interactable = bEnable and tonumber(self._mapNode.btn_BuffItem2.transform:GetChild(0).name) ~= 0
   self._mapNode.btn_Garbage.interactable = bEnable
   self._mapNode.btn_GiveFood.interactable = bEnable
 end

@@ -248,7 +248,7 @@ function SoldierBattleResultCtrl:OnBtnClick_Confirm()
     self:ShowBattleReport()
     return
   end
-  if (self.nResultType == _CS or self.nResultType == _CF) and self:CheckShowRecommendTips() then
+  if self.nResultType == _CS and self:CheckShowRecommendTips() then
     self:ShowRecommendTips()
     return
   end
@@ -279,6 +279,12 @@ function SoldierBattleResultCtrl:CheckIsLastGradeChallenge()
 end
 
 function SoldierBattleResultCtrl:CheckShowRecommendTips()
+  if self.nResultType ~= _CS then
+    return false
+  end
+  if self.mapData == nil or self.mapData.bFinalBossSuccess ~= true then
+    return false
+  end
   local nTipDay = tonumber(LocalData.GetPlayerLocalData(RecommendTipsKey) or 0)
   if nTipDay == GetTodayKey() then
     return false

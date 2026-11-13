@@ -150,6 +150,10 @@ function IceCreamActData:GetLevelData(nId)
   return self.mapLevelData[nId] or {nScore = 0, bFirstComplete = false}
 end
 
+function IceCreamActData:GetLevelFirstComplete(nId)
+  return self.mapLevelData[nId].bFirstComplete or false
+end
+
 function IceCreamActData:GetLevelMapData(nLevelId)
   local mapCfg = ConfigTable.GetData("ActivityIceCreamLevel", nLevelId)
   if not mapCfg then
@@ -292,8 +296,8 @@ function IceCreamActData:ShowActivityClosedAlert()
 end
 
 function IceCreamActData:ForceExitOnFinishFail()
-  EventManager.Hit(EventId.ClosePanel, PanelId.IceCreamTruckGamePanel)
-  EventManager.Hit(EventId.ClosePanel, PanelId.IceCreamLevelsSelectPanel)
+  EventManager.Hit(EventId.ClosePanel, PanelId.IceCreamTruckGamePanel_400020)
+  EventManager.Hit(EventId.ClosePanel, PanelId.IceCreamLevelsSelectPanel_400020)
 end
 
 function IceCreamActData:OnEvent_GMClearAllIceLevels(mapMsgData)

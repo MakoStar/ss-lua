@@ -181,7 +181,7 @@ function StorySetCtrl:OnChapterGridClick(goGrid, gridIndex)
   if self.tbChapterGrid[nInstanceId] ~= nil then
     nAnimLen = self.tbChapterGrid[nInstanceId]:PlayAnim(false)
   end
-  self.nSelectIndex = nIndex
+  self.nSelectChapterId = data.nId
   self.bResetLsvPos = true
   self.nPanelType = panelType_Section
   CS.WwiseAudioManager.Instance:PlaySound("ui_mainline_story_menu")
@@ -205,7 +205,7 @@ function StorySetCtrl:RefreshSection()
     self:UnbindCtrlByNode(v)
     self.tbSectionGrid[nInstanceId] = nil
   end
-  local data = self.tbChapter[self.nSelectIndex]
+  local data = PlayerData.StorySet:GetChapterData(self.nSelectChapterId)
   if nil ~= data then
     self.tbSectionList = data.tbSectionList
     self._mapNode.sectionLsv:Init(#self.tbSectionList, self, self.OnRefreshSectionGrid, self.OnSectionGridClick, not self.bResetLsvPos)
@@ -359,7 +359,7 @@ function StorySetCtrl:UpdateChapterList()
 end
 
 function StorySetCtrl:Awake()
-  self.nSelectIndex = 0
+  self.nSelectChapterId = 0
   self.nCurrentTabIndex = 1
   self.nPanelType = panelType_chapter
   self.bResetLsvPos = true
@@ -381,7 +381,7 @@ function StorySetCtrl:OnEnable()
     for k, v in ipairs(self.tbChapter) do
       if v.nId == self.nChapterId then
         if v.bUnlock then
-          self.nSelectIndex = k
+          self.nSelectChapterId = v.nId
           self.nPanelType = panelType_Section
           break
         end

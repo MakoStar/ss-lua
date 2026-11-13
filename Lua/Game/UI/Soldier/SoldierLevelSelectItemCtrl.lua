@@ -57,7 +57,7 @@ function SoldierLevelSelectItemCtrl:SetData(mapData, bUnlock)
   NovaAPI.SetTMPText(self._mapNode.txt_DifficultNum, mapData.OppoLevelShow)
   local sText = orderedFormat(ConfigTable.GetUIText("Soldier_LevelSelect_InitialHp"), mapData.InitialHp)
   NovaAPI.SetTMPText(self._mapNode.txt_Desc[1], sText)
-  local sOppoAttrAddShow = math.floor(tonumber(mapData.OppoAttrAddShow) * 100) .. "%"
+  local sOppoAttrAddShow = mapData.OppoAttrAddShow .. "%"
   sText = orderedFormat(ConfigTable.GetUIText("Soldier_LevelSelect_OppoAttrAddShow"), sOppoAttrAddShow)
   NovaAPI.SetTMPText(self._mapNode.txt_Desc[2], sText)
   self._mapNode.btn_Search.gameObject:SetActive(false)

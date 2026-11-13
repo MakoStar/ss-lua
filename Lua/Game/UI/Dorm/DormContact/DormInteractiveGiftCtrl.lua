@@ -80,6 +80,7 @@ function DormInteractiveGiftCtrl:OpenGiftChoose(nCharId, parent)
   self.curFavourLevel = affinityData.Level
   self.curFavourExp = affinityData.Exp
   self.nMaxSendGiftCount = PlayerData.PlayerDormData:GetCharGiftCountDay(nCharId)
+  self.nMaxSendGiftCfgCount = tonumber(ConfigTable.GetConfigNumber("AffinityGiftSendCount"))
   local mapCharDesc = ConfigTable.GetData("CharacterDes", self.nCharId)
   if mapCharDesc ~= nil then
     self.PreferenceData = {
@@ -158,7 +159,7 @@ function DormInteractiveGiftCtrl:RefreshItemGrid(grid)
   local imgAffinityLevel = grid.transform:Find("btnGrid/AnimRoot/tc_item_02/imgAffinityGiftLevel"):GetComponent("Image")
   local level = mapItem.favourLevel
   self:SetAtlasSprite(imgAffinityLevel, "11_ico", "zs_present_heart_" .. level)
-  if self.tbChooseItem ~= nil and self.tbChooseItem.nIdx == nIndex then
+  if self.tbChooseItem ~= nil and self.tbChooseItem[nIndex] ~= nil then
     self.tbGridCtrl[nInstanceID]:SetMultiSelected_Blue(true)
   end
 end
@@ -284,7 +285,7 @@ function DormInteractiveGiftCtrl:GetGiftFavourLevel(tags)
 end
 
 function DormInteractiveGiftCtrl:SetDaySendCount()
-  local nCount = 0
+  local nCount = self.nMaxSendGiftCfgCount - self.nMaxSendGiftCount
   if self.tbChooseItem ~= nil then
     for nIndex, v in pairs(self.tbChooseItem) do
       if v ~= nil then
@@ -292,7 +293,7 @@ function DormInteractiveGiftCtrl:SetDaySendCount()
       end
     end
   end
-  NovaAPI.SetTMPText(self._mapNode.txtGiftCount, orderedFormat(ConfigTable.GetUIText("Phone_Gift_Send_Day_Count_1"), nCount, self.nMaxSendGiftCount))
+  NovaAPI.SetTMPText(self._mapNode.txtGiftCount, orderedFormat(ConfigTable.GetUIText("Phone_Gift_Send_Day_Count_1"), nCount, self.nMaxSendGiftCfgCount))
 end
 
 function DormInteractiveGiftCtrl:Exit()

@@ -135,7 +135,7 @@ function SoldierLevelSelectCtrl:RefreshGradeChallenge()
     for _, v in ipairs(self.tbGradeChallenge) do
       local sText = orderedFormat(ConfigTable.GetUIText("Soldier_LevelSelect_InitialHp"), v.InitialHp)
       NovaAPI.SetTMPText(self._mapNode.txtTestDesc[1], sText)
-      local sOppoAttrAddShow = math.floor(tonumber(v.OppoAttrAddShow) * 100) .. "%"
+      local sOppoAttrAddShow = v.OppoAttrAddShow .. "%"
       sText = orderedFormat(ConfigTable.GetUIText("Soldier_LevelSelect_OppoAttrAddShow"), sOppoAttrAddShow)
       NovaAPI.SetTMPText(self._mapNode.txtTestDesc[2], sText)
       CS.UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(self._mapNode.rtGridTest)

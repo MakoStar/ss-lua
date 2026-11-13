@@ -249,6 +249,12 @@ end
 function BdConvertBuildCtrl:SortBuildData()
   if self.nSortype == SortType.Time then
     local function sortByTime(a, b)
+      if a.bDislike ~= b.bDislike then
+        return a.bDislike
+      end
+      if a.bPreference ~= b.bPreference then
+        return b.bPreference
+      end
       if self.nSortOrder == SortOrder.Descending then
         return a.nBuildId > b.nBuildId
       else
@@ -259,6 +265,12 @@ function BdConvertBuildCtrl:SortBuildData()
     table.sort(self._tbAllBuild, sortByTime)
   else
     local function sortByScore(a, b)
+      if a.bDislike ~= b.bDislike then
+        return a.bDislike
+      end
+      if a.bPreference ~= b.bPreference then
+        return b.bPreference
+      end
       if self.nSortOrder == SortOrder.Descending then
         if a.nScore ~= b.nScore then
           return a.nScore > b.nScore

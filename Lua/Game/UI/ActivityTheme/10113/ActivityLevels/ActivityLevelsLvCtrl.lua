@@ -31,6 +31,8 @@ function ActivityLevelsLvCtrl:InitData(parent, nType, activityData, data, isOpen
   self._mapNode.rtLockInfoDay.gameObject:SetActive(false)
   self.isShowTexLv = false
   self.isOpen = isOpen
+  local selectDb = self._mapNode.Select.transform:Find("imgDb").gameObject
+  local unSelectDb = self._mapNode.unSelect.transform:Find("imgDb").gameObject
   if isOpen and isLevelUnLock then
     self.isShowTexLv = true
     self._mapNode.rt_Targets:SetActive(true)
@@ -76,6 +78,8 @@ function ActivityLevelsLvCtrl:InitData(parent, nType, activityData, data, isOpen
     end
     self.lvLock = true
   end
+  selectDb:SetActive(not self.lvLock)
+  unSelectDb:SetActive(not self.lvLock)
   local strTitle = ""
   if nType == GameEnum.ActivityLevelType.Explore then
     strTitle = orderedFormat(lvIndexTitle, 1, data.baseData.Difficulty)
@@ -136,11 +140,12 @@ function ActivityLevelsLvCtrl:SetDefault(isOn)
     NovaAPI.SetImageColor(self._mapNode.rtLockInfoDay, colorLockUnSelectImage)
     NovaAPI.SetImageColor(self._mapNode.rtLockPreLvSelect, colorLockUnSelectImage)
   end
-  if not self.isOpen then
-    self._mapNode.imgLockMask:SetActive(not isOn)
-  end
   if isOn then
-    self._mapNode.SelectAni:Play("Select_idle")
+    if self.isOpen then
+      self._mapNode.SelectAni:Play("Select_idle")
+    else
+      self._mapNode.SelectAni:Play("Select_idle_lock")
+    end
   else
     self._mapNode.SelectAni.enabled = false
     self._mapNode.SelectAni.enabled = true

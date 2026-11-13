@@ -333,6 +333,7 @@ function MallSkinPreviewCtrl:LoadCharacter()
     
     local function LoadModelCallback(obj)
       local go = instantiate(obj, self.rtSceneOriginPos)
+      NovaAPI.ChangeAnimatorDefaultState(go.transform)
       self.tbModelList[self.nSkinId] = go
       self.curShowModel = go
       self:WaitReadyClipFinish()

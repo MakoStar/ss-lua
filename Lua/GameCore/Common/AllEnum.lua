@@ -1859,4 +1859,22 @@ AllEnum.SoldierEventEffectRewardType = {
   CardEffect = "CardEffect",
   LoseAllCoin = "LoseAllCoin"
 }
+AllEnum.PanelId_AnalysisPanel = {
+  [21] = "CharList",
+  [22] = "Gacha",
+  [46] = "Mail",
+  [54] = "LevelMenu",
+  [318] = "DispatchPanel",
+  [49] = "Quest",
+  [261] = "Phone",
+  [241] = "ActivityList",
+  [16] = "MainViewSide",
+  [87] = "BattlePass",
+  [48] = "Friend",
+  [146] = "StoryEntrance",
+  [74] = "Mall",
+  [29] = "DepotPanel",
+  [27] = "ShopPanel",
+  [38] = "Disc"
+}
 return AllEnum

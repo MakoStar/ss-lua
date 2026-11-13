@@ -103,11 +103,18 @@ function ActivityListCtrl:InitActivityList(nCurActId)
         end
       end
       if nil == actData or not bOpen then
+        local bListEmpty = #self.tbActList == 0
         EventManager.Hit(EventId.OpenMessageBox, {
           nType = AllEnum.MessageBox.Alert,
-          sContent = ConfigTable.GetUIText("Activity_Invalid_Tip_2")
+          sContent = ConfigTable.GetUIText("Activity_Invalid_Tip_2"),
+          callbackConfirm = bListEmpty and function()
+            EventManager.Hit(EventId.ClosePanel, PanelId.ActivityList)
+          end or nil
         })
         self._panel.nSelectActId = nil
+        if bListEmpty then
+          return
+        end
       end
     end
     self.nSelectIndex = 1

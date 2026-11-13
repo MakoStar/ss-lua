@@ -142,6 +142,8 @@ function IceCreamResultCtrl:OnBtn_OutResult()
   GamepadUIManager.DisableGamepadUI("IceCreamTruckGameCtrl")
   self:CloseResultPanel()
   EventManager.Hit("Event_ExitIceCreamTruckGame")
+  PlayerData.Base:SetSkipNewDayWindow(false)
+  PlayerData.Base:OnBackToMainMenuModule()
 end
 
 function IceCreamResultCtrl:OnBtn_InRestart()
@@ -162,8 +164,6 @@ function IceCreamResultCtrl:CloseResultPanel()
   NovaAPI.SetCanvasGroupAlpha(self.canvasGroup, 0)
   self.gameObject:SetActive(false)
   GamepadUIManager.DisableGamepadUI("IceCreamResultCtrl")
-  PlayerData.Base:SetSkipNewDayWindow(false)
-  PlayerData.Base:OnBackToMainMenuModule()
 end
 
 return IceCreamResultCtrl

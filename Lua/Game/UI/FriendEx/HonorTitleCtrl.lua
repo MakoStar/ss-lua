@@ -20,6 +20,7 @@ local HonorTitleStarPath = {
   [4] = "zs_honor_level_4",
   [5] = "zs_honor_level_3",
   [6] = "zs_honor_level_5",
+  [75] = "zs_honor_level_74",
   [99] = "zs_honor_level_100"
 }
 local MAX_AFFINITY_LV = 99

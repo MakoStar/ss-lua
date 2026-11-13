@@ -3,6 +3,7 @@ local UnchartedMapCtrl = class("UnchartedMapCtrl", BaseCtrl)
 local ClientManager = CS.ClientManager.Instance
 local TimerManager = require("GameCore.Timer.TimerManager")
 local LocalData = require("GameCore.Data.LocalData")
+local WwiseAudioMgr = CS.WwiseAudioManager.Instance
 UnchartedMapCtrl._mapNodeConfig = {
   goBg = {sNodeName = "---Bg---"},
   TopBar = {
@@ -81,6 +82,7 @@ UnchartedMapCtrl._mapNodeConfig = {
   imgStoryActivityUnlockTime = {},
   txtStoryActivityUnlockTime = {sComponentName = "TMP_Text"},
   imgStoryEnd = {},
+  dbStoryEnd = {},
   txtShopEndState = {
     sComponentName = "TMP_Text",
     sLanguageId = "Activity_End"
@@ -118,6 +120,8 @@ UnchartedMapCtrl._mapNodeConfig = {
   imgLevelEnd = {},
   imgLevelActivityTime = {},
   txtLevelActivityTime = {sComponentName = "TMP_Text"},
+  dbBattleEnd = {},
+  dbBattleEnd2 = {},
   miniGameRedDot = {},
   redDotEntrance2 = {},
   storyRedDot = {},
@@ -134,6 +138,10 @@ function UnchartedMapCtrl:Awake()
   local param = self:GetPanelParam()
   if type(param) == "table" then
     self.nActId = param[1]
+    self.bFromActList = param[3]
+    if self.bFromActList == nil then
+      self.bFromActList = false
+    end
   end
   self.ActData = PlayerData.Activity:GetActivityGroupDataById(self.nActId)
   if self.ActData ~= nil then
@@ -144,21 +152,37 @@ end
 function UnchartedMapCtrl:OnEnable()
   self:RefreshPanel()
   self:RegisterReddot()
+  self:SetEnterState()
 end
 
 function UnchartedMapCtrl:SetEnterState()
-  local sAnimName = "LongestDayPanel_Full"
-  local sAudioName = "Mode_10112_activity"
+  local sAnimName = "UnchartedMapPanel_in"
+  local sAudioName = "Mode_10113_activity"
   if self.bFirstEnter then
-    sAnimName = "LongestDayPanel_Pullback"
-    sAudioName = "Mode_10112_activity_01"
+    sAnimName = "UnchartedMapPanel_in1"
+    sAudioName = "Mode_10113_activity_1"
   end
   self.bFirstEnter = true
   self.animRoot = self.gameObject:GetComponent("Animator")
   local nAnimLength = NovaAPI.GetAnimClipLength(self.animRoot, {sAnimName})
   self.animRoot:Play(sAnimName, 0, 0)
-  WwiseAudioMgr:PostEvent(sAudioName)
+  if self.bFromActList and sAudioName == "Mode_10113_activity" then
+  else
+    WwiseAudioMgr:PostEvent(sAudioName)
+  end
   EventManager.Hit(EventId.TemporaryBlockInput, nAnimLength)
+  for k, v in pairs(self._mapNode.btnEntrance_) do
+    local anim = v.transform:GetChild(0):GetComponent("Animator")
+    if anim ~= nil and anim:IsNull() == false and (k == AllEnum.ActivityThemeFuncIndex.Level or k == AllEnum.ActivityThemeFuncIndex.Task or k == AllEnum.ActivityThemeFuncIndex.Story) then
+      local actData = self.ActData:GetActivityDataByIndex(k)
+      local state = self.ActData:GetActivityEntranceState(actData.ActivityId)
+      if state == ActivityState.Closed then
+        anim.speed = 0
+      else
+        anim.speed = 1
+      end
+    end
+  end
 end
 
 function UnchartedMapCtrl:RegisterReddot()
@@ -262,7 +286,7 @@ function UnchartedMapCtrl:RefreshRemainTime(endTime, txtComp)
   local sTimeStr = ""
   if remainTime <= 60 then
     local sec = math.floor(remainTime)
-    sTimeStr = orderedFormat(ConfigTable.GetUIText("Activity_Remain_Time_Sec") or "", sec)
+    sTimeStr = orderedFormat(ConfigTable.GetUIText("ActivityNew_Remain_Time_Sec") or "", sec)
   elseif 60 < remainTime and remainTime <= 3600 then
     local min = math.floor(remainTime / 60)
     local sec = math.floor(remainTime - min * 60)
@@ -270,7 +294,7 @@ function UnchartedMapCtrl:RefreshRemainTime(endTime, txtComp)
       min = min - 1
       sec = 60
     end
-    sTimeStr = orderedFormat(ConfigTable.GetUIText("Activity_Remain_Time_Min") or "", min, sec)
+    sTimeStr = orderedFormat(ConfigTable.GetUIText("ActivityNew_Remain_Time_Min") or "", min, sec)
   elseif 3600 < remainTime and remainTime <= 86400 then
     local hour = math.floor(remainTime / 3600)
     local min = math.floor((remainTime - hour * 3600) / 60)
@@ -278,7 +302,7 @@ function UnchartedMapCtrl:RefreshRemainTime(endTime, txtComp)
       hour = hour - 1
       min = 60
     end
-    sTimeStr = orderedFormat(ConfigTable.GetUIText("Activity_Remain_Time_Hour") or "", hour, min)
+    sTimeStr = orderedFormat(ConfigTable.GetUIText("ActivityNew_Remain_Time_Hour") or "", hour, min)
   elseif 86400 < remainTime then
     local day = math.floor(remainTime / 86400)
     local hour = math.floor((remainTime - day * 86400) / 3600)
@@ -286,7 +310,7 @@ function UnchartedMapCtrl:RefreshRemainTime(endTime, txtComp)
       day = day - 1
       hour = 24
     end
-    sTimeStr = orderedFormat(ConfigTable.GetUIText("Activity_Remain_Time_Day") or "", day, hour)
+    sTimeStr = orderedFormat(ConfigTable.GetUIText("ActivityNew_Remain_Time_Day") or "", day, hour)
   end
   NovaAPI.SetTMPText(txtComp, sTimeStr)
   return remainTime
@@ -470,6 +494,7 @@ function UnchartedMapCtrl:RefreshTaskButtonState(actData)
     self._mapNode.imgTaskEnd.gameObject:SetActive(state == ActivityState.Closed)
     self._mapNode.dbTaskEnd.gameObject:SetActive(state == ActivityState.Closed)
     self._mapNode.txtTaskEnd.gameObject:SetActive(state == ActivityState.Closed)
+    self._mapNode.txtTaskProgressEnd.gameObject:SetActive(state == ActivityState.Closed)
     self._mapNode.imgTaskActivityUnlockTime:SetActive(state == ActivityState.NotOpen)
     self.tbActState[activityId] = state
     local ActivityTaskData = PlayerData.Activity:GetActivityDataById(activityId)
@@ -510,6 +535,7 @@ function UnchartedMapCtrl:RefreshStoryButtonState(actData)
     self._mapNode.imgStoryActivityUnlockTime:SetActive(state == ActivityState.NotOpen)
     self._mapNode.goStoryEnd:SetActive(state == ActivityState.Closed)
     self._mapNode.imgStoryEnd:SetActive(state == ActivityState.Closed)
+    self._mapNode.dbStoryEnd:SetActive(state == ActivityState.Closed)
     self._mapNode.txtStory_End.gameObject:SetActive(state == ActivityState.Closed)
     self.tbActState[activityId] = state
   end
@@ -542,12 +568,10 @@ function UnchartedMapCtrl:RefreshLevelButtonState(actData)
     self._mapNode.imgLevelActivityUnlockTime:SetActive(state == ActivityState.NotOpen)
     self._mapNode.imgLevelEnd:SetActive(state == ActivityState.Closed)
     self._mapNode.goLevelEnd:SetActive(state == ActivityState.Closed)
+    self._mapNode.dbBattleEnd:SetActive(state == ActivityState.Closed)
+    self._mapNode.dbBattleEnd2:SetActive(state == ActivityState.Closed)
     self._mapNode.txtLevel_End.gameObject:SetActive(state == ActivityState.Closed)
     self.tbActState[activityId] = state
-    local anim = self._mapNode.btnEntrance_[AllEnum.ActivityThemeFuncIndex.Level].transform:GetChild(0):GetComponent("Animator")
-    if state == ActivityState.Open then
-      anim:Play("btnEntrance_5_idle")
-    end
   end
 end
 
@@ -573,7 +597,7 @@ function UnchartedMapCtrl:RefreshShopButtonState(actData)
   end
 end
 
-function UnchartedMapCtrl:RequireActiviyData()
+function UnchartedMapCtrl:RequireActivityData()
   if self.bRequiredActData then
     return
   end
@@ -595,7 +619,7 @@ function UnchartedMapCtrl:RefreshActivityData()
     return
   end
   self:AddTimer(1, 3, function()
-    self:RequireActiviyData()
+    self:RequireActivityData()
   end, true, true, true)
 end
 
@@ -608,50 +632,14 @@ function UnchartedMapCtrl:OnBtn_ClickActivityEntrance(btn, nIndex)
   if nil == state then
     return
   end
-  if state == ActivityState.Closed then
-    EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Activity_End_Notice"))
-    return
-  elseif state == ActivityState.NotOpen then
-    EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Activity_Not_Open"))
-    return
-  elseif state == ActivityState.Open then
-    local activityData = PlayerData.Activity:GetActivityDataById(actData.ActivityId)
-    if activityData == nil then
-      local bHint = true
-      if nIndex == AllEnum.ActivityThemeFuncIndex.Story then
-        bHint = not PlayerData.ActivityAvg:HasActivityData(actData.ActivityId)
-      end
-      if self.bRequiredActData and bHint then
-        EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Activity_Data_Refreshing"))
-        return
-      end
-      if bHint then
-        EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Activity_Not_Open"))
-        self:RequireActiviyData()
-        return
-      end
+  local bOpen, _state, _sTips, bNeedRefreshData = self.ActData:CheckActivityEntranceOpen(actData.ActivityId, actData.PanelId, true, self.bRequiredActData)
+  if not bOpen then
+    if bNeedRefreshData then
+      self:RequireActivityData()
     end
+    return
   end
-  if actData.PanelId ~= nil and ActivityState.Open == state then
-    if nIndex == AllEnum.ActivityThemeFuncIndex.MiniGame then
-      LocalData.SetPlayerLocalData("Activity_ThrowGift_New", true)
-      RedDotManager.SetValid(RedDotDefine.Activity_ThrowGift_New, {
-        actData.ActivityId
-      }, false)
-      
-      local function func()
-        EventManager.Hit(EventId.OpenPanel, actData.PanelId, actData.ActivityId, self.nActId)
-      end
-      
-      EventManager.Hit(EventId.SetTransition, 52, func)
-    elseif self.ActivityGroupCfg.TransitionId ~= nil and self.ActivityGroupCfg.TransitionId > 0 then
-      EventManager.Hit(EventId.SetTransition, self.ActivityGroupCfg.TransitionId, function()
-        EventManager.Hit(EventId.OpenPanel, actData.PanelId, actData.ActivityId)
-      end)
-    else
-      EventManager.Hit(EventId.OpenPanel, actData.PanelId, actData.ActivityId)
-    end
-  end
+  self.ActData:OpenActivityEntrance(actData.ActivityId, actData.PanelId)
 end
 
 return UnchartedMapCtrl

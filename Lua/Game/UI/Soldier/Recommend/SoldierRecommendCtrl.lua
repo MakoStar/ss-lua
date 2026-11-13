@@ -439,6 +439,10 @@ function SoldierRecommendCtrl:OnBtnClick_ConfirmImport()
     EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("BUILD_05"))
     return
   end
+  if PlayerData.SoldierData:CheckRecommendCollected(sCode) then
+    EventManager.Hit(EventId.OpenMessageBox, ConfigTable.GetUIText("Soldier_Recommend_AlreadyCollected"))
+    return
+  end
   local tbCollectData = PlayerData.SoldierData:GetCollectRecommendList()
   local nMaxFavorite = ConfigTable.GetConfigNumber("SoldierBattleReportFavoriteLimit")
   local nFavoriteCount = tbCollectData and #tbCollectData or 0

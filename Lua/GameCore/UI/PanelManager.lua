@@ -607,6 +607,16 @@ function PanelManager.GetCurPanelId()
   return 0
 end
 
+function PanelManager.GetPrePanelId()
+  if type(tbBackHistory) == "table" then
+    local nCount = #tbBackHistory
+    if 2 <= nCount and tbBackHistory[nCount] == objCurPanel then
+      return tbBackHistory[nCount - 1]._nPanelId
+    end
+  end
+  return 0
+end
+
 function PanelManager.CheckPanelOpen(nPanelId)
   if type(tbBackHistory) == "table" then
     for i, objPanel in ipairs(tbBackHistory) do
