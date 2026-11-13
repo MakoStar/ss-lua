@@ -302,6 +302,14 @@ return {
     ver = "1.13.0"
   },
   {
+    id = 161,
+    icon = "Icon/Head/head_16101_S",
+    name = "Leafia",
+    landmark = "Sailstead Trekker Association Headquarters",
+    signature = "This user is currently out of range.",
+    ver = "2.1.0"
+  },
+  {
     id = 162,
     icon = "Icon/Head/head_16201_S",
     name = "Firstlight Noya",
@@ -320,6 +328,13 @@ return {
     id = 3223,
     icon = "Icon/Head/head_npc22301_S",
     name = "Caterine",
+    landmark = "",
+    signature = ""
+  },
+  {
+    id = 3230,
+    icon = "Icon/Head/head_npc23001_S",
+    name = "Mikan",
     landmark = "",
     signature = ""
   },

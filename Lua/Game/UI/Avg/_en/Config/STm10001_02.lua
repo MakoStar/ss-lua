@@ -14969,7 +14969,7 @@ return {
       "",
       false,
       "",
-      "(I ran through the Monolith.==RT==Just as I was about to collapse, I spotted an ornate coffin.)",
+      "(I ran through the tower.==RT==Just as I was about to collapse, I spotted an ornate coffin.)",
       ""
     }
   },
@@ -15426,7 +15426,7 @@ return {
       "",
       false,
       "",
-      "(Speaking of which, who are you? And why were you in a coffin at the top of that Monolith? I never saw anyone go up there in three years.)",
+      "(Speaking of which, who are you? And why were you in a coffin at the top of that tower? I never saw anyone go up there in three years.)",
       ""
     }
   },
@@ -15515,7 +15515,7 @@ return {
       "",
       false,
       "",
-      "(I'm no Acolyte, and I'm from far, far away. As for why I ended up in the Monolith with that coffin, I honestly have no idea.)",
+      "(I'm no Acolyte, and I'm from far, far away. As for why I ended up in that tower with that coffin, I honestly have no idea.)",
       ""
     }
   },

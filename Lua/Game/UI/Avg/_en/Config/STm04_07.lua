@@ -6525,7 +6525,7 @@ return {
       "",
       false,
       "",
-      "If there really was an evil god who demanded a sacrifice to stop rains and floods, a true saint would use their own two hands to strike it down instead.",
+      "If there really was an evil god who demanded a sacrifice to stop rains and floods, a true saint would strike them down instead.",
       ""
     }
   },

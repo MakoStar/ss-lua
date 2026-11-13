@@ -3821,7 +3821,7 @@ return {
     cmd = "CtrlChar",
     param = {
       "avg3_195",
-      "a",
+      "b",
       "006",
       "none",
       nil,

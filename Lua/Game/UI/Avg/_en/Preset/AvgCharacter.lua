@@ -146,6 +146,12 @@ return {
     reuseL2DPose = "b"
   },
   {
+    id = "avg1_121",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    ver = "2.2.0"
+  },
+  {
     id = "avg1_123",
     name = "Ann",
     name_bg_color = "#ed825d"
@@ -326,8 +332,8 @@ return {
   },
   {
     id = "avg1_161",
-    name = "***",
-    name_bg_color = "#0ABEC5",
+    name = "Leafia",
+    name_bg_color = "#f4e0d7",
     ver = "2.1.0"
   },
   {
@@ -362,6 +368,12 @@ return {
     ver = "2.3.0"
   },
   {
+    id = "avg1_177",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    ver = "2.2.0"
+  },
+  {
     id = "avg2_001",
     name = "Shrubshrew Thug",
     name_bg_color = "#0ABEC5"
@@ -378,7 +390,7 @@ return {
   },
   {
     id = "avg2_937",
-    name = "***",
+    name = "Fire Dragon",
     name_bg_color = "#0ABEC5",
     ver = "2.1.0"
   },
@@ -1282,13 +1294,13 @@ return {
   },
   {
     id = "avg3_230",
-    name = "***",
-    name_bg_color = "#0ABEC5",
+    name = "Mikan",
+    name_bg_color = "#8cc8f4",
     ver = "2.1.0"
   },
   {
     id = "avg3_231",
-    name = "***",
+    name = "United Harvest Rep. (M)",
     name_bg_color = "#0ABEC5",
     ver = "2.1.0"
   },
@@ -1311,12 +1323,6 @@ return {
     ver = "1.14.0"
   },
   {
-    id = "avg3_235",
-    name = "***",
-    name_bg_color = "#0ABEC5",
-    ver = "2.2.0"
-  },
-  {
     id = "avg3_236",
     name = "***",
     name_bg_color = "#0ABEC5",
@@ -1327,6 +1333,18 @@ return {
     name = "***",
     name_bg_color = "#0ABEC5",
     ver = "2.2.0"
+  },
+  {
+    id = "avg3_238",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    ver = "2.3.0"
+  },
+  {
+    id = "avg3_240",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    ver = "2.3.0"
   },
   {
     id = "avg3_873",
@@ -3101,7 +3119,7 @@ return {
   },
   {
     id = "avg3_1320",
-    name = "***",
+    name = "Omnisky Aegis Rep. A (M)",
     name_bg_color = "#0ABEC5",
     reuse = "avg3_232",
     ver = "2.1.0"
@@ -3261,6 +3279,61 @@ return {
     ver = "2.0.0"
   },
   {
+    id = "avg3_1343",
+    name = "Black Block A",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg4_107"
+  },
+  {
+    id = "avg3_1344",
+    name = "Ruby A",
+    name_bg_color = "#9f3a42",
+    reuse = "avg3_136",
+    ver = "2.1.0"
+  },
+  {
+    id = "avg3_1345",
+    name = "Sapphire A",
+    name_bg_color = "#5480d6",
+    reuse = "avg3_137",
+    ver = "2.1.0"
+  },
+  {
+    id = "avg3_1346",
+    name = "Coppelius A",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg2_942",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1347",
+    name = "Coppelius B",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg2_942",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1348",
+    name = "Coppelius C",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg2_942",
+    ver = "2.0.0"
+  },
+  {
+    id = "avg3_1349",
+    name = "***",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg1_123",
+    ver = "2.2.0"
+  },
+  {
+    id = "avg3_1350",
+    name = "Opera Ghost A",
+    name_bg_color = "#0ABEC5",
+    reuse = "avg2_946",
+    ver = "1.9.0"
+  },
+  {
     id = "avg4_100",
     name = "Laru Bright Ver",
     name_bg_color = "#0ABEC5"
@@ -3297,6 +3370,11 @@ return {
     name = "Puppet Soldier (Initial Coordinates)",
     name_bg_color = "#0ABEC5",
     ver = "2.0.0"
+  },
+  {
+    id = "avg4_107",
+    name = "Black Block",
+    name_bg_color = "#0ABEC5"
   },
   {
     id = "avg4_999",
