@@ -3182,7 +3182,7 @@ return {
     param = {
       0,
       1,
-      "",
+      "qstory_event_13_004",
       nil,
       nil,
       1.0,
@@ -3326,7 +3326,7 @@ return {
     param = {
       1,
       0,
-      "",
+      "qstory_event_13_004",
       nil,
       nil,
       1.0,
@@ -4019,20 +4019,8 @@ return {
     param = {
       0,
       1,
-      "",
+      "qstory_event_13_005",
       0.6,
-      nil,
-      1.0,
-      true
-    }
-  },
-  {
-    cmd = "SetFrontObj",
-    param = {
-      1,
-      0,
-      "",
-      nil,
       nil,
       1.0,
       true
@@ -4080,9 +4068,21 @@ return {
       0,
       nil,
       false,
-      0.0,
+      0.5,
       true,
       nil
+    }
+  },
+  {
+    cmd = "SetFrontObj",
+    param = {
+      1,
+      0,
+      "qstory_event_13_005",
+      nil,
+      nil,
+      1.0,
+      true
     }
   },
   {
@@ -7993,7 +7993,7 @@ return {
     param = {
       0,
       1,
-      "",
+      "qstory_event_13_006",
       nil,
       nil,
       1.0,
@@ -8069,7 +8069,7 @@ return {
     param = {
       1,
       1,
-      "",
+      "qstory_event_13_006",
       nil,
       nil,
       1.0,
